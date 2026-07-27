@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>ssg</groupId>
+        <artifactId>lego-flow-network</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>lego-flow-ldap</artifactId>
+    <name>Lego Flow LDAP — Lightweight Directory Access Protocol v3 (RFC 4511)</name>
+    <dependencies>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-blocks</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-service</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-network-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

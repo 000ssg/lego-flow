@@ -1,0 +1,9 @@
+// Lego Flow gRPC — Google Remote Procedure Call Protocol
+val slf4jVersion: String by project
+
+dependencies {
+    api(project(":blocks"))
+    api(project(":service"))
+    api(project(":web:http2"))
+    implementation("org.slf4j:slf4j-api:$slf4jVersion")
+}
