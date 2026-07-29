@@ -388,15 +388,28 @@ Current test count: **8136+** across 42 leaf modules in 9 categories + interop-t
 
 The `benchmarks/` module contains JMH-based microbenchmarks for protocol throughput, latency, and serialization performance.
 
+### Maven
 ```bash
 # Build benchmarks
 mvn package -pl benchmarks -am -DskipTests
 
-# Run all benchmarks  
+# Run all benchmarks
 java -jar benchmarks/target/lego-flow-benchmarks-1.0.0-SNAPSHOT.jar
 
 # Run specific category
 java -jar benchmarks/target/lego-flow-benchmarks-1.0.0-SNAPSHOT.jar ".*HttpThroughputBenchmark.*"
+```
+
+### Gradle
+```bash
+# Build and run all benchmarks
+./gradlew :benchmarks:runBenchmarks
+
+# Run specific benchmark category
+./gradlew :benchmarks:runBenchmarks --args=".*HttpThroughputBenchmark.*"
+
+# Run with custom JVM args (mirrors Maven execution)
+./gradlew :benchmarks:runBenchmarks --args="-rf json -wi 2 -w 5s -i 3 -f 1"
 ```
 
 ### Benchmark Categories
@@ -417,6 +430,7 @@ See [benchmarks/README.md](benchmarks/README.md) for details.
 
 The `interop-tests/` module validates protocol implementations against real reference servers.
 
+### Maven
 ```bash
 # Start reference servers
 docker compose -f interop-tests/docker-compose.yml up -d
@@ -426,6 +440,18 @@ mvn verify -pl interop-tests -am
 
 # Stop reference servers
 docker compose -f interop-tests/docker-compose.yml down
+```
+
+### Gradle
+```bash
+# Run all interoperability tests (Docker services must be running)
+./gradlew :interop-tests:test
+
+# Run specific test class
+./gradlew :interop-tests:test --tests "org.legoflow.interop.http.HttpNginxInteropTest"
+
+# Run with custom server addresses
+./gradlew :interop-tests:test -Dinterop.nginx.host=myhost -Dinterop.nginx.port=80
 ```
 
 ### Test Matrix
@@ -467,13 +493,13 @@ See [interop-tests/README.md](interop-tests/README.md) for details.
 
 #### Core
 - **blocks/** — [README](blocks/README.md) | [Code Overview](blocks/doc/CODE_OVERVIEW.md) | [Architecture](blocks/doc/ARCHITECTURE.md) | [Requirements](blocks/doc/REQUIREMENTS.md)
-- **service/** — [README](service/README.md) | [Code Overview](service/doc/CODE_OVERVIEW.md) | [Architecture](service/doc/ARCHITECTURE.md) | [Requirements](service/doc/REQUIREMENTS.md)
+- **service/** — [README](service/README.md) | [Code Overview](service/doc/CODE_OVERVIEW.md) | [Architecture](service/doc/ARCHITECTURE.md) | [Requirements](service/doc/REQUIREMENTS.md) | [Compliance](service/doc/COMPLIANCE.md)
 
 #### Web (web/)
 - **http/** — [README](web/http/README.md) | [Architecture](web/http/doc/ARCHITECTURE.md) | [Requirements](web/http/doc/REQUIREMENTS.md) | [Compliance](web/http/doc/COMPLIANCE.md)
 - **http2/** — [README](web/http2/README.md) | [Architecture](web/http2/doc/ARCHITECTURE.md) | [Requirements](web/http2/doc/REQUIREMENTS.md) | [Compliance](web/http2/doc/COMPLIANCE.md)
 - **http3/** — [README](web/http3/README.md) | [Architecture](web/http3/doc/ARCHITECTURE.md) | [Requirements](web/http3/doc/REQUIREMENTS.md) | [Compliance](web/http3/doc/COMPLIANCE.md)
-- **web-services/** — [README](web/web-services/README.md) | [Architecture](web/web-services/doc/ARCHITECTURE.md) | [Requirements](web/web-services/doc/REQUIREMENTS.md)
+- **web-services/** — [README](web/web-services/README.md) | [Architecture](web/web-services/doc/ARCHITECTURE.md) | [Requirements](web/web-services/doc/REQUIREMENTS.md) | [Compliance](web/web-services/doc/COMPLIANCE.md)
 - **http-proxy/** — [README](web/http-proxy/README.md) | [Architecture](web/http-proxy/doc/ARCHITECTURE.md) | [Requirements](web/http-proxy/doc/REQUIREMENTS.md) | [Compliance](web/http-proxy/doc/COMPLIANCE.md)
 
 #### IoT (iot/)
@@ -490,40 +516,40 @@ See [interop-tests/README.md](interop-tests/README.md) for details.
   - **spnego/** — [README](auth/http-auth/spnego/README.md) | [Architecture](auth/http-auth/spnego/doc/ARCHITECTURE.md) | [Requirements](auth/http-auth/spnego/doc/REQUIREMENTS.md) | [Compliance](auth/http-auth/spnego/doc/COMPLIANCE.md)
 
 #### Messaging (messaging/)
-- **kafka/** — [README](messaging/kafka/README.md) | [Architecture](messaging/kafka/doc/ARCHITECTURE.md) | [Requirements](messaging/kafka/doc/REQUIREMENTS.md) | [Compliance](messaging/kafka/COMPLIANCE.md)
-- **amqp/** — [README](messaging/amqp/README.md) | [Architecture](messaging/amqp/doc/ARCHITECTURE.md) | [Requirements](messaging/amqp/doc/REQUIREMENTS.md)
+- **kafka/** — [README](messaging/kafka/README.md) | [Architecture](messaging/kafka/doc/ARCHITECTURE.md) | [Requirements](messaging/kafka/doc/REQUIREMENTS.md) | [Compliance](messaging/kafka/doc/COMPLIANCE.md)
+- **amqp/** — [README](messaging/amqp/README.md) | [Architecture](messaging/amqp/doc/ARCHITECTURE.md) | [Requirements](messaging/amqp/doc/REQUIREMENTS.md) | [Compliance](messaging/amqp/doc/COMPLIANCE.md)
 - **stomp/** — [README](messaging/stomp/README.md) | [Architecture](messaging/stomp/doc/ARCHITECTURE.md) | [Requirements](messaging/stomp/doc/REQUIREMENTS.md) | [Compliance](messaging/stomp/COMPLIANCE.md)
-- **nats/** — [README](messaging/nats/README.md) | [Architecture](messaging/nats/doc/ARCHITECTURE.md) | [Requirements](messaging/nats/doc/REQUIREMENTS.md)
+- **nats/** — [README](messaging/nats/README.md) | [Architecture](messaging/nats/doc/ARCHITECTURE.md) | [Requirements](messaging/nats/doc/REQUIREMENTS.md) | [Compliance](messaging/nats/doc/COMPLIANCE.md)
 - **mqtt/** — [README](messaging/mqtt/README.md) | [Architecture](messaging/mqtt/doc/ARCHITECTURE.md) | [Requirements](messaging/mqtt/doc/REQUIREMENTS.md) | [Compliance](messaging/mqtt/doc/COMPLIANCE.md)
 - **xmpp/** — [README](messaging/xmpp/README.md) | [Architecture](messaging/xmpp/doc/ARCHITECTURE.md) | [Requirements](messaging/xmpp/doc/REQUIREMENTS.md) | [Compliance](messaging/xmpp/doc/COMPLIANCE.md)
 - **wamp/** — [README](messaging/wamp/README.md) | [Architecture](messaging/wamp/doc/ARCHITECTURE.md) | [Requirements](messaging/wamp/doc/REQUIREMENTS.md) | [Compliance](messaging/wamp/doc/COMPLIANCE.md)
 
 #### RPC (rpc/)
 - **grpc/** — [README](rpc/grpc/README.md) | [Architecture](rpc/grpc/doc/ARCHITECTURE.md) | [Requirements](rpc/grpc/doc/REQUIREMENTS.md) | [Compliance](rpc/grpc/COMPLIANCE.md)
-- **graphql/** — [README](rpc/graphql/README.md) | [Architecture](rpc/graphql/doc/ARCHITECTURE.md) | [Requirements](rpc/graphql/doc/REQUIREMENTS.md)
+- **graphql/** — [README](rpc/graphql/README.md) | [Architecture](rpc/graphql/doc/ARCHITECTURE.md) | [Requirements](rpc/graphql/doc/REQUIREMENTS.md) | [Compliance](rpc/graphql/doc/COMPLIANCE.md)
 
 #### Database (database/)
-- **redis/** — [README](database/redis/README.md) | [Architecture](database/redis/doc/ARCHITECTURE.md) | [Requirements](database/redis/doc/REQUIREMENTS.md)
-- **postgresql/** — [README](database/postgresql/README.md) | [Architecture](database/postgresql/doc/ARCHITECTURE.md) | [Requirements](database/postgresql/doc/REQUIREMENTS.md)
-- **mysql/** — [README](database/mysql/README.md) | [Architecture](database/mysql/doc/ARCHITECTURE.md) | [Requirements](database/mysql/doc/REQUIREMENTS.md)
+- **redis/** — [README](database/redis/README.md) | [Architecture](database/redis/doc/ARCHITECTURE.md) | [Requirements](database/redis/doc/REQUIREMENTS.md) | [Compliance](database/redis/doc/COMPLIANCE.md)
+- **postgresql/** — [README](database/postgresql/README.md) | [Architecture](database/postgresql/doc/ARCHITECTURE.md) | [Requirements](database/postgresql/doc/REQUIREMENTS.md) | [Compliance](database/postgresql/doc/COMPLIANCE.md)
+- **mysql/** — [README](database/mysql/README.md) | [Architecture](database/mysql/doc/ARCHITECTURE.md) | [Requirements](database/mysql/doc/REQUIREMENTS.md) | [Compliance](database/mysql/doc/COMPLIANCE.md)
 
 #### Email (email/)
-- **smtp/** — [README](email/smtp/README.md) | [Architecture](email/smtp/doc/ARCHITECTURE.md) | [Requirements](email/smtp/doc/REQUIREMENTS.md)
-- **imap/** — [README](email/imap/README.md) | [Architecture](email/imap/doc/ARCHITECTURE.md) | [Requirements](email/imap/doc/REQUIREMENTS.md)
+- **smtp/** — [README](email/smtp/README.md) | [Architecture](email/smtp/doc/ARCHITECTURE.md) | [Requirements](email/smtp/doc/REQUIREMENTS.md) | [Compliance](email/smtp/doc/COMPLIANCE.md)
+- **imap/** — [README](email/imap/README.md) | [Architecture](email/imap/doc/ARCHITECTURE.md) | [Requirements](email/imap/doc/REQUIREMENTS.md) | [Compliance](email/imap/doc/COMPLIANCE.md)
 
 #### Network (network/)
-- **dns/** — [README](network/dns/README.md) | [Architecture](network/dns/doc/ARCHITECTURE.md) | [Requirements](network/dns/doc/REQUIREMENTS.md)
-- **ldap/** — [README](network/ldap/README.md) | [Architecture](network/ldap/doc/ARCHITECTURE.md) | [Requirements](network/ldap/doc/REQUIREMENTS.md)
-- **snmp/** — [README](network/snmp/README.md) | [Architecture](network/snmp/doc/ARCHITECTURE.md) | [Requirements](network/snmp/doc/REQUIREMENTS.md)
+- **dns/** — [README](network/dns/README.md) | [Architecture](network/dns/doc/ARCHITECTURE.md) | [Requirements](network/dns/doc/REQUIREMENTS.md) | [Compliance](network/dns/doc/COMPLIANCE.md)
+- **ldap/** — [README](network/ldap/README.md) | [Architecture](network/ldap/doc/ARCHITECTURE.md) | [Requirements](network/ldap/doc/REQUIREMENTS.md) | [Compliance](network/ldap/doc/COMPLIANCE.md)
+- **snmp/** — [README](network/snmp/README.md) | [Architecture](network/snmp/doc/ARCHITECTURE.md) | [Requirements](network/snmp/doc/REQUIREMENTS.md) | [Compliance](network/snmp/doc/COMPLIANCE.md)
 - **syslog/** — [README](network/syslog/README.md) | [Architecture](network/syslog/doc/ARCHITECTURE.md) | [Requirements](network/syslog/doc/REQUIREMENTS.md) | [Compliance](network/syslog/COMPLIANCE.md)
-- **modbus/** — [README](network/modbus/README.md) | [Architecture](network/modbus/doc/ARCHITECTURE.md) | [Requirements](network/modbus/doc/REQUIREMENTS.md)
+- **modbus/** — [README](network/modbus/README.md) | [Architecture](network/modbus/doc/ARCHITECTURE.md) | [Requirements](network/modbus/doc/REQUIREMENTS.md) | [Compliance](network/modbus/doc/COMPLIANCE.md)
 - **ssh/** — [README](network/ssh/README.md) | [Architecture](network/ssh/doc/ARCHITECTURE.md) | [Requirements](network/ssh/doc/REQUIREMENTS.md) | [Compliance](network/ssh/doc/COMPLIANCE.md)
 - **ftp/** — [README](network/ftp/README.md) | [Architecture](network/ftp/doc/ARCHITECTURE.md) | [Requirements](network/ftp/doc/REQUIREMENTS.md) | [Compliance](network/ftp/doc/COMPLIANCE.md)
 
 #### Media (media/)
-- **rtsp/** — [README](media/rtsp/README.md) | [Architecture](media/rtsp/doc/ARCHITECTURE.md) | [Requirements](media/rtsp/doc/REQUIREMENTS.md)
-- **rtp/** — [README](media/rtp/README.md) | [Architecture](media/rtp/doc/ARCHITECTURE.md) | [Requirements](media/rtp/doc/REQUIREMENTS.md)
-- **sip/** — [README](media/sip/README.md) | [Architecture](media/sip/doc/ARCHITECTURE.md) | [Requirements](media/sip/doc/REQUIREMENTS.md)
+- **rtsp/** — [README](media/rtsp/README.md) | [Architecture](media/rtsp/doc/ARCHITECTURE.md) | [Requirements](media/rtsp/doc/REQUIREMENTS.md) | [Compliance](media/rtsp/doc/COMPLIANCE.md)
+- **rtp/** — [README](media/rtp/README.md) | [Architecture](media/rtp/doc/ARCHITECTURE.md) | [Requirements](media/rtp/doc/REQUIREMENTS.md) | [Compliance](media/rtp/doc/COMPLIANCE.md)
+- **sip/** — [README](media/sip/README.md) | [Architecture](media/sip/doc/ARCHITECTURE.md) | [Requirements](media/sip/doc/REQUIREMENTS.md) | [Compliance](media/sip/doc/COMPLIANCE.md)
 
 #### Infrastructure
 - **demos/** — [Architecture](demos/doc/ARCHITECTURE.md) | [Requirements](demos/doc/REQUIREMENTS.md)
