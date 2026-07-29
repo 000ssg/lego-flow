@@ -332,11 +332,54 @@
                         <useIncrementalCompilation>false</useIncrementalCompilation>
                     </configuration>
                 </plugin>
+
             </plugins>
         </pluginManagement>
+
     </build>
     <!-- Profiles for targeted builds by protocol category -->
+    <!-- JaCoCo coverage profile — activated in CI via -P jacoco-coverage -->
     <profiles>
+        <profile>
+            <id>jacoco-coverage</id>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.jacoco</groupId>
+                            <artifactId>maven-jacoco-plugin</artifactId>
+                            <version>0.8.10</version>
+                            <configuration>
+                                <excludes>
+                                    <exclude>**/demo/**</exclude>
+                                    <exclude>**/examples/**</exclude>
+                                </excludes>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>maven-jacoco-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>report</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>all</id>
             <activation>
@@ -357,6 +400,10 @@
                 <module>media</module>
                 <!-- Demos module (excluded from install/deploy) -->
                 <module>demos</module>
+                <!-- Benchmarks module (excluded from install/deploy) -->
+                <module>benchmarks</module>
+                <!-- Interop tests module (excluded from install/deploy) -->
+                <module>interop-tests</module>
             </modules>
         </profile>
         <profile>

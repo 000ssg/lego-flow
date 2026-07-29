@@ -19,7 +19,8 @@ This document tracks all requirements, design decisions, and their evolution thr
 
 - [Project Timeline Overview](#project-timeline-overview)
 - **Commits by date (newest → oldest)**
-  - [Commit 18: Java 24->25 upgrade, CLAUDE.md->AGENTS.md rename with symlinks](#commit-18)
+  - [Commit 19: CI/CD Pipeline, JMH Benchmarks, Protocol Interoperability Tests](#commit-19)
+  - [Commit 18:## Commit 18 Java 24->25 upgrade, CLAUDE.md->AGENTS.md rename with symlinks](#commit-18)
   - [Commit 17: CLAUDE.md generic attribution and project maintenance](#commit-17)
   - [Commit 16: Gradle build system (parallel to Maven)](#commit-16)
   - [Commit 15: Package refactoring — com.relexsolutions → ssg](#commit-15)

@@ -5,6 +5,10 @@ include("blocks")
 include("service")
 include("demos")
 
+// Infrastructure modules (excluded from install/deploy)
+include("benchmarks")
+include("interop-tests")
+
 // Parent-only aggregator projects (Maven pom-style, no Java sources)
 include(":auth")
 include(":web")

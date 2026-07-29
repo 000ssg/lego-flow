@@ -18,6 +18,8 @@ A composable data processing framework for Java built on JDK 25, providing layer
 - [Quick Start](#quick-start)
 - [Building & Running](#building-and-running)
 - [Testing](#testing)
+- [Benchmarking](#benchmarking)
+- [Interoperability Testing](#interoperability)
 - [Documentation](#documentation)
 - [Roadmap](#roadmap)
 - [License](#license)
@@ -201,6 +203,9 @@ flowchart LR
 | **media** | rtsp | lego-flow-rtsp | RTSP 2.0 (RFC 7826): streaming control, SDP negotiation |
 | **media** | rtp | lego-flow-rtp | RTP/RTCP (RFC 3550): real-time transport, jitter buffer, SSRC management |
 | **media** | sip | lego-flow-sip | SIP (RFC 3261): VoIP signaling, dialog state machine, registration |
+| **infra** | demos | lego-flow-demos | Demo classes for each protocol (excluded from install/deploy) |
+| **infra** | benchmarks | lego-flow-benchmarks | JMH microbenchmarks: HTTP throughput, MQTT latency, auth, codec serialization |
+| **infra** | interop-tests | lego-flow-interop-tests | Protocol interoperability tests against real servers (Docker Compose) |
 
 ---
 
@@ -372,8 +377,67 @@ Each module includes:
 - **Unit tests** for individual components
 - **Functional demo tests** exercising real usage patterns from simplest to complex
 - **API style tests** covering procedural sync, procedural async, functional sync, functional async
+- **Interoperability integration tests** validating protocols against real servers (requires Docker)
 
-Current test count: **8136** across 42 leaf modules in 9 categories
+Current test count: **8136+** across 42 leaf modules in 9 categories + interop-tests
+
+---
+
+<a id="benchmarking"></a>
+## Benchmarking
+
+The `benchmarks/` module contains JMH-based microbenchmarks for protocol throughput, latency, and serialization performance.
+
+```bash
+# Build benchmarks
+mvn package -pl benchmarks -am -DskipTests
+
+# Run all benchmarks  
+java -jar benchmarks/target/lego-flow-benchmarks-1.0.0-SNAPSHOT.jar
+
+# Run specific category
+java -jar benchmarks/target/lego-flow-benchmarks-1.0.0-SNAPSHOT.jar ".*HttpThroughputBenchmark.*"
+```
+
+### Benchmark Categories
+
+| Benchmark | Mode | Measures |
+|-----------|------|----------|
+| HttpThroughputBenchmark | Throughput (ops/ms) | HTTP request/response serialization, roundtrip performance |
+| MqttLatencyBenchmark | AverageTime (µs) | MQTT packet encoding/decoding for QoS 0/1/2 |
+| AuthHandshakeBenchmark | AverageTime (µs) | Basic auth validation against user store |
+| CodecSerializationBenchmark | Throughput (ops/ms) | HTTP vs RESP codec serialization/deserialization |
+
+See [benchmarks/README.md](benchmarks/README.md) for details.
+
+---
+
+<a id="interoperability"></a>
+## Interoperability Testing
+
+The `interop-tests/` module validates protocol implementations against real reference servers.
+
+```bash
+# Start reference servers
+docker compose -f interop-tests/docker-compose.yml up -d
+
+# Run interoperability tests
+mvn verify -pl interop-tests -am
+
+# Stop reference servers
+docker compose -f interop-tests/docker-compose.yml down
+```
+
+### Test Matrix
+
+| Protocol | Reference Server | Tests |
+|----------|-----------------|-------|
+| HTTP/1.1 | nginx:alpine | GET endpoints, POST echo, JSON API, HTML |
+| MQTT v3.1.1/v5.0 | eclipse-mosquitto | Connect, publish/subscribe, wildcards, multi-topic |
+| Redis RESP2/3 | redis:7-alpine | Strings, hashes, lists, KEYS, TTL |
+| PostgreSQL v3 wire | postgres:17-alpine | DDL, DML, aggregates, transactions |
+
+See [interop-tests/README.md](interop-tests/README.md) for details.
 
 ---
 
@@ -460,6 +524,11 @@ Current test count: **8136** across 42 leaf modules in 9 categories
 - **rtsp/** — [README](media/rtsp/README.md) | [Architecture](media/rtsp/doc/ARCHITECTURE.md) | [Requirements](media/rtsp/doc/REQUIREMENTS.md)
 - **rtp/** — [README](media/rtp/README.md) | [Architecture](media/rtp/doc/ARCHITECTURE.md) | [Requirements](media/rtp/doc/REQUIREMENTS.md)
 - **sip/** — [README](media/sip/README.md) | [Architecture](media/sip/doc/ARCHITECTURE.md) | [Requirements](media/sip/doc/REQUIREMENTS.md)
+
+#### Infrastructure
+- **demos/** — [Architecture](demos/doc/ARCHITECTURE.md) | [Requirements](demos/doc/REQUIREMENTS.md)
+- **benchmarks/** — [README](benchmarks/README.md) | [Architecture](benchmarks/doc/ARCHITECTURE.md) | [Requirements](benchmarks/doc/REQUIREMENTS.md)
+- **interop-tests/** — [README](interop-tests/README.md) | [Architecture](interop-tests/doc/ARCHITECTURE.md) | [Requirements](interop-tests/doc/REQUIREMENTS.md)
 
 ---
 

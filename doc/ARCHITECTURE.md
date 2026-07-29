@@ -469,3 +469,61 @@ The integration points differ enough that a shared module would add coupling wit
 ---
 
 **Last Updated**: 2026-07-04
+
+## CI/CD Infrastructure
+
+The project uses GitHub Actions for continuous integration with a multi-job pipeline that covers compilation, testing, coverage gating, protocol-specific test matrices, and interoperability validation.
+
+### Pipeline Jobs
+
+```mermaid
+graph LR
+    build["Build & Test<br/>(ubuntu + macos)"] --> coverage["Coverage Gate<br/>(JaCoCo thresholds)"]
+    build --> interop["Interoperability Tests<br/>(Docker services)"]
+    proto["Protocol Profiles<br/>(web, messaging, auth...)"] 
+    check["Build Check<br/>(fast validation)"]
+
+    build -->|depends on| coverage
+    build -->|depends on| interop
+```
+
+### Coverage Configuration
+
+JaCoCo is configured as an optional profile (`jacoco-coverage`) to avoid blocking local builds when Maven Central is unavailable. In CI, the coverage gate job runs `mvn verify jacoco:check -P all,jacoco-coverage`.
+
+### Protocol-Specific Test Profiles
+
+| Profile | Modules Tested | Purpose |
+|---------|---------------|---------|
+| web-only | blocks, service, web/* | HTTP protocol changes only |
+| messaging-only | blocks, service, messaging/* | MQTT/Kafka/AMQP changes only |
+| network-only | blocks, service, network/* | DNS/SSH/LDAP changes only |
+| auth-only | blocks, service, auth/* | OAuth/Basic/Digest changes only |
+| database-only | blocks, service, database/* | Redis/PostgreSQL/MySQL changes only |
+
+### Interoperability Test Infrastructure
+
+Docker Compose provides reference server implementations:
+- **nginx:alpine** — HTTP/1.1 reference server (port 8080)
+- **eclipse-mosquitto** — MQTT broker (port 1883)
+- **redis:7-alpine** — Redis in-memory store (port 6379)
+- **postgres:17-alpine** — PostgreSQL database (port 5432)
+
+Service health checks wait for container readiness before test execution. Environment variables passed to Maven/Gradle configure target addresses.
+
+### Benchmark Infrastructure
+
+The `benchmarks` module provides JMH-based microbenchmarks for protocol throughput, latency, and serialization performance. Benchmarks run as non-blocking CI gates that warn on regression without failing the build. Results are published as artifacts for trend analysis.
+
+## Build System Dual Support (Maven + Gradle)
+
+Both Maven (`pom.xml`) and Gradle (`build.gradle.kts` / `settings.gradle.kts`) are maintained in parallel with strict parity:
+
+| Maven | Gradle | Purpose |
+|-------|--------|---------|
+| `mvn compile -P all -T 1C` | `./gradlew compileJava --parallel` | Compilation |
+| `mvn test -pl benchmarks -am` | `./gradlew :benchmarks:test` | Testing |
+| `java -jar benchmarks/target/...jar` | `./gradlew :benchmarks:runBenchmarks` | Benchmark execution |
+| `-Dinterop.nginx.host=...` | `-Dinterop.nginx.host=...` or properties file | Interop config |
+
+When project structure or dependencies change, both build systems must be updated simultaneously in the same commit.

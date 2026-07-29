@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>ssg</groupId>
+        <artifactId>lego-flow</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>lego-flow-interop-tests</artifactId>
+    <name>Lego Flow Interop Tests — Protocol interoperability against real servers</name>
+
+    <description>
+        Integration tests that connect Lego Flow protocol implementations to real
+        reference server implementations (nginx, Mosquitto, Redis, PostgreSQL).
+        Excluded from install/deploy lifecycle — this module is for testing only.
+    </description>
+
+    <dependencies>
+        <!-- Protocol modules under test -->
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-http</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-mqtt</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-redis</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-postgresql</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Testing -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- SLF4J for protocol modules -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.simple.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <!-- Exclude from Maven install/deploy -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>3.1.2</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>3.1.2</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+
+            <!-- Failsafe plugin for integration tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <interop.nginx.host>${INTEROP_NGINX_HOST:localhost}</interop.nginx.host>
+                        <interop.nginx.port>${INTEROP_NGINX_PORT:8080}</interop.nginx.port>
+                        <interop.mosquitto.host>${INTEROP_MOSQUITTO_HOST:localhost}</interop.mosquitto.host>
+                        <interop.mosquitto.port>${INTEROP_MOSQUITTO_PORT:1883}</interop.mosquitto.port>
+                        <interop.redis.host>${INTEROP_REDIS_HOST:localhost}</interop.redis.host>
+                        <interop.redis.port>${INTEROP_REDIS_PORT:6379}</interop.redis.port>
+                        <interop.pg.host>${INTEROP_PG_HOST:localhost}</interop.pg.host>
+                        <interop.pg.port>${INTEROP_PG_PORT:5432}</interop.pg.port>
+                        <interop.pg.user>${INTEROP_PG_USER:legoflow}</interop.pg.user>
+                        <interop.pg.password>${INTEROP_PG_PASSWORD:legoflow}</interop.pg.password>
+                        <interop.pg.db>${INTEROP_PG_DB:legoflow_test}</interop.pg.db>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+
+            <!-- Compile test classes with JDK 25 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.14.0</version>
+                <configuration>
+                    <release>25</release>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
