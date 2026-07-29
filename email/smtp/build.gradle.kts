@@ -4,6 +4,6 @@ val slf4jVersion: String by project
 dependencies {
     api(project(":blocks"))
     api(project(":service"))
-    api(project(":email:common"))
+    api(project(":lego-flow-email-common"))
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
 }

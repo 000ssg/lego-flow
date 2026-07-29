@@ -3,7 +3,7 @@ package ssg.legoflow.wamp.core;
 import ssg.legoflow.wamp.core.role.Publisher;
 import ssg.legoflow.wamp.core.role.Subscriber;
 import ssg.legoflow.wamp.core.router.Broker;
-import ssg.legoflow.wamp.demo.base.InMemoryTransport;
+import ssg.legoflow.wamp.core.transport.InMemoryTransport;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;

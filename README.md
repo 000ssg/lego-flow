@@ -278,6 +278,37 @@ mvn clean install
 > mvn -T 1C clean install
 > ```
 
+
+### Build Profiles
+
+The project supports Maven profiles for targeted builds. This speeds up development
+when you only need to work on specific protocol categories:
+
+```bash
+# Build all modules (default)
+mvn clean install
+
+# Build only web protocols (HTTP/1.1, HTTP/2, HTTP/3, Web Services, HTTP Proxy)
+mvn -Pweb-only clean install
+
+# Build only messaging protocols (Kafka, AMQP, MQTT, STOMP, NATS, XMPP, WAMP)
+mvn -Pmessaging-only clean install
+
+# Build only network protocols (DNS, LDAP, SNMP, SSH, FTP, Syslog, Modbus)
+mvn -Pnetwork-only clean install
+
+# Build only authentication modules (GSSAPI, HTTP Auth, SSO, SPNEGO, OAuth)
+mvn -Pauth-only clean install
+
+# Build only database protocols (PostgreSQL, Redis, MySQL)
+mvn -Pdatabase-only clean install
+
+# Minimal build — core blocks and service framework only (fastest)
+mvn -Pminimal clean install
+```
+
+All profiles include the required `blocks` and `service` dependencies.
+
 ### Build with Gradle
 ```bash
 ./gradlew build

@@ -1,7 +1,7 @@
 package ssg.legoflow.wamp.core;
 
 import ssg.legoflow.wamp.core.router.WampRouter;
-import ssg.legoflow.wamp.demo.base.InMemoryTransport;
+import ssg.legoflow.wamp.core.transport.InMemoryTransport;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

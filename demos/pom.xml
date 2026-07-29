@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>ssg</groupId>
+        <artifactId>lego-flow</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>lego-flow-demos</artifactId>
+    <name>Lego Flow Demos — Protocol demonstration and example code</name>
+
+    <description>
+        Demo classes that exercise each protocol implementation.
+        Excluded from install/deploy lifecycle — this module is for reference only.
+    </description>
+
+    <!-- Exclude from Maven install/deploy -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>3.1.2</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>3.1.2</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <skipIfEmpty>true</skipIfEmpty>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <!-- Core modules -->
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-blocks</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-service</artifactId>
+        </dependency>
+
+        <!-- Web modules -->
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-http</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-http2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-http3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-web-services</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-http-proxy</artifactId>
+        </dependency>
+
+        <!-- Messaging modules -->
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-kafka</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-amqp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-stomp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-nats</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-mqtt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-xmpp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-wamp</artifactId>
+        </dependency>
+
+        <!-- RPC modules -->
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-grpc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-graphql</artifactId>
+        </dependency>
+
+        <!-- Database modules -->
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-postgresql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-mysql</artifactId>
+        </dependency>
+
+        <!-- Email modules -->
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-email-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-smtp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-imap</artifactId>
+        </dependency>
+
+        <!-- Network modules -->
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-network-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-dns</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-ldap</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-snmp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-syslog</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-modbus</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-ssh</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-ftp</artifactId>
+        </dependency>
+
+        <!-- IoT modules -->
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-upnp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-coap</artifactId>
+        </dependency>
+
+        <!-- Media modules -->
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-media-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-rtsp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-rtp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-sip</artifactId>
+        </dependency>
+
+        <!-- Auth modules -->
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-http-auth-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-http-auth-basic-digest</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-http-auth-oauth</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-http-auth-spnego</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-http-auth-sso</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-gssapi</artifactId>
+        </dependency>
+
+        <!-- Logging (for demos) -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Testing -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

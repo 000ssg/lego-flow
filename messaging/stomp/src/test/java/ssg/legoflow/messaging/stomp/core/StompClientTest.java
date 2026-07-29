@@ -3,7 +3,7 @@ package ssg.legoflow.messaging.stomp.core;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ssg.legoflow.messaging.stomp.demo.InMemoryStompTransport;
+import ssg.legoflow.messaging.stomp.core.transport.InMemoryStompTransport;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
