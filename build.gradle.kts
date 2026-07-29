@@ -92,6 +92,7 @@ fun Project.setupBenchmarkModule() {
 }
 
 // Configure interop-tests module: protocol deps + Docker system properties (mirrors interop-tests/pom.xml)
+// Skip by default — only run when Docker services are available (-DskipInteropTests=false mirrors Maven)
 fun Project.setupInteropTestsModule() {
     // Protocol modules under test (mirrors interop-tests/pom.xml dependencies)
     dependencies {
@@ -101,8 +102,12 @@ fun Project.setupInteropTestsModule() {
         "testImplementation"(project(":lego-flow-postgresql"))
     }
 
-    // System properties for Docker targets (mirrors Maven failsafe plugin config)
+    // Skip tests by default — mirrors Maven skipInteropTests=true property
+    // Override: ./gradlew :interop-tests:test -DskipInteropTests=false
     tasks.withType<Test> {
+        enabled = (findProperty("skipInteropTests") ?: "true") != "true"
+        
+        // System properties for Docker targets (mirrors Maven failsafe plugin config)
         systemProperty("interop.nginx.host", findProperty("interop.nginx.host") ?: "localhost")
         systemProperty("interop.nginx.port", findProperty("interop.nginx.port") ?: "8080")
         systemProperty("interop.mosquitto.host", findProperty("interop.mosquitto.host") ?: "localhost")

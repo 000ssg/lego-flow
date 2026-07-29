@@ -53,11 +53,12 @@ jobs:
           CI: true
 
       # ── Run tests with JaCoCo instrumentation ─
-      - name: Run tests with coverage
+      - name: Run tests with coverage (skip interop tests — no Docker services)
         run: |
           mvn -B verify -T 1C -P all \
             -Djacoco.includes=ssg.legoflow.** \
-            -DfailIfNoTests=false
+            -DfailIfNoTests=false \
+            -DskipInteropTests=true
         env:
           CI: true
 
@@ -109,8 +110,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Run tests with coverage instrumentation
-        run: mvn -B verify -T 1C -P all,jacoco-coverage
+      - name: Run tests with coverage instrumentation (skip interop tests — no Docker services)
+        run: mvn -B verify -T 1C -P all,jacoco-coverage -DskipInteropTests=true
         env:
           CI: true
 
@@ -255,8 +256,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Run interoperability tests
-        run: mvn -B verify -pl database/redis,database/postgresql,messaging/mqtt,web/http -am -P all
+      - name: Run interoperability tests (Docker services are running)
+        run: mvn -B verify -pl interop-tests -am -P all -DskipInteropTests=false
         env:
           CI: true
           INTEROP_NGINX_HOST: localhost

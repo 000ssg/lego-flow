@@ -685,6 +685,9 @@ class PassThroughConnectionTest {
         ptc.stop();
         assertThat(ptc.isRunning()).isFalse();
 
+        // Wait for port to be released (TCP TIME_WAIT on CI can delay port reuse)
+        Thread.sleep(200);
+
         // Restart
         ptc.start();
         assertThat(ptc.isRunning()).isTrue();

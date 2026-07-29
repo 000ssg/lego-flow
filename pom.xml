@@ -419,6 +419,7 @@
             <modules>
                 <module>blocks</module>
                 <module>service</module>
+                <module>web</module>
                 <module>messaging</module>
             </modules>
         </profile>
@@ -427,6 +428,7 @@
             <modules>
                 <module>blocks</module>
                 <module>service</module>
+                <module>web</module>
                 <module>network</module>
             </modules>
         </profile>
@@ -435,6 +437,7 @@
             <modules>
                 <module>blocks</module>
                 <module>service</module>
+                <module>web</module>
                 <module>auth</module>
             </modules>
         </profile>

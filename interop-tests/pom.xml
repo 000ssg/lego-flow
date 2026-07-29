@@ -17,6 +17,11 @@
         Excluded from install/deploy lifecycle — this module is for testing only.
     </description>
 
+    <!-- Skip interop tests by default — only run when Docker services are available (CI interoperability job) -->
+    <properties>
+        <skipInteropTests>true</skipInteropTests>
+    </properties>
+
     <dependencies>
         <!-- Protocol modules under test -->
         <dependency>
@@ -82,6 +87,16 @@
                 <version>3.1.2</version>
                 <configuration>
                     <skip>true</skip>
+                </configuration>
+            </plugin>
+
+            <!-- Skip interop tests by default — require explicit activation in CI with Docker services -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <skipTests>${skipInteropTests}</skipTests>
                 </configuration>
             </plugin>
 
