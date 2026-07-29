@@ -273,6 +273,11 @@ var svc = ServiceBuilder.<String, Integer>create("parser")
 mvn clean install
 ```
 
+> **Tip:** Use `-T 1C` for parallel builds (one thread per CPU core):
+> ```bash
+> mvn -T 1C clean install
+> ```
+
 ### Build with Gradle
 ```bash
 ./gradlew build
@@ -298,6 +303,9 @@ mvn compile -pl blocks -am
 ```bash
 # Build all modules
 mvn clean install
+
+# Parallel build (one thread per CPU core)
+mvn -T 1C clean install
 
 # Run all tests
 mvn test

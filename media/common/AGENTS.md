@@ -1,4 +1,9 @@
-# Media Common Module -- Development Guide
+# media / common — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -75,8 +80,3 @@ The `media/common` module implements the Session Description Protocol (SDP) as d
 - Payload tests: static type lookup, dynamic registration, range validation
 - All tests use AssertJ assertions
 - Test count: 180
-
----
-
-**Last Updated**: 2026-07-06
-**For AI assistant versions**

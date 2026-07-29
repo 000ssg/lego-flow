@@ -1,4 +1,9 @@
-# gRPC Module -- Development Guide
+# rpc / grpc — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -75,8 +80,3 @@ All 17 gRPC status codes are in `GrpcStatus`: OK (0), CANCELLED (1), UNKNOWN (2)
 - Demo tests: end-to-end for Calculator (unary), FileDownload (server streaming), Upload (client streaming), Chat (bidi streaming)
 - All tests use loopback transport (no external server required)
 - Test count: 298
-
----
-
-**Last Updated**: 2026-07-07
-**For AI assistant versions**

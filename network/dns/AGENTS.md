@@ -1,4 +1,9 @@
-# DNS Module — Development Guide
+# network / dns — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -75,8 +80,3 @@ All RDATA types implement the `RData` sealed interface. The codec uses exhaustiv
 - All tests use JUnit 5 with AssertJ
 - Parameterized tests for round-trip parsing and enum coverage
 - Test count: 25
-
----
-
-**Last Updated**: 2026-07-06
-**For AI assistant versions**

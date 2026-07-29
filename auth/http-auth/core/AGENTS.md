@@ -1,4 +1,9 @@
-# HTTP Auth Core — Development Guide
+# auth / http-auth / core — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 

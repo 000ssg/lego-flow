@@ -1,4 +1,9 @@
-# SMTP Module -- Development Guide
+# email / smtp — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -72,8 +77,3 @@ Auto-selection priority: CRAM-MD5 > PLAIN > LOGIN (based on server EHLO capabili
 - Reply tests: code classification (success/intermediate/transient/permanent), factory methods
 - All tests use loopback transport (no external SMTP server required)
 - Test count: 201 (148 @Test annotations in module test files + inherited from email/common)
-
----
-
-**Last Updated**: 2026-07-06
-**For AI assistant versions**

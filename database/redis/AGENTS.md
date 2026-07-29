@@ -1,4 +1,9 @@
-# Redis Module — Development Guide
+# database / redis — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -85,8 +90,3 @@ Each command category follows the same pattern:
 - Each test class starts a server on ephemeral port, connects a client, runs commands, asserts responses
 - All tests use loopback transport (no external Redis required)
 - Test count: 176
-
----
-
-**Last Updated**: 2026-07-06
-**For AI assistant versions**

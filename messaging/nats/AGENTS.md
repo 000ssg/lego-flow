@@ -1,4 +1,9 @@
-# NATS Module — Development Guide
+# messaging / nats — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -83,8 +88,3 @@ Key: Value\r\n
 - Demo functional tests: PubSub, RequestReply, QueueGroup, JetStream
 - All tests use loopback transport (no external NATS server required)
 - Test count: 271
-
----
-
-**Last Updated**: 2026-07-06
-**For AI assistant versions**

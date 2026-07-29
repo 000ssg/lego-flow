@@ -1,4 +1,9 @@
-# Kafka Module — Development Guide
+# messaging / kafka — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -164,8 +169,3 @@ The `kafka` module implements the Apache Kafka wire protocol (binary protocol ov
 - `lego-flow-service` — TCP transport, lifecycle management, virtual threads
 - `slf4j-api` — logging facade
 - Test: JUnit 5, AssertJ, SLF4J Simple
-
----
-
-**Last Updated**: 2026-07-06
-**For AI assistant versions**

@@ -315,6 +315,7 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.2.5</version>
                     <configuration>
+                        <fork>true</fork>
                         <parallel>classes</parallel>
                         <threadCount>4</threadCount>
                         <reuseForks>true</reuseForks>
@@ -333,6 +334,7 @@
                     <version>3.14.0</version>
                     <configuration>
                         <release>25</release>
+                        <useIncrementalCompilation>false</useIncrementalCompilation>
                     </configuration>
                 </plugin>
             </plugins>

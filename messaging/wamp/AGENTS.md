@@ -1,4 +1,9 @@
-# WAMP Module — Development Guide
+# messaging / wamp — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Overview
 
@@ -104,9 +109,3 @@ Current implementations:
   - `demo/websocket/FullWampServerDemoTest` — 6 tests
   - `demo/base/RpcErrorHandlingDemoTest` — 4 tests
   - (previous tests) — 55 tests
-
-## Commit Rules
-- Update doc/REQUIREMENTS.md with commit section
-- Update doc/ARCHITECTURE.md if architecture changed
-- Update README.md for API changes
-- Co-Authored-By: AI assistant

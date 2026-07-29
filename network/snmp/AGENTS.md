@@ -1,4 +1,9 @@
-# SNMP Module -- Development Guide
+# network / snmp — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -69,8 +74,3 @@ The `snmp` module implements SNMPv3 (Simple Network Management Protocol version 
 - Integration tests: SnmpManager + SnmpAgent over loopback UDP (GET, GETNEXT, GETBULK, SET)
 - All tests use loopback transport (no external SNMP agent required)
 - Test count: 113
-
----
-
-**Last Updated**: 2026-07-06
-**For AI assistant versions**

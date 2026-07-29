@@ -1,4 +1,9 @@
-# IMAP Module -- Development Guide
+# email / imap — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -65,8 +70,3 @@ THREAD=REFERENCES MOVE LIST-EXTENDED LITERAL+ UNSELECT
 - `ImapTagTest`: default/custom prefix, sequential generation, reset, counter inspection, constant values
 - All tests use JUnit 5 + AssertJ
 - Test count: 17
-
----
-
-**Last Updated**: 2026-07-06
-**For AI assistant versions**

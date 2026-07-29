@@ -1,4 +1,9 @@
-# HTTP Proxy Module -- Development Guide
+# web / http-proxy — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Overview
 
@@ -57,10 +62,3 @@ ssg.legoflow.http.proxy/
 - **Framework**: JUnit 5 + AssertJ
 - **252 tests passing**
 - Test classes cover: forward proxy (real HttpClient forwarding), CONNECT tunnel, access control, reverse proxy, load balancers, health checker, routes, caching, cache store, auth, demos (including DemoHttpProxyAll), headers, filters, error handling
-
-## Commit Rules
-
-- Update doc/REQUIREMENTS.md with commit section
-- Update doc/ARCHITECTURE.md if architecture changed
-- Update README.md for API changes
-- Include `Co-Authored-By: AI assistant` in commit messages

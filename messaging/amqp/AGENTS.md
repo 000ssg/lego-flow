@@ -1,4 +1,9 @@
-# AMQP Module -- Development Guide
+# messaging / amqp — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -87,8 +92,3 @@ The container's `handleConnection(AmqpTransport)` method is public, allowing dir
 - Descriptor tests: all descriptor constants match spec values
 - All tests use InMemoryTransport or loopback TCP (no external broker required)
 - Test count: 195
-
----
-
-**Last Updated**: 2026-07-06
-**For AI assistant versions**

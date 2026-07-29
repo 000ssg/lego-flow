@@ -1,4 +1,9 @@
-# MQTT Module — Development Guide
+# messaging / mqtt — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -78,8 +83,3 @@ This pattern is common across Lego Flow protocol codecs that operate over TCP by
 - Keep-alive timeout tests: broker disconnects silent clients after 1.5x interval
 - All tests use loopback transport (no external broker required)
 - Test count: 193
-
----
-
-**Last Updated**: 2026-07-06
-**For AI assistant versions**

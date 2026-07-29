@@ -1,4 +1,9 @@
-# GSSAPI Module -- Development Guide
+# auth / gssapi — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -47,8 +52,3 @@ Run: `mvn test -pl auth/gssapi -am`
 
 - `ssh` module -- `GssApiAuth` uses `GssContextWrapper` for SSH gssapi-with-mic authentication (RFC 4462)
 - `auth/http-auth/spnego` module -- `NegotiateAuthScheme` uses `GssContextWrapper` and `SpnegoTokenHandler` for HTTP Negotiate (SPNEGO) authentication
-
----
-
-**Last Updated**: 2026-06-26
-**For AI assistant versions**

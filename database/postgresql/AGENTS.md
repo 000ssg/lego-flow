@@ -1,4 +1,9 @@
-# PostgreSQL Module — Development Guide
+# database / postgresql — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -76,8 +81,3 @@ Untyped messages (StartupMessage, SSLRequest, CancelRequest) omit the type byte 
 - In-memory database tests: CREATE TABLE, INSERT, SELECT, UPDATE, DELETE, WHERE, ORDER BY, LIMIT, aggregates, GROUP BY, HAVING, INNER JOIN, LEFT JOIN
 - All tests use loopback transport (no external PostgreSQL required)
 - Test count: 300
-
----
-
-**Last Updated**: 2026-07-06
-**For AI assistant versions**
