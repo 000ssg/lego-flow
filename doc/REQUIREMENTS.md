@@ -555,3 +555,60 @@ This document tracks all requirements, design decisions, and their evolution thr
 - This document is append-only for commit sections
 - Table of Contents updated with each new commit
 - Project Timeline Overview updated with current statistics
+
+## Commit: `(pending)` — Fix CI Interoperability Tests Pipeline Failure (2026-07-30)
+
+### Original Request
+> "git pipelines failed for commits. pipeline log"
+> "still failed pipeline" 
+> "errors running interoperability tests now"
+
+### Reformulated Requirements
+1. Diagnose root cause of CI interoperability tests failure
+2. Fix the Maven command in GitHub Actions workflow to work correctly
+3. Ensure all 21 interoperability tests pass in CI environment
+
+### Root Cause Analysis
+The `interoperability-tests` job in `.github/workflows/ci.yml` used YAML implicit folding (no `|` block scalar indicator) for a multi-line Maven command with backslash line continuations:
+
+```yaml
+run: mvn -B verify -pl interop-tests -am \
+  -P all \
+  -DskipInteropTests=false \
+  ...
+```
+
+In YAML implicit folding, newlines followed by indentation are converted to spaces but backslashes remain as literal characters. When GitHub Actions passes this folded string to `bash -e {0}`, bash word-splitting (shlex) treats `\` + space as "escaped-space", leaving a **leading space** on the next token:
+
+- Maven received `" -P"` instead of `-P` → interpreted as unknown lifecycle phase
+- All 13 `-D` properties had leading spaces → silently ignored by Maven
+- Result: `Unknown lifecycle phase " -P"` error, BUILD FAILURE
+
+The `build` job's coverage step worked correctly because it used `|` block scalar which preserves actual newlines, allowing bash line continuation (`\` + newline) to function properly.
+
+### Final Design Decisions
+- Consolidate the entire Maven command onto a single line without backslash continuations
+- This avoids YAML implicit folding issues entirely — no backslashes means no escaped-space problem
+- Verified locally: all 21 interoperability tests pass with the single-line command (both Maven and Gradle)
+
+### Implementation Details
+- Modified `.github/workflows/ci.yml`: replaced 15-line multi-line Maven command with single-line equivalent
+- No changes to test code, properties, or test execution logic
+- All system properties passed identically, just without line breaks
+
+### Test Coverage
+- Verified locally: `mvn verify -pl interop-tests -am -P all -DskipInteropTests=false ...` → 21/21 passing
+- Verified Gradle parity: `./gradlew :interop-tests:test -DskipInteropTests=false --rerun-tasks` → BUILD SUCCESSFUL
+- Docker services (nginx, mosquitto, redis, postgresql) confirmed healthy during local testing
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Background agents | 0 |
+| Agent tokens | ~5,000 |
+| Agent tool calls | ~30 |
+| Agent wall time | ~10 min |
+| Files created/modified | 2 (ci.yml, REQUIREMENTS.md) |
+| Lines added/removed | +1 / -14 |
+| Tests added | 0 (all existing tests verified passing) |
+

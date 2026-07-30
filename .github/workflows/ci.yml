@@ -248,20 +248,7 @@ jobs:
           done
 
       - name: Run interoperability tests (Docker services are running)
-        run: mvn -B verify -pl interop-tests -am \
-          -P all \
-          -DskipInteropTests=false \
-          -Dinterop.nginx.host=localhost \
-          -Dinterop.nginx.port=8080 \
-          -Dinterop.mosquitto.host=localhost \
-          -Dinterop.mosquitto.port=1883 \
-          -Dinterop.redis.host=localhost \
-          -Dinterop.redis.port=6379 \
-          -Dinterop.pg.host=localhost \
-          -Dinterop.pg.port=5432 \
-          -Dinterop.pg.user=legoflow \
-          -Dinterop.pg.password=legoflow \
-          -Dinterop.pg.db=legoflow_test
+        run: mvn -B verify -pl interop-tests -am -P all -DskipInteropTests=false -Dinterop.nginx.host=localhost -Dinterop.nginx.port=8080 -Dinterop.mosquitto.host=localhost -Dinterop.mosquitto.port=1883 -Dinterop.redis.host=localhost -Dinterop.redis.port=6379 -Dinterop.pg.host=localhost -Dinterop.pg.port=5432 -Dinterop.pg.user=legoflow -Dinterop.pg.password=legoflow -Dinterop.pg.db=legoflow_test
         env:
           CI: true
 
