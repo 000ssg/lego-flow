@@ -64,7 +64,7 @@ jobs:
 
       # ── JaCoCo report aggregation ────────────
       - name: Aggregate JaCoCo reports
-        run: mvn -B jacoco:report-aggregate -T 1C -P all
+        run: mvn -B jacoco:report-aggregate -T 1C -P all,jacoco-coverage
         continue-on-error: false
 
       # ── Upload coverage artifact ─────────────
