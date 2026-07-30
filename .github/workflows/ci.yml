@@ -124,31 +124,15 @@ jobs:
       matrix:
         include:
           - profile: web-only
-            modules: |
-              :blocks :service
-              :lego-flow-http :lego-flow-http2 :lego-flow-http3
-              :lego-flow-web-services :lego-flow-http-proxy
+            modules: ":blocks :service :lego-flow-http :lego-flow-http2 :lego-flow-http3 :lego-flow-web-services :lego-flow-http-proxy"
           - profile: messaging-only
-            modules: |
-              :blocks :service
-              :lego-flow-kafka :lego-flow-amqp :lego-flow-stomp
-              :lego-flow-nats :lego-flow-mqtt :lego-flow-xmpp :lego-flow-wamp
+            modules: ":blocks :service :lego-flow-kafka :lego-flow-amqp :lego-flow-stomp :lego-flow-nats :lego-flow-mqtt :lego-flow-xmpp :lego-flow-wamp"
           - profile: network-only
-            modules: |
-              :blocks :service
-              :lego-flow-network-common :lego-flow-dns :lego-flow-ldap
-              :lego-flow-snmp :lego-flow-syslog :lego-flow-modbus
-              :lego-flow-ssh :lego-flow-ftp
+            modules: ":blocks :service :lego-flow-network-common :lego-flow-dns :lego-flow-ldap :lego-flow-snmp :lego-flow-syslog :lego-flow-modbus :lego-flow-ssh :lego-flow-ftp"
           - profile: auth-only
-            modules: |
-              :blocks :service
-              :lego-flow-gssapi :lego-flow-http-auth-core
-              :lego-flow-http-auth-basic-digest :lego-flow-http-auth-oauth
-              :lego-flow-http-auth-sso :lego-flow-http-auth-spnego
+            modules: ":blocks :service :lego-flow-gssapi :lego-flow-http-auth-core :lego-flow-http-auth-basic-digest :lego-flow-http-auth-oauth :lego-flow-http-auth-sso :lego-flow-http-auth-spnego"
           - profile: database-only
-            modules: |
-              :blocks :service
-              :lego-flow-redis :lego-flow-postgresql :lego-flow-mysql
+            modules: ":blocks :service :lego-flow-redis :lego-flow-postgresql :lego-flow-mysql"
       fail-fast: false
 
     steps:
@@ -171,12 +155,7 @@ jobs:
             ${{ runner.os }}-gradle-caches-
 
       - name: Run ${{ matrix.profile }} tests
-        run: |
-          ./gradlew test \
-            -PskipInteropTests=true \
-            --parallel \
-            --no-daemon \
-            ${{ join(fromJSON(format('["{0}"]', replace(matrix.modules, '\n', ' '))), ' ') }}
+        run: ./gradlew test -PskipInteropTests=true --parallel --no-daemon ${{ matrix.modules }}
         env:
           CI: true
 
