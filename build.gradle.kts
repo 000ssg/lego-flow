@@ -1,16 +1,24 @@
+import org.gradle.api.tasks.testing.Test
+import org.gradle.jvm.tasks.Jar
+import org.gradle.api.plugins.JavaPluginExtension
+
 group = "ssg"
 version = property("legoFlowVersion") as String
 
-// Centralize version constants from gradle.properties
-val javaRelease: String by project
-val slf4jVersion: String by project
-val slf4jSimpleVersion: String by project
-val junitVersion: String by project
-val mockitoVersion: String by project
-val assertjVersion: String by project
+// Centralize version constants from gradle.properties (using non-deprecated API for Gradle 9.x)
+val javaRelease = project.property("javaRelease") as String
+val slf4jVersion = project.property("slf4jVersion") as String
+val slf4jSimpleVersion = project.property("slf4jSimpleVersion") as String
+val junitVersion = project.property("junitVersion") as String
+val mockitoVersion = project.property("mockitoVersion") as String
+val assertjVersion = project.property("assertjVersion") as String
 
 // Parent-only projects (no Java sources — equivalent to Maven pom-packaging)
 val parentProjects = setOf("auth", "http-auth", "web", "iot", "messaging", "rpc", "database", "email", "network", "media")
+
+repositories {
+    mavenCentral()
+}
 
 subprojects {
     // Skip Java plugin for parent-only (pom-packaging) projects
@@ -33,10 +41,20 @@ subprojects {
         options.release.set(javaRelease.toInt())
     }
 
+    // ── Test configuration ─────────────────────────────────────────────
+    // Mirrors Maven surefire configuration.
+
     tasks.withType<Test> {
         useJUnitPlatform()
-        // Parallel test execution within each module (mirrors Maven surefire config)
-        maxParallelForks = 4
+
+        // ── Disable parallel test execution within each module.
+        //    Many tests use Thread.sleep() and shared network resources
+        //    (servers, sockets) that aren't safe for parallel execution.
+        //    Re-enable only after all timing tests are made parallel-safe
+        //    with proper synchronization or resource isolation.
+        //    Mirrors Maven surefire <parallel>none</parallel>. ──────────
+        maxParallelForks = 1
+
         // JVM args for test forks
         jvmArgs("-XX:+UseG1GC")
     }
@@ -58,6 +76,39 @@ subprojects {
     when (name) {
         "benchmarks" -> setupBenchmarkModule()
         "interop-tests" -> setupInteropTestsModule()
+    }
+}
+
+// ── JaCoCo coverage configuration ─────────────────────────────────────
+// Gradle 9.x removed the built-in jacoco plugin.  This section provides
+// equivalent functionality using the org.jacoco:org.jacoco.agent artifact.
+//
+// Enable with: ./gradlew test -PenableCoverage=true
+// After tests, .exec files will be in each module's build/jacoco/ directory.
+// For full XML/HTML reports, Maven is still needed (jacoco-coverage profile).
+
+val enableCoverage = project.findProperty("enableCoverage")?.toString() == "true"
+
+if (enableCoverage) {
+    val jacocoAgentCfg = configurations.create("jacocoAgent")
+    dependencies.add("jacocoAgent", "org.jacoco:org.jacoco.agent:0.8.14:runtime")
+    
+    // Resolve agent during configuration phase (safe — no parallel execution at this point)
+    val agentJar = jacocoAgentCfg.files.firstOrNull()
+        ?: run {
+            logger.warn("JaCoCo agent not found; coverage instrumentation will be skipped")
+            null
+        }
+
+    if (agentJar != null) {
+        subprojects.forEach { subproject ->
+            if (subproject.name !in parentProjects) {
+                subproject.tasks.withType<Test> {
+                    val destFile = "${subproject.layout.buildDirectory.get().asFile}/jacoco/test.exec"
+                    jvmArgs("-javaagent:${agentJar.absolutePath}=includes=ssg.legoflow.**,output=file,destfile=${destFile}")
+                }
+            }
+        }
     }
 }
 
@@ -92,7 +143,7 @@ fun Project.setupBenchmarkModule() {
 }
 
 // Configure interop-tests module: protocol deps + Docker system properties (mirrors interop-tests/pom.xml)
-// Skip by default — only run when Docker services are available (-DskipInteropTests=false mirrors Maven)
+// Skip by default — only run when Docker services are available (-PskipInteropTests=false mirrors Maven)
 fun Project.setupInteropTestsModule() {
     // Protocol modules under test (mirrors interop-tests/pom.xml dependencies)
     dependencies {
@@ -103,7 +154,7 @@ fun Project.setupInteropTestsModule() {
     }
 
     // Skip tests by default — mirrors Maven skipInteropTests=true property
-    // Override: ./gradlew :interop-tests:test -DskipInteropTests=false
+    // Override: ./gradlew :interop-tests:test -PskipInteropTests=false
     tasks.withType<Test> {
         // Check both Gradle project properties (-PskipInteropTests=false) and JVM system properties
         // (-DskipInteropTests=false) for Maven command-line parity

@@ -1,5 +1,10 @@
 # Lego Flow — CI/CD Pipeline
 # Builds, tests, and validates all 42+ modules with coverage gates.
+#
+# Build strategy:
+#   • Gradle handles compile + unit tests (fast, parallel, cached)
+#   • Maven handles coverage gate only (JaCoCo XML report generation)
+#   • Interop tests run separately when Docker services are available
 
 name: CI
 
@@ -14,7 +19,8 @@ env:
 
 jobs:
   # ──────────────────────────────────────────────
-  # 1. Build & Test — matrix strategy
+  # 1. Build & Test — Gradle (fast compile + unit tests)
+  #    Parallel across modules, build-cached between runs
   # ──────────────────────────────────────────────
   build:
     name: "Build & Test (${{ matrix.os }}, Java ${{ matrix.java }})"
@@ -35,56 +41,39 @@ jobs:
         with:
           java-version: "25"
           distribution: "temurin"
-          cache: maven
+          cache: gradle
 
-      # ── Maven cache for dependency repository ──
-      - name: Cache local Maven repository
+      # ── Gradle build cache for dependency repository ──
+      - name: Cache Gradle user home
         uses: actions/cache@v4
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle.kts', '**/gradle.properties') }}
           restore-keys: |
-            ${{ runner.os }}-maven-
+            ${{ runner.os }}-gradle-caches-
 
-      # ── Compile ──────────────────────────────
-      - name: Compile project
-        run: mvn -B compile -T 1C -P all
-        env:
-          CI: true
-
-      # ── Run tests with JaCoCo instrumentation ─
-      - name: Run tests with coverage (skip interop tests — no Docker services)
+      # ── Compile + test with Gradle (no coverage — fast) ───────────────
+      - name: Compile and run unit tests
         run: |
-          mvn -B verify -T 1C -P all \
-            -Djacoco.includes=ssg.legoflow.** \
-            -DfailIfNoTests=false \
-            -DskipInteropTests=true
+          ./gradlew clean compileJava test \
+            -PskipInteropTests=true \
+            --parallel \
+            --no-daemon
         env:
           CI: true
 
-      # ── JaCoCo report aggregation ────────────
-      - name: Aggregate JaCoCo reports
-        run: mvn -B jacoco:report-aggregate -T 1C -P all,jacoco-coverage
-        continue-on-error: false
-
-      # ── Upload coverage artifact ─────────────
-      - name: Upload JaCoCo report
-        uses: actions/upload-artifact@v4
-        with:
-          name: jacoco-report-${{ matrix.os }}
-          path: target/site/jacoco/jacoco-aggregate/
-          retention-days: 30
-
-      # ── Upload test results ──────────────────
+      # ── Upload test results (Gradle format) ───────────────────────────
       - name: Upload test results
         uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ matrix.os }}
-          path: "**/target/surefire-reports/*.xml"
+          path: "**/build/reports/tests/test/index.html"
           retention-days: 30
 
   # ──────────────────────────────────────────────
-  # 2. Coverage threshold gate
+  # 2. Coverage threshold gate (Maven — XML report generation)
+  #    Maven still needed for JaCoCo prepare-agent + report-aggregate
+  #    because Gradle 9.x removed the built-in jacoco plugin.
   # ──────────────────────────────────────────────
   coverage-gate:
     name: "Coverage Gate"
@@ -115,17 +104,51 @@ jobs:
         env:
           CI: true
 
+      # ── Upload JaCoCo HTML report for review ──────────────────────────
+      - name: Upload JaCoCo report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco/jacoco-aggregate/
+          retention-days: 30
+
   # ──────────────────────────────────────────────
-  # 3. Protocol-specific test matrices
-  #    Run targeted profile builds for fast feedback
+  # 3. Protocol-specific test matrices (Gradle)
+  #    Fast targeted builds per protocol category using Gradle subproject
+  #    selection instead of Maven profiles.
   # ──────────────────────────────────────────────
   protocol-tests:
     name: "Protocol Tests (${{ matrix.profile }})"
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        profile:
-          [web-only, messaging-only, network-only, auth-only, database-only]
+        include:
+          - profile: web-only
+            modules: |
+              :blocks :service
+              :lego-flow-http :lego-flow-http2 :lego-flow-http3
+              :lego-flow-web-services :lego-flow-http-proxy
+          - profile: messaging-only
+            modules: |
+              :blocks :service
+              :lego-flow-kafka :lego-flow-amqp :lego-flow-stomp
+              :lego-flow-nats :lego-flow-mqtt :lego-flow-xmpp :lego-flow-wamp
+          - profile: network-only
+            modules: |
+              :blocks :service
+              :lego-flow-network-common :lego-flow-dns :lego-flow-ldap
+              :lego-flow-snmp :lego-flow-syslog :lego-flow-modbus
+              :lego-flow-ssh :lego-flow-ftp
+          - profile: auth-only
+            modules: |
+              :blocks :service
+              :lego-flow-gssapi :lego-flow-http-auth-core
+              :lego-flow-http-auth-basic-digest :lego-flow-http-auth-oauth
+              :lego-flow-http-auth-sso :lego-flow-http-auth-spnego
+          - profile: database-only
+            modules: |
+              :blocks :service
+              :lego-flow-redis :lego-flow-postgresql :lego-flow-mysql
       fail-fast: false
 
     steps:
@@ -137,23 +160,28 @@ jobs:
         with:
           java-version: "25"
           distribution: "temurin"
-          cache: maven
+          cache: gradle
 
-      - name: Cache local Maven repository
+      - name: Cache Gradle user home
         uses: actions/cache@v4
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle.kts', '**/gradle.properties') }}
           restore-keys: |
-            ${{ runner.os }}-maven-
+            ${{ runner.os }}-gradle-caches-
 
-      - name: Run ${{ matrix.profile }} profile tests
-        run: mvn -B verify -T 1C -P ${{ matrix.profile }} -DskipInteropTests=true
+      - name: Run ${{ matrix.profile }} tests
+        run: |
+          ./gradlew test \
+            -PskipInteropTests=true \
+            --parallel \
+            --no-daemon \
+            ${{ join(fromJSON(format('["{0}"]', replace(matrix.modules, '\n', ' '))), ' ') }}
         env:
           CI: true
 
   # ──────────────────────────────────────────────
-  # 4. Build verification (no test, fast check)
+  # 4. Build verification (Gradle — fast check)
   # ──────────────────────────────────────────────
   build-check:
     name: "Build Check"
@@ -168,25 +196,26 @@ jobs:
         with:
           java-version: "25"
           distribution: "temurin"
-          cache: maven
+          cache: gradle
 
-      - name: Cache local Maven repository
+      - name: Cache Gradle user home
         uses: actions/cache@v4
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle.kts', '**/gradle.properties') }}
           restore-keys: |
-            ${{ runner.os }}-maven-
+            ${{ runner.os }}-gradle-caches-
 
-      - name: Validate and package (skip tests)
-        run: mvn -B validate package -T 1C -P all -DskipTests
+      - name: Validate and compile (skip tests)
+        run: ./gradlew clean compileJava --no-daemon
         env:
           CI: true
 
   # ──────────────────────────────────────────────
-  # 5. Interoperability tests (Docker Compose)
+  # 5. Interoperability tests (Maven + Docker Compose)
   #    Runs against real reference implementations
   #    Uses docker compose for volume mounts (nginx config, mosquitto config)
+  #    Gradle interop tests also supported via -PskipInteropTests=false
   # ──────────────────────────────────────────────
   interoperability-tests:
     name: "Interoperability Tests"
@@ -248,7 +277,13 @@ jobs:
           done
 
       - name: Run interoperability tests (Docker services are running)
-        run: mvn -B verify -pl interop-tests -am -P all -DskipInteropTests=false -Dinterop.nginx.host=localhost -Dinterop.nginx.port=8080 -Dinterop.mosquitto.host=localhost -Dinterop.mosquitto.port=1883 -Dinterop.redis.host=localhost -Dinterop.redis.port=6379 -Dinterop.pg.host=localhost -Dinterop.pg.port=5432 -Dinterop.pg.user=legoflow -Dinterop.pg.password=legoflow -Dinterop.pg.db=legoflow_test
+        run: mvn -B verify -pl interop-tests -am -P all -DskipInteropTests=false \
+          -Dinterop.nginx.host=localhost -Dinterop.nginx.port=8080 \
+          -Dinterop.mosquitto.host=localhost -Dinterop.mosquitto.port=1883 \
+          -Dinterop.redis.host=localhost -Dinterop.redis.port=6379 \
+          -Dinterop.pg.host=localhost -Dinterop.pg.port=5432 \
+          -Dinterop.pg.user=legoflow -Dinterop.pg.password=legoflow \
+          -Dinterop.pg.db=legoflow_test
         env:
           CI: true
 
