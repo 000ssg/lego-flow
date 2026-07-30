@@ -116,6 +116,10 @@ jobs:
   # 3. Protocol-specific test matrices (Gradle)
   #    Fast targeted builds per protocol category using Gradle subproject
   #    selection instead of Maven profiles.
+  #
+  #    Module paths use :project:test syntax so Gradle resolves them as
+  #    project-task references rather than bare project names (which would
+  #    be interpreted as task names in the root project).
   # ──────────────────────────────────────────────
   protocol-tests:
     name: "Protocol Tests (${{ matrix.profile }})"
@@ -124,15 +128,15 @@ jobs:
       matrix:
         include:
           - profile: web-only
-            modules: ":blocks :service :lego-flow-http :lego-flow-http2 :lego-flow-http3 :lego-flow-web-services :lego-flow-http-proxy"
+            modules: ":blocks:test :service:test :lego-flow-http:test :lego-flow-http2:test :lego-flow-http3:test :lego-flow-web-services:test :lego-flow-http-proxy:test"
           - profile: messaging-only
-            modules: ":blocks :service :lego-flow-kafka :lego-flow-amqp :lego-flow-stomp :lego-flow-nats :lego-flow-mqtt :lego-flow-xmpp :lego-flow-wamp"
+            modules: ":blocks:test :service:test :lego-flow-kafka:test :lego-flow-amqp:test :lego-flow-stomp:test :lego-flow-nats:test :lego-flow-mqtt:test :lego-flow-xmpp:test :lego-flow-wamp:test"
           - profile: network-only
-            modules: ":blocks :service :lego-flow-network-common :lego-flow-dns :lego-flow-ldap :lego-flow-snmp :lego-flow-syslog :lego-flow-modbus :lego-flow-ssh :lego-flow-ftp"
+            modules: ":blocks:test :service:test :lego-flow-network-common:test :lego-flow-dns:test :lego-flow-ldap:test :lego-flow-snmp:test :lego-flow-syslog:test :lego-flow-modbus:test :lego-flow-ssh:test :lego-flow-ftp:test"
           - profile: auth-only
-            modules: ":blocks :service :lego-flow-gssapi :lego-flow-http-auth-core :lego-flow-http-auth-basic-digest :lego-flow-http-auth-oauth :lego-flow-http-auth-sso :lego-flow-http-auth-spnego"
+            modules: ":blocks:test :service:test :lego-flow-gssapi:test :lego-flow-http-auth-core:test :lego-flow-http-auth-basic-digest:test :lego-flow-http-auth-oauth:test :lego-flow-http-auth-sso:test :lego-flow-http-auth-spnego:test"
           - profile: database-only
-            modules: ":blocks :service :lego-flow-redis :lego-flow-postgresql :lego-flow-mysql"
+            modules: ":blocks:test :service:test :lego-flow-redis:test :lego-flow-postgresql:test :lego-flow-mysql:test"
       fail-fast: false
 
     steps:
@@ -155,7 +159,7 @@ jobs:
             ${{ runner.os }}-gradle-caches-
 
       - name: Run ${{ matrix.profile }} tests
-        run: ./gradlew test -PskipInteropTests=true --parallel --no-daemon ${{ matrix.modules }}
+        run: ./gradlew -PskipInteropTests=true --parallel --no-daemon ${{ matrix.modules }}
         env:
           CI: true
 
