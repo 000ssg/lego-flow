@@ -124,6 +124,30 @@ class PassThroughConnectionTest {
         return new SinkServer(port, received, server);
     }
 
+
+    /**
+     * Helper to bind a single route on auto-assigned port and return the bound port.
+     * Safe for parallel execution because OS assigns ports atomically at bind time.
+     */
+    private int startPtcRoute(PassThroughConnection ptc, InetSocketAddress remote) throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        final int[] boundPort = {0};
+        
+        ptc.addListener(event -> {
+            if (event instanceof PassThroughEvent.Started started) {
+                if (!started.bindings().isEmpty()) {
+                    boundPort[0] = started.bindings().keySet().iterator().next();
+                    latch.countDown();
+                }
+            }
+        });
+        
+        ptc.addRoute(0, remote);
+        ptc.start();
+        assertThat(latch.await(3, TimeUnit.SECONDS)).as("PTC should start").isTrue();
+        return boundPort[0];
+    }
+
     @Test
     void testSingleRouteForwardsData() throws Exception {
         int echoPort = startEchoServer();
@@ -418,14 +442,29 @@ class PassThroughConnectionTest {
     void testPauseByAddress() throws Exception {
         int echoPort1 = startEchoServer();
         int echoPort2 = startEchoServer();
-        int localPort1 = PassThroughConnection.findFreePort();
-        int localPort2 = PassThroughConnection.findFreePort();
+
+        // Use port 0 for both routes - OS assigns ports atomically at bind time.
+        // This avoids TOCTOU race conditions under parallel test execution where
+        // another test might grab a "free" port between findFreePort() and bind().
+        CopyOnWriteArrayList<Integer> boundPorts = new CopyOnWriteArrayList<>();
+        CountDownLatch startedLatch = new CountDownLatch(1);
 
         PassThroughConnection ptc = new PassThroughConnection();
         closeables.add(ptc);
-        ptc.addRoute(localPort1, new InetSocketAddress("127.0.0.1", echoPort1))
-           .addRoute(localPort2, new InetSocketAddress("127.0.0.1", echoPort2));
+        ptc.addRoute(0, new InetSocketAddress("127.0.0.1", echoPort1))
+           .addRoute(0, new InetSocketAddress("127.0.0.1", echoPort2));
+        ptc.addListener(event -> {
+            if (event instanceof PassThroughEvent.Started started) {
+                boundPorts.addAll(started.bindings().keySet());
+                startedLatch.countDown();
+            }
+        });
         ptc.start();
+        assertThat(startedLatch.await(3, TimeUnit.SECONDS)).as("PTC should start").isTrue();
+        assertThat(boundPorts).hasSize(2);
+
+        int localPort1 = boundPorts.get(0);
+        int localPort2 = boundPorts.get(1);
 
         // Connect to both
         Socket client1 = new Socket("127.0.0.1", localPort1);
