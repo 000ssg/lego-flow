@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -16,6 +17,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for {@link MqttBroker}.
+ *
+ * <p>Timing-critical assertions use {@link TestAssertions} with exponential
+ * backoff instead of {@code Thread.sleep()} to avoid flaky failures under parallel
+ * execution (-T 1C).
  *
  * @since 1.0.0
  */
@@ -144,7 +149,10 @@ class MqttBrokerTest {
             pub.disconnect().get(5, TimeUnit.SECONDS);
         }
 
-        Thread.sleep(200);
+        // Allow async disconnect processing to complete (retry-based)
+        TestAssertions.waitForCondition(
+                () -> !broker.getConnectedClients().contains("retain-pub"),
+                Duration.ofSeconds(3), 50);
 
         // When: new subscriber connects
         var received = new CopyOnWriteArrayList<String>();
@@ -152,6 +160,7 @@ class MqttBrokerTest {
 
         try (var sub = new MqttClient(config("retain-sub"))) {
             sub.connect().get(5, TimeUnit.SECONDS);
+
             sub.subscribe("retain/test", QoS.AT_LEAST_ONCE, (t, p, q, r) -> {
                 received.add(new String(p, StandardCharsets.UTF_8));
                 latch.countDown();
@@ -176,7 +185,10 @@ class MqttBrokerTest {
                     .get(5, TimeUnit.SECONDS);
         }
 
-        Thread.sleep(200);
+        // Allow async disconnect processing to complete (retry-based)
+        TestAssertions.waitForCondition(
+                () -> !broker.getConnectedClients().contains("retain-clear-pub"),
+                Duration.ofSeconds(3), 50);
 
         // Then: retain store is empty for that topic
         assertThat(broker.getRetainStore().get("retain/clear")).isNull();
@@ -254,10 +266,12 @@ class MqttBrokerTest {
 
             // When: disconnect
             client.disconnect().get(5, TimeUnit.SECONDS);
-            Thread.sleep(200);
 
-            // Then: removed from connected list
-            assertThat(broker.getConnectedClients()).doesNotContain("disconnect-test");
+            // Then: removed from connected list (retry-based)
+            TestAssertions.assertThatCondition(
+                    "client removed from connected list after disconnect",
+                    () -> !broker.getConnectedClients().contains("disconnect-test"),
+                    Duration.ofSeconds(3));
         }
     }
 

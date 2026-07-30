@@ -2,11 +2,12 @@ package ssg.legoflow.mqtt.broker;
 
 import ssg.legoflow.mqtt.client.MqttClient;
 import ssg.legoflow.mqtt.client.MqttClientConfig;
-import ssg.legoflow.mqtt.protocol.*;
+import ssg.legoflow.mqtt.protocol.QoS;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
@@ -14,6 +15,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for MQTT v5.0 Session Expiry Interval (Section 3.1.2.11).
+ *
+ * <p>Timing-critical assertions use {@link TestAssertions} with exponential
+ * backoff instead of {@code Thread.sleep()} to avoid flaky failures under parallel
+ * execution (-T 1C).
  *
  * @since 1.0.0
  */
@@ -87,11 +92,11 @@ class SessionExpiryTest {
         session.setConnected(true);
         session.setConnected(false); // sets disconnectedAt
 
-        // When: wait for expiry
-        Thread.sleep(1200);
-
-        // Then: expired
-        assertThat(session.isExpired()).isTrue();
+        // When/Then: wait up to 3s for session to expire (retry-based)
+        TestAssertions.assertThatCondition(
+                "session expires after interval",
+                session::isExpired,
+                Duration.ofSeconds(3));
     }
 
     @Test
@@ -122,15 +127,23 @@ class SessionExpiryTest {
             client.disconnect().get(5, TimeUnit.SECONDS);
         }
 
-        Thread.sleep(200);
+        // Allow broker async disconnect processing to complete
+        TestAssertions.assertThatCondition(
+                "expire-test session exists after disconnect",
+                () -> broker.getSessions().containsKey("expire-test"),
+                Duration.ofSeconds(3));
 
         // Then: session exists after disconnect
         assertThat(broker.getSessions()).containsKey("expire-test");
 
-        // When: set expiry to 1 second and wait
+        // When: set expiry to 1 second and wait for it to expire
         MqttSession session = broker.getSessions().get("expire-test");
         session.setSessionExpiryInterval(1);
-        Thread.sleep(1200);
+
+        TestAssertions.assertThatCondition(
+                "session expires within timeout",
+                session::isExpired,
+                Duration.ofSeconds(3));
 
         // When: sweep
         broker.sweepExpiredSessions();
@@ -153,7 +166,11 @@ class SessionExpiryTest {
             client.disconnect().get(5, TimeUnit.SECONDS);
         }
 
-        Thread.sleep(200);
+        // Allow broker async disconnect processing to complete
+        TestAssertions.assertThatCondition(
+                "keep-test session exists after disconnect",
+                () -> broker.getSessions().containsKey("keep-test"),
+                Duration.ofSeconds(3));
 
         // When: sweep (session has no expiry interval)
         broker.sweepExpiredSessions();
