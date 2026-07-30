@@ -180,3 +180,57 @@ fun Project.setupInteropTestsModule() {
     // Exclude from publish lifecycle (mirrors Maven install/deploy skip config)
     tasks.withType<Jar>().configureEach { enabled = false }
 }
+
+// ── JaCoCo Aggregate Report (Phase 3: replace Maven jacoco-maven-plugin) ───
+// Registers JacocoAggregateReportTask from buildSrc to produce HTML + XML reports.
+// Run: ./gradlew jacocoAggregateReport --info for verbose output
+
+tasks.register("jacocoAggregateReport", JacocoAggregateReportTask::class) {
+    val execDirPaths = subprojects
+        .filter { it.plugins.hasPlugin("java-library") || it.plugins.hasPlugin("java") }
+        .map { it.buildDir.resolve("jacoco").absolutePath }
+    
+    setExecDirPaths(execDirPaths.toList())
+    outputDir = layout.buildDirectory.dir("jacoco/aggregate").get().asFile
+    
+    // Always run - input dirs are stable but .exec file contents change per build
+    outputs.upToDateWhen { false }
+    
+    // Depend on all test tasks so .exec files are generated first
+    subprojects.forEach { subproject ->
+        if (subproject.plugins.hasPlugin("java-library") || subproject.plugins.hasPlugin("java")) {
+            dependsOn(subproject.tasks.named("test"))
+        }
+    }
+}
+
+// Copy reports to Maven-compatible path for CI artifact upload compatibility
+tasks.register<Copy>("copyJacocoForCI") {
+    description = "Copy JaCoCo reports to target/site/jacoco/jacoco-aggregate/ for CI compatibility"
+    group = "verification"
+    
+    from(layout.buildDirectory.dir("jacoco/aggregate/html"))
+    into(projectDir.resolve("target/site/jacoco/jacoco-aggregate"))
+    dependsOn("jacocoAggregateReport")
+}
+
+// ── JaCoCo Agent Configuration for Test Instrumentation ────────────────────────
+// Adds -javaagent to all test tasks so .exec files are generated during testing.
+// Mirrors Maven jacoco-maven-plugin prepare-agent goal.
+
+val jacocoAgentVersion = "0.8.14"
+val jacocoAgent by configurations.creating {
+    isTransitive = false
+}
+dependencies.add(jacocoAgent.name, "org.jacoco:org.jacoco.agent:$jacocoAgentVersion:runtime")
+
+subprojects.forEach { subproject ->
+    if (subproject.plugins.hasPlugin("java-library") || subproject.plugins.hasPlugin("java")) {
+        subproject.tasks.withType<Test> {
+            val agentJar = jacocoAgent.files.firstOrNull()
+            if (agentJar != null) {
+                jvmArgs("-javaagent:${agentJar.absolutePath}=includes=ssg.legoflow.**,output=file,destfile=${subproject.layout.buildDirectory.get().asFile}/jacoco/test.exec")
+            }
+        }
+    }
+}

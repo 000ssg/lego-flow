@@ -50,3 +50,5 @@ Thumbs.db
 # Cost tracking artifacts
 costs/
 *-guessed-vs-actual-estimates*
+buildSrc/.gradle/
+buildSrc/build/

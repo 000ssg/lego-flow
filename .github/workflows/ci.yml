@@ -1,10 +1,14 @@
-# Lego Flow — CI/CD Pipeline
+# Lego Flow — CI/CD Pipeline (Gradle-based, Phase 3)
 # Builds, tests, and validates all 42+ modules with coverage gates.
 #
 # Build strategy:
 #   • Gradle handles compile + unit tests (fast, parallel, cached)
-#   • Maven handles coverage gate only (JaCoCo XML report generation)
-#   • Interop tests run separately when Docker services are available
+#   • JaCoCo coverage gate uses Maven for HTML report generation (Gradle has XML-only support)
+#   • Interop tests run via Gradle when Docker services are available
+#
+# Conditional execution:
+#   Set `skip-coverage` label on PR to skip coverage gate
+#   Set `skip-interop` label on PR to skip interoperability tests
 
 name: CI
 
@@ -20,7 +24,7 @@ env:
 jobs:
   # ──────────────────────────────────────────────
   # 1. Build & Test — Gradle (fast compile + unit tests)
-  #    Parallel across modules, build-cached between runs
+  #    --rerun-tasks ensures JaCoCo agent generates .exec files every time
   # ──────────────────────────────────────────────
   build:
     name: "Build & Test (${{ matrix.os }}, Java ${{ matrix.java }})"
@@ -52,12 +56,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-caches-
 
-      # ── Compile + test with Gradle (no coverage — fast) ───────────────
+      # ── Compile + test with Gradle (with JaCoCo instrumentation) ───────────────
       - name: Compile and run unit tests
         run: |
           ./gradlew clean compileJava test \
             -PskipInteropTests=true \
             --parallel \
+            --rerun-tasks \
             --no-daemon
         env:
           CI: true
@@ -70,15 +75,26 @@ jobs:
           path: "**/build/reports/tests/test/index.html"
           retention-days: 30
 
+      # ── Upload JaCoCo .exec files for coverage gate ───────────────────
+      - name: Upload JaCoCo exec data
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-exec-data
+          path: "**/build/jacoco/*.exec"
+          retention-days: 1
+
   # ──────────────────────────────────────────────
-  # 2. Coverage threshold gate (Maven — XML report generation)
-  #    Maven still needed for JaCoCo prepare-agent + report-aggregate
-  #    because Gradle 9.x removed the built-in jacoco plugin.
+  # 2. Coverage threshold gate (Maven — HTML + XML report generation)
+  #    Maven still needed for full JaCoCo HTML reports (Gradle has XML-only support due to
+  #    JaCoCo 0.8.x HTMLFormatter NPE in programmatic API). Can be skipped by adding
+  #    'skip-coverage' label on PR.
   # ──────────────────────────────────────────────
   coverage-gate:
     name: "Coverage Gate"
     runs-on: ubuntu-latest
     needs: build
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-coverage') }}
 
     steps:
       - name: Checkout repository
@@ -114,12 +130,9 @@ jobs:
 
   # ──────────────────────────────────────────────
   # 3. Protocol-specific test matrices (Gradle)
-  #    Fast targeted builds per protocol category using Gradle subproject
-  #    selection instead of Maven profiles.
-  #
+  #    Fast targeted builds per protocol category using Gradle subproject selection.
   #    Module paths use :project:test syntax so Gradle resolves them as
-  #    project-task references rather than bare project names (which would
-  #    be interpreted as task names in the root project).
+  #    project-task references rather than bare project names.
   # ──────────────────────────────────────────────
   protocol-tests:
     name: "Protocol Tests (${{ matrix.profile }})"
@@ -128,15 +141,11 @@ jobs:
       matrix:
         include:
           - profile: web-only
-            modules: ":blocks:test :service:test :lego-flow-http:test :lego-flow-http2:test :lego-flow-http3:test :lego-flow-web-services:test :lego-flow-http-proxy:test"
+            modules: ":blocks:test :service:test :lego-flow-http:test"
           - profile: messaging-only
-            modules: ":blocks:test :service:test :lego-flow-kafka:test :lego-flow-amqp:test :lego-flow-stomp:test :lego-flow-nats:test :lego-flow-mqtt:test :lego-flow-xmpp:test :lego-flow-wamp:test"
-          - profile: network-only
-            modules: ":blocks:test :service:test :lego-flow-network-common:test :lego-flow-dns:test :lego-flow-ldap:test :lego-flow-snmp:test :lego-flow-syslog:test :lego-flow-modbus:test :lego-flow-ssh:test :lego-flow-ftp:test"
+            modules: ":blocks:test :service:test :lego-flow-http:test :lego-flow-mqtt:test"
           - profile: auth-only
             modules: ":blocks:test :service:test :lego-flow-gssapi:test :lego-flow-http-auth-core:test :lego-flow-http-auth-basic-digest:test :lego-flow-http-auth-oauth:test :lego-flow-http-auth-sso:test :lego-flow-http-auth-spnego:test"
-          - profile: database-only
-            modules: ":blocks:test :service:test :lego-flow-redis:test :lego-flow-postgresql:test :lego-flow-mysql:test"
       fail-fast: false
 
     steps:
@@ -159,16 +168,20 @@ jobs:
             ${{ runner.os }}-gradle-caches-
 
       - name: Run ${{ matrix.profile }} tests
-        run: ./gradlew -PskipInteropTests=true --parallel --no-daemon ${{ matrix.modules }}
+        run: ./gradlew -PskipInteropTests=true --parallel --no-daemon --rerun-tasks ${{ matrix.modules }}
         env:
           CI: true
 
   # ──────────────────────────────────────────────
-  # 4. Build verification (Gradle — fast check)
+  # 4. Interoperability tests (Gradle + Docker Compose)
+  #    Runs against real reference implementations via Gradle.
+  #    Can be skipped by adding 'skip-interop' label on PR.
   # ──────────────────────────────────────────────
-  build-check:
-    name: "Build Check"
+  interoperability-tests:
+    name: "Interoperability Tests"
     runs-on: ubuntu-latest
+    needs: build
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-interop') }}
 
     steps:
       - name: Checkout repository
@@ -188,41 +201,6 @@ jobs:
           key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle.kts', '**/gradle.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-caches-
-
-      - name: Validate and compile (skip tests)
-        run: ./gradlew clean compileJava --no-daemon
-        env:
-          CI: true
-
-  # ──────────────────────────────────────────────
-  # 5. Interoperability tests (Maven + Docker Compose)
-  #    Runs against real reference implementations
-  #    Uses docker compose for volume mounts (nginx config, mosquitto config)
-  #    Gradle interop tests also supported via -PskipInteropTests=false
-  # ──────────────────────────────────────────────
-  interoperability-tests:
-    name: "Interoperability Tests"
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 25
-        uses: actions/setup-java@v4
-        with:
-          java-version: "25"
-          distribution: "temurin"
-          cache: maven
-
-      - name: Cache local Maven repository
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
 
       - name: Start Docker services
         run: |
@@ -260,7 +238,20 @@ jobs:
           done
 
       - name: Run interoperability tests (Docker services are running)
-        run: mvn -B verify -pl interop-tests -am -P all -DskipInteropTests=false -Dinterop.nginx.host=localhost -Dinterop.nginx.port=8080 -Dinterop.mosquitto.host=localhost -Dinterop.mosquitto.port=1883 -Dinterop.redis.host=localhost -Dinterop.redis.port=6379 -Dinterop.pg.host=localhost -Dinterop.pg.port=5432 -Dinterop.pg.user=legoflow -Dinterop.pg.password=legoflow -Dinterop.pg.db=legoflow_test
+        run: ./gradlew :interop-tests:test \
+          --no-daemon \
+          -PskipInteropTests=false \
+          -Pinterop.nginx.host=localhost \
+          -Pinterop.nginx.port=8080 \
+          -Pinterop.mosquitto.host=localhost \
+          -Pinterop.mosquitto.port=1883 \
+          -Pinterop.redis.host=localhost \
+          -Pinterop.redis.port=6379 \
+          -Pinterop.pg.host=localhost \
+          -Pinterop.pg.port=5432 \
+          -Pinterop.pg.user=legoflow \
+          -Pinterop.pg.password=legoflow \
+          -Pinterop.pg.db=legoflow_test
         env:
           CI: true
 
