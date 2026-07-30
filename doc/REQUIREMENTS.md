@@ -612,3 +612,47 @@ The `build` job's coverage step worked correctly because it used `|` block scala
 | Lines added/removed | +1 / -14 |
 | Tests added | 0 (all existing tests verified passing) |
 
+
+## Commit: `fc170ae` — Fix Flaky PassThroughConnectionTest Retry Logic (2026-07-30)
+
+### Original Request
+> "Notice there was flaky test in the log. check it and apply fix."
+
+### Reformulated Requirements
+1. Diagnose root cause of PassThroughConnectionTest.testStartStopRestart flakiness in CI
+2. Fix retry logic to properly handle all exception types from ptc.start()
+3. Increase timeout to handle slow CI runners with extended TCP TIME_WAIT periods
+4. Add explicit failure reporting when retries are exhausted
+
+### Root Cause Analysis
+The test's retry loop had three defects:
+- Caught `RuntimeException` but `start()` throws `IOException` (BindException) → retries never triggered
+- Total timeout ~500ms was insufficient for CI runners where TCP TIME_WAIT can exceed that on busy systems
+- No explicit failure message when all retries exhausted, making debugging harder
+
+### Final Design Decisions
+- Catch `Exception` instead of `RuntimeException` to handle both checked and unchecked exceptions
+- Increase total timeout from ~500ms to 3s with exponential backoff (100, 200, 400, 800, 1600 = 3100ms max)
+- Also catch "Cannot assign requested address" error message variant
+- Add explicit assertion with formatted failure message when retries are exhausted
+
+### Implementation Details
+- Modified `service/src/test/java/ssg/legoflow/service/passthrough/PassThroughConnectionTest.java`
+- Changed retry loop to track total waited time instead of individual sleep duration
+- Added descriptive failure message showing elapsed time when all retries fail
+
+### Test Coverage
+- Verified locally: Maven `mvn test -pl service -Dtest=PassThroughConnectionTest` → 14/14 passing ✓
+- Verified Gradle parity: `./gradlew :service:test --tests PassThroughConnectionTest` → BUILD SUCCESSFUL ✓
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Background agents | 0 |
+| Agent tokens | ~5,000 |
+| Agent tool calls | ~25 |
+| Agent wall time | ~15 min |
+| Files created/modified | 1 (PassThroughConnectionTest.java) |
+| Lines added/removed | +15 / -5 |
+| Tests added | 0 (existing test coverage improved) |
+
