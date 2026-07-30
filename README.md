@@ -432,36 +432,49 @@ The `interop-tests/` module validates protocol implementations against real refe
 
 ### Maven
 ```bash
-# Start reference servers
+# Start reference servers (nginx, mosquitto, redis, postgresql)
 docker compose -f interop-tests/docker-compose.yml up -d
 
-# Run interoperability tests
-mvn verify -pl interop-tests -am
+# Verify all services are healthy
+docker compose -f interop-tests/docker-compose.yml ps
+# Expected: all 4 services show "healthy" status
 
-# Stop reference servers
+# Run interoperability tests (Docker services must be running)
+mvn verify -pl interop-tests -am -P all -DskipInteropTests=false
+
+# Verify results: check surefire reports
+cat interop-tests/target/surefire-reports/*.txt
+# Expected: 21 tests, 0 failures
+
+# Stop reference servers when done
 docker compose -f interop-tests/docker-compose.yml down
 ```
 
 ### Gradle
 ```bash
 # Run all interoperability tests (Docker services must be running)
-./gradlew :interop-tests:test
+# Note: Tests are skipped by default; use -DskipInteropTests=false to enable
+./gradlew :interop-tests:test -DskipInteropTests=false
 
 # Run specific test class
-./gradlew :interop-tests:test --tests "org.legoflow.interop.http.HttpNginxInteropTest"
+./gradlew :interop-tests:test -DskipInteropTests=false --tests "ssg.legoflow.interop.http.HttpNginxInteropTest"
 
 # Run with custom server addresses
-./gradlew :interop-tests:test -Dinterop.nginx.host=myhost -Dinterop.nginx.port=80
+./gradlew :interop-tests:test -DskipInteropTests=false   -Dinterop.nginx.host=myhost -Dinterop.nginx.port=80   -Dinterop.mosquitto.host=mqtt.local -Dinterop.mosquitto.port=1883
+
+# Verify results: check test report
+open interop-tests/build/reports/tests/test/index.html
+# Expected: 21 tests passed, 0 failures
 ```
 
 ### Test Matrix
 
 | Protocol | Reference Server | Tests |
 |----------|-----------------|-------|
-| HTTP/1.1 | nginx:alpine | GET endpoints, POST echo, JSON API, HTML |
-| MQTT v3.1.1/v5.0 | eclipse-mosquitto | Connect, publish/subscribe, wildcards, multi-topic |
-| Redis RESP2/3 | redis:7-alpine | Strings, hashes, lists, KEYS, TTL |
-| PostgreSQL v3 wire | postgres:17-alpine | DDL, DML, aggregates, transactions |
+| HTTP/1.1 | nginx:alpine | 4 tests (health, JSON API, echo, HTML) |
+| MQTT v3.1.1/v5.0 | eclipse-mosquitto | 4 tests (connect, publish/subscribe, wildcards, retain) |
+| Redis RESP2/3 | redis:7-alpine | 7 tests (PING, SET/GET, INCR, HSET/HGETALL, RPUSH/LPOP, KEYS) |
+| PostgreSQL v3 wire | postgres:17-alpine | 6 tests (version, DDL/DML, aggregates, transactions, params, connect) |
 
 See [interop-tests/README.md](interop-tests/README.md) for details.
 

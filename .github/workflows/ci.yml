@@ -184,58 +184,14 @@ jobs:
           CI: true
 
   # ──────────────────────────────────────────────
-  # 5. Interoperability tests (Docker-based)
+  # 5. Interoperability tests (Docker Compose)
   #    Runs against real reference implementations
+  #    Uses docker compose for volume mounts (nginx config, mosquitto config)
   # ──────────────────────────────────────────────
   interoperability-tests:
     name: "Interoperability Tests"
     runs-on: ubuntu-latest
     needs: build
-
-    services:
-      nginx:
-        image: nginx:alpine
-        ports:
-          - "8080:80"
-        options: >-
-          --health-cmd "curl -f http://localhost:80/"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-      mosquitto:
-        image: eclipse-mosquitto:latest
-        ports:
-          - "1883:1883"
-        options: >-
-          --health-cmd "bash -c 'echo pong | mosquitto_pub -h localhost -p 1883 -t test/ping -l && exit 0 || exit 1'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 6
-
-      redis:
-        image: redis:alpine
-        ports:
-          - "6379:6379"
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-      postgresql:
-        image: postgres:17-alpine
-        ports:
-          - "5432:5432"
-        env:
-          POSTGRES_USER: legoflow
-          POSTGRES_PASSWORD: legoflow
-          POSTGRES_DB: legoflow_test
-        options: >-
-          --health-cmd "pg_isready -U legoflow"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
       - name: Checkout repository
@@ -256,19 +212,59 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
+      - name: Start Docker services
+        run: |
+          docker compose -f interop-tests/docker-compose.yml up -d
+          echo "Waiting for all services to become healthy..."
+          timeout=120
+          elapsed=0
+          interval=5
+          while [ $elapsed -lt $timeout ]; do
+            all_healthy=true
+            for svc in nginx mosquitto redis postgresql; do
+              status=$(docker inspect --format='{{.State.Health.Status}}' "legoflow-${svc}" 2>/dev/null || echo "not_found")
+              if [ "$status" != "healthy" ]; then
+                all_healthy=false
+                echo "  ${svc}: ${status}"
+              fi
+            done
+            if [ "$all_healthy" = true ]; then
+              echo "All services healthy!"
+              docker compose -f interop-tests/docker-compose.yml ps
+              break
+            fi
+            elapsed=$((elapsed + interval))
+            echo "Waiting... (${elapsed}s / ${timeout}s)"
+            sleep $interval
+          done
+          # Final verification
+          for svc in nginx mosquitto redis postgresql; do
+            status=$(docker inspect --format='{{.State.Health.Status}}' "legoflow-${svc}" 2>/dev/null || echo "not_found")
+            if [ "$status" != "healthy" ]; then
+              echo "ERROR: ${svc} is not healthy (status: ${status})"
+              docker logs "legoflow-${svc}" 2>&1 | tail -30
+              exit 1
+            fi
+          done
+
       - name: Run interoperability tests (Docker services are running)
-        run: mvn -B verify -pl interop-tests -am -P all -DskipInteropTests=false
+        run: mvn -B verify -pl interop-tests -am \
+          -P all \
+          -DskipInteropTests=false \
+          -Dinterop.nginx.host=localhost \
+          -Dinterop.nginx.port=8080 \
+          -Dinterop.mosquitto.host=localhost \
+          -Dinterop.mosquitto.port=1883 \
+          -Dinterop.redis.host=localhost \
+          -Dinterop.redis.port=6379 \
+          -Dinterop.pg.host=localhost \
+          -Dinterop.pg.port=5432 \
+          -Dinterop.pg.user=legoflow \
+          -Dinterop.pg.password=legoflow \
+          -Dinterop.pg.db=legoflow_test
         env:
           CI: true
-          INTEROP_NGINX_HOST: localhost
-          INTEROP_NGINX_PORT: 8080
-          INTEROP_MOSQUITTO_HOST: localhost
-          INTEROP_MOSQUITTO_PORT: 1883
-          INTEROP_REDIS_HOST: localhost
-          INTEROP_REDIS_PORT: 6379
-          INTEROP_PG_HOST: localhost
-          INTEROP_PG_PORT: 5432
-          INTEROP_PG_USER: legoflow
-          INTEROP_PG_PASSWORD: legoflow
-          INTEROP_PG_DB: legoflow_test
 
+      - name: Stop Docker services
+        if: always()
+        run: docker compose -f interop-tests/docker-compose.yml down

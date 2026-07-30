@@ -46,7 +46,7 @@ redis-cli -p 6379 ping
 
 ```bash
 cd /path/to/lego-flow
-mvn test -pl interop-tests -am -T 1C
+mvn verify -pl interop-tests -am -P all -DskipInteropTests=false
 # Expected: 21 tests, 0 failures
 ```
 
@@ -54,7 +54,7 @@ mvn test -pl interop-tests -am -T 1C
 
 ```bash
 cd /path/to/lego-flow
-./gradlew :interop-tests:test --console=plain
+./gradlew :interop-tests:test -DskipInteropTests=false --console=plain
 # Expected: 21 tests, 0 failures
 ```
 
@@ -121,6 +121,6 @@ mvn test -pl interop-tests \
 
 ## CI Integration
 
-Interoperability tests run against Docker containers in GitHub Actions CI.
-The services are defined as `services` in the workflow and automatically
-started/stopped per test run.
+Interoperability tests run against Docker Compose containers in GitHub Actions CI.
+Services are started with `docker compose -f interop-tests/docker-compose.yml up -d`,
+health-checked, and stopped after the tests complete (even on failure).

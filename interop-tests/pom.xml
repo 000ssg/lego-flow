@@ -97,6 +97,19 @@
                 <version>3.2.5</version>
                 <configuration>
                     <skipTests>${skipInteropTests}</skipTests>
+                    <systemPropertyVariables>
+                        <interop.nginx.host>localhost</interop.nginx.host>
+                        <interop.nginx.port>8080</interop.nginx.port>
+                        <interop.mosquitto.host>localhost</interop.mosquitto.host>
+                        <interop.mosquitto.port>1883</interop.mosquitto.port>
+                        <interop.redis.host>localhost</interop.redis.host>
+                        <interop.redis.port>6379</interop.redis.port>
+                        <interop.pg.host>localhost</interop.pg.host>
+                        <interop.pg.port>5432</interop.pg.port>
+                        <interop.pg.user>legoflow</interop.pg.user>
+                        <interop.pg.password>legoflow</interop.pg.password>
+                        <interop.pg.db>legoflow_test</interop.pg.db>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
 
@@ -107,17 +120,17 @@
                 <version>3.2.5</version>
                 <configuration>
                     <systemPropertyVariables>
-                        <interop.nginx.host>${INTEROP_NGINX_HOST:localhost}</interop.nginx.host>
-                        <interop.nginx.port>${INTEROP_NGINX_PORT:8080}</interop.nginx.port>
-                        <interop.mosquitto.host>${INTEROP_MOSQUITTO_HOST:localhost}</interop.mosquitto.host>
-                        <interop.mosquitto.port>${INTEROP_MOSQUITTO_PORT:1883}</interop.mosquitto.port>
-                        <interop.redis.host>${INTEROP_REDIS_HOST:localhost}</interop.redis.host>
-                        <interop.redis.port>${INTEROP_REDIS_PORT:6379}</interop.redis.port>
-                        <interop.pg.host>${INTEROP_PG_HOST:localhost}</interop.pg.host>
-                        <interop.pg.port>${INTEROP_PG_PORT:5432}</interop.pg.port>
-                        <interop.pg.user>${INTEROP_PG_USER:legoflow}</interop.pg.user>
-                        <interop.pg.password>${INTEROP_PG_PASSWORD:legoflow}</interop.pg.password>
-                        <interop.pg.db>${INTEROP_PG_DB:legoflow_test}</interop.pg.db>
+                        <interop.nginx.host>localhost</interop.nginx.host>
+                        <interop.nginx.port>8080</interop.nginx.port>
+                        <interop.mosquitto.host>localhost</interop.mosquitto.host>
+                        <interop.mosquitto.port>1883</interop.mosquitto.port>
+                        <interop.redis.host>localhost</interop.redis.host>
+                        <interop.redis.port>6379</interop.redis.port>
+                        <interop.pg.host>localhost</interop.pg.host>
+                        <interop.pg.port>5432</interop.pg.port>
+                        <interop.pg.user>legoflow</interop.pg.user>
+                        <interop.pg.password>legoflow</interop.pg.password>
+                        <interop.pg.db>legoflow_test</interop.pg.db>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

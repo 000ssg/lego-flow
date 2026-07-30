@@ -105,7 +105,12 @@ fun Project.setupInteropTestsModule() {
     // Skip tests by default — mirrors Maven skipInteropTests=true property
     // Override: ./gradlew :interop-tests:test -DskipInteropTests=false
     tasks.withType<Test> {
-        enabled = (findProperty("skipInteropTests") ?: "true") != "true"
+        // Check both Gradle project properties (-PskipInteropTests=false) and JVM system properties
+        // (-DskipInteropTests=false) for Maven command-line parity
+        val skipValue = findProperty("skipInteropTests") 
+            ?: System.getProperty("skipInteropTests")
+            ?: "true"
+        enabled = skipValue != "true"
         
         // System properties for Docker targets (mirrors Maven failsafe plugin config)
         systemProperty("interop.nginx.host", findProperty("interop.nginx.host") ?: "localhost")
