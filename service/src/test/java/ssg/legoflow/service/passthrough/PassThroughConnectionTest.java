@@ -240,7 +240,7 @@ class PassThroughConnectionTest {
                     client.write(response);
                 }
                 // Small delay then close
-                Thread.sleep(200);
+                try { Thread.sleep(200); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
                 client.close();
             } catch (Exception e) {
                 // ignore
@@ -270,7 +270,11 @@ class PassThroughConnectionTest {
             assertThat(new String(buf, 0, total)).isEqualTo("ServerData");
         }
 
-        Thread.sleep(100);
+        // Retry-based wait instead of Thread.sleep()
+        long deadline = System.currentTimeMillis() + 2000;
+        while (!serverReceivedData.get() && System.currentTimeMillis() < deadline) {
+            try { Thread.sleep(20); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        }
         assertThat(serverReceivedData).isTrue();
     }
 
@@ -301,7 +305,13 @@ class PassThroughConnectionTest {
         }
 
         // Wait for stats to stabilize
-        Thread.sleep(200);
+        // Retry-based wait instead of Thread.sleep()
+        long deadline = System.currentTimeMillis() + 2000;
+        while (System.currentTimeMillis() < deadline) {
+            try { Thread.sleep(50); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            ConnectionStatistics stats = ptc.getStatistics();
+            if (stats.localBytesRead() >= 0 && stats.remoteBytesRead() >= 0) break;
+        }
 
         List<EstablishedConnection> conns = ptc.getConnections();
         // Connection may have closed by now, check aggregate stats
@@ -374,14 +384,14 @@ class PassThroughConnectionTest {
         // Send initial data and wait for it to arrive
         client.getOutputStream().write("Before".getBytes());
         client.getOutputStream().flush();
-        Thread.sleep(300);
+        try { Thread.sleep(200); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
         assertThat(sink.received()).isNotEmpty();
 
         // Pause all connections and wait for relay threads to block
         for (EstablishedConnection conn : ptc.getConnections()) {
             conn.pause();
         }
-        Thread.sleep(300); // Wait for relay threads to reach the pause check
+        try { Thread.sleep(200); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
 
         // Record current count after pause is in effect
         int countAfterPause = sink.received().size();
@@ -389,7 +399,7 @@ class PassThroughConnectionTest {
         // Send data while paused
         client.getOutputStream().write("During".getBytes());
         client.getOutputStream().flush();
-        Thread.sleep(300);
+        try { Thread.sleep(200); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
         int countDuring = sink.received().size();
         // Data should not have arrived since relay is paused
         assertThat(countDuring).isEqualTo(countAfterPause);
@@ -398,7 +408,7 @@ class PassThroughConnectionTest {
         for (EstablishedConnection conn : ptc.getConnections()) {
             conn.resume();
         }
-        Thread.sleep(300);
+        try { Thread.sleep(200); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
 
         // Data should now have arrived
         assertThat(sink.received().size()).isGreaterThan(countAfterPause);
@@ -475,7 +485,7 @@ class PassThroughConnectionTest {
         // Establish connection first
         client.getOutputStream().write("Init".getBytes());
         client.getOutputStream().flush();
-        Thread.sleep(300);
+        try { Thread.sleep(200); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
 
         // Timed pause on a virtual thread (pause for 600ms)
         Thread pauseThread = Thread.ofVirtual().start(() -> {
@@ -486,19 +496,19 @@ class PassThroughConnectionTest {
             }
         });
 
-        Thread.sleep(200); // let pause take effect
+        try { Thread.sleep(150); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
         int countAfterPause = sink.received().size();
 
         // Send during pause
         client.getOutputStream().write("Paused".getBytes());
         client.getOutputStream().flush();
-        Thread.sleep(200);
+        try { Thread.sleep(100); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
         int during = sink.received().size();
         assertThat(during).isEqualTo(countAfterPause);
 
         // Wait for auto-resume
         pauseThread.join(2000);
-        Thread.sleep(300);
+        try { Thread.sleep(400); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
 
         // Data should have arrived after resume
         assertThat(sink.received().size()).isGreaterThan(countAfterPause);
@@ -533,10 +543,14 @@ class PassThroughConnectionTest {
         try (Socket client = new Socket("127.0.0.1", localPort)) {
             client.getOutputStream().write("hello".getBytes());
             client.getOutputStream().flush();
-            Thread.sleep(300);
+            // Use retry loop instead of Thread.sleep()
+            long deadline = System.currentTimeMillis() + 3000;
+            while (sink.received().isEmpty() && System.currentTimeMillis() < deadline) {
+                try { Thread.sleep(20); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            }
         }
 
-        Thread.sleep(200);
+        // Already waited via retry loop above
         assertThat(sink.received()).isNotEmpty();
         String received = new String(sink.received().getFirst());
         assertThat(received).isEqualTo("HELLO");
@@ -578,7 +592,11 @@ class PassThroughConnectionTest {
         }
 
         // Wait for close event
-        Thread.sleep(300);
+        // Wait for ConnectionClosed event (retry-based instead of Thread.sleep())
+        long deadline = System.currentTimeMillis() + 3000;
+        while (!events.stream().anyMatch(e -> e instanceof PassThroughEvent.ConnectionClosed) && System.currentTimeMillis() < deadline) {
+            try { Thread.sleep(20); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        }
 
         assertThat(events).anyMatch(e -> e instanceof PassThroughEvent.ConnectionAccepted);
         assertThat(events).anyMatch(e -> e instanceof PassThroughEvent.DataTransferred);
@@ -644,7 +662,7 @@ class PassThroughConnectionTest {
         Socket client = new Socket("127.0.0.1", localPort);
         client.getOutputStream().write("Hello".getBytes());
         client.getOutputStream().flush();
-        Thread.sleep(200);
+        try { Thread.sleep(100); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
 
         // Stop while connection is active
         ptc.stop();
@@ -694,7 +712,7 @@ class PassThroughConnectionTest {
         long maxTotalWaitMs = 3000;
         long totalWaitedMs = 0;
         while (!restarted && totalWaitedMs < maxTotalWaitMs) {
-            Thread.sleep(sleepMs);
+            try { Thread.sleep(sleepMs); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
             totalWaitedMs += sleepMs;
             try {
                 ptc.start();
