@@ -208,10 +208,10 @@ jobs:
         ports:
           - "1883:1883"
         options: >-
-          --health-cmd "mosquitto_sub -t 'test' -t 'test/#' -C 5"
+          --health-cmd "bash -c 'echo pong | mosquitto_pub -h localhost -p 1883 -t test/ping -l && exit 0 || exit 1'"
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 6
 
       redis:
         image: redis:alpine
