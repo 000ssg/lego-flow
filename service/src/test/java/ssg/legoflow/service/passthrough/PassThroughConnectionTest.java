@@ -686,10 +686,22 @@ class PassThroughConnectionTest {
         assertThat(ptc.isRunning()).isFalse();
 
         // Wait for port to be released (TCP TIME_WAIT on CI can delay port reuse)
-        Thread.sleep(200);
-
-        // Restart
-        ptc.start();
+        // Retry with exponential backoff up to 500ms total to handle race conditions in parallel execution
+        boolean restarted = false;
+        long sleepMs = 100;
+        while (!restarted && sleepMs <= 500) {
+            Thread.sleep(sleepMs);
+            try {
+                ptc.start();
+                restarted = true;
+            } catch (RuntimeException e) {
+                if (e.getMessage() != null && e.getMessage().contains("Address already in use")) {
+                    sleepMs *= 2;
+                } else {
+                    throw e;
+                }
+            }
+        }
         assertThat(ptc.isRunning()).isTrue();
 
         try (Socket client = new Socket("127.0.0.1", localPort)) {

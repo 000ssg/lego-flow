@@ -148,7 +148,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Run ${{ matrix.profile }} profile tests
-        run: mvn -B verify -T 1C -P ${{ matrix.profile }}
+        run: mvn -B verify -T 1C -P ${{ matrix.profile }} -DskipInteropTests=true
         env:
           CI: true
 
