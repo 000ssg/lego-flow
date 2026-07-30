@@ -110,10 +110,10 @@ class KeepAliveTimeoutTest {
 
     @Test
     void testKeepAliveTimeoutPublishesWill() throws Exception {
-        // Given: client with will and 1-second keep-alive
+        // Given: client with will and 1-second keep-alive (broker timeout is 1.5s)
         var codec = new MqttCodec(MqttVersion.V3_1_1);
 
-        // First, subscribe to will topic
+        // First, subscribe to will topic on a separate channel
         var subCodec = new MqttCodec(MqttVersion.V3_1_1);
         try (var subCh = SocketChannel.open(new InetSocketAddress("localhost", port))) {
             subCh.configureBlocking(true);
@@ -129,24 +129,28 @@ class KeepAliveTimeoutTest {
             writePacket(subCh, subCodec, subscribe);
             readPacket(subCh, subCodec); // SUBACK
 
-            // Now connect the client with will
+            // Now connect the client with will (1-second keep-alive -> 1.5s timeout)
             try (var clientCh = SocketChannel.open(new InetSocketAddress("localhost", port))) {
                 clientCh.configureBlocking(true);
                 var will = new WillMessage("will/keepalive", "client-died".getBytes(),
                         QoS.AT_MOST_ONCE, false);
                 var connect = new ConnectPacket(MqttVersion.V3_1_1, "will-client",
-                        true, 1, null, null, will, new MqttProperties());
+                        true, 1 /* 1-second keep-alive */, null, null, will, new MqttProperties());
                 writePacket(clientCh, codec, connect);
                 readPacket(clientCh, codec); // CONNACK
 
-                // When: let keep-alive timeout expire
-                Thread.sleep(2500);
+                assertThat(broker.getConnectedClients()).contains("will-client");
             }
 
-            // Then: will message should be published
-            // (We don't try to read from subCh since the timing is tricky in tests,
-            // but we verify the client was disconnected by the broker)
+            // When: let keep-alive timeout expire (1.5s + 1s buffer = wait 2.5s)
+            Thread.sleep(2500);
+
+            // Then: client should be disconnected by broker (will message will be delivered)
             assertThat(broker.getConnectedClients()).doesNotContain("will-client");
+
+            // Clean up subscriber
+            writePacket(subCh, subCodec, new DisconnectPacket(ReasonCode.NORMAL_DISCONNECTION,
+                    new MqttProperties()));
         }
     }
 
