@@ -686,22 +686,32 @@ class PassThroughConnectionTest {
         assertThat(ptc.isRunning()).isFalse();
 
         // Wait for port to be released (TCP TIME_WAIT on CI can delay port reuse)
-        // Retry with exponential backoff up to 500ms total to handle race conditions in parallel execution
+        // Retry with exponential backoff (100ms, 200ms, 400ms, 800ms, 1600ms) up to 3s total
+        // to handle race conditions in parallel execution (-T 1C) on slow CI runners.
+        // ptc.start() throws IOException (BindException) for port conflicts.
         boolean restarted = false;
         long sleepMs = 100;
-        while (!restarted && sleepMs <= 500) {
+        long maxTotalWaitMs = 3000;
+        long totalWaitedMs = 0;
+        while (!restarted && totalWaitedMs < maxTotalWaitMs) {
             Thread.sleep(sleepMs);
+            totalWaitedMs += sleepMs;
             try {
                 ptc.start();
                 restarted = true;
-            } catch (RuntimeException e) {
-                if (e.getMessage() != null && e.getMessage().contains("Address already in use")) {
+            } catch (Exception e) {
+                String msg = e.getMessage() != null ? e.getMessage() : "";
+                boolean isPortConflict = msg.contains("Address already in use")
+                        || msg.contains("Cannot assign requested address");
+                if (isPortConflict) {
                     sleepMs *= 2;
                 } else {
-                    throw e;
+                    throw new RuntimeException(e);
                 }
             }
         }
+        assertThat(restarted).as("Failed to restart PassThroughConnection after %d ms of retries", totalWaitedMs)
+                .isTrue();
         assertThat(ptc.isRunning()).isTrue();
 
         try (Socket client = new Socket("127.0.0.1", localPort)) {
