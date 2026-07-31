@@ -6,6 +6,48 @@ This document describes the development practices, patterns, and conventions use
 
 **Lego Flow** is a composable data processing framework for Java built on JDK 25. It provides layered abstractions for building data-driven services: composable blocks (DP/DF), service orchestration, HTTP protocol, web services, and WAMP protocol support.
 
+### ⚠️ CRITICAL: YAML Multi-Line Commands in GitHub Actions — FOLDING BUG
+
+**This bug has caused 3+ CI failures. ALWAYS follow this rule when editing `.github/workflows/*.yml`:**
+
+**NEVER use backslash line continuations (`\\`) in `run:` blocks.** Always write multi-line
+shell commands on a single line.
+
+#### Why It Breaks:
+GitHub Actions uses YAML implicit folding (no block scalar `|`). Folding converts newlines to
+spaces but **keeps backslashes literally**. So bash sees `\` + space as an *escaped space*,
+making the next argument start with a literal space character:
+
+```yaml
+# ❌ BROKEN — YAML folding converts this to:
+# mvn -B verify " --no-daemon" "-DskipInteropTests=false" ...
+run: mvn -B verify \
+  --no-daemon \          # ← becomes ' --no-daemon' (leading space!)
+  -DskipInteropTests=false
+
+# ✅ CORRECT — single line, no backslashes:
+run: mvn -B verify --no-daemon -DskipInteropTests=false ...
+```
+
+#### Symptom (what CI reports):
+```
+Unknown lifecycle phase " --no-daemon". You must specify a valid lifecycle phase...
+Task ' --no-daemon' not found in root project 'lego-flow'...
+```
+
+**Affected commits**: 9c83b88, 33b5830, b4f10b5, 39fd980 — the same bug reappeared every time
+CI commands were reformatted with multi-line YAML.
+
+#### Safe Alternatives for Very Long Commands:
+1. **Single line** (preferred when under ~200 chars): `run: ./gradlew task1 task2 -Pflag=value ...`
+2. **Shell heredoc**: Use `shell: bash` with a `$'...'` quoting style
+3. **Environment variable**: Set command in env block, then reference `${{ env.CMD }}`
+
+**When editing any CI workflow file, scan ALL `run:` blocks for backslash continuations and
+convert them to single lines.**
+
+---
+
 ## Development Practices
 
 ### 1. Requirements Documentation
