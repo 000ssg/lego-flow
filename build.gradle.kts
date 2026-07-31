@@ -204,16 +204,6 @@ tasks.register("jacocoAggregateReport", JacocoAggregateReportTask::class) {
     }
 }
 
-// Copy reports to Maven-compatible path for CI artifact upload compatibility
-tasks.register<Copy>("copyJacocoForCI") {
-    description = "Copy JaCoCo reports to target/site/jacoco/jacoco-aggregate/ for CI compatibility"
-    group = "verification"
-    
-    from(layout.buildDirectory.dir("jacoco/aggregate/html"))
-    into(projectDir.resolve("target/site/jacoco/jacoco-aggregate"))
-    dependsOn("jacocoAggregateReport")
-}
-
 // ── JaCoCo Agent Configuration for Test Instrumentation ────────────────────────
 // Adds -javaagent to all test tasks so .exec files are generated during testing.
 // Mirrors Maven jacoco-maven-plugin prepare-agent goal.

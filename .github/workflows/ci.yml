@@ -2,9 +2,9 @@
 # Builds, tests, and validates all 42+ modules with coverage gates.
 #
 # Build strategy:
-#   • Gradle handles compile + unit tests (fast, parallel, cached)
-#   • JaCoCo coverage gate uses Maven for HTML report generation (Gradle has XML-only support)
+#   • Gradle handles everything: compile + unit tests + JaCoCo coverage reports
 #   • Interop tests run via Gradle when Docker services are available
+#   • Maven is no longer needed in CI (JaCoCo HTML report bug fixed)
 #
 # Conditional execution:
 #   Set `skip-coverage` label on PR to skip coverage gate
@@ -17,9 +17,6 @@ on:
     branches: [main, productize, "3-tests-pipeline*"]
   pull_request:
     branches: [main, productize]
-
-env:
-  MAVEN_OPTS: "-Xmx4g -Dmaven.artifact.threads=8"
 
 jobs:
   # ──────────────────────────────────────────────
@@ -75,20 +72,10 @@ jobs:
           path: "**/build/reports/tests/test/index.html"
           retention-days: 30
 
-      # ── Upload JaCoCo .exec files for coverage gate ───────────────────
-      - name: Upload JaCoCo exec data
-        if: matrix.os == 'ubuntu-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: jacoco-exec-data
-          path: "**/build/jacoco/*.exec"
-          retention-days: 1
-
   # ──────────────────────────────────────────────
-  # 2. Coverage threshold gate (Maven — HTML + XML report generation)
-  #    Maven still needed for full JaCoCo HTML reports (Gradle has XML-only support due to
-  #    JaCoCo 0.8.x HTMLFormatter NPE in programmatic API). Can be skipped by adding
-  #    'skip-coverage' label on PR.
+  # 2. Coverage Gate — Gradle (HTML + XML JaCoCo reports)
+  #    Replaced Maven coverage gate with Gradle jacocoAggregateReport task.
+  #    Can be skipped by adding 'skip-coverage' label on PR.
   # ──────────────────────────────────────────────
   coverage-gate:
     name: "Coverage Gate"
@@ -105,18 +92,18 @@ jobs:
         with:
           java-version: "25"
           distribution: "temurin"
-          cache: maven
+          cache: gradle
 
-      - name: Cache local Maven repository
+      - name: Cache Gradle user home
         uses: actions/cache@v4
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle.kts', '**/gradle.properties') }}
           restore-keys: |
-            ${{ runner.os }}-maven-
+            ${{ runner.os }}-gradle-caches-
 
-      - name: Run tests with coverage instrumentation (skip interop tests — no Docker services)
-        run: mvn -B verify -T 1C -P all,jacoco-coverage -DskipInteropTests=true
+      - name: Generate aggregate JaCoCo coverage report
+        run: ./gradlew jacocoAggregateReport --no-daemon --rerun-tasks -PskipInteropTests=true
         env:
           CI: true
 
@@ -125,7 +112,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-report
-          path: target/site/jacoco/jacoco-aggregate/
+          path: build/jacoco/aggregate/html/
           retention-days: 30
 
   # ──────────────────────────────────────────────
@@ -238,20 +225,7 @@ jobs:
           done
 
       - name: Run interoperability tests (Docker services are running)
-        run: ./gradlew :interop-tests:test \
-          --no-daemon \
-          -PskipInteropTests=false \
-          -Pinterop.nginx.host=localhost \
-          -Pinterop.nginx.port=8080 \
-          -Pinterop.mosquitto.host=localhost \
-          -Pinterop.mosquitto.port=1883 \
-          -Pinterop.redis.host=localhost \
-          -Pinterop.redis.port=6379 \
-          -Pinterop.pg.host=localhost \
-          -Pinterop.pg.port=5432 \
-          -Pinterop.pg.user=legoflow \
-          -Pinterop.pg.password=legoflow \
-          -Pinterop.pg.db=legoflow_test
+        run: ./gradlew :interop-tests:test --no-daemon -PskipInteropTests=false -Pinterop.nginx.host=localhost -Pinterop.nginx.port=8080 -Pinterop.mosquitto.host=localhost -Pinterop.mosquitto.port=1883 -Pinterop.redis.host=localhost -Pinterop.redis.port=6379 -Pinterop.pg.host=localhost -Pinterop.pg.port=5432 -Pinterop.pg.user=legoflow -Pinterop.pg.password=legoflow -Pinterop.pg.db=legoflow_test
         env:
           CI: true
 
