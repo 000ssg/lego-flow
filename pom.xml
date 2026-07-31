@@ -310,14 +310,10 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.2.5</version>
                     <configuration>
-                        <fork>true</fork>
-                        <!-- Disable parallel test execution to prevent timing-sensitive race conditions.
-                             Many tests use Thread.sleep() and shared network resources (servers, sockets)
-                             that aren't safe for parallel execution. Re-enable only after all timing tests
-                             are made parallel-safe with proper synchronization or resource isolation. -->
-                        <parallel>none</parallel>
+                        <parallel>classes</parallel>
+                        <threadCount>4</threadCount>
                         <reuseForks>true</reuseForks>
-                        <forkCount>1</forkCount>
+                        <forkCount>4</forkCount>
                         <runOrder>balanced</runOrder>
                     </configuration>
                 </plugin>
