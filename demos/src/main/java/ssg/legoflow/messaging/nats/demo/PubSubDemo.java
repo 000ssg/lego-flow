@@ -47,23 +47,32 @@ public final class PubSubDemo {
                 subscriber.connect();
                 publisher.connect();
 
-                var latch = new CountDownLatch(3);
+                // Separate latch to confirm subscription propagation (does not count toward received)
+                var readyLatch = new CountDownLatch(1);
 
                 // Subscribe to various subjects
                 subscriber.subscribe("events.>", msg -> {
                     LOG.info("Received on {}: {}", msg.subject(), msg.dataAsString());
-                    received.incrementAndGet();
-                    latch.countDown();
+                    readyLatch.countDown();
+                    if (!msg.subject().equals("events.__ready")) {
+                        received.incrementAndGet();
+                    }
                 });
 
-                Thread.sleep(50); // Allow subscription to propagate
+                // Probe to confirm subscription has propagated before publishing real messages
+                publisher.publish("events.__ready", "probe");
+                readyLatch.await(5, TimeUnit.SECONDS);
 
-                // Publish messages
+                // Publish actual messages
                 publisher.publish("events.user.login", "user=alice");
                 publisher.publish("events.user.logout", "user=bob");
                 publisher.publish("events.system.restart", "node=1");
 
-                latch.await(5, TimeUnit.SECONDS);
+                // Wait for remaining 3 messages with poll-based timeout
+                long deadline = System.currentTimeMillis() + 5000;
+                while (received.get() < 3 && System.currentTimeMillis() < deadline) {
+                    Thread.sleep(50);
+                }
             }
         }
 
