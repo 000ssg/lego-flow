@@ -10,7 +10,7 @@ package ssg.legoflow.mqtt.protocol;
  * @param qos        the will QoS level
  * @param retain     whether the will message should be retained
  * @param properties MQTT 5.0 will properties (may be empty)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record WillMessage(
         String topic,

@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -28,7 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * server.start();
  * }</pre>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RtspServer implements AutoCloseable {
 
@@ -43,6 +44,7 @@ public final class RtspServer implements AutoCloseable {
     private final String serverName;
     private final AtomicBoolean running;
     private volatile ServerSocket serverSocket;
+    private java.util.concurrent.ExecutorService executor;
 
     /**
      * Creates an RTSP server on the specified port.
@@ -347,6 +349,52 @@ public final class RtspServer implements AutoCloseable {
      *
      * @return true if running
      */
+    
+    /**
+     * Starts the RTSP server and begins accepting connections.
+     * Uses virtual threads for connection handling.
+     *
+     * @throws IOException if binding fails
+     */
+    public void start() throws IOException {
+        if (running.get()) return;
+
+        serverSocket = new ServerSocket();
+        serverSocket.setReuseAddress(true);
+        serverSocket.bind(new java.net.InetSocketAddress(port));
+        running.set(true);
+        executor = Executors.newVirtualThreadPerTaskExecutor();
+        LOG.info("RTSP server started on port {}", port);
+
+        // Accept loop on virtual thread
+        executor.submit(this::acceptLoop);
+    }
+
+    private void acceptLoop() {
+        while (running.get()) {
+            try {
+                Socket clientSocket = serverSocket.accept();
+                executor.submit(() -> handleClient(clientSocket));
+            } catch (IOException e) {
+                if (running.get()) LOG.warn("Accept error", e);
+            }
+        }
+    }
+
+    private void handleClient(Socket socket) {
+        try {
+            // RTSP connections are handled through the HTTP framework layer;
+            // this method is a placeholder for future transport integration.
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            LOG.warn("Client handler error", e);
+        } finally {
+            try { socket.close(); } catch (IOException ignored) {}
+        }
+    }
+
     public boolean isRunning() {
         return running.get();
     }
@@ -354,6 +402,9 @@ public final class RtspServer implements AutoCloseable {
     @Override
     public void close() {
         running.set(false);
+        if (executor != null) {
+            executor.shutdownNow();
+        }
         sessions.values().forEach(RtspSession::terminate);
         sessions.clear();
         if (serverSocket != null) {

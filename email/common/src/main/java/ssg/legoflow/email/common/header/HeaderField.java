@@ -10,7 +10,7 @@ import java.util.Objects;
  * <p>Header names are case-insensitive per RFC 5322. Values may contain
  * RFC 2047 encoded words which are decoded on access.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class HeaderField {
 

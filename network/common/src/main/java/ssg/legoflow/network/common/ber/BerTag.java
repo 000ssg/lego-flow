@@ -17,7 +17,7 @@ import java.nio.ByteBuffer;
  *   Bits 4-0: tag number (0-30), or 11111 (31) for long form
  * </pre>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class BerTag {
 

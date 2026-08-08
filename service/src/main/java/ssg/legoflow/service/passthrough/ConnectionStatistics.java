@@ -7,7 +7,7 @@ package ssg.legoflow.service.passthrough;
  * @param localBytesWritten  total bytes written to the local (client) socket
  * @param remoteBytesRead    total bytes read from the remote (target) socket
  * @param remoteBytesWritten total bytes written to the remote (target) socket
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ConnectionStatistics(
         long localBytesRead,

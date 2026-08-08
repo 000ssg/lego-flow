@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *   <li>Request/response filtering</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ForwardProxy implements AutoCloseable {
 
@@ -69,7 +69,7 @@ public class ForwardProxy implements AutoCloseable {
      * Creates a new forward proxy with the given configuration.
      *
      * @param config the proxy configuration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ForwardProxy(ForwardProxyConfig config) {
         this(config, ProxyAccessControl.allowAll());
@@ -80,7 +80,7 @@ public class ForwardProxy implements AutoCloseable {
      *
      * @param config the proxy configuration
      * @param accessControl the access control policy
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ForwardProxy(ForwardProxyConfig config, ProxyAccessControl accessControl) {
         this.config = config;
@@ -93,7 +93,7 @@ public class ForwardProxy implements AutoCloseable {
      *
      * @param request the incoming request
      * @return the response from the target or an error response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse handleRequest(HttpRequest request) {
         requestCount.incrementAndGet();
@@ -139,7 +139,7 @@ public class ForwardProxy implements AutoCloseable {
      * @param request the CONNECT request
      * @param target the target address
      * @return 200 Connection Established response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     HttpResponse handleConnect(HttpRequest request, TargetAddress target) {
         tunnelCount.incrementAndGet();
@@ -158,7 +158,7 @@ public class ForwardProxy implements AutoCloseable {
      * @param request the request to forward
      * @param target the target server address
      * @return the response from the target
-     * @since 1.0.0
+     * @since 0.1.0
      */
     HttpResponse handlePlainHttp(HttpRequest request, TargetAddress target) {
         LOG.debug("Forwarding HTTP request to {}:{}{}", target.host(), target.port(), target.path());
@@ -222,7 +222,7 @@ public class ForwardProxy implements AutoCloseable {
      * @param request the forwarded request with proxy headers already applied
      * @param target the resolved target address (host, port, path)
      * @return the upstream response mapped to the proxy response format
-     * @since 1.0.0
+     * @since 0.1.0
      */
     protected HttpResponse simulateUpstreamRequest(HttpRequest request, TargetAddress target) {
         String scheme = (target.port() == 443) ? "https" : "http";
@@ -301,7 +301,7 @@ public class ForwardProxy implements AutoCloseable {
      *
      * @param upstream the upstream response
      * @return the mapped proxy response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     private HttpResponse mapUpstreamResponse(java.net.http.HttpResponse<byte[]> upstream) {
         HttpStatus status = HttpStatus.fromCode(upstream.statusCode());
@@ -331,7 +331,7 @@ public class ForwardProxy implements AutoCloseable {
      *
      * @param request the HTTP request
      * @return the target address, or null if unparseable
-     * @since 1.0.0
+     * @since 0.1.0
      */
     TargetAddress parseTarget(HttpRequest request) {
         String uri = request.getUri();
@@ -439,7 +439,7 @@ public class ForwardProxy implements AutoCloseable {
      * Adds a filter to the proxy pipeline.
      *
      * @param filter the filter to add
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addFilter(ProxyFilter filter) {
         filters.add(filter);
@@ -449,7 +449,7 @@ public class ForwardProxy implements AutoCloseable {
      * Removes a filter from the proxy pipeline.
      *
      * @param filter the filter to remove
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void removeFilter(ProxyFilter filter) {
         filters.remove(filter);
@@ -459,7 +459,7 @@ public class ForwardProxy implements AutoCloseable {
      * Sets the proxy authenticator.
      *
      * @param authenticator the authenticator
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setAuthenticator(ProxyAuthenticator authenticator) {
         this.authenticator = authenticator;
@@ -469,7 +469,7 @@ public class ForwardProxy implements AutoCloseable {
      * Returns the proxy configuration.
      *
      * @return the configuration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ForwardProxyConfig getConfig() {
         return config;
@@ -479,7 +479,7 @@ public class ForwardProxy implements AutoCloseable {
      * Returns the access control policy.
      *
      * @return the access control
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ProxyAccessControl getAccessControl() {
         return accessControl;
@@ -489,7 +489,7 @@ public class ForwardProxy implements AutoCloseable {
      * Returns the total number of requests processed.
      *
      * @return the request count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long getRequestCount() {
         return requestCount.get();
@@ -499,7 +499,7 @@ public class ForwardProxy implements AutoCloseable {
      * Returns the total number of CONNECT tunnels established.
      *
      * @return the tunnel count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long getTunnelCount() {
         return tunnelCount.get();
@@ -509,7 +509,7 @@ public class ForwardProxy implements AutoCloseable {
      * Returns the registered filters.
      *
      * @return the filters
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<ProxyFilter> getFilters() {
         return List.copyOf(filters);
@@ -527,7 +527,7 @@ public class ForwardProxy implements AutoCloseable {
      * @param host the target hostname
      * @param port the target port
      * @param path the request path
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record TargetAddress(String host, int port, String path) {
     }

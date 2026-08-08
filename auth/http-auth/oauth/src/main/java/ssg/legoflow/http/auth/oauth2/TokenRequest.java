@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * OAuth 2.0 token exchange request. Encodes the parameters for a POST to the token endpoint.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class TokenRequest {
 
@@ -29,7 +29,7 @@ public class TokenRequest {
      * Creates a token request.
      *
      * @param grantType the grant type
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public TokenRequest(String grantType) {
         this.grantType = Objects.requireNonNull(grantType);
@@ -43,7 +43,7 @@ public class TokenRequest {
      * @param redirectUri the redirect URI
      * @param config      the OAuth2 configuration
      * @return the token request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static TokenRequest authorizationCode(String code, String redirectUri, OAuth2Config config) {
         var req = new TokenRequest(GRANT_AUTHORIZATION_CODE);
@@ -64,7 +64,7 @@ public class TokenRequest {
      * @param codeVerifier the PKCE code verifier
      * @param config       the OAuth2 configuration
      * @return the token request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static TokenRequest authorizationCodeWithPkce(String code, String redirectUri,
                                                           String codeVerifier, OAuth2Config config) {
@@ -78,7 +78,7 @@ public class TokenRequest {
      *
      * @param config the OAuth2 configuration
      * @return the token request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static TokenRequest clientCredentials(OAuth2Config config) {
         var req = new TokenRequest(GRANT_CLIENT_CREDENTIALS);
@@ -99,7 +99,7 @@ public class TokenRequest {
      * @param password the password
      * @param config   the OAuth2 configuration
      * @return the token request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static TokenRequest password(String username, String password, OAuth2Config config) {
         var req = new TokenRequest(GRANT_PASSWORD);
@@ -121,7 +121,7 @@ public class TokenRequest {
      * @param refreshToken the refresh token
      * @param config       the OAuth2 configuration
      * @return the token request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static TokenRequest refreshToken(String refreshToken, OAuth2Config config) {
         var req = new TokenRequest(GRANT_REFRESH_TOKEN);
@@ -139,7 +139,7 @@ public class TokenRequest {
      * @param name  the parameter name
      * @param value the parameter value
      * @return this request for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public TokenRequest parameter(String name, String value) {
         parameters.put(name, value);
@@ -150,7 +150,7 @@ public class TokenRequest {
      * Encodes parameters as application/x-www-form-urlencoded body.
      *
      * @return the encoded body
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toFormBody() {
         var sb = new StringBuilder();
@@ -165,7 +165,7 @@ public class TokenRequest {
      * Returns the parameters as a map.
      *
      * @return the parameters
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Map<String, String> getParameters() {
         return Map.copyOf(parameters);
@@ -175,7 +175,7 @@ public class TokenRequest {
      * Returns the grant type.
      *
      * @return the grant type
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getGrantType() {
         return grantType;

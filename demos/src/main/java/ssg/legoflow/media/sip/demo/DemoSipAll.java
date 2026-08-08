@@ -30,7 +30,7 @@ import java.io.IOException;
  *   <li>Dialog management — dialog lifecycle from INVITE/response</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoSipAll {
 
@@ -59,7 +59,7 @@ public final class DemoSipAll {
      * @param clientTransaction   true if client transaction state machine worked
      * @param serverTransaction   true if server transaction state machine worked
      * @param dialogManagement    true if dialog lifecycle management succeeded
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record Results(
             boolean sipCodec,
@@ -78,7 +78,7 @@ public final class DemoSipAll {
      *
      * @return results from each feature section
      * @throws Exception if any operation fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Results runAll() throws Exception {
         boolean codec = demoSipCodec();
@@ -102,7 +102,7 @@ public final class DemoSipAll {
     /**
      * Demonstrates SIP message encode/decode for requests and responses.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoSipCodec() throws IOException {
         LOG.info("=== 1. SIP Codec ===");
@@ -156,7 +156,7 @@ public final class DemoSipAll {
     /**
      * Demonstrates fluent SIP request builder with all header types.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoRequestBuilder() {
         LOG.info("=== 2. Request Builder ===");
@@ -195,7 +195,7 @@ public final class DemoSipAll {
     /**
      * Demonstrates SIP response construction from a request.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoResponseBuilder() {
         LOG.info("=== 3. Response Builder ===");
@@ -248,7 +248,7 @@ public final class DemoSipAll {
     /**
      * Demonstrates SIP URI parsing for various URI formats.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoUriParsing() {
         LOG.info("=== 4. SIP URI Parsing ===");
@@ -289,7 +289,7 @@ public final class DemoSipAll {
     /**
      * Demonstrates SIP registrar: register, refresh, query, and unregister.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoRegistration() {
         LOG.info("=== 5. Registration ===");
@@ -356,7 +356,7 @@ public final class DemoSipAll {
     /**
      * Demonstrates the SipRegistrationClient for building REGISTER requests.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoRegistrationClient() {
         LOG.info("=== 6. Registration Client ===");
@@ -390,7 +390,7 @@ public final class DemoSipAll {
     /**
      * Demonstrates client transaction state machine (INVITE).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoClientTransaction() {
         LOG.info("=== 7. Client Transaction ===");
@@ -438,7 +438,7 @@ public final class DemoSipAll {
     /**
      * Demonstrates server transaction state machine.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoServerTransaction() {
         LOG.info("=== 8. Server Transaction ===");
@@ -488,7 +488,7 @@ public final class DemoSipAll {
     /**
      * Demonstrates SIP dialog lifecycle: creation, confirmation, termination.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoDialogManagement() {
         LOG.info("=== 9. Dialog Management ===");

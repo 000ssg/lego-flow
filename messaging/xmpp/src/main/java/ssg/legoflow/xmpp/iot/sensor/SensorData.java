@@ -10,7 +10,7 @@ import java.util.Objects;
  * @param nodeId    the sensor node identifier
  * @param timestamp the time of the reading
  * @param fields    the sensor data fields
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SensorData(String nodeId, Instant timestamp, List<SensorField> fields) {
 

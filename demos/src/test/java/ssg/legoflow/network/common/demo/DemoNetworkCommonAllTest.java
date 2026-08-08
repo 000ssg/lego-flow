@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Runs the comprehensive network-common (BER/ASN.1) demo and verifies all feature sections.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class DemoNetworkCommonAllTest {
 

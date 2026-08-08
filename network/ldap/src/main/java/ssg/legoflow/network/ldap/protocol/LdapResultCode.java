@@ -3,7 +3,7 @@ package ssg.legoflow.network.ldap.protocol;
 /**
  * LDAP result codes as defined in RFC 4511 Section 4.1.9.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum LdapResultCode {
 

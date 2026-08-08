@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Runs the comprehensive HTTP Auth Core demo and verifies all feature sections.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class DemoHttpAuthCoreAllTest {
 

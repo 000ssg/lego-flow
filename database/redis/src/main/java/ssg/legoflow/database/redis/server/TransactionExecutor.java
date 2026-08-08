@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * by another client between WATCH and EXEC, the transaction is aborted
  * and EXEC returns a null array.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class TransactionExecutor {
 

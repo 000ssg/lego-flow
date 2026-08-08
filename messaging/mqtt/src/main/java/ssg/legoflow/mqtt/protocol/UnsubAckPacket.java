@@ -8,7 +8,7 @@ import java.util.List;
  * @param packetId    the packet identifier matching the UNSUBSCRIBE
  * @param reasonCodes the list of reason codes (MQTT 5.0), one per topic
  * @param properties  MQTT 5.0 properties
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record UnsubAckPacket(
         int packetId,

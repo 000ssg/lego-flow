@@ -39,7 +39,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Uses virtual threads for all I/O operations (one per connection direction),
  * with blocking I/O for efficient resource usage.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class PassThroughConnection implements AutoCloseable {
 

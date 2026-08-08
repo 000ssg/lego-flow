@@ -21,7 +21,7 @@ import java.util.concurrent.CompletableFuture;
  *
  * <p>This class is thread-safe.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SoapClient implements AutoCloseable {
 
@@ -34,7 +34,7 @@ public class SoapClient implements AutoCloseable {
     /**
      * Creates a new {@code SoapClient} with default timeout.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SoapClient() {
         this(DEFAULT_TIMEOUT);
@@ -45,7 +45,7 @@ public class SoapClient implements AutoCloseable {
      *
      * @param timeout the request timeout
      * @throws NullPointerException if {@code timeout} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SoapClient(Duration timeout) {
         this.timeout = Objects.requireNonNull(timeout, "timeout must not be null");
@@ -61,7 +61,7 @@ public class SoapClient implements AutoCloseable {
      *
      * @param httpClient the HTTP client to use
      * @param timeout    the request timeout
-     * @since 1.0.0
+     * @since 0.1.0
      */
     SoapClient(HttpClient httpClient, Duration timeout) {
         this.httpClient = Objects.requireNonNull(httpClient, "httpClient must not be null");
@@ -79,7 +79,7 @@ public class SoapClient implements AutoCloseable {
      * @throws IOException          if an I/O error occurs
      * @throws InterruptedException if the thread is interrupted while waiting
      * @throws NullPointerException if any required parameter is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SoapResponse invoke(URI controlUrl, String serviceType, String actionName,
                                Map<String, String> args) throws IOException, InterruptedException {
@@ -118,7 +118,7 @@ public class SoapClient implements AutoCloseable {
      * @param args        the input arguments
      * @return a future that completes with the SOAP response
      * @throws NullPointerException if any required parameter is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CompletableFuture<SoapResponse> invokeAsync(URI controlUrl, String serviceType,
                                                        String actionName, Map<String, String> args) {

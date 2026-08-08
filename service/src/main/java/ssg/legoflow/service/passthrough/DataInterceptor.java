@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
  * Interceptors are applied in registration order. If an interceptor returns {@code null},
  * the previous buffer is used instead.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface DataInterceptor {
 

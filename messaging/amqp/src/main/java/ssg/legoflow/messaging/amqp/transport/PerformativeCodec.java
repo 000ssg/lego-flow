@@ -15,7 +15,7 @@ import java.util.*;
  * identifying the performative type and the described value is a list of fields
  * in the order defined by the specification.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class PerformativeCodec {
 

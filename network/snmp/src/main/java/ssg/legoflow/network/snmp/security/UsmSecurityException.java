@@ -3,7 +3,7 @@ package ssg.legoflow.network.snmp.security;
 /**
  * Exception thrown when a USM security operation fails.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class UsmSecurityException extends RuntimeException {
 

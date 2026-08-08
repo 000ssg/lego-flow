@@ -5,6 +5,6 @@
  * with wildcard support, client with automatic reconnect and QoS message flows,
  * and a lightweight message broker with session persistence and retained messages.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 package ssg.legoflow.mqtt;

@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * In-memory user store for testing and demos. Stores usernames, passwords, and roles
  * in a thread-safe map.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class InMemoryUserStore implements BasicUserStore, AuthContext.UserStore {
 
@@ -23,7 +23,7 @@ public class InMemoryUserStore implements BasicUserStore, AuthContext.UserStore 
     /**
      * Creates an empty user store.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public InMemoryUserStore() {
     }
@@ -35,7 +35,7 @@ public class InMemoryUserStore implements BasicUserStore, AuthContext.UserStore 
      * @param password the password
      * @param roles    the roles
      * @return this store for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public InMemoryUserStore addUser(String username, String password, Set<String> roles) {
         users.put(username, new UserEntry(password, roles != null ? Set.copyOf(roles) : Set.of()));
@@ -48,7 +48,7 @@ public class InMemoryUserStore implements BasicUserStore, AuthContext.UserStore 
      * @param username the username
      * @param password the password
      * @return this store for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public InMemoryUserStore addUser(String username, String password) {
         return addUser(username, password, Set.of());
@@ -59,7 +59,7 @@ public class InMemoryUserStore implements BasicUserStore, AuthContext.UserStore 
      *
      * @param username the username to remove
      * @return this store for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public InMemoryUserStore removeUser(String username) {
         users.remove(username);
@@ -97,7 +97,7 @@ public class InMemoryUserStore implements BasicUserStore, AuthContext.UserStore 
      * Returns the number of users in the store.
      *
      * @return the user count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int size() {
         return users.size();

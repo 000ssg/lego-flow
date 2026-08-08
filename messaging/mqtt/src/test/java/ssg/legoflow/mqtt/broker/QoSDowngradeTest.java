@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>When a subscriber's maximum QoS is lower than the published message QoS,
  * the broker should deliver at the subscriber's max QoS.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class QoSDowngradeTest {
 

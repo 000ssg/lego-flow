@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
  * raw bytes (e.g. TCP sockets, in-memory queues). The invariant AMQP core
  * uses this interface for all I/O, enabling transport-agnostic protocol logic.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface AmqpTransport {
 

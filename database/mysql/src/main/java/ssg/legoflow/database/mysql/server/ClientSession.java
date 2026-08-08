@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
  * <p>Manages the connection lifecycle: handshake, authentication, and
  * command processing. Each client connection runs in its own virtual thread.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ClientSession implements Runnable {
 

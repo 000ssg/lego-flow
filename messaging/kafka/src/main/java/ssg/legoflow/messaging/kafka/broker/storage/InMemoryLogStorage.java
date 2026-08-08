@@ -11,7 +11,7 @@ import java.util.List;
  *
  * <p>Not thread-safe. Thread safety is provided by the calling {@code PartitionLog}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class InMemoryLogStorage implements LogStorage {
 

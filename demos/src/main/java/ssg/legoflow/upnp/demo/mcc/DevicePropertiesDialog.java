@@ -21,7 +21,7 @@ import java.util.List;
  * while for media renderers shows the current transport state. All visual
  * elements use the {@link DarkTheme} colour palette.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class DevicePropertiesDialog extends JDialog {
 
@@ -30,7 +30,7 @@ public class DevicePropertiesDialog extends JDialog {
      *
      * @param parent the parent frame
      * @param device the device to inspect
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DevicePropertiesDialog(Frame parent, DeviceProxy device) {
         super(parent, "Device Properties — " + device.getFriendlyName(), true);

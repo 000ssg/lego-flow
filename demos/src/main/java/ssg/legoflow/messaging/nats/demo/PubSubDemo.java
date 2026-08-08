@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
  * <p>Starts an embedded server, connects a publisher and subscriber,
  * then sends and receives messages on various subjects.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class PubSubDemo {
 

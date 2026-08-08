@@ -13,7 +13,7 @@ import ssg.legoflow.http.core.HttpStatus;
  * the request body. This allows the server to reject the request early
  * (e.g., based on headers) without the client sending the entire body.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ExpectContinueHandler {
 

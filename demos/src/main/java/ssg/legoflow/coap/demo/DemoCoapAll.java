@@ -43,7 +43,7 @@ import java.util.concurrent.atomic.AtomicReference;
  *   <li>Blockwise transfer -- large payload assembly</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoCoapAll {
 
@@ -338,7 +338,7 @@ public final class DemoCoapAll {
     /**
      * Simple sensor resource for GET/PUT.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static final class SensorResource extends CoapResource {
         private final AtomicReference<String> value;
@@ -373,7 +373,7 @@ public final class DemoCoapAll {
     /**
      * Observable sensor resource that supports observe notifications.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static final class ObservableSensorResource extends CoapResource {
         private final AtomicReference<String> value = new AtomicReference<>("20.0");
@@ -398,7 +398,7 @@ public final class DemoCoapAll {
     /**
      * JSON resource for content format negotiation demo.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static final class JsonResource extends CoapResource {
         JsonResource() {
@@ -420,7 +420,7 @@ public final class DemoCoapAll {
     /**
      * Item collection resource supporting POST (create) and child item DELETE.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static final class ItemCollectionResource extends CoapResource {
         private final java.util.Map<String, String> items = new java.util.concurrent.ConcurrentHashMap<>();
@@ -468,7 +468,7 @@ public final class DemoCoapAll {
     /**
      * Individual item resource supporting GET and DELETE.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static final class ItemResource extends CoapResource {
         private final String itemId;
@@ -506,7 +506,7 @@ public final class DemoCoapAll {
     /**
      * Large payload resource for blockwise transfer demo.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static final class LargePayloadResource extends CoapResource {
         private final byte[] data;

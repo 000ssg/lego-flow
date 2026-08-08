@@ -14,7 +14,7 @@ import java.util.OptionalDouble;
  *   <li>{@code smpte=<start>-<end>} -- SMPTE timecodes</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RangeHeader {
 

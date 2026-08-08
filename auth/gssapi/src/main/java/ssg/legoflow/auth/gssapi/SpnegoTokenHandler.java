@@ -13,7 +13,7 @@ import java.util.Objects;
  * create and parse the outer SPNEGO wrapper around inner mechanism tokens
  * (typically Kerberos V5).</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SpnegoTokenHandler {
 
@@ -66,7 +66,7 @@ public final class SpnegoTokenHandler {
      *
      * @param mechToken the inner mechanism token (e.g., Kerberos AP-REQ)
      * @return the encoded SPNEGO NegTokenInit
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static byte[] createNegTokenInit(byte[] mechToken) {
         Objects.requireNonNull(mechToken, "mechToken must not be null");
@@ -99,7 +99,7 @@ public final class SpnegoTokenHandler {
      * @param mechToken the inner mechanism response token
      * @param complete  true if authentication is complete, false if continuing
      * @return the encoded SPNEGO NegTokenResp
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static byte[] createNegTokenResp(byte[] mechToken, boolean complete) {
         Objects.requireNonNull(mechToken, "mechToken must not be null");
@@ -128,7 +128,7 @@ public final class SpnegoTokenHandler {
      * @param spnegoToken the SPNEGO token to extract from
      * @return the inner mechanism token
      * @throws GssException if the token format is invalid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static byte[] extractMechToken(byte[] spnegoToken) throws GssException {
         Objects.requireNonNull(spnegoToken, "spnegoToken must not be null");
@@ -171,7 +171,7 @@ public final class SpnegoTokenHandler {
      *
      * @param token the token to check
      * @return true if the token appears to be SPNEGO
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static boolean isSpnegoToken(byte[] token) {
         if (token == null || token.length < 2) {
@@ -202,7 +202,7 @@ public final class SpnegoTokenHandler {
      *
      * @param token the token bytes
      * @return the Base64-encoded string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String encodeBase64(byte[] token) {
         Objects.requireNonNull(token, "token must not be null");
@@ -214,7 +214,7 @@ public final class SpnegoTokenHandler {
      *
      * @param encoded the Base64-encoded string
      * @return the decoded token bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static byte[] decodeBase64(String encoded) {
         Objects.requireNonNull(encoded, "encoded must not be null");

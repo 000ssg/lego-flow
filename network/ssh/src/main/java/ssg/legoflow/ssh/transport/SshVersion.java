@@ -9,7 +9,7 @@ import java.util.Objects;
  * <p>The version string format is: {@code SSH-protoversion-softwareversion SP comments CR LF}.
  * This implementation identifies as {@code SSH-2.0-legoflow_1.0}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SshVersion {
 

@@ -12,7 +12,7 @@ import java.util.*;
  * <p>Supports all standard FETCH data items: FLAGS, INTERNALDATE, RFC822.SIZE,
  * ENVELOPE, BODY, BODYSTRUCTURE, BODY[section], and partial fetches.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class FetchHandler {
 

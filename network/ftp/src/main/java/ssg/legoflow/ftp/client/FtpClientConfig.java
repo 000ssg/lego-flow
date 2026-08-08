@@ -5,7 +5,7 @@ import java.time.Duration;
 /**
  * Configuration for an FTP client.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class FtpClientConfig {
 
@@ -59,7 +59,7 @@ public final class FtpClientConfig {
     /**
      * Builder for {@link FtpClientConfig}.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class Builder {
         private Duration connectTimeout = Duration.ofSeconds(10);

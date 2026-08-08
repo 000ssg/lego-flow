@@ -17,7 +17,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * IoT scenario demo: multiple sensors publish telemetry, a dashboard subscribes to all.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class IoTSensorDemo {
 

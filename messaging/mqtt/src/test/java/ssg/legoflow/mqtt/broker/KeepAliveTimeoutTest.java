@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * execution (-T 1C). Simple delays between client-initiated actions remain as
  * {@code Thread.sleep()} since they don't depend on broker thread scheduling.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class KeepAliveTimeoutTest {
 

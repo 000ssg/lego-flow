@@ -18,7 +18,7 @@ import java.util.Objects;
  * <p>This mechanism should only be used over TLS connections, as credentials
  * are sent in cleartext.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class LoginAuth implements SmtpAuthenticator {
 

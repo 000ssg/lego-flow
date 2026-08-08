@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Demo: SFTP directory listing and file operations.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SftpBrowseDemo {
 

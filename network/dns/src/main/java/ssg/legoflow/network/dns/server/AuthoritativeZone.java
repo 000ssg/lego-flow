@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
  * <p>A zone is defined by its origin (domain name) and SOA record.
  * Records are indexed by owner name and type for efficient lookup.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class AuthoritativeZone {
 
@@ -26,7 +26,7 @@ public final class AuthoritativeZone {
      *
      * @param origin the zone origin domain name
      * @param soa    the SOA record for the zone
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AuthoritativeZone(DnsName origin, SoaRecord soa) {
         this.origin = Objects.requireNonNull(origin, "origin must not be null");
@@ -47,7 +47,7 @@ public final class AuthoritativeZone {
      * @param expire  expiration
      * @param minimum minimum TTL
      * @return the zone
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static AuthoritativeZone create(String origin, String mname, String rname,
                                             long serial, int refresh, int retry,
@@ -60,7 +60,7 @@ public final class AuthoritativeZone {
      * Returns the zone origin.
      *
      * @return the origin domain name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DnsName origin() {
         return origin;
@@ -70,7 +70,7 @@ public final class AuthoritativeZone {
      * Returns the SOA record.
      *
      * @return the SOA record
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SoaRecord soa() {
         return soa;
@@ -81,7 +81,7 @@ public final class AuthoritativeZone {
      *
      * @param record the record to add
      * @throws IllegalArgumentException if the record name is not within the zone
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addRecord(DnsRecord record) {
         if (!record.name().isSubdomainOf(origin) && !record.name().equals(origin)) {
@@ -99,7 +99,7 @@ public final class AuthoritativeZone {
      * @param name the owner name
      * @param ttl  the TTL
      * @param ip   the IPv4 address
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addA(String name, long ttl, String ip) {
         addRecord(DnsRecord.of(name, ttl, ARecord.of(ip)));
@@ -111,7 +111,7 @@ public final class AuthoritativeZone {
      * @param name the owner name
      * @param ttl  the TTL
      * @param ip   the IPv6 address
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addAAAA(String name, long ttl, String ip) {
         addRecord(DnsRecord.of(name, ttl, AaaaRecord.of(ip)));
@@ -123,7 +123,7 @@ public final class AuthoritativeZone {
      * @param name the owner name
      * @param ttl  the TTL
      * @param ns   the name server
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addNS(String name, long ttl, String ns) {
         addRecord(DnsRecord.of(name, ttl, NsRecord.of(ns)));
@@ -135,7 +135,7 @@ public final class AuthoritativeZone {
      * @param name  the owner name
      * @param ttl   the TTL
      * @param cname the canonical name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addCNAME(String name, long ttl, String cname) {
         addRecord(DnsRecord.of(name, ttl, CnameRecord.of(cname)));
@@ -148,7 +148,7 @@ public final class AuthoritativeZone {
      * @param ttl        the TTL
      * @param preference the preference
      * @param exchange   the mail exchange
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addMX(String name, long ttl, int preference, String exchange) {
         addRecord(DnsRecord.of(name, ttl, MxRecord.of(preference, exchange)));
@@ -160,7 +160,7 @@ public final class AuthoritativeZone {
      * @param name the owner name
      * @param ttl  the TTL
      * @param text the text strings
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addTXT(String name, long ttl, String... text) {
         addRecord(DnsRecord.of(name, ttl, TxtRecord.of(text)));
@@ -175,7 +175,7 @@ public final class AuthoritativeZone {
      * @param weight   the weight
      * @param port     the port
      * @param target   the target host
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addSRV(String name, long ttl, int priority, int weight, int port, String target) {
         addRecord(DnsRecord.of(name, ttl, SrvRecord.of(priority, weight, port, target)));
@@ -187,7 +187,7 @@ public final class AuthoritativeZone {
      * @param name the owner name
      * @param type the record type
      * @return list of matching records
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<DnsRecord> lookup(DnsName name, RecordType type) {
         Map<RecordType, List<DnsRecord>> byType = records.get(name);
@@ -223,7 +223,7 @@ public final class AuthoritativeZone {
      *
      * @param name the domain name
      * @return {@code true} if any records exist for the name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean nameExists(DnsName name) {
         return records.containsKey(name);
@@ -233,7 +233,7 @@ public final class AuthoritativeZone {
      * Returns all records in the zone.
      *
      * @return all records
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<DnsRecord> allRecords() {
         return records.values().stream()
@@ -246,7 +246,7 @@ public final class AuthoritativeZone {
      * Returns the NS records for the zone apex.
      *
      * @return the NS records
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<DnsRecord> nsRecords() {
         return lookup(origin, RecordType.NS);
@@ -257,7 +257,7 @@ public final class AuthoritativeZone {
      *
      * @param query the DNS query
      * @return the DNS response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DnsMessage handleQuery(DnsMessage query) {
         if (query.questions().isEmpty()) {

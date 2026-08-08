@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
  * @param localpart    the optional local part (user identifier)
  * @param domainpart   the required domain part
  * @param resourcepart the optional resource part
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record JID(String localpart, String domainpart, String resourcepart) {
 

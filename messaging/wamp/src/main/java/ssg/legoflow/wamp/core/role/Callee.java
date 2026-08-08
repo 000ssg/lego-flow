@@ -12,7 +12,7 @@ import java.util.function.Function;
 /**
  * WAMP Callee role — registers procedures and handles invocations.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class Callee {
 

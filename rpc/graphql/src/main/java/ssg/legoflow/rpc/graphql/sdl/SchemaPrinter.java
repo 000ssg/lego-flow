@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 /**
  * Prints a GraphQL schema as Schema Definition Language (SDL).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SchemaPrinter {
 

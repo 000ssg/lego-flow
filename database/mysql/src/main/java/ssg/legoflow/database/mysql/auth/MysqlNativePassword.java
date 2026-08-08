@@ -15,7 +15,7 @@ import java.util.Arrays;
  * <p>The stored hash is SHA1(SHA1(password)), which is what MySQL stores
  * in the user table (prefixed with '*' in hex form).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MysqlNativePassword implements AuthPlugin {
 

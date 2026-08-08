@@ -13,7 +13,7 @@ import java.util.Objects;
  * @param authProtocol     the X11 authentication protocol (e.g., "MIT-MAGIC-COOKIE-1")
  * @param authCookie       the authentication cookie bytes (typically 16 bytes)
  * @param screenNumber     the X11 screen number
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record X11ForwardingConfig(
         boolean singleConnection,

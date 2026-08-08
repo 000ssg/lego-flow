@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *   <li>DELETE /users/{id} — delete a user by id</li>
  * </ul>
  *
- * @since 1.0
+ * @since 0.1
  */
 public class UserManagementServer {
 

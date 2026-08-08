@@ -3,7 +3,7 @@ package ssg.legoflow.media.sip.protocol;
 /**
  * SIP response status codes as defined in RFC 3261.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum SipStatus {
 

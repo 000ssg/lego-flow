@@ -15,7 +15,7 @@ import java.util.function.BiConsumer;
  * <p>Messages are delivered to a registered handler or can be polled
  * from a blocking queue.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RedisSubscriber {
 

@@ -16,7 +16,7 @@ import java.util.Objects;
  * @param serialNumber the serial number
  * @param tags         additional key-value tags for search
  * @param claimed      whether the thing has been claimed by an owner
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ThingDescription(
         String nodeId,

@@ -12,7 +12,7 @@ import java.util.function.Consumer;
  * allows the subscription to automatically unsubscribe after receiving a
  * specified number of messages.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class Subscription {
 

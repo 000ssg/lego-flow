@@ -15,7 +15,7 @@ import java.util.Base64;
  * <p>Provides HMAC-SHA-256, SHA-256 hash, PBKDF2 (Hi function), XOR,
  * and nonce generation.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ScramUtils {
 

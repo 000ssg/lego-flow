@@ -15,7 +15,7 @@ import java.util.Objects;
  * @param group            the multicast group address
  * @param ttl              the time-to-live for multicast packets (1-255)
  * @param loopback         whether multicast packets should be looped back to the sender
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record MulticastConfig(NetworkInterface networkInterface, InetAddress group, int ttl, boolean loopback) {
 
@@ -49,7 +49,7 @@ public record MulticastConfig(NetworkInterface networkInterface, InetAddress gro
      * @throws NullPointerException     if {@code group} is {@code null}
      * @throws IllegalArgumentException if {@code group} is not a multicast address
      * @throws SocketException          if the default network interface cannot be determined
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static MulticastConfig of(InetAddress group) throws SocketException {
         return new MulticastConfig(
@@ -69,7 +69,7 @@ public record MulticastConfig(NetworkInterface networkInterface, InetAddress gro
      * @return a new {@code MulticastConfig}
      * @throws NullPointerException     if {@code group} or {@code networkInterface} is {@code null}
      * @throws IllegalArgumentException if {@code group} is not a multicast address
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static MulticastConfig of(InetAddress group, NetworkInterface networkInterface) {
         return new MulticastConfig(networkInterface, group, 1, true);

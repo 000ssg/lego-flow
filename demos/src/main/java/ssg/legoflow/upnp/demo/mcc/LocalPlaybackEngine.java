@@ -45,7 +45,7 @@ import java.util.function.Consumer;
  * {@link PlaybackListener} to synchronize with a remote renderer, detecting
  * drift greater than 500ms and adjusting position.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class LocalPlaybackEngine implements PlaybackListener {
 
@@ -143,7 +143,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
      * "No Media" placeholder. Installs a {@link LocalPlayerTransferHandler}
      * to support drag-and-drop of content items.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public LocalPlaybackEngine() {
         videoPanel = new JPanel(new BorderLayout());
@@ -157,7 +157,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
      * Returns the video display panel used for metadata, images, and placeholders.
      *
      * @return the video panel
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public JPanel getVideoPanel() {
         return videoPanel;
@@ -167,7 +167,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
      * Adds a playback listener.
      *
      * @param listener the listener to add
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addPlaybackListener(PlaybackListener listener) {
         listeners.add(listener);
@@ -177,7 +177,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
      * Removes a playback listener.
      *
      * @param listener the listener to remove
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void removePlaybackListener(PlaybackListener listener) {
         listeners.remove(listener);
@@ -196,7 +196,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
      * </ul>
      *
      * @param url the media URL to play
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void play(URL url) {
         stop();
@@ -298,7 +298,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
      * Starts playback of a content item, using its resource URL and title.
      *
      * @param item the content item to play
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void play(ContentItem item) {
         currentTitle.set(item.getTitle());
@@ -311,7 +311,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
     /**
      * Pauses playback.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void pause() {
         Clip clip = currentClip.get();
@@ -328,7 +328,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
     /**
      * Resumes playback from the current position.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void resume() {
         Clip clip = currentClip.get();
@@ -344,7 +344,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
     /**
      * Stops playback and releases resources.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         playing.set(false);
@@ -362,7 +362,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
      * Seeks to the specified position.
      *
      * @param position the target position
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void seek(Duration position) {
         Clip clip = currentClip.get();
@@ -380,7 +380,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
      * Returns the current playback position.
      *
      * @return the current position
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Duration getPosition() {
         Clip clip = currentClip.get();
@@ -397,7 +397,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
      * Returns whether playback is currently active.
      *
      * @return {@code true} if playing
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isPlaying() {
         return playing.get();
@@ -407,7 +407,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
      * Sets the volume level (0-100) and applies it to the current audio clip.
      *
      * @param volume the desired volume (0-100)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setVolume(int volume) {
         volumePercent.set(Math.max(0, Math.min(100, volume)));
@@ -418,7 +418,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
      * Returns the current volume level.
      *
      * @return the volume (0-100)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getVolume() {
         return volumePercent.get();
@@ -428,7 +428,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
      * Sets the mute state and applies it to the current audio clip.
      *
      * @param mute {@code true} to mute, {@code false} to unmute
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setMute(boolean mute) {
         muted.set(mute);
@@ -439,7 +439,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
      * Returns whether audio is currently muted.
      *
      * @return {@code true} if muted
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isMuted() {
         return muted.get();
@@ -482,7 +482,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
      *
      * {@inheritDoc}
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void onPlaybackEvent(PlaybackEvent event) {
@@ -495,7 +495,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
      * Compares local position with the remote position and adjusts if drift exceeds threshold.
      *
      * @param remotePosition the remote renderer's current position
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void synchronizeWithRemote(Duration remotePosition) {
         Duration localPos = getPosition();
@@ -509,7 +509,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
      * Returns the drift threshold in milliseconds.
      *
      * @return the threshold (500ms)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static long getDriftThresholdMs() {
         return DRIFT_THRESHOLD_MS;
@@ -519,7 +519,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
      * Returns the currently playing content item.
      *
      * @return the current content item, or {@code null} if nothing is playing
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentItem getCurrentItem() {
         return currentItem.get();
@@ -532,7 +532,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
      * for initiating local playback.
      *
      * @param action the consumer receiving the dropped content item
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setDropAction(Consumer<ContentItem> action) {
         this.dropAction = action;
@@ -545,7 +545,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
      * provides support for the current media type, or a "not supported" message.
      *
      * @param listener the consumer receiving the support info string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setMediaSupportInfoListener(Consumer<String> listener) {
         this.mediaSupportInfoListener = listener;
@@ -1063,7 +1063,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
      * Provides visual feedback via border highlighting (using {@link DarkTheme#SUCCESS})
      * during drag-over.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     private class LocalPlayerTransferHandler extends TransferHandler {
 
@@ -1077,7 +1077,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
          *
          * @param c the source component
          * @return {@code COPY}
-         * @since 1.0.0
+         * @since 0.1.0
          */
         @Override
         public int getSourceActions(JComponent c) {
@@ -1089,7 +1089,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
          *
          * @param c the source component
          * @return a transferable with the current item, or {@code null} if nothing is playing
-         * @since 1.0.0
+         * @since 0.1.0
          */
         @Override
         protected Transferable createTransferable(JComponent c) {
@@ -1106,7 +1106,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
          *
          * @param support the transfer support info
          * @return {@code true} if the drop can be accepted
-         * @since 1.0.0
+         * @since 0.1.0
          */
         @Override
         public boolean canImport(TransferSupport support) {
@@ -1123,7 +1123,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
          *
          * @param support the transfer support info
          * @return {@code true} if the drop was successfully handled
-         * @since 1.0.0
+         * @since 0.1.0
          */
         @Override
         public boolean importData(TransferSupport support) {
@@ -1150,7 +1150,7 @@ public class LocalPlaybackEngine implements PlaybackListener {
          * @param source the source component
          * @param data   the transferable data
          * @param action the action performed
-         * @since 1.0.0
+         * @since 0.1.0
          */
         @Override
         protected void exportDone(JComponent source, Transferable data, int action) {

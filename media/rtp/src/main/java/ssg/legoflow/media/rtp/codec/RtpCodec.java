@@ -8,6 +8,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Codec for encoding and decoding RTP packets to/from {@link ByteBuffer} (RFC 3550 Section 5).
@@ -15,9 +17,13 @@ import java.util.Optional;
  * <p>Handles the full RTP header with bit-level manipulation of the first byte
  * (version, padding, extension, CSRC count) and second byte (marker, payload type).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RtpCodec {
+
+    private static final Queue<ByteBuffer> BUFFER_POOL = new ConcurrentLinkedQueue<>();
+    private static final int MAX_BUFFER_POOL_SIZE = 100;
+    private static final int DEFAULT_BUFFER_SIZE = 1024;
 
     private RtpCodec() {}
 
@@ -31,46 +37,62 @@ public final class RtpCodec {
         var header = packet.header();
         byte[] payload = packet.payload();
         int size = header.totalSize() + payload.length;
-        ByteBuffer buf = ByteBuffer.allocate(size);
-
-        // Byte 0: V=2, P, X, CC
-        int firstByte = (header.version() & 0x03) << 6;
-        if (header.padding()) firstByte |= 0x20;
-        if (header.extension()) firstByte |= 0x10;
-        firstByte |= header.csrcCount() & 0x0F;
-        buf.put((byte) firstByte);
-
-        // Byte 1: M, PT
-        int secondByte = header.payloadType() & 0x7F;
-        if (header.marker()) secondByte |= 0x80;
-        buf.put((byte) secondByte);
-
-        // Bytes 2-3: sequence number
-        buf.putShort((short) header.sequenceNumber());
-
-        // Bytes 4-7: timestamp (32-bit unsigned)
-        buf.putInt((int) header.timestamp());
-
-        // Bytes 8-11: SSRC (32-bit unsigned)
-        buf.putInt((int) header.ssrc());
-
-        // CSRC list
-        for (long csrc : header.csrcList()) {
-            buf.putInt((int) csrc);
+        
+        // Try to get a buffer from the pool
+        ByteBuffer buf = BUFFER_POOL.poll();
+        if (buf == null || buf.capacity() < size) {
+            // If buffer is null or too small, allocate a new one
+            buf = ByteBuffer.allocate(Math.max(size, DEFAULT_BUFFER_SIZE));
+        } else {
+            buf.clear(); // Reset buffer for reuse
         }
 
-        // Header extension
-        header.headerExtension().ifPresent(ext -> {
-            buf.putShort((short) ext.profile());
-            buf.putShort((short) ext.lengthInWords());
-            buf.put(ext.data());
-        });
+        try {
+            // Byte 0: V=2, P, X, CC
+            int firstByte = (header.version() & 0x03) << 6;
+            if (header.padding()) firstByte |= 0x20;
+            if (header.extension()) firstByte |= 0x10;
+            firstByte |= header.csrcCount() & 0x0F;
+            buf.put((byte) firstByte);
 
-        // Payload
-        buf.put(payload);
+            // Byte 1: M, PT
+            int secondByte = header.payloadType() & 0x7F;
+            if (header.marker()) secondByte |= 0x80;
+            buf.put((byte) secondByte);
 
-        buf.flip();
-        return buf;
+            // Bytes 2-3: sequence number
+            buf.putShort((short) header.sequenceNumber());
+
+            // Bytes 4-7: timestamp (32-bit unsigned)
+            buf.putInt((int) header.timestamp());
+
+            // Bytes 8-11: SSRC (32-bit unsigned)
+            buf.putInt((int) header.ssrc());
+
+            // CSRC list
+            for (long csrc : header.csrcList()) {
+                buf.putInt((int) csrc);
+            }
+
+            // Header extension
+            if (header.headerExtension().isPresent()) {
+                var ext = header.headerExtension().get();
+                buf.putShort((short) ext.profile());
+                buf.putShort((short) ext.lengthInWords());
+                buf.put(ext.data());
+            }
+
+            // Payload
+            buf.put(payload);
+
+            buf.flip();
+            return buf;
+        } finally {
+            // Return buffer to pool if space available
+            if (BUFFER_POOL.size() < MAX_BUFFER_POOL_SIZE) {
+                BUFFER_POOL.offer(buf);
+            }
+        }
     }
 
     /**
@@ -161,5 +183,21 @@ public final class RtpCodec {
      */
     public static RtpPacket decode(byte[] data, int offset, int length) {
         return decode(ByteBuffer.wrap(data, offset, length));
+    }
+    
+    // Enhanced pool management methods
+    private static ByteBuffer getBufferFromPool(int requiredSize) {
+        ByteBuffer buffer = BUFFER_POOL.poll();
+        if (buffer == null || buffer.capacity() < requiredSize) {
+            return ByteBuffer.allocate(Math.max(requiredSize, DEFAULT_BUFFER_SIZE));
+        }
+        buffer.clear();
+        return buffer;
+    }
+    
+    private static void returnBufferToPool(ByteBuffer buffer) {
+        if (buffer != null && BUFFER_POOL.size() < MAX_BUFFER_POOL_SIZE) {
+            BUFFER_POOL.offer(buffer);
+        }
     }
 }

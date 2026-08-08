@@ -44,7 +44,7 @@ import java.util.NavigableMap;
  *   <li>SMIv2 value types — all 12 SNMP data types</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoSnmpAll {
 

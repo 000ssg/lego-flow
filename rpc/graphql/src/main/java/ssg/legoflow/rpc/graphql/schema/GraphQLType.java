@@ -8,7 +8,7 @@ package ssg.legoflow.rpc.graphql.schema;
  * named types (scalars, objects, interfaces, unions, enums, input objects)
  * and wrapping types (list, non-null).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface GraphQLType
         permits ScalarType, ObjectType, InterfaceType, UnionType,

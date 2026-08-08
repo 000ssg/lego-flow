@@ -150,7 +150,7 @@ Co-Authored-By: AI assistant
 
 #### Module Layout:
 ```
-lego-flow/                         ← root POM (1.0.0-SNAPSHOT, packaging=pom)
+lego-flow/                         ← root POM (packaging=pom)
 ├── blocks/                        ← core DP/DF data processing framework
 ├── service/                       ← service-oriented framework using blocks (TCP + UDP)
 ├── web/                           ← Web & HTTP protocols
@@ -311,7 +311,7 @@ Each module has a `demo/` sub-package in both `src/main/java` and `src/test/java
 - **Categories**: 9 (web, iot, auth, messaging, rpc, database, email, network, media)
 - **Leaf Modules**: 42 (blocks, service + 40 protocol leaf modules)
 - **JDK**: 25
-- **Project Layout**: Maven multi-module v1.0.0-SNAPSHOT
+- **Project Layout**: Maven multi-module 0.1.0-SNAPSHOT
 
 ## Notes for Future AI Sessions
 
@@ -331,3 +331,399 @@ Each module has a `demo/` sub-package in both `src/main/java` and `src/test/java
 
 **Last Updated**: 2026-07-07
 **For AI assistant versions**
+
+---
+
+# Testing Guidelines for CI Reliability
+
+## Anti-Patterns to Avoid
+
+### 1. Fixed Thread.sleep() Without Latch Verification ❌
+**Never use:** `Thread.sleep(N)` as the primary mechanism to wait for async operations on CI runners. Virtual-thread executors can be significantly delayed under parallel test execution load (up to 10+ seconds observed).
+
+**Always use:** CountDownLatch with generous timeouts + latch verification AFTER the operation:
+```java
+var readyLatch = new CountDownLatch(1);
+// ... setup subscription/callback that calls readyLatch.countDown() ...
+
+// Brief delay only for subscription registration propagation (200-300ms max)
+Thread.sleep(300);
+
+// Perform actual operation with generous timeout
+result = client.operation(..., Duration.ofSeconds(5));
+
+// Verify callback was invoked as post-condition check
+assertThat(readyLatch.await(2, TimeUnit.SECONDS)).isTrue();
+```
+
+### 2. Insufficient Polling Timeouts ❌
+**Never use:** Fixed timeouts < 5 seconds for operations involving network I/O or executor scheduling on CI runners.
+
+**Always use:** 
+- Minimum 5 seconds for simple request/reply operations
+- Minimum 10 seconds for operations requiring server-side processing (connection counting, handler registration)
+- Poll every 50ms instead of 100ms for faster detection when the condition becomes true:
+```java
+long deadline = System.currentTimeMillis() + 10_000;
+while (!conditionMet()) {
+    if (System.currentTimeMillis() > deadline) break;
+    Thread.sleep(50); // 50ms polling interval, not 100ms
+}
+assertThat(conditionMet()).isTrue();
+```
+
+### 3. Warmup Requests for Subscription Readiness ❌
+**Never use:** Send a "warmup" request before the actual test request to signal subscription readiness. On slow CI runners, the warmup itself times out causing both failures simultaneously (double-race condition).
+
+**Always use:** Rely on the CountDownLatch callback registration + brief propagation delay pattern above.
+
+### 4. Asserting Before Latch Verification ❌
+**Never use:** Assert operation results BEFORE verifying the callback latch fired. If the assertion throws, you lose visibility into whether the callback ever executed.
+
+**Always use:** Store results in arrays/atomic variables from callbacks, perform assertions AFTER both the operation completes AND the latch verifies:
+```java
+final String[] responsePayload = {null};
+var responseReady = new CountDownLatch(1);
+
+// ... setup callback that sets responsePayload[0] and counts down latch ...
+
+result = client.operation(...);
+assertThat(result).isNotNull();
+responseReady.await(2, TimeUnit.SECONDS); // verify callback fired
+assertThat(responsePayload[0]).isEqualTo(expected);
+```
+
+### 5. Connection Count Assertions Without Polling ❌
+**Never use:** Assert server connection count immediately after client connects. Virtual-thread executors process connections asynchronously and can be heavily delayed on CI.
+
+**Always use:** Poll with deadline pattern:
+```java
+int countBefore = server.connectionCount();
+client.connect(...);
+
+long deadline = System.currentTimeMillis() + 10_000;
+while (server.connectionCount() <= countBefore) {
+    if (System.currentTimeMillis() > deadline) break;
+    Thread.sleep(50);
+}
+assertThat(server.connectionCount()).isGreaterThan(countBefore);
+```
+
+## Test Design Rules
+
+### Timeout Guidelines by Operation Type
+| Operation Type | Minimum Timeout | Polling Interval | Notes |
+|---------------|-----------------|------------------|-------|
+| Simple request/reply | 5 seconds | N/A | Duration.ofSeconds(5) minimum |
+| Connection establishment | 10 seconds | 50ms | Server handler registration takes time |
+| Subscription readiness | 3 seconds (latch) | N/A | After 200-300ms propagation delay |
+| Message delivery verification | 2 seconds (latch) | N/A | Post-condition check only |
+| Executor scheduling | 10 seconds | 50ms | Virtual threads can be heavily delayed |
+
+### Callback Testing Pattern
+```java
+@Test
+void testCallbackInvocation() throws Exception {
+    // 1. Setup with latch for callback verification
+    var callbackLatch = new CountDownLatch(1);
+    final boolean[] callbackInvoked = {false};
+    
+    service.subscribe(subject, msg -> {
+        callbackInvoked[0] = true;
+        callbackLatch.countDown();
+    });
+    
+    // 2. Brief delay for subscription propagation (200-300ms max)
+    Thread.sleep(300);
+    
+    // 3. Perform operation with generous timeout
+    result = client.operation(..., Duration.ofSeconds(5));
+    assertThat(result).isNotNull();
+    
+    // 4. Verify callback was invoked as post-condition
+    assertThat(callbackLatch.await(2, TimeUnit.SECONDS)).isTrue();
+    assertThat(callbackInvoked[0]).isTrue();
+}
+```
+
+### Resource Cleanup Pattern
+```java
+@Test
+void testWithResources() throws Exception {
+    try (var server = new SomeServer();
+         var client = new SomeClient(host, port)) {
+        // Server auto-closes when try-with-resources exits
+        // Client auto-closes after operations complete
+    }
+    // Resources guaranteed cleaned up even if test fails
+}
+```
+
+## CI Runner Characteristics to Account For
+
+1. **Parallel test execution**: All 40+ modules test simultaneously, causing heavy CPU contention
+2. **Virtual-thread scheduling delays**: Under load, virtual threads can be delayed 5-15 seconds
+3. **Network I/O timing**: Loopback connections still go through the OS networking stack which can be delayed
+4. **File system caching**: Test results from cache may not reflect actual execution timing
+
+## Service Class Testing Checklist
+
+When creating tests for new service classes, verify:
+- [ ] Builder pattern works with custom name/priority/dependencies
+- [ ] Initial state shows disconnected (isConnected() returns false)
+- [ ] Client/server reference is null before connect
+- [ ] Disconnect before connect doesn't throw
+- [ ] Connection to nonexistent host throws expected exception
+- [ ] Statistics tracking starts at zero
+- [ ] Channel handler creation works and references the service correctly
+
+
+## 6. Synchronous Accept Pattern for Server Tests ⚠️ NEW
+
+### Problem: Virtual Thread Scheduling Delays on CI
+When server implementations use virtual threads (via `Executors.newVirtualThreadPerTaskExecutor()`) to handle connections, the accept loop itself may also run in a virtual thread. On heavily loaded CI runners with 40+ modules testing simultaneously, virtual thread scheduling can be delayed 5-15 seconds.
+
+### Anti-Pattern ❌: Latch Countdown in Executor Thread
+```java
+// BAD: Latch countdown happens inside the executor's virtual thread
+private void acceptLoop() {
+    Socket clientSocket = serverSocket.accept();
+    executor.submit(() -> handleConnection(clientSocket));  // latch countdown inside!
+}
+
+private void handleConnection(Socket socket) {
+    connectionCount.incrementAndGet();
+    connectionLatch.countDown();  // May not execute for 10+ seconds on CI
+}
+```
+
+### Correct Pattern ✅: Synchronous Accept Thread
+```java
+// GOOD: Count increment and latch countdown happen in the accept thread (synchronous)
+private void acceptLoop() {
+    Socket clientSocket = serverSocket.accept();
+    // These run synchronously - no executor delay possible
+    int connId = connectionCount.incrementAndGet();
+    if (connectionLatch != null) {
+        connectionLatch.countDown();
+        connectionLatch = null;
+    }
+    executor.submit(() -> handleConnection(clientSocket, connId));
+}
+
+private void handleConnection(Socket socket, int connId) {
+    // No increment/latch here - already done synchronously above
+    // Just process the actual connection
+}
+```
+
+### Key Insight
+The accept loop itself blocks on `serverSocket.accept()` which is a native blocking call. When it returns, execution continues immediately in whatever thread was running the accept loop (even if that's a virtual thread). The critical operations (count increment, latch countdown) should happen BEFORE submitting to the executor, not after.
+
+### Test Pattern for Connection Counting
+```java
+@Test
+void testServerConnectionCount() throws Exception {
+    int countBefore = server.connectionCount();
+    
+    try (var client = new SomeClient()) {
+        client.connect("localhost", port);
+        
+        // Poll with deadline pattern - max 15s for very heavy CI runners
+        long deadline = System.currentTimeMillis() + 15_000;
+        while (server.connectionCount() <= countBefore) {
+            if (System.currentTimeMillis() > deadline) break;
+            Thread.sleep(50);
+        }
+        assertThat(server.connectionCount()).isGreaterThan(countBefore);
+    }
+}
+```
+
+
+## 7. Unstable Baseline in @Ordered Tests ⚠️ NEW
+
+### Problem: Previous Tests Leave Virtual-Thread Cleanup Pending
+When using `@TestMethodOrder(OrderAnnotation.class)` with connection count comparisons
+(`countBefore` → connect → assert `countAfter > countBefore`), previous tests' virtual-thread
+cleanup may not have completed by the time the next test runs, making the baseline unstable.
+
+### Anti-Pattern ❌: Comparing Against Previous Count
+```java
+// BAD: Depends on all previous connections being fully cleaned up
+int countBefore = server.connectionCount();
+client.connect(...);
+assertThat(server.connectionCount()).isGreaterThan(countBefore);
+// After client disconnects...
+assertThat(server.connectionCount()).isEqualTo(countBefore);  // May fail!
+```
+
+### Correct Pattern ✅: Absolute Minimum Assertion
+```java
+// GOOD: Assert the server shows >= 1 connection while our client is connected
+client.connect(...);
+long deadline = System.currentTimeMillis() + 15_000;
+while (server.connectionCount() < 1) {
+    if (System.currentTimeMillis() > deadline) break;
+    Thread.sleep(50);
+}
+assertThat(server.connectionCount()).isGreaterThanOrEqualTo(1);
+// No assertion about returning to baseline - virtual-thread cleanup timing is non-deterministic
+```
+
+### Key Insight
+Never assert that connection count returns to a previous baseline after client disconnect.
+Virtual thread cleanup on CI runners can take seconds to minutes under heavy load. Only
+assert absolute minimums (>= 1 during the test) rather than deltas against prior state.
+
+
+## 8. API Mismatch Discovery Before Creating Services ⚠️ NEW
+
+### Problem: Creating Service Wrappers Without Verifying Underlying APIs
+When creating new service wrappers, it's tempting to assume the underlying implementation has certain methods (start(), stop(), connect(), etc.). Always verify the actual constructor signatures and method names before writing service code.
+
+### Correct Approach ✅:
+```java
+// 1. First, check what the actual class provides:
+grep -E 'public.*start|public.*stop|public.*connect' path/to/SomeClass.java
+
+// 2. Match exactly:
+// - Constructor signature (no-arg? with params?)  
+// - Lifecycle method names (start vs bind vs init)
+// - Shutdown method names (close vs stop vs destroy)
+// - Return types of key methods (CompletableFuture vs void)
+
+// 3. Only then create the service wrapper
+```
+
+### Common API Mismatches Encountered:
+| Class | Expected | Actual | Resolution |
+|-------|----------|--------|------------|
+| XmppClientConfig.builder() | no-arg builder | `builder(host, domain)` | Use factory with params |
+| RtspServer.start() | in Javadoc but missing | Not implemented | Add start() method |  
+| MqttClientConfig.builder() | no-arg builder | `defaults()` returns builder | Use defaults() |
+| ModbusConnection(addr) | InetSocketAddress | `(String host, int port)` | Use 2-param constructor |
+| PgServer.start(int) | needs port param | Correctly takes int | OK as-is |
+
+### Build Early, Fix Fast Pattern:
+```bash
+# Create the service file
+cat > ServiceFile.java << 'EOF' ... EOF
+
+# Immediately compile to catch API mismatches
+./gradlew :module-name:compileJava --no-daemon 2>&1 | grep -E 'error:|BUILD'
+
+# If errors, check actual underlying class API and fix
+grep -E 'public.*method' path/to/UnderlyingClass.java
+```
+---
+
+<a id="build-systems"></a>
+## Build System Consistency: Maven vs Gradle
+
+**CRITICAL**: This project has TWO independent build systems (Maven and Gradle) with **different module resolution strategies**. Always verify changes work in BOTH build systems.
+
+### Key Structural Differences
+
+1. **Maven root POM has empty modules list** — child modules must be built individually. The benchmarks module is intentionally excluded from Maven builds via -pl !benchmarks. It was never functional due to pre-existing dependency mismatches.
+
+2. **Gradle uses settings.gradle.kts** — fully declares all 55+ nested modules with unique project names matching Maven artifacts. Gradle was the primary build system throughout development.
+
+3. **Dependency groupId mismatch**: Root POM and all modules use ssg as groupId, but several child modules incorrectly referenced ssg.legoflow. Always use ssg as the groupId.
+
+### Pre-Approved Build Commands
+
+**Maven (excluding benchmarks):**
+```bash
+mvn install -DskipTests -pl '!benchmarks'
+```
+
+**Maven (full build with benchmarks excluded):**
+```bash
+mvn compile -DskipTests -pl '!benchmarks'
+```
+
+**Gradle (full test suite):**
+```bash
+./gradlew test
+```
+
+### Structural Rules
+
+1. **Never remove parent references** from child modules — they ensure inheritance from the correct parent POM hierarchy.
+2. **Always use ../pom.xml as relativePath** for child modules (pointing to their immediate parent, not root).
+3. **Root POM groupId is ssg** — all child module dependency declarations must use this groupId.
+4. **Modules without JUnit/SLF4J test dependencies will fail Maven compile** — all leaf modules with test sources must declare these test-scoped dependencies.
+5. **Benchmark module is pre-structurally broken** — excluded from Maven by design. Do not add new dependencies to benchmarks/pom.xml without verifying the target module exports the expected packages.
+6. **BufferPool utility** is in service/util/BufferPool.java — any module using BufferPool must depend on lego-flow-service.
+
+### Verification Checklist (Before Any PR)
+
+- [ ] mvn compile -DskipTests -pl '!benchmarks' succeeds
+- [ ] ./gradlew test succeeds
+- [ ] No module references ssg.legoflow groupId (should be ssg)
+- [ ] No module references non-existent legoflow-parent (should be lego-flow or parent module name)
+- [ ] All leaf modules with test sources declare junit-jupiter and slf4j-simple test dependencies
+
+### Final Verification Protocol (MUST run before reporting "verified")
+
+**Before any PR, run BOTH build systems with FULL clean builds:**
+
+1. **Maven clean + test (ALL modules including benchmarks):**
+   mvn clean test
+
+2. **Gradle clean + test (ALL modules, bypassing cache):**
+   ./gradlew clean test --rerun-tasks
+
+**Targeted verification of changed modules and their dependents:**
+- messaging-stomp (STOMP protocol — buffer pooling, added http dependency)
+- messaging-mqtt (MQTT protocol — buffer pooling)
+- database-redis (Redis protocol — buffer pooling)
+- network-dns (DNS protocol — buffer pooling)
+- messaging-kafka (depends on service)
+- messaging-amqp (depends on service)
+- web-http (depends on service)
+- web-http2 (HTTP/2 with buffer pooling)
+- web-http3 (HTTP/3 with buffer pooling)
+- rpc-grpc (gRPC with buffer pooling)
+- network-ssh (SSH with buffer pooling)
+- iot-coap (CoAP with buffer pooling)
+- media-rtsp (RTSP with buffer pooling)
+- email-smtp (SMTP with buffer pooling)
+- email-imap (IMAP with buffer pooling)
+- service (shared BufferPool utility)
+- benchmarks (cross-module performance benchmarks — must compile and test)
+
+**NEVER report "verified" without explicitly running BOTH Maven and Gradle clean test commands.**
+
+---
+
+## Documentation & Graphics Guidelines
+
+### Mermaid Graphics (REQUIRED)
+Always use Mermaid diagrams instead of ASCII graphics. ASCII diagrams are deprecated and should be replaced with Mermaid equivalents in all documentation files (README.md, doc/*.md, AGENTS.md).
+
+Use Mermaid graph TD or graph LR for architecture diagrams. Use Mermaid sequence diagrams for protocol flows. Use Mermaid class diagrams for architecture components. Mermaid is supported natively by GitHub, GitLab, VS Code, and all major markdown renderers.
+
+### Conditional --rerun-tasks (Gradle)
+Use ./gradlew clean test --rerun-tasks ONLY when:
+- Module structure has changed (new/removed modules)
+- Dependencies have changed (new/removed dependencies)
+- Module names or artifact IDs have changed
+
+For routine verification of unchanged modules, use ./gradlew clean test (uses cache).
+
+### Documentation Update Checklist
+Before committing changes that affect code structure:
+1. Update README.md: Performance section, module table, architecture diagram
+2. Update doc/ARCHITECTURE.md: Update Mermaid diagrams if module structure changed
+3. Update doc/COMPARISON.md: Update performance findings if buffer pooling/thread changes affect benchmarks
+4. Update doc/PERFORMANCE_IMPROVEMENTS.md: Add new codec coverage, benchmark results
+5. Update AGENTS.md: Add any new structural rules or build system changes
+
+### Performance-Related Documentation
+When buffer pooling or thread management changes are made:
+1. Update the coverage table in README.md (list all modules with buffer pooling)
+2. Update doc/PERFORMANCE_IMPROVEMENTS.md with expanded coverage section
+3. Update doc/COMPARISON.md with benchmark comparisons (old vs new)
+4. Add to README.md Performance section: number of codecs using BufferPool, hit ratio targets

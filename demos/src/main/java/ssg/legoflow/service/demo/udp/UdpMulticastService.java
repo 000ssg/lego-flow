@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * messages are stored in a thread-safe list for inspection. Tracks the total count
  * of received multicast messages.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class UdpMulticastService extends AbstractService<byte[], byte[]> implements DatagramHandler {
 
@@ -33,7 +33,7 @@ public class UdpMulticastService extends AbstractService<byte[], byte[]> impleme
     /**
      * Creates a new {@code UdpMulticastService} with the default descriptor.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public UdpMulticastService() {
         super(byte[].class, byte[].class, new ServiceDescriptor("udp-multicast", "UDP multicast service"));
@@ -44,7 +44,7 @@ public class UdpMulticastService extends AbstractService<byte[], byte[]> impleme
      *
      * @param channel the data channel that received the datagram
      * @param packet  the received datagram packet
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void onDatagram(DataChannel channel, DatagramPacketInfo packet) {
@@ -58,7 +58,7 @@ public class UdpMulticastService extends AbstractService<byte[], byte[]> impleme
      *
      * @param channel the data channel
      * @param target  the destination address
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void onSendComplete(DataChannel channel, SocketAddress target) {
@@ -69,7 +69,7 @@ public class UdpMulticastService extends AbstractService<byte[], byte[]> impleme
      * Returns the list of all received multicast messages.
      *
      * @return an unmodifiable view of received messages
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<DatagramPacketInfo> getReceivedMessages() {
         return List.copyOf(receivedMessages);
@@ -79,7 +79,7 @@ public class UdpMulticastService extends AbstractService<byte[], byte[]> impleme
      * Returns the total number of multicast messages received.
      *
      * @return the message count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long getMessageCount() {
         return messageCount.get();
@@ -88,7 +88,7 @@ public class UdpMulticastService extends AbstractService<byte[], byte[]> impleme
     /**
      * Clears the stored messages and resets the counter.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void clearMessages() {
         receivedMessages.clear();
@@ -101,7 +101,7 @@ public class UdpMulticastService extends AbstractService<byte[], byte[]> impleme
      * @param ctx   the processing context
      * @param input the input data
      * @return the same data as output
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @SuppressWarnings("unchecked")
     @Override
@@ -115,7 +115,7 @@ public class UdpMulticastService extends AbstractService<byte[], byte[]> impleme
      * @param ctx    the processing context
      * @param output the output data
      * @return the same data as input
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @SuppressWarnings("unchecked")
     @Override

@@ -21,7 +21,7 @@ import java.util.function.Function;
  * <p>Handles all RFC 959 commands plus extensions (FEAT, SIZE, MDTM, MLSD, EPRT, EPSV, etc.).
  * Each command returns an {@link FtpReply} to be sent back to the client.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class FtpCommandHandler {
 

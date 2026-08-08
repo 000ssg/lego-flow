@@ -11,7 +11,7 @@ import java.util.Arrays;
  * SNMP variable bindings. The sealed hierarchy enables exhaustive pattern
  * matching in {@code switch} expressions.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface SnmpValue {
 
@@ -19,7 +19,7 @@ public sealed interface SnmpValue {
      * 32-bit signed integer (SMIv2 Integer32 / INTEGER).
      *
      * @param value the integer value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Integer32(int value) implements SnmpValue {}
 
@@ -27,7 +27,7 @@ public sealed interface SnmpValue {
      * 32-bit unsigned counter (SMIv2 Counter32), wraps at 2^32 - 1.
      *
      * @param value the counter value as unsigned long
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Counter32(long value) implements SnmpValue {
         /**
@@ -46,7 +46,7 @@ public sealed interface SnmpValue {
      * 64-bit unsigned counter (SMIv2 Counter64), wraps at 2^64 - 1.
      *
      * @param value the counter value as unsigned long
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Counter64(long value) implements SnmpValue {}
 
@@ -54,7 +54,7 @@ public sealed interface SnmpValue {
      * 32-bit unsigned gauge (SMIv2 Gauge32 / Unsigned32), latches at maximum.
      *
      * @param value the gauge value as unsigned long
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Gauge32(long value) implements SnmpValue {
         /**
@@ -73,7 +73,7 @@ public sealed interface SnmpValue {
      * Time ticks in hundredths of a second since an epoch (SMIv2 TimeTicks).
      *
      * @param value the ticks value as unsigned long
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record TimeTicks(long value) implements SnmpValue {
         /**
@@ -92,7 +92,7 @@ public sealed interface SnmpValue {
      * Arbitrary byte string (SMIv2 OCTET STRING).
      *
      * @param value the byte data
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record OctetString(byte[] value) implements SnmpValue {
         /**
@@ -156,7 +156,7 @@ public sealed interface SnmpValue {
      * ASN.1 OBJECT IDENTIFIER value.
      *
      * @param value the OID
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Oid(ObjectIdentifier value) implements SnmpValue {
         /**
@@ -185,7 +185,7 @@ public sealed interface SnmpValue {
      * IPv4 address (SMIv2 IpAddress), 4 bytes.
      *
      * @param address the 4-byte address
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record IpAddress(byte[] address) implements SnmpValue {
         /**
@@ -254,7 +254,7 @@ public sealed interface SnmpValue {
      * Opaque data (SMIv2 Opaque), carries arbitrary ASN.1 encoded data.
      *
      * @param value the opaque byte data
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Opaque(byte[] value) implements SnmpValue {
         /**
@@ -293,7 +293,7 @@ public sealed interface SnmpValue {
     /**
      * ASN.1 NULL value, used for GetRequest variable bindings.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Null() implements SnmpValue {
         /** Singleton NULL instance. */
@@ -303,7 +303,7 @@ public sealed interface SnmpValue {
     /**
      * noSuchObject exception value (context-specific tag 0, primitive).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record NoSuchObject() implements SnmpValue {
         /** Singleton instance. */
@@ -313,7 +313,7 @@ public sealed interface SnmpValue {
     /**
      * noSuchInstance exception value (context-specific tag 1, primitive).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record NoSuchInstance() implements SnmpValue {
         /** Singleton instance. */
@@ -323,7 +323,7 @@ public sealed interface SnmpValue {
     /**
      * endOfMibView exception value (context-specific tag 2, primitive).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record EndOfMibView() implements SnmpValue {
         /** Singleton instance. */

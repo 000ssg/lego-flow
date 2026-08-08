@@ -7,7 +7,7 @@ import java.util.List;
  *
  * @param errorCode           the error code
  * @param partitionsRemaining the partitions still led by the shutting-down broker
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ControlledShutdownResponse(short errorCode,
                                          List<TopicPartitionData> partitionsRemaining) {

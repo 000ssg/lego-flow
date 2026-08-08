@@ -9,7 +9,7 @@ package ssg.legoflow.media.common.sdp;
  *
  * @param startTime NTP start timestamp (0 for unbounded)
  * @param stopTime  NTP stop timestamp (0 for unbounded)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Timing(long startTime, long stopTime) {
 

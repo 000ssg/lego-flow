@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
  * @param errorCode the MySQL error code
  * @param sqlState the 5-character SQLSTATE value
  * @param message the human-readable error message
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ErrPacket(int errorCode, String sqlState, String message) {
 

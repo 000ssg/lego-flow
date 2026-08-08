@@ -6,7 +6,7 @@ import java.util.List;
  * CreateTopics response (API key 19).
  *
  * @param topics the per-topic creation responses
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record CreateTopicsResponse(List<TopicResult> topics) {
 

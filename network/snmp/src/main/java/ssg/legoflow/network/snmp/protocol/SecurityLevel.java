@@ -6,7 +6,7 @@ package ssg.legoflow.network.snmp.protocol;
  * <p>The security level determines what security services (authentication,
  * privacy) are applied to an SNMP message.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum SecurityLevel {
 

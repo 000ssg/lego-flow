@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Broker configurations are read-only defaults; topic configurations can be
  * altered at runtime.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ConfigManager {
 

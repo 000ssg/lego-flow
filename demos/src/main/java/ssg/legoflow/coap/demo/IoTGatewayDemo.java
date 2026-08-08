@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>The gateway acts as a CoAP server exposing resources for each registered
  * sensor node, translating requests to/from the constrained device format.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class IoTGatewayDemo {
 
@@ -30,7 +30,7 @@ public final class IoTGatewayDemo {
      * Creates the IoT gateway demo with a server on the given port.
      *
      * @param port the UDP port
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public IoTGatewayDemo(int port) {
         this.server = new CoapServer(CoapServerConfig.withPort(port));
@@ -45,7 +45,7 @@ public final class IoTGatewayDemo {
      * @param nodeId the unique node identifier
      * @param type   the sensor type (e.g. "temperature", "humidity")
      * @param value  the initial sensor value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void registerNode(String nodeId, String type, String value) {
         var node = new SensorNode(nodeId, type, value);
@@ -58,7 +58,7 @@ public final class IoTGatewayDemo {
      *
      * @param nodeId the node identifier
      * @param value  the new value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void updateNodeValue(String nodeId, String value) {
         var node = sensorNodes.get(nodeId);
@@ -71,7 +71,7 @@ public final class IoTGatewayDemo {
      * Starts the gateway server.
      *
      * @throws IOException if binding fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() throws IOException {
         server.start();
@@ -80,7 +80,7 @@ public final class IoTGatewayDemo {
     /**
      * Stops the gateway server.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         server.stop();
@@ -90,7 +90,7 @@ public final class IoTGatewayDemo {
      * Returns the server.
      *
      * @return the server
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapServer server() {
         return server;
@@ -100,7 +100,7 @@ public final class IoTGatewayDemo {
      * Returns registered sensor nodes.
      *
      * @return the sensor nodes map
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Map<String, SensorNode> sensorNodes() {
         return sensorNodes;
@@ -109,7 +109,7 @@ public final class IoTGatewayDemo {
     /**
      * Represents a sensor node in the gateway.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class SensorNode {
         private final String nodeId;

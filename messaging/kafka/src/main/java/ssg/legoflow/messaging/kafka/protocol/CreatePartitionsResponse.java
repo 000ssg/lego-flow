@@ -6,7 +6,7 @@ import java.util.List;
  * CreatePartitions response (API key 37).
  *
  * @param results the per-topic results
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record CreatePartitionsResponse(List<TopicResult> results) {
 

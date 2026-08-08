@@ -5,7 +5,7 @@ import java.util.Set;
 /**
  * Microsoft Identity Platform (Azure AD) OAuth 2.0 + OpenID Connect provider.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MicrosoftOAuth extends OAuthProvider {
 

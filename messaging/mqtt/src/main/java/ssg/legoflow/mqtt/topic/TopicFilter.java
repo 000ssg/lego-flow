@@ -11,7 +11,7 @@ import java.util.Objects;
  * and multi-level wildcard ({@code #}) matching all remaining levels (must be last).
  * Also supports MQTT 5.0 shared subscriptions ({@code $share/group/filter}).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class TopicFilter {
 

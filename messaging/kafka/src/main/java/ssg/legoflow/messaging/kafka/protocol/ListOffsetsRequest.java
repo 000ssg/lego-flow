@@ -6,7 +6,7 @@ import java.util.List;
  * ListOffsets request (API key 2) for finding offsets by timestamp.
  *
  * @param topics the topics and partitions to query
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ListOffsetsRequest(List<TopicOffsets> topics) {
 

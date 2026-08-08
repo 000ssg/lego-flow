@@ -5,7 +5,7 @@ package ssg.legoflow.ftp.protocol;
  *
  * <p>The MODE command sets how data is transmitted over the data connection.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum FtpTransferMode {
 

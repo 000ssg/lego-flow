@@ -3,7 +3,7 @@ package ssg.legoflow.upnp.mediarenderer;
 /**
  * Enumeration of AVTransport transport statuses.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum TransportStatus {
 
@@ -23,7 +23,7 @@ public enum TransportStatus {
      * Returns the UPnP string value for this status.
      *
      * @return the status string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String value() {
         return value;
@@ -35,7 +35,7 @@ public enum TransportStatus {
      * @param value the status string
      * @return the transport status
      * @throws IllegalArgumentException if the value is unknown
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static TransportStatus fromValue(String value) {
         for (TransportStatus status : values()) {

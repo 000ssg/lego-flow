@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
  *   <li><strong>Windows DIR</strong>: {@code 01-15-24 10:30AM <DIR> dirname}</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class FtpListParser {
 

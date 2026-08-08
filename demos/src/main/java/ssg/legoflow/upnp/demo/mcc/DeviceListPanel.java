@@ -36,7 +36,7 @@ import java.util.function.Consumer;
  * <p>Device lists auto-update via the {@link DeviceListener} interface when devices
  * appear or disappear on the network.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class DeviceListPanel extends JPanel implements DeviceListener {
 
@@ -79,7 +79,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
      * device additions and removals automatically refresh the lists.
      *
      * @param controlPoint the control point providing device discovery
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DeviceListPanel(ControlPoint controlPoint) {
         this.controlPoint = controlPoint;
@@ -203,7 +203,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
      * Sets the parent frame used as owner for dialog windows (e.g., device properties).
      *
      * @param frame the parent frame
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setParentFrame(Frame frame) {
         this.parentFrame = frame;
@@ -213,7 +213,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
      * Adds a listener notified when a media server is selected in the Servers tab.
      *
      * @param listener the selection listener receiving the selected {@link MediaServerProxy}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addServerSelectionListener(Consumer<MediaServerProxy> listener) {
         serverSelectionListeners.add(listener);
@@ -223,7 +223,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
      * Adds a listener notified when a media renderer is selected in the Renderers tab.
      *
      * @param listener the selection listener receiving the selected {@link MediaRendererProxy}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addRendererSelectionListener(Consumer<MediaRendererProxy> listener) {
         rendererSelectionListeners.add(listener);
@@ -233,7 +233,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
      * Adds a listener notified when any device is selected in the "All Devices" tab.
      *
      * @param listener the selection listener receiving the selected {@link DeviceProxy}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addDeviceSelectionListener(Consumer<DeviceProxy> listener) {
         deviceSelectionListeners.add(listener);
@@ -243,7 +243,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
      * Adds a listener notified when a failed device is selected in the "Unrecognized" tab.
      *
      * @param listener the selection listener receiving the selected {@link ControlPoint.FailedDevice}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addFailedDeviceSelectionListener(Consumer<ControlPoint.FailedDevice> listener) {
         failedDeviceSelectionListeners.add(listener);
@@ -253,7 +253,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
      * Returns the currently selected media server, or {@code null} if none is selected.
      *
      * @return the selected server proxy, or {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MediaServerProxy getSelectedServer() {
         var selected = serverList.getSelectedValue();
@@ -264,7 +264,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
      * Returns the currently selected media renderer, or {@code null} if none is selected.
      *
      * @return the selected renderer proxy, or {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MediaRendererProxy getSelectedRenderer() {
         var selected = rendererList.getSelectedValue();
@@ -279,7 +279,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
      * the content browser and playback controls are populated immediately. Tab labels are
      * updated to show the current device count, e.g., "Servers (3)".
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void refreshDeviceLists() {
         SwingUtilities.invokeLater(() -> {
@@ -355,7 +355,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
      *
      * <p>Refreshes all device lists when a new device is discovered on the network.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void onDeviceAdded(DeviceProxy device) {
@@ -367,7 +367,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
      *
      * <p>Refreshes all device lists when a device disappears from the network.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void onDeviceRemoved(DeviceProxy device) {
@@ -536,7 +536,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
      * the device type URN is displayed below the friendly name in a smaller font
      * with {@link DarkTheme#MUTED_TEXT} colour.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static class DeviceCellRenderer extends JPanel implements ListCellRenderer<DeviceProxy> {
 
@@ -557,7 +557,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
          *
          * @param showDeviceType {@code true} to display the device type below the name
          *                       (for the All Devices tab)
-         * @since 1.0.0
+         * @since 0.1.0
          */
         DeviceCellRenderer(boolean showDeviceType) {
             this.showDeviceType = showDeviceType;
@@ -585,7 +585,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
          * Returns the index of the cell currently being hovered over.
          *
          * @return the hovered cell index, or {@code -1} if none
-         * @since 1.0.0
+         * @since 0.1.0
          */
         int getHoveredIndex() {
             return hoveredIndex;
@@ -596,7 +596,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
          * a repaint of the list.
          *
          * @param index the hovered cell index, or {@code -1} to clear
-         * @since 1.0.0
+         * @since 0.1.0
          */
         void setHoveredIndex(int index) {
             this.hoveredIndex = index;
@@ -608,7 +608,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
          * <p>Renders a device cell with an emoji icon, friendly name, optional device
          * type label, and dark theme colours including selection and hover states.
          *
-         * @since 1.0.0
+         * @since 0.1.0
          */
         @Override
         public Component getListCellRendererComponent(JList<? extends DeviceProxy> list,
@@ -647,7 +647,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
          *
          * @param device the device proxy
          * @return an emoji string representing the device type
-         * @since 1.0.0
+         * @since 0.1.0
          */
         private static String resolveIcon(DeviceProxy device) {
             if (device instanceof MediaServerProxy) {
@@ -672,7 +672,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
      * Custom cell renderer for failed (unrecognized) devices, displaying a warning
      * icon, the UDN, and the error message in muted red text.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static class FailedDeviceCellRenderer extends JPanel
             implements ListCellRenderer<ControlPoint.FailedDevice> {
@@ -729,14 +729,14 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
      * dark backgrounds and an accent-blue underline for the selected tab, matching
      * the web variant's CSS tab styling.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     private static class DarkTabbedPaneUI extends javax.swing.plaf.basic.BasicTabbedPaneUI {
 
         /**
          * {@inheritDoc}
          *
-         * @since 1.0.0
+         * @since 0.1.0
          */
         @Override
         protected void installDefaults() {
@@ -750,7 +750,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
         /**
          * {@inheritDoc}
          *
-         * @since 1.0.0
+         * @since 0.1.0
          */
         @Override
         protected void paintTabBackground(Graphics g, int tabPlacement, int tabIndex,
@@ -765,7 +765,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
          * <p>Paints a 2px accent-blue underline for the selected tab, or a border-coloured
          * underline for unselected tabs.
          *
-         * @since 1.0.0
+         * @since 0.1.0
          */
         @Override
         protected void paintTabBorder(Graphics g, int tabPlacement, int tabIndex,
@@ -782,7 +782,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
         /**
          * {@inheritDoc}
          *
-         * @since 1.0.0
+         * @since 0.1.0
          */
         @Override
         protected void paintContentBorder(Graphics g, int tabPlacement, int selectedIndex) {
@@ -795,7 +795,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
         /**
          * {@inheritDoc}
          *
-         * @since 1.0.0
+         * @since 0.1.0
          */
         @Override
         protected void paintFocusIndicator(Graphics g, int tabPlacement,
@@ -808,7 +808,7 @@ public class DeviceListPanel extends JPanel implements DeviceListener {
         /**
          * {@inheritDoc}
          *
-         * @since 1.0.0
+         * @since 0.1.0
          */
         @Override
         protected void paintText(Graphics g, int tabPlacement, Font font, FontMetrics metrics,

@@ -23,7 +23,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Children are loaded lazily on first access via {@link MediaServerProxy#browse(String)}
  * and cached for subsequent requests. The model supports refresh to reload content.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ContentTreeModel implements TreeModel {
 
@@ -38,7 +38,7 @@ public class ContentTreeModel implements TreeModel {
      * Creates a new tree model for the given media server.
      *
      * @param server the media server proxy to browse
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentTreeModel(MediaServerProxy server) {
         this.server = server;
@@ -49,7 +49,7 @@ public class ContentTreeModel implements TreeModel {
      * Returns the media server proxy used by this model.
      *
      * @return the server proxy
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MediaServerProxy getServer() {
         return server;
@@ -58,7 +58,7 @@ public class ContentTreeModel implements TreeModel {
     /**
      * {@inheritDoc}
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public Object getRoot() {
@@ -68,7 +68,7 @@ public class ContentTreeModel implements TreeModel {
     /**
      * {@inheritDoc}
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public Object getChild(Object parent, int index) {
@@ -84,7 +84,7 @@ public class ContentTreeModel implements TreeModel {
     /**
      * {@inheritDoc}
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public int getChildCount(Object parent) {
@@ -97,7 +97,7 @@ public class ContentTreeModel implements TreeModel {
     /**
      * {@inheritDoc}
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public boolean isLeaf(Object node) {
@@ -110,7 +110,7 @@ public class ContentTreeModel implements TreeModel {
     /**
      * {@inheritDoc}
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void valueForPathChanged(TreePath path, Object newValue) {
@@ -120,7 +120,7 @@ public class ContentTreeModel implements TreeModel {
     /**
      * {@inheritDoc}
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public int getIndexOfChild(Object parent, Object child) {
@@ -133,7 +133,7 @@ public class ContentTreeModel implements TreeModel {
     /**
      * {@inheritDoc}
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void addTreeModelListener(TreeModelListener l) {
@@ -143,7 +143,7 @@ public class ContentTreeModel implements TreeModel {
     /**
      * {@inheritDoc}
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void removeTreeModelListener(TreeModelListener l) {
@@ -155,7 +155,7 @@ public class ContentTreeModel implements TreeModel {
      *
      * @param node the parent node
      * @return the list of child nodes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<ContentTreeNode> getChildren(ContentTreeNode node) {
         return childCache.computeIfAbsent(node.getId(), id -> loadChildren(id));
@@ -164,7 +164,7 @@ public class ContentTreeModel implements TreeModel {
     /**
      * Clears the cache and reloads the tree from the server.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void refresh() {
         childCache.clear();
@@ -175,7 +175,7 @@ public class ContentTreeModel implements TreeModel {
      * Clears cached children for a specific node, forcing a reload on next access.
      *
      * @param nodeId the node ID to invalidate
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void invalidate(String nodeId) {
         childCache.remove(nodeId);
@@ -186,7 +186,7 @@ public class ContentTreeModel implements TreeModel {
      *
      * @param containerId the container object ID
      * @return the list of child tree nodes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     List<ContentTreeNode> loadChildren(String containerId) {
         try {
@@ -215,7 +215,7 @@ public class ContentTreeModel implements TreeModel {
     /**
      * Node in the content tree representing either a container or a leaf item.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class ContentTreeNode {
 
@@ -230,7 +230,7 @@ public class ContentTreeModel implements TreeModel {
          * @param id        the content object ID
          * @param title     the display title
          * @param container true if this node is a container
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public ContentTreeNode(String id, String title, boolean container) {
             this(id, title, container, null);
@@ -243,7 +243,7 @@ public class ContentTreeModel implements TreeModel {
          * @param title       the display title
          * @param container   true if this node is a container
          * @param contentItem the full content item, may be {@code null}
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public ContentTreeNode(String id, String title, boolean container, ContentItem contentItem) {
             this.id = id;
@@ -256,7 +256,7 @@ public class ContentTreeModel implements TreeModel {
          * Returns the content object ID.
          *
          * @return the object ID
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public String getId() {
             return id;
@@ -266,7 +266,7 @@ public class ContentTreeModel implements TreeModel {
          * Returns the display title.
          *
          * @return the title
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public String getTitle() {
             return title;
@@ -276,7 +276,7 @@ public class ContentTreeModel implements TreeModel {
          * Returns whether this node represents a container.
          *
          * @return true if container
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public boolean isContainer() {
             return container;
@@ -286,7 +286,7 @@ public class ContentTreeModel implements TreeModel {
          * Returns the full content item associated with this node, if available.
          *
          * @return the content item, or {@code null} for the root node
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public ContentItem getContentItem() {
             return contentItem;

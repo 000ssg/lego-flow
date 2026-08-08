@@ -55,7 +55,7 @@ import java.io.IOException;
  *   <li>Transaction rollback — BEGIN/INSERT/ROLLBACK reverts changes</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoMysqlAll {
 

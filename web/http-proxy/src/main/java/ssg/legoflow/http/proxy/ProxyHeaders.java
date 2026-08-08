@@ -10,7 +10,7 @@ import ssg.legoflow.http.core.HttpResponse;
  * <p>Provides utility methods for reading and writing proxy-related headers
  * per RFC 7230 section 5.7 (Message Forwarding) and the de facto X-Forwarded-* convention.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ProxyHeaders {
 
@@ -44,7 +44,7 @@ public final class ProxyHeaders {
      *
      * @param headers the HTTP headers to modify
      * @param clientIp the client IP address
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void addForwardedFor(HttpHeaders headers, String clientIp) {
         String existing = headers.get(X_FORWARDED_FOR);
@@ -60,7 +60,7 @@ public final class ProxyHeaders {
      *
      * @param headers the HTTP headers
      * @return the forwarded-for chain, or null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String getForwardedFor(HttpHeaders headers) {
         return headers.get(X_FORWARDED_FOR);
@@ -71,7 +71,7 @@ public final class ProxyHeaders {
      *
      * @param headers the HTTP headers to modify
      * @param protocol the protocol (e.g. "http" or "https")
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void setForwardedProto(HttpHeaders headers, String protocol) {
         headers.set(X_FORWARDED_PROTO, protocol);
@@ -82,7 +82,7 @@ public final class ProxyHeaders {
      *
      * @param headers the HTTP headers
      * @return the protocol, or null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String getForwardedProto(HttpHeaders headers) {
         return headers.get(X_FORWARDED_PROTO);
@@ -93,7 +93,7 @@ public final class ProxyHeaders {
      *
      * @param headers the HTTP headers to modify
      * @param host the original host
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void setForwardedHost(HttpHeaders headers, String host) {
         headers.set(X_FORWARDED_HOST, host);
@@ -104,7 +104,7 @@ public final class ProxyHeaders {
      *
      * @param headers the HTTP headers
      * @return the original host, or null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String getForwardedHost(HttpHeaders headers) {
         return headers.get(X_FORWARDED_HOST);
@@ -116,7 +116,7 @@ public final class ProxyHeaders {
      * @param headers the HTTP headers to modify
      * @param protocolVersion the protocol version (e.g. "1.1")
      * @param pseudonym the proxy pseudonym or host
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void addVia(HttpHeaders headers, String protocolVersion, String pseudonym) {
         String viaEntry = protocolVersion + " " + pseudonym;
@@ -133,7 +133,7 @@ public final class ProxyHeaders {
      *
      * @param headers the HTTP headers
      * @return the Via chain, or null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String getVia(HttpHeaders headers) {
         return headers.get(VIA);
@@ -144,7 +144,7 @@ public final class ProxyHeaders {
      *
      * @param headers the HTTP headers to modify
      * @param ip the real client IP
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void setRealIp(HttpHeaders headers, String ip) {
         headers.set(X_REAL_IP, ip);
@@ -155,7 +155,7 @@ public final class ProxyHeaders {
      *
      * @param headers the HTTP headers
      * @return the real IP, or null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String getRealIp(HttpHeaders headers) {
         return headers.get(X_REAL_IP);
@@ -170,7 +170,7 @@ public final class ProxyHeaders {
      * @param protocol the protocol (e.g. "http")
      * @param originalHost the original Host header value
      * @param proxyName the name of this proxy for the Via header
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void applyForwardHeaders(HttpHeaders headers, String clientIp,
                                            String protocol, String originalHost, String proxyName) {

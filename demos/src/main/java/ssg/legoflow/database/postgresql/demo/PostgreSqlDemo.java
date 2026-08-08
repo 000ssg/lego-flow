@@ -15,7 +15,7 @@ import java.util.List;
  * Demo showing the full lifecycle of a PostgreSQL wire protocol session:
  * connection, simple query, extended query, COPY, and LISTEN/NOTIFY.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class PostgreSqlDemo {
 

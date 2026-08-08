@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
  * <p>Represents the {@code local-part@domain} portion of an email address.
  * Validation is intentionally lenient to handle real-world addresses.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class EmailAddress {
 

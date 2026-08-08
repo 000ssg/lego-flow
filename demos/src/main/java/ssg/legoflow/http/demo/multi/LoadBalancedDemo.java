@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>Creates several server instances, each identified by name, and distributes
  * requests across them using a simple round-robin counter.
  *
- * @since 1.0
+ * @since 0.1
  */
 public class LoadBalancedDemo {
 

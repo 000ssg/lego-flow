@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
  * Simplest async demo: wraps {@link EchoService} with a {@link CompletableFuture}-based API
  * via the default {@code async()} bridge on {@code Service}.
  *
- * @since 1.0
+ * @since 0.1
  */
 public class AsyncEchoService {
 

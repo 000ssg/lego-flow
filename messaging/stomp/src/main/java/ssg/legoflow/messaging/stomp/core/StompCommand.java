@@ -12,7 +12,7 @@ package ssg.legoflow.messaging.stomp.core;
  *
  * <p>Special: {@link #HEARTBEAT} represents the heart-beat EOL frame.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum StompCommand {
 

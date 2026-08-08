@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * Sealed interface for all frontend (client to server) messages.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface FrontendMessage extends PgMessage {
 

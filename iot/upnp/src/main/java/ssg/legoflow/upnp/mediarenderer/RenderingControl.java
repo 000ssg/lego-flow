@@ -12,7 +12,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * <p>Manages audio output settings (volume, mute) for a media renderer.
  * Supports multiple audio channels: Master, LF (Left Front), RF (Right Front).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class RenderingControl {
 
@@ -43,7 +43,7 @@ public class RenderingControl {
     /** Right Surround audio channel. */
     public static final String CHANNEL_RS = "RS";
 
-    /** All recognized audio channels. @since 1.0.0 */
+    /** All recognized audio channels. @since 0.1.0 */
     public static final List<String> ALL_CHANNELS = List.of(
             CHANNEL_MASTER, CHANNEL_LF, CHANNEL_RF, CHANNEL_CF,
             CHANNEL_LFE, CHANNEL_LS, CHANNEL_RS
@@ -71,7 +71,7 @@ public class RenderingControl {
     /**
      * Creates a new RenderingControl service with default settings.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public RenderingControl() {
         for (String channel : ALL_CHANNELS) {
@@ -86,7 +86,7 @@ public class RenderingControl {
      * @param instanceId the instance ID
      * @param channel    the audio channel
      * @return the volume level (0-100)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getVolume(int instanceId, String channel) {
         Objects.requireNonNull(channel, "channel must not be null");
@@ -100,7 +100,7 @@ public class RenderingControl {
      * @param channel       the audio channel
      * @param desiredVolume the desired volume level (0-100)
      * @throws IllegalArgumentException if volume is out of range
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setVolume(int instanceId, String channel, int desiredVolume) {
         Objects.requireNonNull(channel, "channel must not be null");
@@ -119,7 +119,7 @@ public class RenderingControl {
      * @param instanceId the instance ID
      * @param channel    the audio channel
      * @return true if muted
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean getMute(int instanceId, String channel) {
         Objects.requireNonNull(channel, "channel must not be null");
@@ -132,7 +132,7 @@ public class RenderingControl {
      * @param instanceId  the instance ID
      * @param channel     the audio channel
      * @param desiredMute true to mute, false to unmute
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setMute(int instanceId, String channel, boolean desiredMute) {
         Objects.requireNonNull(channel, "channel must not be null");
@@ -145,7 +145,7 @@ public class RenderingControl {
      * Adds a playback listener for volume/mute change events.
      *
      * @param listener the listener to add
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addPlaybackListener(PlaybackListener listener) {
         Objects.requireNonNull(listener, "listener must not be null");
@@ -156,7 +156,7 @@ public class RenderingControl {
      * Removes a playback listener.
      *
      * @param listener the listener to remove
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void removePlaybackListener(PlaybackListener listener) {
         listeners.remove(listener);
@@ -167,7 +167,7 @@ public class RenderingControl {
      *
      * @param instanceId the instance ID
      * @return the brightness level (0-100)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getBrightness(int instanceId) {
         return brightness;
@@ -179,7 +179,7 @@ public class RenderingControl {
      * @param instanceId       the instance ID
      * @param desiredBrightness the desired brightness level (0-100)
      * @throws IllegalArgumentException if the value is out of range
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setBrightness(int instanceId, int desiredBrightness) {
         if (desiredBrightness < MIN_IMAGE_CONTROL || desiredBrightness > MAX_IMAGE_CONTROL) {
@@ -194,7 +194,7 @@ public class RenderingControl {
      *
      * @param instanceId the instance ID
      * @return the contrast level (0-100)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getContrast(int instanceId) {
         return contrast;
@@ -206,7 +206,7 @@ public class RenderingControl {
      * @param instanceId     the instance ID
      * @param desiredContrast the desired contrast level (0-100)
      * @throws IllegalArgumentException if the value is out of range
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setContrast(int instanceId, int desiredContrast) {
         if (desiredContrast < MIN_IMAGE_CONTROL || desiredContrast > MAX_IMAGE_CONTROL) {
@@ -221,7 +221,7 @@ public class RenderingControl {
      *
      * @param instanceId the instance ID
      * @return the color saturation level (0-100)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getColor(int instanceId) {
         return color;
@@ -233,7 +233,7 @@ public class RenderingControl {
      * @param instanceId   the instance ID
      * @param desiredColor the desired color saturation level (0-100)
      * @throws IllegalArgumentException if the value is out of range
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setColor(int instanceId, int desiredColor) {
         if (desiredColor < MIN_IMAGE_CONTROL || desiredColor > MAX_IMAGE_CONTROL) {
@@ -247,7 +247,7 @@ public class RenderingControl {
      * Returns the list of supported audio channel names.
      *
      * @return unmodifiable list of channel names
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<String> getSupportedChannels() {
         return ALL_CHANNELS;
@@ -257,7 +257,7 @@ public class RenderingControl {
      * Generates the SCPD XML for this service.
      *
      * @return the SCPD XML string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String generateScpd() {
         return """

@@ -4,12 +4,12 @@ import org.junit.jupiter.api.Test;
 
 import java.net.InetSocketAddress;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * Tests for {@link ObserveRelation}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class ObserveRelationTest {
 
@@ -55,5 +55,99 @@ class ObserveRelationTest {
 
         // Relation should be unchanged
         assertThat(relation.token()[0]).isEqualTo((byte) 0x01);
+    }
+
+    @Test
+    void testEqualsSameInstance() {
+        var relation = new ObserveRelation(new byte[]{0x01}, "/path", new InetSocketAddress(5683));
+        assertThat(relation).isEqualTo(relation);
+    }
+
+    @Test
+    void testEqualsEqualValues() {
+        var obs = new InetSocketAddress(5683);
+        var r1 = new ObserveRelation(new byte[]{0x01}, "/path", obs);
+        var r2 = new ObserveRelation(new byte[]{0x01}, "/path", obs);
+
+        assertThat(r1).isEqualTo(r2);
+    }
+
+    @Test
+    void testEqualsDifferentToken() {
+        var obs = new InetSocketAddress(5683);
+        var r1 = new ObserveRelation(new byte[]{0x01}, "/path", obs);
+        var r2 = new ObserveRelation(new byte[]{0x02}, "/path", obs);
+
+        assertThat(r1).isNotEqualTo(r2);
+    }
+
+    @Test
+    void testEqualsDifferentPath() {
+        var obs = new InetSocketAddress(5683);
+        var r1 = new ObserveRelation(new byte[]{0x01}, "/path", obs);
+        var r2 = new ObserveRelation(new byte[]{0x01}, "/other", obs);
+
+        assertThat(r1).isNotEqualTo(r2);
+    }
+
+    @Test
+    void testEqualsDifferentObserver() {
+        var r1 = new ObserveRelation(new byte[]{0x01}, "/path", new InetSocketAddress(5683));
+        var r2 = new ObserveRelation(new byte[]{0x01}, "/path", new InetSocketAddress(5684));
+
+        assertThat(r1).isNotEqualTo(r2);
+    }
+
+    @Test
+    void testEqualsNullAndNonInstance() {
+        var relation = new ObserveRelation(new byte[]{0x01}, "/path", new InetSocketAddress(5683));
+        assertThat(relation).isNotEqualTo(null);
+        assertThat(relation).isNotEqualTo("string");
+    }
+
+    @Test
+    void testHashCodeConsistent() {
+        var obs = new InetSocketAddress(5683);
+        var r1 = new ObserveRelation(new byte[]{0x01}, "/path", obs);
+        var r2 = new ObserveRelation(new byte[]{0x01}, "/path", obs);
+
+        assertThat(r1.hashCode()).isEqualTo(r2.hashCode());
+    }
+
+    @Test
+    void testToStringContainsInfo() {
+        var relation = new ObserveRelation(new byte[]{0x01}, "/sensors/temp", new InetSocketAddress("localhost", 5683));
+        relation.nextSequenceNumber();
+        String str = relation.toString();
+
+        assertThat(str).contains("ObserveRelation");
+        assertThat(str).contains("/sensors/temp");
+        assertThat(str).contains("seq=1");
+        assertThat(str).contains("active=true");
+    }
+
+    @Test
+    void testToStringAfterCancel() {
+        var relation = new ObserveRelation(new byte[]{0x01}, "/path", new InetSocketAddress(5683));
+        relation.cancel();
+        assertThat(relation.toString()).contains("active=false");
+    }
+
+    @Test
+    void testNullTokenThrows() {
+        assertThatThrownBy(() -> new ObserveRelation(null, "/path", new InetSocketAddress(5683)))
+                .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void testNullPathThrows() {
+        assertThatThrownBy(() -> new ObserveRelation(new byte[]{0x01}, null, new InetSocketAddress(5683)))
+                .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void testNullObserverThrows() {
+        assertThatThrownBy(() -> new ObserveRelation(new byte[]{0x01}, "/path", (java.net.SocketAddress) null))
+                .isInstanceOf(NullPointerException.class);
     }
 }

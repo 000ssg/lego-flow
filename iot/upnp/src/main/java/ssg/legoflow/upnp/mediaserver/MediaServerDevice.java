@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * description XML and SCPD documents, registers with SSDP for network
  * discovery, and serves content via HTTP.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MediaServerDevice {
 
@@ -43,7 +43,7 @@ public class MediaServerDevice {
      * Creates a new media server device.
      *
      * @param friendlyName the human-readable device name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MediaServerDevice(String friendlyName) {
         this.friendlyName = Objects.requireNonNull(friendlyName, "friendlyName must not be null");
@@ -60,7 +60,7 @@ public class MediaServerDevice {
     /**
      * Starts the media server: registers with SSDP and begins serving content.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() {
         running = true;
@@ -71,7 +71,7 @@ public class MediaServerDevice {
     /**
      * Stops the media server and sends SSDP bye-bye notifications.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         running = false;
@@ -82,7 +82,7 @@ public class MediaServerDevice {
      * Returns whether the server is running.
      *
      * @return true if running
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isRunning() {
         return running;
@@ -92,7 +92,7 @@ public class MediaServerDevice {
      * Adds a content item to the server library.
      *
      * @param item the content item to add
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addContent(ContentItem item) {
         contentDirectory.addContent(item);
@@ -103,7 +103,7 @@ public class MediaServerDevice {
      *
      * @param id the ID of the item to remove
      * @return true if removed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean removeContent(String id) {
         return contentDirectory.removeContent(id);
@@ -113,7 +113,7 @@ public class MediaServerDevice {
      * Sets the entire content library.
      *
      * @param rootContainer the root container of the library
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setLibrary(ContentContainer rootContainer) {
         contentDirectory.setLibrary(rootContainer);
@@ -123,7 +123,7 @@ public class MediaServerDevice {
      * Adds a container to the library.
      *
      * @param container the container to add
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addContainer(ContentContainer container) {
         contentDirectory.addContainer(container);
@@ -133,7 +133,7 @@ public class MediaServerDevice {
      * Returns the content directory service.
      *
      * @return the content directory
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentDirectory getContentDirectory() {
         return contentDirectory;
@@ -143,7 +143,7 @@ public class MediaServerDevice {
      * Returns the connection manager service.
      *
      * @return the connection manager
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ConnectionManagerService getConnectionManager() {
         return connectionManager;
@@ -153,7 +153,7 @@ public class MediaServerDevice {
      * Returns the UPnP Unique Device Name.
      *
      * @return the UDN
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getUdn() {
         return udn;
@@ -163,7 +163,7 @@ public class MediaServerDevice {
      * Returns the friendly name.
      *
      * @return the friendly name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getFriendlyName() {
         return friendlyName;
@@ -173,7 +173,7 @@ public class MediaServerDevice {
      * Returns the DLNA profile for this device.
      *
      * @return the DLNA profile
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DlnaProfile getProfile() {
         return profile;
@@ -184,7 +184,7 @@ public class MediaServerDevice {
      *
      * @param port the HTTP port
      * @return this device for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MediaServerDevice setHttpPort(int port) {
         this.httpPort = port;
@@ -195,7 +195,7 @@ public class MediaServerDevice {
      * Returns the HTTP port.
      *
      * @return the port number
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getHttpPort() {
         return httpPort;
@@ -206,7 +206,7 @@ public class MediaServerDevice {
      *
      * @param hostAddress the host address
      * @return this device for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MediaServerDevice setHostAddress(String hostAddress) {
         this.hostAddress = hostAddress;
@@ -217,7 +217,7 @@ public class MediaServerDevice {
      * Returns the base URL for this device.
      *
      * @return the base URL string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getBaseUrl() {
         return "http://" + hostAddress + ":" + httpPort;
@@ -227,7 +227,7 @@ public class MediaServerDevice {
      * Returns the device description URL.
      *
      * @return the description URL
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getDescriptionUrl() {
         return getBaseUrl() + "/description.xml";
@@ -237,7 +237,7 @@ public class MediaServerDevice {
      * Generates the UPnP device description XML.
      *
      * @return the device description XML string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String generateDeviceDescription() {
         return """
@@ -285,7 +285,7 @@ public class MediaServerDevice {
      * @param actionName the action to invoke
      * @param args       the action arguments
      * @return the result arguments
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Map<String, String> handleAction(String serviceId, String actionName,
                                             Map<String, String> args) {

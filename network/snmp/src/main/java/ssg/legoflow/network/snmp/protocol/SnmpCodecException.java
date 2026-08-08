@@ -3,7 +3,7 @@ package ssg.legoflow.network.snmp.protocol;
 /**
  * Exception thrown when SNMP BER encoding or decoding fails.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SnmpCodecException extends RuntimeException {
 

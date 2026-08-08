@@ -30,7 +30,7 @@ import ssg.legoflow.media.sip.protocol.SipResponse;
  *   COMPLETED -> TERMINATED (Timer J fires)
  * </pre>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ServerTransaction extends SipTransaction {
 
@@ -44,7 +44,7 @@ public final class ServerTransaction extends SipTransaction {
      * @param branchId        the branch ID
      * @param method          the request method
      * @param originalRequest the original request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ServerTransaction(String branchId, SipMethod method, SipRequest originalRequest) {
         super(branchId, method, originalRequest);
@@ -56,7 +56,7 @@ public final class ServerTransaction extends SipTransaction {
      * <p>Transitions to PROCEEDING (INVITE, with auto 100 Trying)
      * or TRYING (non-INVITE).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() {
         if (isInvite()) {
@@ -72,7 +72,7 @@ public final class ServerTransaction extends SipTransaction {
      * Sends a response through this server transaction.
      *
      * @param response the response to send
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void sendResponse(SipResponse response) {
         int code = response.statusCode();
@@ -133,7 +133,7 @@ public final class ServerTransaction extends SipTransaction {
     /**
      * Processes an ACK received for an INVITE server transaction.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void processAck() {
         if (isInvite() && state() == TransactionState.COMPLETED) {
@@ -147,7 +147,7 @@ public final class ServerTransaction extends SipTransaction {
      * {@link #sendResponse(SipResponse)}.
      *
      * @param response ignored
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void processResponse(SipResponse response) {
@@ -159,7 +159,7 @@ public final class ServerTransaction extends SipTransaction {
      * Returns the last response sent through this transaction.
      *
      * @return the last response, or null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipResponse lastResponse() {
         return lastResponse;

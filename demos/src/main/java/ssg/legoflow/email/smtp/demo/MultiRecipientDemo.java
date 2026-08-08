@@ -16,7 +16,7 @@ import java.util.List;
  * <p>Demonstrates multiple RCPT TO commands in a single transaction
  * and verifying delivery to all recipients.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MultiRecipientDemo {
 

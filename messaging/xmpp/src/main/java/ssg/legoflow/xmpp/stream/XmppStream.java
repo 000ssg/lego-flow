@@ -21,7 +21,7 @@ import java.util.function.Consumer;
  * <p>Manages the lifecycle of an XMPP XML stream including opening/closing the stream,
  * feature negotiation, stanza sending/receiving, and error handling.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class XmppStream implements AutoCloseable {
 

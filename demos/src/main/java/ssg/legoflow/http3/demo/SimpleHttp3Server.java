@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * Simplest HTTP/3 server demo: a single endpoint returning plain text over QUIC.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SimpleHttp3Server {
 
@@ -24,7 +24,7 @@ public class SimpleHttp3Server {
     /**
      * Creates a new simple HTTP/3 server with a {@code /hello} endpoint.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SimpleHttp3Server() {
         this.server = new Http3Server(Http3Config.defaults());
@@ -36,7 +36,7 @@ public class SimpleHttp3Server {
      * Returns the underlying HTTP/3 server.
      *
      * @return the server
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Server server() {
         return server;
@@ -47,7 +47,7 @@ public class SimpleHttp3Server {
      *
      * @param quicConnection the incoming QUIC connection
      * @return the HTTP/3 connection
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Connection acceptConnection(QuicConnection quicConnection) {
         return server.acceptConnection(quicConnection);
@@ -60,7 +60,7 @@ public class SimpleHttp3Server {
      * @param stream     the request stream
      * @param headers    the request headers
      * @param body       the request body
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void handleRequest(Http3Connection connection, QuicStream stream,
                               List<Map.Entry<String, String>> headers, ByteBuffer body) {

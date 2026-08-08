@@ -11,7 +11,7 @@ import ssg.legoflow.upnp.mediarenderer.PlaybackListener;
  * (play, pause, stop, seek, volume changes) to demonstrate the
  * AVTransport and RenderingControl services.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SimpleMediaRendererDemo {
 
@@ -21,7 +21,7 @@ public class SimpleMediaRendererDemo {
     /**
      * Creates and initializes the demo media renderer.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SimpleMediaRendererDemo() {
         this("Lego Flow Demo Renderer");
@@ -31,7 +31,7 @@ public class SimpleMediaRendererDemo {
      * Creates a demo media renderer with a custom name.
      *
      * @param name the friendly name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SimpleMediaRendererDemo(String name) {
         renderer = new MediaRendererDevice(name);
@@ -45,7 +45,7 @@ public class SimpleMediaRendererDemo {
      * Returns the media renderer device.
      *
      * @return the renderer device
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MediaRendererDevice getRenderer() {
         return renderer;
@@ -55,7 +55,7 @@ public class SimpleMediaRendererDemo {
      * Returns the logging listener for verifying events in tests.
      *
      * @return the logging listener
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public LoggingPlaybackListener getLoggingListener() {
         return loggingListener;
@@ -64,7 +64,7 @@ public class SimpleMediaRendererDemo {
     /**
      * Starts the demo media renderer.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() {
         renderer.start();
@@ -73,7 +73,7 @@ public class SimpleMediaRendererDemo {
     /**
      * Stops the demo media renderer.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         renderer.stop();
@@ -82,7 +82,7 @@ public class SimpleMediaRendererDemo {
     /**
      * Playback listener that logs events and records them for testing.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static class LoggingPlaybackListener implements PlaybackListener {
 
@@ -94,7 +94,7 @@ public class SimpleMediaRendererDemo {
          * Creates a new logging listener.
          *
          * @param deviceName the device name for log messages
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public LoggingPlaybackListener(String deviceName) {
             this.deviceName = deviceName;
@@ -125,7 +125,7 @@ public class SimpleMediaRendererDemo {
          * Returns all recorded events.
          *
          * @return the list of events
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public java.util.List<PlaybackEvent> getEvents() {
             return java.util.Collections.unmodifiableList(events);
@@ -134,7 +134,7 @@ public class SimpleMediaRendererDemo {
         /**
          * Clears recorded events.
          *
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public void clear() {
             events.clear();
@@ -145,7 +145,7 @@ public class SimpleMediaRendererDemo {
      * Main entry point for running the demo standalone.
      *
      * @param args command-line arguments (unused)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void main(String[] args) {
         var demo = new SimpleMediaRendererDemo();

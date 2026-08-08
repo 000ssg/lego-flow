@@ -21,7 +21,7 @@ import static ssg.legoflow.upnp.demo.mccweb.MccDeviceHandler.jsonResponse;
  * <p>Provides endpoints for play, pause, stop, seek, next, previous,
  * and retrieving transport and position information from media renderers.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MccPlaybackHandler {
 
@@ -31,7 +31,7 @@ public class MccPlaybackHandler {
      * Creates a new playback handler.
      *
      * @param controlPoint the UPnP control point
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MccPlaybackHandler(ControlPoint controlPoint) {
         this.controlPoint = Objects.requireNonNull(controlPoint, "controlPoint must not be null");
@@ -46,7 +46,7 @@ public class MccPlaybackHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with transport state JSON
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse play(HttpContext ctx, HttpRequest request) {
         String udn = extractRendererUdn(request.getUri(), "/play");
@@ -97,7 +97,7 @@ public class MccPlaybackHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with transport state JSON
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse pause(HttpContext ctx, HttpRequest request) {
         String udn = extractRendererUdn(request.getUri(), "/pause");
@@ -122,7 +122,7 @@ public class MccPlaybackHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with transport state JSON
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse stop(HttpContext ctx, HttpRequest request) {
         String udn = extractRendererUdn(request.getUri(), "/stop");
@@ -149,7 +149,7 @@ public class MccPlaybackHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with transport state JSON
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse seek(HttpContext ctx, HttpRequest request) {
         String udn = extractRendererUdn(request.getUri(), "/seek");
@@ -176,7 +176,7 @@ public class MccPlaybackHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with transport state JSON
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse next(HttpContext ctx, HttpRequest request) {
         String udn = extractRendererUdn(request.getUri(), "/next");
@@ -201,7 +201,7 @@ public class MccPlaybackHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with transport state JSON
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse previous(HttpContext ctx, HttpRequest request) {
         String udn = extractRendererUdn(request.getUri(), "/previous");
@@ -226,7 +226,7 @@ public class MccPlaybackHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with transport and position JSON
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse getTransportInfo(HttpContext ctx, HttpRequest request) {
         String udn = extractRendererUdn(request.getUri(), "/transport");
@@ -250,7 +250,7 @@ public class MccPlaybackHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with position JSON
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse getPositionInfo(HttpContext ctx, HttpRequest request) {
         String udn = extractRendererUdn(request.getUri(), "/position");
@@ -301,7 +301,7 @@ public class MccPlaybackHandler {
      *
      * @param mimeType the MIME type, or null
      * @return the appropriate content item type
-     * @since 1.0.0
+     * @since 0.1.0
      */
     private static ContentItemType guessItemType(String mimeType) {
         if (mimeType == null) return ContentItemType.GENERIC_ITEM;
@@ -316,7 +316,7 @@ public class MccPlaybackHandler {
      *
      * @param uri the media URI
      * @return a display title
-     * @since 1.0.0
+     * @since 0.1.0
      */
     private static String extractTitle(String uri) {
         if (uri == null || uri.isEmpty()) return "Unknown";

@@ -8,21 +8,21 @@ import java.util.Objects;
  * @param name                 the argument name
  * @param direction            the argument direction: "in" or "out"
  * @param relatedStateVariable the name of the related state variable
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ArgumentDescription(String name, String direction, String relatedStateVariable) {
 
     /**
      * Direction constant for input arguments.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final String DIRECTION_IN = "in";
 
     /**
      * Direction constant for output arguments.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final String DIRECTION_OUT = "out";
 
@@ -45,7 +45,7 @@ public record ArgumentDescription(String name, String direction, String relatedS
      * Returns whether this is an input argument.
      *
      * @return {@code true} if direction is "in"
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isInput() {
         return DIRECTION_IN.equals(direction);
@@ -55,7 +55,7 @@ public record ArgumentDescription(String name, String direction, String relatedS
      * Returns whether this is an output argument.
      *
      * @return {@code true} if direction is "out"
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isOutput() {
         return DIRECTION_OUT.equals(direction);
@@ -65,7 +65,7 @@ public record ArgumentDescription(String name, String direction, String relatedS
      * Serializes this argument to SCPD XML fragment.
      *
      * @return the XML representation
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toXml() {
         return "<argument>" +

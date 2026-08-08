@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  *   <li>Base64 encoding/decoding — round-trip token serialization</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoGssapiAll {
 
@@ -59,7 +59,7 @@ public final class DemoGssapiAll {
      * @param spnegoNegTokenResp true if NegTokenResp creation works
      * @param spnegoDetection   true if SPNEGO token detection works correctly
      * @param base64RoundTrip   true if Base64 encode/decode round-trip succeeds
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record Results(
             boolean oidConstants,
@@ -75,7 +75,7 @@ public final class DemoGssapiAll {
      *
      * @return results from each feature section
      * @throws Exception if any operation fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Results runAll() throws Exception {
         boolean oids = demoOidConstants();
@@ -95,7 +95,7 @@ public final class DemoGssapiAll {
      * and KRB5 principal name type.
      *
      * @return true if all OIDs are valid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoOidConstants() {
         LOG.info("=== 1. OID Constants ===");
@@ -122,7 +122,7 @@ public final class DemoGssapiAll {
      * KDC, service principal, keytab path, and useSubjectCredsOnly settings.
      *
      * @return true if config is built correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoConfigBuilder() {
         LOG.info("=== 2. GssConfig Builder ===");
@@ -154,7 +154,7 @@ public final class DemoGssapiAll {
      *
      * @return true if the extracted token matches the original
      * @throws Exception if token operations fail
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoSpnegoNegTokenInit() throws Exception {
         LOG.info("=== 3. SPNEGO NegTokenInit ===");
@@ -184,7 +184,7 @@ public final class DemoGssapiAll {
      * accept-completed and accept-incomplete statuses.
      *
      * @return true if both token variants are created successfully
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoSpnegoNegTokenResp() {
         LOG.info("=== 4. SPNEGO NegTokenResp ===");
@@ -219,7 +219,7 @@ public final class DemoGssapiAll {
      * from raw mechanism tokens using the isSpnegoToken check.
      *
      * @return true if detection works correctly for all cases
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoSpnegoDetection() {
         LOG.info("=== 5. SPNEGO Token Detection ===");
@@ -256,7 +256,7 @@ public final class DemoGssapiAll {
      * in HTTP Authorization: Negotiate headers.
      *
      * @return true if round-trip preserves the token
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoBase64RoundTrip() {
         LOG.info("=== 6. Base64 Round-Trip ===");

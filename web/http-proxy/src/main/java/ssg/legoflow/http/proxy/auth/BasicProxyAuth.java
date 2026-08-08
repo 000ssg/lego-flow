@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Proxy-Authorization request header and the Proxy-Authenticate
  * response header per RFC 7235 section 4.3-4.4.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class BasicProxyAuth implements ProxyAuthenticator {
 
@@ -30,7 +30,7 @@ public class BasicProxyAuth implements ProxyAuthenticator {
      * Creates a new Basic proxy authenticator with the given realm.
      *
      * @param realm the authentication realm
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public BasicProxyAuth(String realm) {
         this.realm = realm;
@@ -41,7 +41,7 @@ public class BasicProxyAuth implements ProxyAuthenticator {
      *
      * @param username the username
      * @param password the password
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addUser(String username, String password) {
         credentials.put(username, password);
@@ -51,7 +51,7 @@ public class BasicProxyAuth implements ProxyAuthenticator {
      * Removes a user.
      *
      * @param username the username to remove
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void removeUser(String username) {
         credentials.remove(username);
@@ -106,7 +106,7 @@ public class BasicProxyAuth implements ProxyAuthenticator {
      * Returns the realm.
      *
      * @return the authentication realm
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getRealm() {
         return realm;
@@ -116,7 +116,7 @@ public class BasicProxyAuth implements ProxyAuthenticator {
      * Returns the number of registered users.
      *
      * @return the user count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getUserCount() {
         return credentials.size();
@@ -129,7 +129,7 @@ public class BasicProxyAuth implements ProxyAuthenticator {
      * @param username the username
      * @param password the password
      * @return the header value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String encodeCredentials(String username, String password) {
         String combined = username + ":" + password;

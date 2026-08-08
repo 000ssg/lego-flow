@@ -12,7 +12,7 @@ import java.util.Objects;
  * @param replyTo the reply-to subject for request/reply, or null
  * @param headers the message headers, or null
  * @param payload the message payload
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record NatsMessage(
         String subject,

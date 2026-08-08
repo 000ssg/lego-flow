@@ -14,7 +14,7 @@ import java.util.Objects;
  * @param service     the service identifier
  * @param regexp      the regular expression for rewriting
  * @param replacement the replacement domain name
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record NaptrRecord(
         int order,
@@ -47,7 +47,7 @@ public record NaptrRecord(
      * @param regexp      the regexp
      * @param replacement the replacement domain
      * @return the NAPTR record
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static NaptrRecord of(int order, int preference, String flags,
                                   String service, String regexp, String replacement) {

@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>Listens for client connections and spawns a {@link ClientSession}
  * for each one using virtual threads.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class PgServer implements AutoCloseable {
 

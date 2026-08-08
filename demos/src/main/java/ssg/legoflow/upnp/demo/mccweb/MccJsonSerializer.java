@@ -23,7 +23,7 @@ import java.util.List;
  * and parse JSON request bodies. Uses {@link StringBuilder}-based JSON
  * construction with no external dependencies.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MccJsonSerializer {
 
@@ -36,7 +36,7 @@ public final class MccJsonSerializer {
      *
      * @param device the device proxy to serialize
      * @return the JSON string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String deviceToJson(DeviceProxy device) {
         var sb = new StringBuilder();
@@ -61,7 +61,7 @@ public final class MccJsonSerializer {
      *
      * @param devices the list of device proxies
      * @return the JSON array string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String devicesToJson(List<? extends DeviceProxy> devices) {
         var sb = new StringBuilder();
@@ -80,7 +80,7 @@ public final class MccJsonSerializer {
      *
      * @param device the device proxy to serialize
      * @return the JSON string with extended device details
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String deviceDetailsToJson(DeviceProxy device) {
         var sb = new StringBuilder();
@@ -193,7 +193,7 @@ public final class MccJsonSerializer {
      *
      * @param item the content item to serialize
      * @return the JSON string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String contentItemToJson(ContentItem item) {
         var sb = new StringBuilder();
@@ -234,7 +234,7 @@ public final class MccJsonSerializer {
      *
      * @param items the list of content items
      * @return the JSON array string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String contentItemsToJson(List<ContentItem> items) {
         var sb = new StringBuilder();
@@ -252,7 +252,7 @@ public final class MccJsonSerializer {
      *
      * @param container the content container to serialize
      * @return the JSON string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String contentContainerToJson(ContentContainer container) {
         var sb = new StringBuilder();
@@ -276,7 +276,7 @@ public final class MccJsonSerializer {
      * @param transportInfo the transport info
      * @param positionInfo  the position info
      * @return the JSON string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String transportInfoToJson(TransportInfo transportInfo, PositionInfo positionInfo) {
         var sb = new StringBuilder();
@@ -307,7 +307,7 @@ public final class MccJsonSerializer {
      *
      * @param positionInfo the position info
      * @return the JSON string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String positionInfoToJson(PositionInfo positionInfo) {
         var sb = new StringBuilder();
@@ -333,7 +333,7 @@ public final class MccJsonSerializer {
      * @param volume the current volume level (0-100)
      * @param muted  whether audio is muted
      * @return the JSON string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String volumeToJson(int volume, boolean muted) {
         return "{\"volume\":" + volume + ",\"muted\":" + muted + "}";
@@ -344,7 +344,7 @@ public final class MccJsonSerializer {
      *
      * @param json the JSON string
      * @return the parsed play request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static PlayRequest parsePlayRequest(String json) {
         if (json == null || json.isBlank()) {
@@ -360,7 +360,7 @@ public final class MccJsonSerializer {
      *
      * @param json the JSON string
      * @return the seek duration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Duration parseSeekRequest(String json) {
         String position = extractStringValue(json, "position");
@@ -375,7 +375,7 @@ public final class MccJsonSerializer {
      *
      * @param json the JSON string
      * @return the volume level (0-100)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static int parseVolumeRequest(String json) {
         return extractIntValue(json, "volume", 50);
@@ -386,7 +386,7 @@ public final class MccJsonSerializer {
      *
      * @param json the JSON string
      * @return the mute state
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static boolean parseMuteRequest(String json) {
         return extractBooleanValue(json, "muted", false);
@@ -397,7 +397,7 @@ public final class MccJsonSerializer {
      *
      * @param failedDevices the list of failed device records
      * @return the JSON array string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String failedDevicesToJson(List<ControlPoint.FailedDevice> failedDevices) {
         var sb = new StringBuilder();
@@ -426,7 +426,7 @@ public final class MccJsonSerializer {
      *
      * @param message the error message
      * @return the JSON error string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String errorToJson(String message) {
         var sb = new StringBuilder();
@@ -441,7 +441,7 @@ public final class MccJsonSerializer {
      *
      * @param message the success message
      * @return the JSON string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String messageToJson(String message) {
         var sb = new StringBuilder();
@@ -456,7 +456,7 @@ public final class MccJsonSerializer {
      *
      * @param uri      the media URI to play, or null for resume
      * @param metadata the DIDL-Lite metadata, or null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record PlayRequest(String uri, String metadata) {
     }
@@ -472,7 +472,7 @@ public final class MccJsonSerializer {
      *
      * @param positionInfo the position info containing track metadata and URI
      * @return the track title, or empty string if unavailable
-     * @since 1.0.0
+     * @since 0.1.0
      */
     private static String extractTrackTitle(PositionInfo positionInfo) {
         // First: try parsing the DIDL-Lite metadata for the real title

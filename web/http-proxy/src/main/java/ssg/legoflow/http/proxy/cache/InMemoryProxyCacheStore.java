@@ -12,7 +12,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * <p>Implements LRU eviction based on entry count and total size.
  * Thread-safe via read-write locking.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class InMemoryProxyCacheStore implements ProxyCacheStore {
 
@@ -30,7 +30,7 @@ public class InMemoryProxyCacheStore implements ProxyCacheStore {
      *
      * @param maxEntries the maximum number of entries
      * @param maxSizeBytes the maximum total size in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public InMemoryProxyCacheStore(int maxEntries, long maxSizeBytes) {
         this.maxEntries = maxEntries;
@@ -51,7 +51,7 @@ public class InMemoryProxyCacheStore implements ProxyCacheStore {
     /**
      * Creates a cache store with default limits (10000 entries, 64 MB).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public InMemoryProxyCacheStore() {
         this(10_000, 64 * 1024 * 1024);
@@ -161,7 +161,7 @@ public class InMemoryProxyCacheStore implements ProxyCacheStore {
      * Returns the cache hit count.
      *
      * @return the hit count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long getHitCount() {
         return hitCount.get();
@@ -171,7 +171,7 @@ public class InMemoryProxyCacheStore implements ProxyCacheStore {
      * Returns the cache miss count.
      *
      * @return the miss count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long getMissCount() {
         return missCount.get();
@@ -181,7 +181,7 @@ public class InMemoryProxyCacheStore implements ProxyCacheStore {
      * Returns the cache eviction count.
      *
      * @return the eviction count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long getEvictionCount() {
         return evictionCount.get();
@@ -191,7 +191,7 @@ public class InMemoryProxyCacheStore implements ProxyCacheStore {
      * Returns the cache hit ratio (0.0 to 1.0).
      *
      * @return the hit ratio
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public double getHitRatio() {
         long total = hitCount.get() + missCount.get();
@@ -202,7 +202,7 @@ public class InMemoryProxyCacheStore implements ProxyCacheStore {
      * Returns the maximum number of entries.
      *
      * @return the max entries
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getMaxEntries() {
         return maxEntries;
@@ -212,7 +212,7 @@ public class InMemoryProxyCacheStore implements ProxyCacheStore {
      * Returns the maximum size in bytes.
      *
      * @return the max size in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long getMaxSizeBytes() {
         return maxSizeBytes;

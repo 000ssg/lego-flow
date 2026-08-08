@@ -5,7 +5,7 @@ import ssg.legoflow.xmpp.iot.sensor.SensorData;
 /**
  * Functional interface for receiving IoT sensor data updates.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 @FunctionalInterface
 public interface SensorDataListener {

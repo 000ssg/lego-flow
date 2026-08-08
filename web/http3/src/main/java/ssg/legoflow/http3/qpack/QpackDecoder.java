@@ -23,7 +23,7 @@ import java.util.Map;
  * <p>Generates decoder instructions (Section Acknowledgment, Stream Cancellation,
  * Insert Count Increment) that should be sent on the QPACK decoder stream.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class QpackDecoder {
 
@@ -33,7 +33,7 @@ public class QpackDecoder {
     /**
      * Creates a new decoder with default dynamic table capacity (4096 bytes).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QpackDecoder() {
         this(4096);
@@ -43,7 +43,7 @@ public class QpackDecoder {
      * Creates a new decoder with the given dynamic table capacity.
      *
      * @param maxTableCapacity the maximum dynamic table capacity in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QpackDecoder(int maxTableCapacity) {
         this.dynamicTable = new QpackDynamicTable(maxTableCapacity);
@@ -58,7 +58,7 @@ public class QpackDecoder {
      *
      * @param data the encoded header block
      * @return a list of name-value pairs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<Map.Entry<String, String>> decode(ByteBuffer data) {
         var headers = new ArrayList<Map.Entry<String, String>>();
@@ -150,7 +150,7 @@ public class QpackDecoder {
      * and Duplicate.</p>
      *
      * @param data the encoder instruction data
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void processEncoderInstructions(ByteBuffer data) {
         var buf = data.duplicate();
@@ -195,7 +195,7 @@ public class QpackDecoder {
      *
      * @param streamId the QUIC stream ID
      * @return a {@link ByteBuffer} containing the decoder instruction
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ByteBuffer encodeSectionAcknowledgment(long streamId) {
         var out = new ByteArrayOutputStream();
@@ -214,7 +214,7 @@ public class QpackDecoder {
      *
      * @param streamId the QUIC stream ID
      * @return a {@link ByteBuffer} containing the decoder instruction
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ByteBuffer encodeStreamCancellation(long streamId) {
         var out = new ByteArrayOutputStream();
@@ -232,7 +232,7 @@ public class QpackDecoder {
      *
      * @param increment the number of new entries received
      * @return a {@link ByteBuffer} containing the decoder instruction
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ByteBuffer encodeInsertCountIncrement(int increment) {
         var out = new ByteArrayOutputStream();
@@ -247,7 +247,7 @@ public class QpackDecoder {
      * QPACK decoder stream.
      *
      * @return a {@link ByteBuffer} containing the decoder instructions, or empty if none
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ByteBuffer drainDecoderInstructions() {
         if (decoderInstructions.size() == 0) {
@@ -264,7 +264,7 @@ public class QpackDecoder {
      * @param buf        the source buffer
      * @param prefixBits the number of prefix bits
      * @return the decoded integer value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static int decodeInteger(ByteBuffer buf, int prefixBits) {
         int maxPrefix = (1 << prefixBits) - 1;
@@ -290,7 +290,7 @@ public class QpackDecoder {
      *
      * @param buf the source buffer
      * @return the decoded string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String decodeString(ByteBuffer buf) {
         int b = buf.get(buf.position()) & 0xFF;
@@ -310,7 +310,7 @@ public class QpackDecoder {
      * Returns the dynamic table used by this decoder.
      *
      * @return the dynamic table
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QpackDynamicTable getDynamicTable() {
         return dynamicTable;
@@ -320,7 +320,7 @@ public class QpackDecoder {
      * Sets the maximum dynamic table capacity.
      *
      * @param maxCapacity the new maximum capacity
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setMaxTableCapacity(int maxCapacity) {
         dynamicTable.setCapacity(maxCapacity);

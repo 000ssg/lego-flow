@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>Each relation is identified by the token and tracks the observer's endpoint,
  * the resource path, and a monotonically increasing sequence number for notifications.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ObserveRelation {
 
@@ -30,7 +30,7 @@ public final class ObserveRelation {
      * @param resourcePath the observed resource path
      * @param observer     the observer's socket address
      * @throws NullPointerException if any argument is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ObserveRelation(byte[] token, String resourcePath, SocketAddress observer) {
         Objects.requireNonNull(token, "token must not be null");
@@ -45,7 +45,7 @@ public final class ObserveRelation {
      * Returns a copy of the observation token.
      *
      * @return the token bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public byte[] token() {
         return token.clone();
@@ -55,7 +55,7 @@ public final class ObserveRelation {
      * Returns the observed resource path.
      *
      * @return the resource path
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String resourcePath() {
         return resourcePath;
@@ -65,7 +65,7 @@ public final class ObserveRelation {
      * Returns the observer's socket address.
      *
      * @return the observer endpoint
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SocketAddress observer() {
         return observer;
@@ -75,7 +75,7 @@ public final class ObserveRelation {
      * Returns the current observe sequence number.
      *
      * @return the sequence number
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int sequenceNumber() {
         return sequenceNumber.get();
@@ -85,7 +85,7 @@ public final class ObserveRelation {
      * Increments and returns the next sequence number.
      *
      * @return the new sequence number
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int nextSequenceNumber() {
         return sequenceNumber.incrementAndGet();
@@ -95,7 +95,7 @@ public final class ObserveRelation {
      * Returns whether this observe relation is active.
      *
      * @return {@code true} if the relation is active
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isActive() {
         return active.get();
@@ -104,7 +104,7 @@ public final class ObserveRelation {
     /**
      * Cancels this observe relation, marking it as inactive.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void cancel() {
         active.set(false);

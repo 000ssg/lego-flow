@@ -29,7 +29,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * service requests, and manages rekeying. This is the foundation layer that
  * all higher SSH services (authentication, connection) build upon.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SshTransport implements AutoCloseable {
 

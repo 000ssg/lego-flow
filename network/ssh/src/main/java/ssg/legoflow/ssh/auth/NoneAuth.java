@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 /**
  * None authentication method for discovering allowed methods per RFC 4252.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class NoneAuth implements AuthMethod {
 

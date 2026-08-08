@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.*;
  * Compliance tests for ConnectionManager full lifecycle:
  * PrepareForConnection, ConnectionComplete, GetCurrentConnectionIDs, GetCurrentConnectionInfo.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class ConnectionManagerComplianceTest {
 

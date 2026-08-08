@@ -7,7 +7,7 @@ import java.util.Objects;
  *
  * <p>Format: {@code RTSP/2.0 status reason\r\n headers\r\n\r\n [body]}
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RtspResponse {
 

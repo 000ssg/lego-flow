@@ -3,7 +3,7 @@ package ssg.legoflow.network.dns.protocol;
 /**
  * DNS response codes (RCODE) as defined in RFC 1035 and extensions.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum ResponseCode {
 
@@ -40,7 +40,7 @@ public enum ResponseCode {
      * Returns the 4-bit numeric value for this response code.
      *
      * @return the response code value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int value() {
         return value;
@@ -52,7 +52,7 @@ public enum ResponseCode {
      * @param value the RCODE value
      * @return the matching response code
      * @throws IllegalArgumentException if the value is unknown
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static ResponseCode fromValue(int value) {
         for (ResponseCode rc : values()) {

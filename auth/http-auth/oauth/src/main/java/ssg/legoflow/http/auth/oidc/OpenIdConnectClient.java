@@ -17,7 +17,7 @@ import java.util.Optional;
  * OpenID Connect client layered on top of OAuth 2.0. Provides discovery,
  * ID Token validation, and UserInfo endpoint support.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class OpenIdConnectClient {
 
@@ -32,7 +32,7 @@ public class OpenIdConnectClient {
      *
      * @param oauthClient   the underlying OAuth 2.0 client
      * @param tokenProvider the JWT provider for ID token validation (may be null if not validating)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public OpenIdConnectClient(OAuth2Client oauthClient, JwtTokenProvider tokenProvider) {
         this.oauthClient = oauthClient;
@@ -43,7 +43,7 @@ public class OpenIdConnectClient {
      * Creates an OpenID Connect client without token validation.
      *
      * @param oauthClient the underlying OAuth 2.0 client
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public OpenIdConnectClient(OAuth2Client oauthClient) {
         this(oauthClient, null);
@@ -53,7 +53,7 @@ public class OpenIdConnectClient {
      * Sets the discovery configuration (typically fetched from .well-known/openid-configuration).
      *
      * @param discovery the OIDC discovery metadata
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setDiscoveryConfig(OidcDiscovery discovery) {
         this.discoveryConfig = discovery;
@@ -64,7 +64,7 @@ public class OpenIdConnectClient {
      *
      * @param issuer the issuer URL
      * @return the discovery URL
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getDiscoveryUrl(String issuer) {
         return OidcDiscovery.discoveryUrl(issuer);
@@ -74,7 +74,7 @@ public class OpenIdConnectClient {
      * Starts the OpenID Connect authorization code flow with nonce for ID token binding.
      *
      * @return the authorization request with openid scope and nonce
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AuthorizationRequest startAuthenticationFlow() {
         String nonce = generateNonce();
@@ -88,7 +88,7 @@ public class OpenIdConnectClient {
      *
      * @param rawIdToken the raw JWT ID token
      * @return the validated claims, or empty if invalid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<Map<String, Object>> validateIdToken(String rawIdToken) {
         if (tokenProvider == null) {
@@ -103,7 +103,7 @@ public class OpenIdConnectClient {
      *
      * @param rawIdToken the raw JWT
      * @return the parsed ID token, or empty
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<IdToken> parseIdToken(String rawIdToken) {
         return IdToken.parse(rawIdToken);
@@ -114,7 +114,7 @@ public class OpenIdConnectClient {
      *
      * @param responseBody the JSON response body
      * @return the UserInfo
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public UserInfo parseUserInfo(String responseBody) {
         return UserInfo.fromJson(responseBody);
@@ -124,7 +124,7 @@ public class OpenIdConnectClient {
      * Returns the discovery configuration.
      *
      * @return the discovery config, or null if not set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public OidcDiscovery getDiscoveryConfig() {
         return discoveryConfig;
@@ -134,7 +134,7 @@ public class OpenIdConnectClient {
      * Returns the underlying OAuth 2.0 client.
      *
      * @return the OAuth client
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public OAuth2Client getOAuthClient() {
         return oauthClient;

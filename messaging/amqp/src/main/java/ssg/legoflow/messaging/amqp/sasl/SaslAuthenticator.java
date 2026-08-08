@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * an in-memory credential store. Can be configured with a custom authentication
  * function for integration with external identity providers.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SaslAuthenticator {
 

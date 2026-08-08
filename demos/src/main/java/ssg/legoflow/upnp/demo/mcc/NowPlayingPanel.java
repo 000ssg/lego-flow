@@ -31,7 +31,7 @@ import java.util.function.Consumer;
  * <p>All visual styling uses {@link DarkTheme} constants and factory methods
  * to maintain consistency with the web variant's dark theme.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class NowPlayingPanel extends JPanel implements PlaybackListener {
 
@@ -62,7 +62,7 @@ public class NowPlayingPanel extends JPanel implements PlaybackListener {
      * placeholder renders a gradient matching the web CSS
      * {@code linear-gradient(135deg, #1e3a5f 0%, #312e81 50%, #581c87 100%)}.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public NowPlayingPanel() {
         setLayout(new BorderLayout(8, 8));
@@ -188,7 +188,7 @@ public class NowPlayingPanel extends JPanel implements PlaybackListener {
      * Sets the media renderer to monitor for playback events.
      *
      * @param renderer the renderer proxy, or {@code null} to clear
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setRenderer(MediaRendererProxy renderer) {
         this.currentRenderer = renderer;
@@ -205,7 +205,7 @@ public class NowPlayingPanel extends JPanel implements PlaybackListener {
      * Updates the display with information from a content item about to play.
      *
      * @param item the content item
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setNowPlaying(ContentItem item) {
         this.currentItem = item;
@@ -232,7 +232,7 @@ public class NowPlayingPanel extends JPanel implements PlaybackListener {
      * Returns the current transport state shown on the panel.
      *
      * @return the transport state
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public TransportState getCurrentState() {
         return currentState;
@@ -241,7 +241,7 @@ public class NowPlayingPanel extends JPanel implements PlaybackListener {
     /**
      * {@inheritDoc}
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void onPlaybackEvent(PlaybackEvent event) {
@@ -387,7 +387,7 @@ public class NowPlayingPanel extends JPanel implements PlaybackListener {
      * Returns the currently playing content item.
      *
      * @return the current content item, or {@code null} if nothing is playing
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentItem getCurrentItem() {
         return currentItem;
@@ -400,7 +400,7 @@ public class NowPlayingPanel extends JPanel implements PlaybackListener {
      * for initiating playback on the appropriate renderer.
      *
      * @param action the consumer receiving the dropped content item
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setDropAction(Consumer<ContentItem> action) {
         this.dropAction = action;
@@ -409,7 +409,7 @@ public class NowPlayingPanel extends JPanel implements PlaybackListener {
     /**
      * Stops the position polling timer. Call on shutdown.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stopPolling() {
         positionTimer.stop();
@@ -423,7 +423,7 @@ public class NowPlayingPanel extends JPanel implements PlaybackListener {
      *
      * @param d the duration to format, or {@code null}
      * @return the formatted time string, e.g. {@code "3:45"} or {@code "1:02:30"}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static String formatTime(Duration d) {
         if (d == null) return "0:00";
@@ -452,7 +452,7 @@ public class NowPlayingPanel extends JPanel implements PlaybackListener {
      * Provides visual feedback via a {@link DarkTheme#ACCENT}-colored border with an
      * inset glow effect during drag-over.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     private class NowPlayingTransferHandler extends TransferHandler {
 
@@ -470,7 +470,7 @@ public class NowPlayingPanel extends JPanel implements PlaybackListener {
          *
          * @param c the source component
          * @return {@code COPY}
-         * @since 1.0.0
+         * @since 0.1.0
          */
         @Override
         public int getSourceActions(JComponent c) {
@@ -482,7 +482,7 @@ public class NowPlayingPanel extends JPanel implements PlaybackListener {
          *
          * @param c the source component
          * @return a transferable with the current item, or {@code null} if nothing is playing
-         * @since 1.0.0
+         * @since 0.1.0
          */
         @Override
         protected Transferable createTransferable(JComponent c) {
@@ -500,7 +500,7 @@ public class NowPlayingPanel extends JPanel implements PlaybackListener {
          *
          * @param support the transfer support info
          * @return {@code true} if the drop can be accepted
-         * @since 1.0.0
+         * @since 0.1.0
          */
         @Override
         public boolean canImport(TransferSupport support) {
@@ -519,7 +519,7 @@ public class NowPlayingPanel extends JPanel implements PlaybackListener {
          *
          * @param support the transfer support info
          * @return {@code true} if the drop was successfully handled
-         * @since 1.0.0
+         * @since 0.1.0
          */
         @Override
         public boolean importData(TransferSupport support) {
@@ -546,7 +546,7 @@ public class NowPlayingPanel extends JPanel implements PlaybackListener {
          * @param source the source component
          * @param data   the transferable data
          * @param action the action performed
-         * @since 1.0.0
+         * @since 0.1.0
          */
         @Override
         protected void exportDone(JComponent source, Transferable data, int action) {

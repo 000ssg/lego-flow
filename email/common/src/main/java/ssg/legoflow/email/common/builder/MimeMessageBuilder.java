@@ -19,7 +19,7 @@ import java.util.List;
  * <p>Supports building simple text messages, messages with attachments,
  * and complex multipart structures.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MimeMessageBuilder {
 

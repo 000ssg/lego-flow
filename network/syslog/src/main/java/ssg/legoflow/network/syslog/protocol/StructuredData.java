@@ -19,7 +19,7 @@ import java.util.Map;
  *
  * @param id     the SD-ID (must not contain '=', ']', '"', or space)
  * @param params the SD-PARAMs as an ordered map of name to value
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record StructuredData(String id, Map<String, String> params) {
 

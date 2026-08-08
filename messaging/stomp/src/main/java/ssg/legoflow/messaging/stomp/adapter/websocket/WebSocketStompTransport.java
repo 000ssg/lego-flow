@@ -17,7 +17,7 @@ import java.util.function.Consumer;
  * may be omitted as WebSocket provides its own message boundaries). This adapter
  * serializes outgoing STOMP frames to text and deserializes incoming text frames.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class WebSocketStompTransport implements StompTransport {
 

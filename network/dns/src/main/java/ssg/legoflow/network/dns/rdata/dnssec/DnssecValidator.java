@@ -24,7 +24,7 @@ import java.util.*;
  * <p>Validates RRSIG signatures against DNSKEY records per RFC 4035.
  * Only algorithms 8 (RSA/SHA-256) and 13 (ECDSA-P256-SHA256) are supported.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DnssecValidator {
 
@@ -37,7 +37,7 @@ public final class DnssecValidator {
      * @param dnskey  the DNSKEY to verify against
      * @param records the RRset being signed (must all have same name/type/class)
      * @return {@code true} if the signature is valid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static boolean verify(RrsigRecord rrsig, DnskeyRecord dnskey,
                                   List<DnsRecord> records) {
@@ -81,7 +81,7 @@ public final class DnssecValidator {
      * @param dnskey the DNSKEY record
      * @param owner  the owner name of the DNSKEY
      * @return {@code true} if the DS digest matches
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static boolean verifyDs(DsRecord ds, DnskeyRecord dnskey, DnsName owner) {
         try {

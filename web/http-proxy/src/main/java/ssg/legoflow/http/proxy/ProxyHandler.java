@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  * infrastructure. It can be registered on any path to delegate requests
  * to either a forward proxy or a reverse proxy.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ProxyHandler implements HttpRequestHandler {
 
@@ -32,7 +32,7 @@ public class ProxyHandler implements HttpRequestHandler {
      *
      * @param forwardProxy the forward proxy
      * @return a new handler
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static ProxyHandler forForwardProxy(ForwardProxy forwardProxy) {
         return new ProxyHandler(forwardProxy, null);
@@ -43,7 +43,7 @@ public class ProxyHandler implements HttpRequestHandler {
      *
      * @param reverseProxy the reverse proxy
      * @return a new handler
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static ProxyHandler forReverseProxy(ReverseProxy reverseProxy) {
         return new ProxyHandler(null, reverseProxy);
@@ -61,7 +61,7 @@ public class ProxyHandler implements HttpRequestHandler {
      * @param ctx the HTTP context
      * @param request the incoming request
      * @return the proxy response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public HttpResponse handle(HttpContext ctx, HttpRequest request) {
@@ -83,7 +83,7 @@ public class ProxyHandler implements HttpRequestHandler {
      * Returns the forward proxy, or null if this is a reverse proxy handler.
      *
      * @return the forward proxy
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ForwardProxy getForwardProxy() {
         return forwardProxy;
@@ -93,7 +93,7 @@ public class ProxyHandler implements HttpRequestHandler {
      * Returns the reverse proxy, or null if this is a forward proxy handler.
      *
      * @return the reverse proxy
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ReverseProxy getReverseProxy() {
         return reverseProxy;

@@ -16,7 +16,7 @@ import ssg.legoflow.http.staticcontent.StaticContentHandler;
  * <p>Routes all requests matching the configured URL prefix to the static content handler,
  * and returns a simple "OK" response for the root path.
  *
- * @since 1.0
+ * @since 0.1
  */
 public class StaticFileServer {
 

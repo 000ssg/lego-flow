@@ -7,7 +7,7 @@ import java.util.List;
  *
  * @param errorCode the top-level error code
  * @param groups    the group listings
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ListGroupsResponse(short errorCode, List<GroupListing> groups) {
 

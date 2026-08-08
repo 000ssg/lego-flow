@@ -8,7 +8,7 @@ import java.util.List;
  * <p>Implementations select a backend server from a list of available
  * backends for each incoming request.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface LoadBalancer {
 
@@ -18,7 +18,7 @@ public interface LoadBalancer {
      *
      * @param backends the list of backend servers
      * @return the selected backend, or null if no healthy backend is available
-     * @since 1.0.0
+     * @since 0.1.0
      */
     BackendServer select(List<BackendServer> backends);
 
@@ -26,7 +26,7 @@ public interface LoadBalancer {
      * Returns the name of this load balancing strategy.
      *
      * @return the strategy name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     String getName();
 }

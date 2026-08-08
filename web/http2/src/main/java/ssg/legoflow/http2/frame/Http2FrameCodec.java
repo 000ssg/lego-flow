@@ -4,6 +4,7 @@ import ssg.legoflow.blocks.AbstractDataFilter;
 import ssg.legoflow.blocks.Context;
 
 import java.nio.ByteBuffer;
+import ssg.legoflow.service.util.BufferPool;
 import java.util.ArrayList;
 
 public class Http2FrameCodec extends AbstractDataFilter<ByteBuffer> {
@@ -52,7 +53,7 @@ public class Http2FrameCodec extends AbstractDataFilter<ByteBuffer> {
                 break;
             }
 
-            var frameBytes = ByteBuffer.allocate(totalFrameSize);
+            var frameBytes = BufferPool.getBuffer(totalFrameSize);
             for (int i = 0; i < totalFrameSize; i++) {
                 frameBytes.put(combined.get());
             }
@@ -61,7 +62,7 @@ public class Http2FrameCodec extends AbstractDataFilter<ByteBuffer> {
         }
 
         if (combined.hasRemaining()) {
-            accumulator = ByteBuffer.allocate(combined.remaining());
+            accumulator = BufferPool.getBuffer(combined.remaining());
             accumulator.put(combined);
             accumulator.flip();
         } else {
@@ -76,7 +77,7 @@ public class Http2FrameCodec extends AbstractDataFilter<ByteBuffer> {
         for (var buf : data) {
             totalSize += buf.remaining();
         }
-        var combined = ByteBuffer.allocate(totalSize);
+        var combined = BufferPool.getBuffer(totalSize);
         if (accumulator != null) {
             combined.put(accumulator.duplicate());
             accumulator = null;

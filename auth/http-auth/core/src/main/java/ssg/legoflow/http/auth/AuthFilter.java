@@ -12,7 +12,7 @@ import java.util.Objects;
  * Examines the Authorization header, finds the matching scheme in the registry,
  * and delegates authentication.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class AuthFilter {
 
@@ -28,7 +28,7 @@ public class AuthFilter {
      * @param registry      the scheme registry
      * @param context       the authentication context
      * @param defaultScheme the default scheme name to use when no Authorization header is present
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AuthFilter(AuthSchemeRegistry registry, AuthContext context, String defaultScheme) {
         this.registry = Objects.requireNonNull(registry, "registry must not be null");
@@ -41,7 +41,7 @@ public class AuthFilter {
      *
      * @param registry the scheme registry
      * @param context  the authentication context
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AuthFilter(AuthSchemeRegistry registry, AuthContext context) {
         this(registry, context, null);
@@ -52,7 +52,7 @@ public class AuthFilter {
      *
      * @param request the HTTP request
      * @return the authentication result
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AuthResult filter(HttpRequest request) {
         String authHeader = request.getHeaders().get(HttpHeaders.AUTHORIZATION);
@@ -91,7 +91,7 @@ public class AuthFilter {
      * from all registered schemes.
      *
      * @return the 401 response with challenge headers
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse buildChallengeResponse() {
         HttpResponse response = HttpResponse.of(HttpStatus.UNAUTHORIZED, "Unauthorized");
@@ -106,7 +106,7 @@ public class AuthFilter {
      *
      * @param schemeName the scheme name
      * @return the 401 response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse buildChallengeResponse(String schemeName) {
         HttpResponse response = HttpResponse.of(HttpStatus.UNAUTHORIZED, "Unauthorized");
@@ -126,7 +126,7 @@ public class AuthFilter {
      * Returns the underlying authentication context.
      *
      * @return the auth context
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AuthContext getContext() {
         return context;
@@ -136,7 +136,7 @@ public class AuthFilter {
      * Returns the scheme registry.
      *
      * @return the registry
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AuthSchemeRegistry getRegistry() {
         return registry;

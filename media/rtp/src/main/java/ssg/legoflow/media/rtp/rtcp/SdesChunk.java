@@ -9,7 +9,7 @@ import java.util.Optional;
  *
  * @param ssrc  the SSRC/CSRC identifier
  * @param items the list of SDES items
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SdesChunk(long ssrc, List<SdesItem> items) {
 

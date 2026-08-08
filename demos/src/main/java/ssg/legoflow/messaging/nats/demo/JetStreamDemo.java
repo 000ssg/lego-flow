@@ -16,7 +16,7 @@ import java.util.List;
  * <p>Creates a stream, publishes messages, creates a consumer,
  * and pulls messages with acknowledgement.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class JetStreamDemo {
 

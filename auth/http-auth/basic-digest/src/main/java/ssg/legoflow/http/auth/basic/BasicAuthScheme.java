@@ -16,7 +16,7 @@ import java.util.Optional;
  * Decodes Base64-encoded username:password from the Authorization header
  * and validates against the user store.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class BasicAuthScheme implements AuthenticationScheme {
 
@@ -29,7 +29,7 @@ public class BasicAuthScheme implements AuthenticationScheme {
      * Creates a Basic authentication scheme with a user store.
      *
      * @param userStore the user store for credential validation
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public BasicAuthScheme(BasicUserStore userStore) {
         this.userStore = userStore;
@@ -99,7 +99,7 @@ public class BasicAuthScheme implements AuthenticationScheme {
      * @param username the username
      * @param password the password
      * @return the Authorization header value (e.g., "Basic dXNlcjpwYXNz")
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String encodeCredentials(String username, String password) {
         String credentials = username + ":" + password;

@@ -8,7 +8,7 @@ package ssg.legoflow.messaging.nats.protocol;
  * human-readable and uses simple text commands for control operations,
  * with binary payloads following size-prefixed headers.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class NatsProtocol {
 

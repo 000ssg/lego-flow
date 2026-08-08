@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Username/password authenticator that validates against registered credentials.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class UserPassAuthenticator implements Authenticator {
 

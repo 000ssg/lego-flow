@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>Demonstrates GraphQL subscriptions with a simple chat room
  * that supports sending messages and subscribing to new messages.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ChatSchema {
 

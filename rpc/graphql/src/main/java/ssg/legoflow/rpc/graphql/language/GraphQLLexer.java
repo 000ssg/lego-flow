@@ -10,7 +10,7 @@ import java.util.List;
  * handling all punctuators, names, numeric literals, string literals
  * (including block strings), and comments.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class GraphQLLexer {
 

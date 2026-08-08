@@ -12,7 +12,7 @@ import java.nio.ByteBuffer;
  * <p>Processes all supported function codes against a {@link DeviceMemory}
  * instance and generates appropriate responses or exception responses.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RequestHandler {
 

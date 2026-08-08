@@ -6,13 +6,14 @@
     <parent>
         <groupId>ssg</groupId>
         <artifactId>lego-flow</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>0.1.0-SNAPSHOT</version>
     </parent>
     <artifactId>lego-flow-benchmarks</artifactId>
     <name>Lego Flow Benchmarks — Cross-module performance benchmarks (JMH)</name>
 
     <description>
-        JMH-based microbenchmarks for protocol throughput, latency, and serialization.
+        JMH-based microbenchmarks for protocol throughput, latency, serialization, and service pipeline overhead.
+        Compares standalone protocol implementations against DP/DF service-based wrappers.
         Excluded from install/deploy lifecycle — this module is for benchmarking only.
     </description>
 
@@ -21,7 +22,34 @@
     </properties>
 
     <dependencies>
-        <!-- Lego Flow modules under test -->
+        <!-- Core modules -->
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-blocks</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-sip</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-rtp</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>messaging-stomp</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-service</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Protocol modules with service wrappers -->
         <dependency>
             <groupId>ssg</groupId>
             <artifactId>lego-flow-http</artifactId>
@@ -29,7 +57,7 @@
         </dependency>
         <dependency>
             <groupId>ssg</groupId>
-            <artifactId>lego-flow-mqtt</artifactId>
+            <artifactId>messaging-mqtt</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -44,7 +72,22 @@
         </dependency>
         <dependency>
             <groupId>ssg</groupId>
-            <artifactId>lego-flow-redis</artifactId>
+            <artifactId>database-redis</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>network-dns</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-smtp</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-coap</artifactId>
             <version>${project.version}</version>
         </dependency>
 

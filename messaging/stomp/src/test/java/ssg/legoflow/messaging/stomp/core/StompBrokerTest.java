@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.*;
  * Tests for {@link StompBroker} — connection, subscription, delivery, ack modes,
  * transactions, receipts, error handling.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class StompBrokerTest {
 

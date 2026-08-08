@@ -15,7 +15,7 @@ import java.nio.ByteOrder;
  *   <li>254 + 8-byte little-endian: values up to 2^64-1</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class LengthEncodedInt {
 

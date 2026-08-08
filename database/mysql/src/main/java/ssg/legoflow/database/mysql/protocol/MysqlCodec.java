@@ -1,6 +1,7 @@
 package ssg.legoflow.database.mysql.protocol;
 
 import java.nio.ByteBuffer;
+import ssg.legoflow.service.util.BufferPool;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -12,7 +13,7 @@ import java.util.Map;
  * COM_STMT_EXECUTE, COM_PING, COM_QUIT, COM_INIT_DB, and the
  * HandshakeResponse41 client authentication response.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MysqlCodec {
 
@@ -149,8 +150,7 @@ public final class MysqlCodec {
      * @return the basic payload header
      */
     public static byte[] encodeExecuteHeader(int statementId, int flags, int iterationCount) {
-        var buf = ByteBuffer.allocate(1 + 4 + 1 + 4);
-        buf.put((byte) COM_STMT_EXECUTE);
+var buf = BufferPool.getBuffer(1 + 4 + 1 + 4);        buf.put((byte) COM_STMT_EXECUTE);
         buf.put((byte) (statementId & 0xFF));
         buf.put((byte) ((statementId >> 8) & 0xFF));
         buf.put((byte) ((statementId >> 16) & 0xFF));
@@ -185,8 +185,7 @@ public final class MysqlCodec {
      * @return the packet payload
      */
     public static byte[] encodeStmtClose(int statementId) {
-        var buf = ByteBuffer.allocate(5);
-        buf.put((byte) COM_STMT_CLOSE);
+var buf = BufferPool.getBuffer(5);        buf.put((byte) COM_STMT_CLOSE);
         buf.put((byte) (statementId & 0xFF));
         buf.put((byte) ((statementId >> 8) & 0xFF));
         buf.put((byte) ((statementId >> 16) & 0xFF));
@@ -213,8 +212,7 @@ public final class MysqlCodec {
      * @return the packet payload
      */
     public static byte[] encodeStmtReset(int statementId) {
-        var buf = ByteBuffer.allocate(5);
-        buf.put((byte) COM_STMT_RESET);
+var buf = BufferPool.getBuffer(5);        buf.put((byte) COM_STMT_RESET);
         buf.put((byte) (statementId & 0xFF));
         buf.put((byte) ((statementId >> 8) & 0xFF));
         buf.put((byte) ((statementId >> 16) & 0xFF));
@@ -233,8 +231,7 @@ public final class MysqlCodec {
      * @return the packet payload
      */
     public static byte[] encodeSendLongData(int statementId, int paramId, byte[] data) {
-        var buf = ByteBuffer.allocate(1 + 4 + 2 + data.length);
-        buf.put((byte) COM_STMT_SEND_LONG_DATA);
+var buf = BufferPool.getBuffer(1 + 4 + 2 + data.length);        buf.put((byte) COM_STMT_SEND_LONG_DATA);
         buf.put((byte) (statementId & 0xFF));
         buf.put((byte) ((statementId >> 8) & 0xFF));
         buf.put((byte) ((statementId >> 16) & 0xFF));
@@ -303,8 +300,7 @@ public final class MysqlCodec {
      * @return the packet payload
      */
     public static byte[] encodeFieldList(String table, String fieldWildcard) {
-        var buf = ByteBuffer.allocate(256);
-        buf.put((byte) COM_FIELD_LIST);
+var buf = BufferPool.getBuffer(256);        buf.put((byte) COM_FIELD_LIST);
         LengthEncodedString.writeNullTerminated(buf, table);
         if (fieldWildcard != null) {
             buf.put(fieldWildcard.getBytes(StandardCharsets.UTF_8));
@@ -369,8 +365,7 @@ public final class MysqlCodec {
             String username, byte[] authResponse, String database,
             String authPluginName, Map<String, String> attributes) {
 
-        var buf = ByteBuffer.allocate(4096);
-
+var buf = BufferPool.getBuffer(4096);
         // capability flags (4 bytes LE)
         buf.put((byte) (capabilities & 0xFF));
         buf.put((byte) ((capabilities >> 8) & 0xFF));
@@ -535,8 +530,7 @@ public final class MysqlCodec {
      * @return the encoded payload
      */
     public static byte[] encodePrepareOk(PrepareOk ok) {
-        var buf = ByteBuffer.allocate(12);
-        buf.put((byte) 0x00); // status
+var buf = BufferPool.getBuffer(12);        buf.put((byte) 0x00); // status
 
         buf.put((byte) (ok.statementId & 0xFF));
         buf.put((byte) ((ok.statementId >> 8) & 0xFF));

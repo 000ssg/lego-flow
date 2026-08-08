@@ -12,7 +12,7 @@ import java.util.Map;
  * Simple RPC demo: creates a Caller and Callee, wires them through a Dealer via InMemoryTransport,
  * registers an "add" procedure, and calls it.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SimpleRpcDemo {
 

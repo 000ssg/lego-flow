@@ -8,7 +8,7 @@ import ssg.legoflow.http.core.HttpRequest;
  * <p>Implementations can enforce rules based on target host, port, HTTP method,
  * client identity, or any other request attribute.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface ProxyAccessControl {
 
@@ -19,7 +19,7 @@ public interface ProxyAccessControl {
      * @param targetHost the target host being requested
      * @param targetPort the target port being requested
      * @return true if the request is allowed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     boolean isAllowed(HttpRequest request, String targetHost, int targetPort);
 
@@ -28,7 +28,7 @@ public interface ProxyAccessControl {
      * check was allowed.
      *
      * @return the denial reason, or null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     String getDenialReason();
 
@@ -36,7 +36,7 @@ public interface ProxyAccessControl {
      * An access control that allows all requests.
      *
      * @return a permissive access control
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static ProxyAccessControl allowAll() {
         return new ProxyAccessControl() {
@@ -56,7 +56,7 @@ public interface ProxyAccessControl {
      * An access control that denies all requests.
      *
      * @return a restrictive access control
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static ProxyAccessControl denyAll() {
         return new ProxyAccessControl() {
@@ -77,7 +77,7 @@ public interface ProxyAccessControl {
      *
      * @param allowedHosts the set of allowed hostnames
      * @return the access control
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static ProxyAccessControl allowHosts(java.util.Set<String> allowedHosts) {
         return new HostBasedAccessControl(allowedHosts, java.util.Set.of(), true);
@@ -88,7 +88,7 @@ public interface ProxyAccessControl {
      *
      * @param deniedHosts the set of denied hostnames
      * @return the access control
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static ProxyAccessControl denyHosts(java.util.Set<String> deniedHosts) {
         return new HostBasedAccessControl(java.util.Set.of(), deniedHosts, false);

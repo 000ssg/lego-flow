@@ -14,6 +14,6 @@
  *   <li>{@code builder} — Fluent builders for MIME messages, parts, and multipart containers</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 package ssg.legoflow.email.common;

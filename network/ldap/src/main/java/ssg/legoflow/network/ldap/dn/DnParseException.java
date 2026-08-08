@@ -3,7 +3,7 @@ package ssg.legoflow.network.ldap.dn;
 /**
  * Exception thrown when parsing a Distinguished Name string fails.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class DnParseException extends RuntimeException {
 

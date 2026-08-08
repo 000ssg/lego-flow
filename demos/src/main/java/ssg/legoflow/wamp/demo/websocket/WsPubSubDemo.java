@@ -17,7 +17,7 @@ import java.util.Map;
  * Demonstrates multiple subscribers receiving events from a publisher,
  * all communicating through {@link WebSocketWampTransport} with a Broker.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class WsPubSubDemo {
 

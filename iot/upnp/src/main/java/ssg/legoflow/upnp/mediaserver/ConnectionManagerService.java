@@ -15,7 +15,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Media servers advertise their source protocols; media renderers advertise their
  * sink protocols.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ConnectionManagerService {
 
@@ -36,7 +36,7 @@ public class ConnectionManagerService {
      * @param peerConnectionId the peer connection ID
      * @param direction the direction ("Input" or "Output")
      * @param status the connection status ("OK", "ContentFormatMismatch", "InsufficientBandwidth", "Unknown")
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record ConnectionInfo(
             int connectionId,
@@ -57,7 +57,7 @@ public class ConnectionManagerService {
     /**
      * Creates a new ConnectionManager service.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ConnectionManagerService() {
     }
@@ -66,7 +66,7 @@ public class ConnectionManagerService {
      * Returns the source and sink protocol info strings.
      *
      * @return a two-element array: [sourceProtocols, sinkProtocols] as comma-separated strings
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String[] getProtocolInfo() {
         return new String[]{
@@ -79,7 +79,7 @@ public class ConnectionManagerService {
      * Returns the source protocol info list.
      *
      * @return unmodifiable list of source protocols
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<DlnaProtocolInfo> getSourceProtocols() {
         return Collections.unmodifiableList(sourceProtocols);
@@ -89,7 +89,7 @@ public class ConnectionManagerService {
      * Returns the sink protocol info list.
      *
      * @return unmodifiable list of sink protocols
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<DlnaProtocolInfo> getSinkProtocols() {
         return Collections.unmodifiableList(sinkProtocols);
@@ -99,7 +99,7 @@ public class ConnectionManagerService {
      * Adds a source protocol (media server output capability).
      *
      * @param protocolInfo the protocol info to add
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addSourceProtocol(DlnaProtocolInfo protocolInfo) {
         Objects.requireNonNull(protocolInfo, "protocolInfo must not be null");
@@ -110,7 +110,7 @@ public class ConnectionManagerService {
      * Adds a sink protocol (media renderer input capability).
      *
      * @param protocolInfo the protocol info to add
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addSinkProtocol(DlnaProtocolInfo protocolInfo) {
         Objects.requireNonNull(protocolInfo, "protocolInfo must not be null");
@@ -121,7 +121,7 @@ public class ConnectionManagerService {
      * Returns the current connection IDs as a comma-separated string.
      *
      * @return the connection IDs string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getCurrentConnectionIDs() {
         if (connections.isEmpty()) {
@@ -141,7 +141,7 @@ public class ConnectionManagerService {
      * @param connectionId the connection ID
      * @return the connection info
      * @throws IllegalArgumentException if the connection ID is not found
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ConnectionInfo getCurrentConnectionInfo(int connectionId) {
         for (ConnectionInfo info : connections) {
@@ -169,7 +169,7 @@ public class ConnectionManagerService {
      * @param direction             the connection direction ("Input" or "Output")
      * @return the new connection info
      * @throws IllegalArgumentException if the protocol is incompatible
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ConnectionInfo prepareForConnection(DlnaProtocolInfo remoteProtocolInfo,
                                                String peerConnectionManager,
@@ -194,7 +194,7 @@ public class ConnectionManagerService {
      * Completes and removes a connection by its ID.
      *
      * @param connectionId the connection ID to complete
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void connectionComplete(int connectionId) {
         connections.removeIf(c -> c.connectionId() == connectionId);
@@ -204,7 +204,7 @@ public class ConnectionManagerService {
      * Generates the SCPD XML for this service.
      *
      * @return the SCPD XML string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String generateScpd() {
         return """

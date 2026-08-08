@@ -50,7 +50,7 @@ import java.util.concurrent.TimeUnit;
  *   <li>Content-type headers -- text and binary message content</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoStompAll {
 

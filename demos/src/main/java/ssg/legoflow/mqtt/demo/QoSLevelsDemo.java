@@ -17,7 +17,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * Demo demonstrating MQTT QoS 0, 1, and 2 delivery guarantees.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class QoSLevelsDemo {
 

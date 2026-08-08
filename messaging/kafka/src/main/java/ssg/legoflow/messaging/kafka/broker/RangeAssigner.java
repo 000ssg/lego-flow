@@ -11,7 +11,7 @@ import java.util.*;
  * assigning them round-robin across sorted members. This is the default Kafka
  * assignment strategy.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RangeAssigner implements PartitionAssigner {
 

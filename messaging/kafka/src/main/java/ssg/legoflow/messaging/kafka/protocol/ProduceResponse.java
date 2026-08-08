@@ -7,7 +7,7 @@ import java.util.List;
  *
  * @param responses    the per-topic responses
  * @param throttleTimeMs the throttle time in milliseconds
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ProduceResponse(List<TopicResponse> responses, int throttleTimeMs) {
 

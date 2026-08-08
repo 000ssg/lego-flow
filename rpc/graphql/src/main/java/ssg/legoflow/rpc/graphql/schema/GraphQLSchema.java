@@ -8,7 +8,7 @@ import java.util.*;
  * <p>A schema defines the query, optional mutation, and optional subscription
  * root types, along with all type definitions and directives.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class GraphQLSchema {
 
@@ -204,7 +204,7 @@ public final class GraphQLSchema {
     /**
      * Builder for GraphQLSchema.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class Builder {
         private ObjectType queryType;

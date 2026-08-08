@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
  * <p>Handles the initial handshake with the server, auth plugin negotiation,
  * and provides low-level packet send/receive.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MysqlConnection implements AutoCloseable {
 

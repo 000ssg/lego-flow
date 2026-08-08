@@ -16,7 +16,7 @@ import java.util.Map;
  * <p>Handles the full RFC 5424 message format including structured data
  * encoding and decoding with proper escaping of special characters.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SyslogCodec {
 

@@ -15,7 +15,7 @@ import java.util.Objects;
  * @param roomJid   the bare room JID
  * @param body      the message body
  * @param timestamp the time the message was sent
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record MucMessage(String id, JID from, JID roomJid, String body, Instant timestamp) {
 

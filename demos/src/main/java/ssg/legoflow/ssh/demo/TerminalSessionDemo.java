@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * Demo: Interactive terminal session with PTY allocation.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class TerminalSessionDemo {
 

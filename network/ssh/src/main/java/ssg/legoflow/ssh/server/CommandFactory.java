@@ -5,7 +5,7 @@ import java.io.OutputStream;
 /**
  * Factory for executing commands on behalf of SSH clients.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 @FunctionalInterface
 public interface CommandFactory {

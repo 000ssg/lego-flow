@@ -8,7 +8,7 @@ import java.util.Optional;
  *
  * <p>Encodes and decodes frames with the format: {@code $ <channel:1> <length:2> <data:length>}
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class InterleavedFrameCodec {
 

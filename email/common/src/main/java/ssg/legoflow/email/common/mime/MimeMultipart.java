@@ -13,7 +13,7 @@ import java.util.UUID;
  * list of parts (each a {@link MimePart} or nested {@link MimeMultipart}),
  * a boundary string, and optional preamble/epilogue text.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MimeMultipart {
 

@@ -14,7 +14,7 @@ import java.util.concurrent.CompletableFuture;
  * <p>Supports PLAIN mechanism implementation with base64 encoding and
  * challenge-response flow for more advanced mechanisms.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SaslAuthenticator {
 

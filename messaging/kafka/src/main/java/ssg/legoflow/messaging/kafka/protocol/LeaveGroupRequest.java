@@ -5,7 +5,7 @@ package ssg.legoflow.messaging.kafka.protocol;
  *
  * @param groupId  the consumer group ID
  * @param memberId the member ID
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record LeaveGroupRequest(String groupId, String memberId) {
 }

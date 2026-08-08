@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.*;
  * and remote synchronization drift detection without requiring actual
  * audio playback hardware.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class LocalPlaybackEngineTest {
 

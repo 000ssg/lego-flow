@@ -9,7 +9,7 @@ import java.util.*;
  * type validation behavior. The built-in directives are @skip, @include,
  * and @deprecated.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class Directive {
 
@@ -91,7 +91,7 @@ public final class Directive {
      *
      * @param name      the directive name (without @)
      * @param arguments the argument values
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record DirectiveUsage(String name, Map<String, Object> arguments) {
 

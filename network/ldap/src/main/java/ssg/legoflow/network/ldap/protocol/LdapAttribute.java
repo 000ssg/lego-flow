@@ -14,7 +14,7 @@ import java.util.List;
  *
  * @param type   the attribute description (e.g. "cn", "objectClass")
  * @param values the attribute values
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record LdapAttribute(String type, List<byte[]> values) {
 

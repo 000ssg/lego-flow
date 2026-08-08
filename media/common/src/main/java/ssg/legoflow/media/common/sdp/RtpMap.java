@@ -12,7 +12,7 @@ import java.util.OptionalInt;
  * @param codec       the encoding name (e.g., "PCMU", "H264")
  * @param clockRate   the clock rate in Hz
  * @param channels    the number of channels (empty for video or default single channel)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record RtpMap(int payloadType, String codec, int clockRate, OptionalInt channels) {
 

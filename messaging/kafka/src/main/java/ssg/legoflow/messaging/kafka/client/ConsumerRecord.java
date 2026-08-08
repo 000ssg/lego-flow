@@ -14,7 +14,7 @@ import java.util.List;
  * @param key       the record key (may be null)
  * @param value     the record value (may be null)
  * @param headers   the record headers
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ConsumerRecord(String topic, int partition, long offset,
                              byte[] key, byte[] value, List<Header> headers) {

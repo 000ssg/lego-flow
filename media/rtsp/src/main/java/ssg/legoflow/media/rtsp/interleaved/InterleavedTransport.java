@@ -19,7 +19,7 @@ import java.util.function.Consumer;
  * binary data on the RTSP TCP stream. Typically channel 0 is RTP and
  * channel 1 is RTCP for the first media stream.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class InterleavedTransport implements AutoCloseable {
 

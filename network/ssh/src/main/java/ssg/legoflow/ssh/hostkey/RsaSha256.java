@@ -9,7 +9,7 @@ import java.security.spec.RSAPublicKeySpec;
 /**
  * RSA host key algorithm with SHA-256 signature (rsa-sha2-256).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RsaSha256 implements HostKeyAlgorithm {
 

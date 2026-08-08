@@ -39,7 +39,7 @@ import static ssg.legoflow.upnp.demo.mccweb.MccDeviceHandler.jsonResponse;
  * is issued to obtain the {@code Content-Length}, which HTML5 media elements
  * need for seeking and duration display.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MccMediaProxyHandler {
 
@@ -52,7 +52,7 @@ public class MccMediaProxyHandler {
      * Creates a new media proxy handler.
      *
      * @param controlPoint the UPnP control point
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MccMediaProxyHandler(ControlPoint controlPoint) {
         this.controlPoint = Objects.requireNonNull(controlPoint, "controlPoint must not be null");
@@ -70,7 +70,7 @@ public class MccMediaProxyHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with proxied media content
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse streamByUrl(HttpContext ctx, HttpRequest request) {
         Map<String, String> params = request.getQueryParams();
@@ -101,7 +101,7 @@ public class MccMediaProxyHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with proxied media content
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse streamByItem(HttpContext ctx, HttpRequest request) {
         String path = request.getUri().contains("?")

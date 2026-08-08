@@ -25,7 +25,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * CoAP resource discovery using the {@code /.well-known/core} endpoint (RFC 6690)
  * and CoAP multicast (RFC 7252, Section 8).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class CoapDiscovery {
 
@@ -51,7 +51,7 @@ public final class CoapDiscovery {
      * @param port the target port
      * @return the discovered resources
      * @throws IOException if the request fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static List<LinkFormatEntry> discoverResources(String host, int port) throws IOException {
         return discoverWithQuery(host, port, null);
@@ -65,7 +65,7 @@ public final class CoapDiscovery {
      * @param resourceType the resource type to filter by (rt=)
      * @return the discovered resources matching the type
      * @throws IOException if the request fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static List<LinkFormatEntry> discoverByType(String host, int port, String resourceType) throws IOException {
         return discoverWithQuery(host, port, "rt=" + resourceType);
@@ -79,7 +79,7 @@ public final class CoapDiscovery {
      *
      * @return the discovered resources from all responding servers
      * @throws IOException if the multicast request fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static List<LinkFormatEntry> multicastDiscover() throws IOException {
         return multicastDiscover(DISCOVERY_TIMEOUT_MS);
@@ -91,7 +91,7 @@ public final class CoapDiscovery {
      * @param timeoutMs the timeout in milliseconds to wait for responses
      * @return the discovered resources from all responding servers
      * @throws IOException if the multicast request fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static List<LinkFormatEntry> multicastDiscover(int timeoutMs) throws IOException {
         var message = CoapMessage.builder()

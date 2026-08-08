@@ -8,7 +8,7 @@ import ssg.legoflow.xmpp.core.XmppExtension;
  * <p>Handles the {@code <register>}, {@code <claimed>}, {@code <disown>}, and
  * {@code <unregister>} elements within the {@code urn:xmpp:iot:discovery} namespace.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class DiscoveryExtension implements XmppExtension {
 

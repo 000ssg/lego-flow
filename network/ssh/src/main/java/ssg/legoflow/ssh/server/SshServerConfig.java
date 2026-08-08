@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * SSH server configuration.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SshServerConfig {
 
@@ -43,7 +43,7 @@ public final class SshServerConfig {
     /**
      * Builder for server configuration.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class Builder {
         private int port = 22;

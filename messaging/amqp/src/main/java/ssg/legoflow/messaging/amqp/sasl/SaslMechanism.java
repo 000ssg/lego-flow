@@ -3,7 +3,7 @@ package ssg.legoflow.messaging.amqp.sasl;
 /**
  * SASL authentication mechanism for AMQP 1.0 connections.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface SaslMechanism {
 

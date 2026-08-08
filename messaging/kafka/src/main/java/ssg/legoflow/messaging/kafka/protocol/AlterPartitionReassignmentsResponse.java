@@ -7,7 +7,7 @@ import java.util.List;
  *
  * @param errorCode the top-level error code
  * @param topics    per-topic results
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record AlterPartitionReassignmentsResponse(short errorCode, List<TopicResult> topics) {
 

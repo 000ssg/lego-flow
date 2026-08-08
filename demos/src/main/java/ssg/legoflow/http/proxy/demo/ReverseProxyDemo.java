@@ -11,7 +11,7 @@ import java.util.List;
  * <p>Demonstrates setting up a reverse proxy with path-based routing
  * to different backend servers.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ReverseProxyDemo {
 
@@ -20,7 +20,7 @@ public class ReverseProxyDemo {
     /**
      * Creates the demo with a pre-configured reverse proxy.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ReverseProxyDemo() {
         var config = new ReverseProxyConfig();
@@ -47,7 +47,7 @@ public class ReverseProxyDemo {
      * Runs the demo by sending various requests through the reverse proxy.
      *
      * @return the results summary
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String run() {
         var sb = new StringBuilder();
@@ -80,7 +80,7 @@ public class ReverseProxyDemo {
      * Returns the reverse proxy instance.
      *
      * @return the proxy
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ReverseProxy getProxy() {
         return proxy;

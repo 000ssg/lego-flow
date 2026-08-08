@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *   <li>Configurable cache storage</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class CachingProxy implements AutoCloseable {
 
@@ -52,7 +52,7 @@ public class CachingProxy implements AutoCloseable {
      * @param reverseProxy the underlying reverse proxy
      * @param cacheStore the cache storage
      * @param cacheConfig the cache configuration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CachingProxy(ReverseProxy reverseProxy, ProxyCacheStore cacheStore,
                         ProxyCacheConfig cacheConfig) {
@@ -65,7 +65,7 @@ public class CachingProxy implements AutoCloseable {
      * Creates a caching proxy with default in-memory cache.
      *
      * @param reverseProxy the underlying reverse proxy
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CachingProxy(ReverseProxy reverseProxy) {
         this(reverseProxy, new InMemoryProxyCacheStore(), new ProxyCacheConfig());
@@ -76,7 +76,7 @@ public class CachingProxy implements AutoCloseable {
      *
      * @param request the incoming request
      * @return the response (from cache or upstream)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse handleRequest(HttpRequest request) {
         String path = extractPath(request.getUri());
@@ -154,7 +154,7 @@ public class CachingProxy implements AutoCloseable {
      *
      * @param entry the cache entry
      * @return the response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     HttpResponse buildResponseFromCache(ProxyCacheStore.CacheEntry entry) {
         HttpHeaders headers = new HttpHeaders();
@@ -177,7 +177,7 @@ public class CachingProxy implements AutoCloseable {
      *
      * @param key the cache key
      * @param response the response to cache
-     * @since 1.0.0
+     * @since 0.1.0
      */
     void cacheResponse(String key, HttpResponse response) {
         String etag = response.getHeaders().get(HttpHeaders.ETAG);
@@ -219,7 +219,7 @@ public class CachingProxy implements AutoCloseable {
      *
      * @param response the response
      * @return true if cacheable
-     * @since 1.0.0
+     * @since 0.1.0
      */
     boolean isResponseCacheable(HttpResponse response) {
         int status = response.getStatus().code();
@@ -281,7 +281,7 @@ public class CachingProxy implements AutoCloseable {
      * Returns the underlying reverse proxy.
      *
      * @return the reverse proxy
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ReverseProxy getReverseProxy() {
         return reverseProxy;
@@ -291,7 +291,7 @@ public class CachingProxy implements AutoCloseable {
      * Returns the cache store.
      *
      * @return the cache store
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ProxyCacheStore getCacheStore() {
         return cacheStore;
@@ -301,7 +301,7 @@ public class CachingProxy implements AutoCloseable {
      * Returns the cache configuration.
      *
      * @return the cache config
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ProxyCacheConfig getCacheConfig() {
         return cacheConfig;
@@ -311,7 +311,7 @@ public class CachingProxy implements AutoCloseable {
      * Returns the cache hit count.
      *
      * @return the hit count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long getCacheHits() {
         return cacheHits.get();
@@ -321,7 +321,7 @@ public class CachingProxy implements AutoCloseable {
      * Returns the cache miss count.
      *
      * @return the miss count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long getCacheMisses() {
         return cacheMisses.get();
@@ -331,7 +331,7 @@ public class CachingProxy implements AutoCloseable {
      * Returns the conditional hit count (304 responses).
      *
      * @return the conditional hit count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long getConditionalHits() {
         return conditionalHits.get();

@@ -12,7 +12,7 @@ import java.util.function.Consumer;
  * untagged responses when changes occur (new messages, flag changes,
  * expunges).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class IdleNotifier {
 

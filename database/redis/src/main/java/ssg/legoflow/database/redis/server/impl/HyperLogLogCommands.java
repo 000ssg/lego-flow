@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
  * <p>HyperLogLog is a probabilistic data structure used for cardinality estimation
  * with a standard error of 0.81%. Uses 2^14 registers matching the Redis standard.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class HyperLogLogCommands {
 

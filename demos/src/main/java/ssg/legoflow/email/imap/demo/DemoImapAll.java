@@ -60,7 +60,7 @@ import java.util.Set;
  *   <li>Append — APPEND message to a mailbox (via server-side seeding)</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoImapAll {
 

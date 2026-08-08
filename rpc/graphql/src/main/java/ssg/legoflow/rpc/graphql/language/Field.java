@@ -15,7 +15,7 @@ import java.util.Map;
  * @param arguments    the arguments as name-value pairs
  * @param directives   the directives applied to this field
  * @param selectionSet the sub-selection set, or null for leaf fields
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Field(String alias, String name,
                     Map<String, Value> arguments,

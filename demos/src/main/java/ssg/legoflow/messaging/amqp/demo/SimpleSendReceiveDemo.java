@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
  * <p>Starts a container, connects a producer and a consumer, sends messages
  * through the container, and verifies they arrive at the consumer.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SimpleSendReceiveDemo {
 

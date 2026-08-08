@@ -9,7 +9,7 @@ import java.util.Set;
  * Each state defines which transitions are valid via
  * {@link #validTransitions()} and {@link #canTransitionTo(QuicStreamState)}.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum QuicStreamState {
 
@@ -51,7 +51,7 @@ public enum QuicStreamState {
      * Returns the set of states that this state can transition to.
      *
      * @return an unmodifiable set of valid target states
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Set<QuicStreamState> validTransitions() {
         return switch (this) {
@@ -70,7 +70,7 @@ public enum QuicStreamState {
      *
      * @param target the desired target state
      * @return {@code true} if the transition is permitted
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean canTransitionTo(QuicStreamState target) {
         if (this == target) return false;

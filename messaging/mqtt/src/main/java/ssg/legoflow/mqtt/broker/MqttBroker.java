@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * TLS encrypted connections, pluggable authentication, session expiry,
  * keep-alive timeout enforcement, and QoS downgrade.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MqttBroker implements AutoCloseable {
 

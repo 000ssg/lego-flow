@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * publisher exclusion, subscriber black/white listing, publisher identification, and
  * event retention.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class Broker {
 
@@ -273,7 +273,7 @@ public class Broker {
     /**
      * Internal record associating a subscription ID with a transport endpoint and session ID.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record SubscriptionEntry(long subscriptionId, WampTransport transport, long sessionId) {
         SubscriptionEntry(long subscriptionId, WampTransport transport) {

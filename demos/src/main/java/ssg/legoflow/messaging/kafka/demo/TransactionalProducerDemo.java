@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * Demo: transactional producer with commit/abort.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class TransactionalProducerDemo {
 

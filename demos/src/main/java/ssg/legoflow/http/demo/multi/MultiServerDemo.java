@@ -15,7 +15,7 @@ import java.util.List;
  * <p>Creates a minimal server, a standard server, and a full server, each on
  * a separate port and with different feature sets.
  *
- * @since 1.0
+ * @since 0.1
  */
 public class MultiServerDemo {
 

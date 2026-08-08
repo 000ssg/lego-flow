@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>By default, uses in-memory transport. To test against a WebSocket
  * server, set {@code DemoWampAll.USE_EXTERNAL = true} before running.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class DemoWampAllTest {
 

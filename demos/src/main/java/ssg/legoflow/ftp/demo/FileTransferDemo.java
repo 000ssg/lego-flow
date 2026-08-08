@@ -12,7 +12,7 @@ import java.util.Random;
 /**
  * Demonstrates large file transfer with progress tracking.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class FileTransferDemo {
 

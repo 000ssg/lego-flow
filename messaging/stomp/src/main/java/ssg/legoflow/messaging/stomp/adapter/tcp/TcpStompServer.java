@@ -15,7 +15,7 @@ import java.net.ServerSocket;
  * for each accepted connection, then hands it off to the {@link StompBroker}.
  * Uses virtual threads for connection handling.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class TcpStompServer implements AutoCloseable {
 

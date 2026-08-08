@@ -7,7 +7,7 @@ import java.util.Objects;
  *
  * @param alg the signing algorithm (e.g., "HS256", "RS256")
  * @param typ the token type (typically "JWT")
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record JwtHeader(String alg, String typ) {
 
@@ -16,7 +16,7 @@ public record JwtHeader(String alg, String typ) {
      *
      * @param alg the signing algorithm
      * @param typ the token type
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public JwtHeader {
         Objects.requireNonNull(alg, "alg must not be null");
@@ -28,7 +28,7 @@ public record JwtHeader(String alg, String typ) {
      *
      * @param alg the signing algorithm
      * @return the header
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static JwtHeader of(String alg) {
         return new JwtHeader(alg, "JWT");
@@ -38,7 +38,7 @@ public record JwtHeader(String alg, String typ) {
      * Serializes this header to a JSON string.
      *
      * @return the JSON representation
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toJson() {
         return "{\"alg\":\"" + alg + "\",\"typ\":\"" + typ + "\"}";
@@ -49,7 +49,7 @@ public record JwtHeader(String alg, String typ) {
      *
      * @param json the JSON string
      * @return the parsed header
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static JwtHeader fromJson(String json) {
         String alg = extractJsonString(json, "alg");

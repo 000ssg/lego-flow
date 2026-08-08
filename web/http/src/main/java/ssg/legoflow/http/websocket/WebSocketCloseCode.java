@@ -6,7 +6,7 @@ package ssg.legoflow.http.websocket;
  * <p>Defines standard close codes (1000-1015) and recognizes the
  * registered ranges for libraries (3000-3999) and private use (4000-4999).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum WebSocketCloseCode {
 

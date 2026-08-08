@@ -11,7 +11,7 @@ import java.util.*;
  * <p>Adds __schema, __type, and __typename fields to the query root type,
  * and provides data fetchers for all introspection types.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class IntrospectionResolver {
 

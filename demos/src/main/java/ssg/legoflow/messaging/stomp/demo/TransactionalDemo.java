@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
  * a committed transaction are delivered; messages within an aborted
  * transaction are discarded.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class TransactionalDemo {
 

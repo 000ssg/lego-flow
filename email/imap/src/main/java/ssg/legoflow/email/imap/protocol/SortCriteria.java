@@ -8,7 +8,7 @@ import java.util.Objects;
  * <p>Specifies the field to sort by and the direction (ascending or descending).
  * Multiple sort criteria can be combined for tie-breaking.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SortCriteria(SortKey key, boolean reverse) {
 

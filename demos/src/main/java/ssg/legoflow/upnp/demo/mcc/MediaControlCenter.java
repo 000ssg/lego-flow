@@ -23,7 +23,7 @@ import java.awt.event.WindowEvent;
  * <p>On startup, creates a {@link ControlPoint} and starts device discovery.
  * On shutdown, gracefully stops the control point and releases resources.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MediaControlCenter extends JFrame {
 
@@ -45,7 +45,7 @@ public class MediaControlCenter extends JFrame {
      * three-column main area, and footer.
      *
      * @param controlPoint the UPnP control point for device discovery and control
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MediaControlCenter(ControlPoint controlPoint) {
         super("Lego Flow — Media Control Center");
@@ -100,7 +100,7 @@ public class MediaControlCenter extends JFrame {
      * Returns the control point.
      *
      * @return the control point
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ControlPoint getControlPoint() {
         return controlPoint;
@@ -110,7 +110,7 @@ public class MediaControlCenter extends JFrame {
      * Returns the device list panel.
      *
      * @return the device list panel
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DeviceListPanel getDeviceListPanel() {
         return deviceListPanel;
@@ -120,7 +120,7 @@ public class MediaControlCenter extends JFrame {
      * Returns the content browser panel.
      *
      * @return the content browser panel
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentBrowserPanel getContentBrowserPanel() {
         return contentBrowserPanel;
@@ -130,7 +130,7 @@ public class MediaControlCenter extends JFrame {
      * Returns the device details panel.
      *
      * @return the device details panel
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DeviceDetailsPanel getDeviceDetailsPanel() {
         return deviceDetailsPanel;
@@ -140,7 +140,7 @@ public class MediaControlCenter extends JFrame {
      * Returns the now playing panel.
      *
      * @return the now playing panel
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public NowPlayingPanel getNowPlayingPanel() {
         return nowPlayingPanel;
@@ -150,7 +150,7 @@ public class MediaControlCenter extends JFrame {
      * Returns the playback control panel.
      *
      * @return the playback control panel
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public PlaybackControlPanel getPlaybackControlPanel() {
         return playbackControlPanel;
@@ -160,7 +160,7 @@ public class MediaControlCenter extends JFrame {
      * Returns the local playback engine.
      *
      * @return the local playback engine
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public LocalPlaybackEngine getLocalPlaybackEngine() {
         return localPlaybackEngine;
@@ -170,7 +170,7 @@ public class MediaControlCenter extends JFrame {
      * Returns the status bar.
      *
      * @return the status bar
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public StatusBar getStatusBar() {
         return statusBar;
@@ -179,7 +179,7 @@ public class MediaControlCenter extends JFrame {
     /**
      * Refreshes device discovery.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void refreshDevices() {
         SwingWorker<Void, Void> worker = new SwingWorker<>() {
@@ -202,7 +202,7 @@ public class MediaControlCenter extends JFrame {
      * Performs graceful shutdown: stops polling, stops the control point,
      * disposes the frame, cleans up system tray, and exits the JVM.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void shutdown() {
         nowPlayingPanel.stopPolling();
@@ -529,7 +529,7 @@ public class MediaControlCenter extends JFrame {
     /**
      * Opens a floating log window displaying captured UPnP protocol messages.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     private void showLogWindow() {
         var logFrame = new JFrame("UPnP Message Log");

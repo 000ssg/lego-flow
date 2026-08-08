@@ -8,7 +8,7 @@ import java.util.Set;
 /**
  * Represents an authenticated user principal with identity, roles, and arbitrary attributes.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class AuthPrincipal {
 
@@ -22,7 +22,7 @@ public class AuthPrincipal {
      * @param name       the principal name (username, email, etc.)
      * @param roles      the set of roles granted to this principal
      * @param attributes additional attributes associated with this principal
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AuthPrincipal(String name, Set<String> roles, Map<String, Object> attributes) {
         this.name = Objects.requireNonNull(name, "name must not be null");
@@ -35,7 +35,7 @@ public class AuthPrincipal {
      *
      * @param name the principal name
      * @return the principal
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static AuthPrincipal of(String name) {
         return new AuthPrincipal(name, Set.of(), Map.of());
@@ -47,7 +47,7 @@ public class AuthPrincipal {
      * @param name  the principal name
      * @param roles the roles
      * @return the principal
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static AuthPrincipal of(String name, Set<String> roles) {
         return new AuthPrincipal(name, roles, Map.of());
@@ -57,7 +57,7 @@ public class AuthPrincipal {
      * Returns the principal name.
      *
      * @return the name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getName() {
         return name;
@@ -67,7 +67,7 @@ public class AuthPrincipal {
      * Returns the roles granted to this principal.
      *
      * @return unmodifiable set of roles
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Set<String> getRoles() {
         return roles;
@@ -77,7 +77,7 @@ public class AuthPrincipal {
      * Returns the attributes associated with this principal.
      *
      * @return unmodifiable map of attributes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Map<String, Object> getAttributes() {
         return attributes;
@@ -88,7 +88,7 @@ public class AuthPrincipal {
      *
      * @param role the role to check
      * @return true if the principal has the role
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean hasRole(String role) {
         return roles.contains(role);
@@ -100,7 +100,7 @@ public class AuthPrincipal {
      * @param key the attribute key
      * @param <T> the expected value type
      * @return the attribute value, or null if not present
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @SuppressWarnings("unchecked")
     public <T> T getAttribute(String key) {

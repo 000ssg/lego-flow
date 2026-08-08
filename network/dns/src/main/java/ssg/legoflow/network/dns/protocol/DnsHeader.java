@@ -38,7 +38,7 @@ package ssg.legoflow.network.dns.protocol;
  * @param anCount  number of answer records
  * @param nsCount  number of authority records
  * @param arCount  number of additional records
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record DnsHeader(
         int id,
@@ -64,7 +64,7 @@ public record DnsHeader(
      * Returns the flags as a 16-bit integer for wire encoding.
      *
      * @return the flags word
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int flags() {
         int flags = 0;
@@ -90,7 +90,7 @@ public record DnsHeader(
      * @param nsCount authority count
      * @param arCount additional count
      * @return the parsed header
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static DnsHeader fromFlags(int id, int flags, int qdCount, int anCount,
                                        int nsCount, int arCount) {
@@ -111,7 +111,7 @@ public record DnsHeader(
      * Creates a builder pre-populated with this header's values.
      *
      * @return a new builder
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Builder toBuilder() {
         return new Builder()
@@ -123,7 +123,7 @@ public record DnsHeader(
     /**
      * Builder for {@link DnsHeader}.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class Builder {
         private int id;
@@ -160,7 +160,7 @@ public record DnsHeader(
          * Builds the header.
          *
          * @return the constructed header
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public DnsHeader build() {
             return new DnsHeader(id, qr, opCode, aa, tc, rd, ra, ad, cd, rCode,

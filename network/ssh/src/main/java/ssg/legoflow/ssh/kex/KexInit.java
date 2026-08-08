@@ -15,7 +15,7 @@ import java.util.Objects;
  * kex, server host key, encryption (c2s/s2c), MAC (c2s/s2c), compression (c2s/s2c),
  * languages (c2s/s2c), plus first_kex_packet_follows flag.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record KexInit(
         byte[] cookie,

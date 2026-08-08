@@ -9,7 +9,7 @@ import java.io.IOException;
  * Demonstrates basic Redis caching patterns: SET/GET with TTL,
  * atomic counters (INCR/DECR), and hash-based object storage.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RedisCacheDemo {
 

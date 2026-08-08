@@ -6,7 +6,7 @@ package ssg.legoflow.messaging.kafka.protocol;
  * <p>Sent by a broker to the controller to request a graceful shutdown.
  *
  * @param brokerId the broker ID requesting shutdown
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ControlledShutdownRequest(int brokerId) {
 }

@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * Demonstrates CoAP observe functionality where a server pushes periodic
  * temperature updates to observing clients.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ObserveDemo {
 
@@ -30,7 +30,7 @@ public final class ObserveDemo {
      * Creates the observe demo with a server on the given port.
      *
      * @param port the UDP port
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ObserveDemo(int port) {
         this.server = new CoapServer(CoapServerConfig.withPort(port));
@@ -43,7 +43,7 @@ public final class ObserveDemo {
      *
      * @param intervalMs the update interval in milliseconds
      * @throws IOException if binding fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start(long intervalMs) throws IOException {
         server.start();
@@ -54,7 +54,7 @@ public final class ObserveDemo {
     /**
      * Stops the demo server.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         if (scheduler != null) scheduler.shutdownNow();
@@ -65,7 +65,7 @@ public final class ObserveDemo {
      * Returns the server.
      *
      * @return the server
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapServer server() {
         return server;
@@ -75,7 +75,7 @@ public final class ObserveDemo {
      * Returns the temperature resource.
      *
      * @return the temperature resource
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ObservableTemperatureResource temperatureResource() {
         return temperatureResource;
@@ -85,7 +85,7 @@ public final class ObserveDemo {
      * Manually sets the temperature and notifies observers.
      *
      * @param temperature the new temperature value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setTemperature(String temperature) {
         temperatureResource.setValue(temperature);
@@ -101,7 +101,7 @@ public final class ObserveDemo {
     /**
      * Observable temperature resource that pushes notifications on value changes.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class ObservableTemperatureResource extends CoapResource {
 

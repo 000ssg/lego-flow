@@ -5,7 +5,7 @@ package ssg.legoflow.rpc.graphql.validation;
  *
  * @param message the error message
  * @param rule    the validation rule that produced this error
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ValidationError(String message, String rule) {
 

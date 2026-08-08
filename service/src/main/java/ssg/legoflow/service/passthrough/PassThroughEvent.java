@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * Sealed hierarchy of events emitted by a {@link PassThroughConnection} during its lifecycle.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface PassThroughEvent {
 

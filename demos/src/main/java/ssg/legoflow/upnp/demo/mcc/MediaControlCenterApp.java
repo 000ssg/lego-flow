@@ -31,7 +31,7 @@ import java.util.List;
  * <p>If the platform supports a system tray, a tray icon is installed
  * allowing the application to be minimized to the tray.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MediaControlCenterApp {
 
@@ -43,7 +43,7 @@ public class MediaControlCenterApp {
     /**
      * Creates a new application instance.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MediaControlCenterApp() {
     }
@@ -56,7 +56,7 @@ public class MediaControlCenterApp {
      * device registration and discovery) in a background thread so the
      * window appears instantly without blocking.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void launch() {
         var ifaces = findAllPhysicalInterfaces();
@@ -96,7 +96,7 @@ public class MediaControlCenterApp {
      * Returns the Media Control Center frame.
      *
      * @return the MCC frame
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MediaControlCenter getMcc() {
         return mcc;
@@ -106,7 +106,7 @@ public class MediaControlCenterApp {
      * Returns the control point.
      *
      * @return the control point
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ControlPoint getControlPoint() {
         return controlPoint;
@@ -116,7 +116,7 @@ public class MediaControlCenterApp {
      * Returns the demo server device.
      *
      * @return the server device
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MediaServerDevice getServerDevice() {
         return serverDevice;
@@ -126,7 +126,7 @@ public class MediaControlCenterApp {
      * Returns the demo renderer device.
      *
      * @return the renderer device
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MediaRendererDevice getRendererDevice() {
         return rendererDevice;
@@ -333,7 +333,7 @@ public class MediaControlCenterApp {
      * on the Event Dispatch Thread.
      *
      * @param args command-line arguments (unused)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void main(String[] args) {
         try {

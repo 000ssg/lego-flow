@@ -16,7 +16,7 @@ import java.util.Optional;
  * @param displayName the display name, or empty
  * @param uri         the SIP URI
  * @param params      header parameters (tag, etc.)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record AddressHeader(
         Optional<String> displayName,
@@ -27,7 +27,7 @@ public record AddressHeader(
     /**
      * Creates an address header.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AddressHeader {
         Objects.requireNonNull(displayName, "displayName");
@@ -41,7 +41,7 @@ public record AddressHeader(
      * @param value the header value
      * @return the parsed address header
      * @throws IllegalArgumentException if the format is invalid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static AddressHeader parse(String value) {
         Objects.requireNonNull(value, "value");
@@ -135,7 +135,7 @@ public record AddressHeader(
      * Returns the tag parameter value, if present.
      *
      * @return the tag, or empty
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<String> tag() {
         return Optional.ofNullable(params.get("tag"));
@@ -146,7 +146,7 @@ public record AddressHeader(
      *
      * @param tag the tag value
      * @return a new address header with the tag
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AddressHeader withTag(String tag) {
         var newParams = new LinkedHashMap<>(params);
@@ -158,7 +158,7 @@ public record AddressHeader(
      * Formats this address header as a string value.
      *
      * @return the formatted value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String format() {
         var sb = new StringBuilder();

@@ -6,7 +6,7 @@ package ssg.legoflow.messaging.kafka.protocol;
  * @param errorCode     the error code
  * @param producerId    the assigned producer ID
  * @param producerEpoch the assigned producer epoch
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record InitProducerIdResponse(short errorCode, long producerId, short producerEpoch) {
 }

@@ -17,7 +17,7 @@ package ssg.legoflow.network.snmp.protocol;
  *   <li>[7] SNMPv2-Trap-PDU</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface SnmpPdu {
 
@@ -49,7 +49,7 @@ public sealed interface SnmpPdu {
      * @param errorStatus the error status (0 for requests)
      * @param errorIndex  the error index (0 for requests)
      * @param varBindList the variable bindings
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record GetRequest(int requestId, int errorStatus, int errorIndex,
                       VarBindList varBindList) implements SnmpPdu {
@@ -64,7 +64,7 @@ public sealed interface SnmpPdu {
      * @param errorStatus the error status (0 for requests)
      * @param errorIndex  the error index (0 for requests)
      * @param varBindList the variable bindings
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record GetNextRequest(int requestId, int errorStatus, int errorIndex,
                           VarBindList varBindList) implements SnmpPdu {
@@ -79,7 +79,7 @@ public sealed interface SnmpPdu {
      * @param errorStatus the error status (0 = noError)
      * @param errorIndex  the index of the first VarBind in error (1-based, 0 if no error)
      * @param varBindList the variable bindings with values
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Response(int requestId, int errorStatus, int errorIndex,
                     VarBindList varBindList) implements SnmpPdu {
@@ -94,7 +94,7 @@ public sealed interface SnmpPdu {
      * @param errorStatus the error status (0 for requests)
      * @param errorIndex  the error index (0 for requests)
      * @param varBindList the variable bindings with values to set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record SetRequest(int requestId, int errorStatus, int errorIndex,
                       VarBindList varBindList) implements SnmpPdu {
@@ -109,7 +109,7 @@ public sealed interface SnmpPdu {
      * @param nonRepeaters   number of non-repeating VarBinds at start
      * @param maxRepetitions maximum repetitions for remaining VarBinds
      * @param varBindList    the variable bindings
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record GetBulkRequest(int requestId, int nonRepeaters, int maxRepetitions,
                           VarBindList varBindList) implements SnmpPdu {
@@ -124,7 +124,7 @@ public sealed interface SnmpPdu {
      * @param errorStatus the error status (0 for requests)
      * @param errorIndex  the error index (0 for requests)
      * @param varBindList the variable bindings
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record InformRequest(int requestId, int errorStatus, int errorIndex,
                          VarBindList varBindList) implements SnmpPdu {
@@ -139,7 +139,7 @@ public sealed interface SnmpPdu {
      * @param errorStatus the error status (0 for traps)
      * @param errorIndex  the error index (0 for traps)
      * @param varBindList the variable bindings (includes sysUpTime.0 and snmpTrapOID.0)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record TrapV2(int requestId, int errorStatus, int errorIndex,
                   VarBindList varBindList) implements SnmpPdu {

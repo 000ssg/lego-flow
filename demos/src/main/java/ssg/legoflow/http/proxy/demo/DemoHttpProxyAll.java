@@ -50,7 +50,7 @@ import java.util.Set;
  *   <li>Error handling -- 502 Bad Gateway, 504 Gateway Timeout, 503 Service Unavailable</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoHttpProxyAll {
 
@@ -82,7 +82,7 @@ public final class DemoHttpProxyAll {
      * @param connectTunnel     true if CONNECT method tunneling worked
      * @param proxyHeaders      true if Via, X-Forwarded-For headers set correctly
      * @param errorHandling     true if 502/504/503 error responses produced correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record Results(
             boolean forwardProxyBasic,
@@ -99,7 +99,7 @@ public final class DemoHttpProxyAll {
      *
      * @return results from each feature section
      * @throws Exception if any operation fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Results runAll() throws Exception {
         boolean forward = demoForwardProxyBasic();
@@ -120,7 +120,7 @@ public final class DemoHttpProxyAll {
      * with an absolute URI, forwarding to the upstream, and returning the response.
      *
      * @return true if all forward proxy checks pass
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoForwardProxyBasic() {
         LOG.info("=== 1. Forward Proxy Basic ===");
@@ -172,7 +172,7 @@ public final class DemoHttpProxyAll {
      * and load balancing.
      *
      * @return true if all reverse proxy checks pass
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoReverseProxyBasic() {
         LOG.info("=== 2. Reverse Proxy Basic ===");
@@ -230,7 +230,7 @@ public final class DemoHttpProxyAll {
      * Demonstrates request and response filters in the proxy pipeline.
      *
      * @return true if filters are applied correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoProxyFilters() {
         LOG.info("=== 3. Proxy Filters ===");
@@ -327,7 +327,7 @@ public final class DemoHttpProxyAll {
      * and conditional requests.
      *
      * @return true if caching works correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoCacheProxy() {
         LOG.info("=== 4. Cache Proxy ===");
@@ -385,7 +385,7 @@ public final class DemoHttpProxyAll {
      * 200 Connection Established and a bidirectional tunnel is created.
      *
      * @return true if CONNECT tunnel works correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoConnectTunnel() throws Exception {
         LOG.info("=== 5. CONNECT Tunnel ===");
@@ -431,7 +431,7 @@ public final class DemoHttpProxyAll {
      * X-Forwarded-Host, and X-Real-IP.
      *
      * @return true if all proxy headers are set correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoProxyHeaders() {
         LOG.info("=== 6. Proxy Headers ===");
@@ -494,7 +494,7 @@ public final class DemoHttpProxyAll {
      * 503 Service Unavailable, and exception-based error mapping.
      *
      * @return true if all error responses are produced correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoErrorHandling() {
         LOG.info("=== 7. Error Handling ===");

@@ -15,7 +15,7 @@ import java.util.Objects;
  * @param subtype the application-dependent subtype (0-31)
  * @param name    the 4-character ASCII name
  * @param data    the application-dependent data (length must be a multiple of 4 bytes)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ApplicationDefined(
         long ssrc,

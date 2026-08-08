@@ -6,7 +6,7 @@ import java.io.OutputStream;
 /**
  * Factory for creating shell processes for SSH sessions.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 @FunctionalInterface
 public interface ShellFactory {

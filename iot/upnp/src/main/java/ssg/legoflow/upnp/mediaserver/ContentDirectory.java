@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * The content directory maintains a tree of {@link ContentContainer} and
  * {@link ContentItem} objects that can be navigated by control points.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ContentDirectory {
 
@@ -27,7 +27,7 @@ public class ContentDirectory {
     /**
      * Browse flag indicating which items to return.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum BrowseFlag {
 
@@ -47,7 +47,7 @@ public class ContentDirectory {
          * Returns the UPnP string value.
          *
          * @return the value string
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public String value() {
             return value;
@@ -59,7 +59,7 @@ public class ContentDirectory {
          * @param value the string value
          * @return the browse flag
          * @throws IllegalArgumentException if unknown
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public static BrowseFlag fromValue(String value) {
             for (BrowseFlag flag : values()) {
@@ -81,7 +81,7 @@ public class ContentDirectory {
     /**
      * Creates a new content directory with an empty root container.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentDirectory() {
         this.rootContainer = new ContentContainer("0", "-1", "Root", true);
@@ -98,7 +98,7 @@ public class ContentDirectory {
      * @param requestCount the maximum number of items to return (0 for all)
      * @param sortCriteria the sort criteria string
      * @return the browse result
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public BrowseResult browse(String objectId, BrowseFlag flag, String filter,
                                int startIndex, int requestCount, String sortCriteria) {
@@ -132,7 +132,7 @@ public class ContentDirectory {
      * @param requestCount   the maximum number of items to return (0 for all)
      * @param sortCriteria   the sort criteria string
      * @return the browse result containing matching items
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public BrowseResult search(String containerId, String searchCriteria, String filter,
                                int startIndex, int requestCount, String sortCriteria) {
@@ -170,7 +170,7 @@ public class ContentDirectory {
      * Returns the search capabilities of this content directory.
      *
      * @return comma-separated list of searchable properties
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getSearchCapabilities() {
         return "dc:title,dc:creator,upnp:class,upnp:genre";
@@ -180,7 +180,7 @@ public class ContentDirectory {
      * Returns the sort capabilities of this content directory.
      *
      * @return comma-separated list of sortable properties
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getSortCapabilities() {
         return "dc:title,dc:creator,dc:date";
@@ -190,7 +190,7 @@ public class ContentDirectory {
      * Returns the system update ID, which increments on every content change.
      *
      * @return the current system update ID
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long getSystemUpdateId() {
         return systemUpdateId.get();
@@ -205,7 +205,7 @@ public class ContentDirectory {
      * since the last check.
      *
      * @return the container update IDs string (e.g. "0,3,1,1,2,2")
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getContainerUpdateIds() {
         if (containerUpdateIds.isEmpty()) {
@@ -229,7 +229,7 @@ public class ContentDirectory {
      *
      * @param containerId the container ID
      * @return the update count, or 0 if the container has never been modified
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long getContainerUpdateCount(String containerId) {
         return containerUpdateIds.getOrDefault(containerId, 0L);
@@ -239,7 +239,7 @@ public class ContentDirectory {
      * Adds a content item to the directory.
      *
      * @param item the item to add
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addContent(ContentItem item) {
         Objects.requireNonNull(item, "item must not be null");
@@ -260,7 +260,7 @@ public class ContentDirectory {
      *
      * @param itemId the ID of the item to remove
      * @return true if the item was found and removed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean removeContent(String itemId) {
         ContentItem removed = allItems.remove(itemId);
@@ -280,7 +280,7 @@ public class ContentDirectory {
      * Adds a container to the directory.
      *
      * @param container the container to add
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addContainer(ContentContainer container) {
         Objects.requireNonNull(container, "container must not be null");
@@ -301,7 +301,7 @@ public class ContentDirectory {
      * Sets the root container of the library, replacing the existing tree.
      *
      * @param root the root container
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setLibrary(ContentContainer root) {
         Objects.requireNonNull(root, "root must not be null");
@@ -316,7 +316,7 @@ public class ContentDirectory {
      * Returns the root container.
      *
      * @return the root container
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentContainer getRootContainer() {
         return rootContainer;
@@ -327,7 +327,7 @@ public class ContentDirectory {
      *
      * @param containerId the container ID
      * @return the container, or null if not found
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentContainer getContainer(String containerId) {
         return containers.get(containerId);
@@ -338,7 +338,7 @@ public class ContentDirectory {
      *
      * @param itemId the item ID
      * @return the item, or null if not found
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentItem getItem(String itemId) {
         return allItems.get(itemId);
@@ -348,7 +348,7 @@ public class ContentDirectory {
      * Generates the SCPD (Service Control Protocol Description) XML for this service.
      *
      * @return the SCPD XML string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String generateScpd() {
         return """

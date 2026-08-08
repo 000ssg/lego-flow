@@ -31,7 +31,7 @@ import java.util.function.Consumer;
  * <p>This class is thread-safe. State transitions are guarded, and all
  * internal managers use concurrent data structures.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class QuicConnection {
 
@@ -48,7 +48,7 @@ public class QuicConnection {
      *   <li>{@link #CLOSED} — Connection terminated</li>
      * </ul>
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum HandshakePhase {
         /** Pre-handshake phase using Initial keys. */
@@ -87,7 +87,7 @@ public class QuicConnection {
      *
      * @param sourceConnectionId the local connection ID
      * @param isServer           {@code true} if this is the server side
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicConnection(long sourceConnectionId, boolean isServer) {
         this(sourceConnectionId, isServer, new QuicSettings());
@@ -99,7 +99,7 @@ public class QuicConnection {
      * @param sourceConnectionId the local connection ID
      * @param isServer           {@code true} if this is the server side
      * @param settings           the local transport parameters
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicConnection(long sourceConnectionId, boolean isServer, QuicSettings settings) {
         this.sourceConnectionId = sourceConnectionId;
@@ -125,7 +125,7 @@ public class QuicConnection {
      * for testing but not for production).</p>
      *
      * @param sslContext the SSLContext to use
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setSslContext(SSLContext sslContext) {
         this.sslContext = sslContext;
@@ -143,7 +143,7 @@ public class QuicConnection {
      * @param address the remote address to connect to
      * @throws IllegalStateException if the connection is not in the IDLE state
      * @throws QuicTlsException if the TLS handshake fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void connect(SocketAddress address) {
         transitionTo(QuicConnectionState.HANDSHAKING);
@@ -170,7 +170,7 @@ public class QuicConnection {
      *
      * @throws IllegalStateException if the connection is not in the IDLE state
      * @throws QuicTlsException if the TLS handshake fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void accept() {
         transitionTo(QuicConnectionState.HANDSHAKING);
@@ -307,7 +307,7 @@ public class QuicConnection {
      * @param errorCode the error code for the CONNECTION_CLOSE frame
      * @param reason    a human-readable reason string
      * @throws IllegalStateException if the connection cannot be closed from its current state
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void close(QuicErrorCode errorCode, String reason) {
         if (state == QuicConnectionState.CLOSED) {
@@ -333,7 +333,7 @@ public class QuicConnection {
      * @param bidirectional {@code true} for a bidirectional stream, {@code false} for unidirectional
      * @return the newly created stream
      * @throws IllegalStateException if the connection is not connected or the stream limit is reached
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicStream createStream(boolean bidirectional) {
         if (state != QuicConnectionState.CONNECTED) {
@@ -353,7 +353,7 @@ public class QuicConnection {
      *
      * @param frame the frame to send
      * @throws IllegalStateException if the connection is not in a sendable state
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void sendFrame(QuicFrame frame) {
         if (state != QuicConnectionState.CONNECTED) {
@@ -368,7 +368,7 @@ public class QuicConnection {
      * Processes an incoming QUIC packet.
      *
      * @param packet the received packet
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void receivePacket(QuicPacket packet) {
         for (var frame : packet.frames()) {
@@ -381,7 +381,7 @@ public class QuicConnection {
      *
      * @param newAddress the new remote address
      * @throws IllegalStateException if migration is disabled or the connection is not connected
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void migrate(SocketAddress newAddress) {
         if (localSettings.disableActiveMigration()) {
@@ -399,7 +399,7 @@ public class QuicConnection {
      * Adds a listener for outgoing frames.
      *
      * @param listener the frame listener
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addFrameListener(Consumer<QuicFrame> listener) {
         frameListeners.add(listener);
@@ -409,7 +409,7 @@ public class QuicConnection {
      * Returns whether the connection is currently connected.
      *
      * @return {@code true} if the state is {@link QuicConnectionState#CONNECTED}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isConnected() {
         return state == QuicConnectionState.CONNECTED;
@@ -419,7 +419,7 @@ public class QuicConnection {
      * Returns the current connection state.
      *
      * @return the current {@link QuicConnectionState}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicConnectionState getState() {
         return state;
@@ -429,7 +429,7 @@ public class QuicConnection {
      * Returns the source (local) connection ID.
      *
      * @return the source connection ID
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long sourceConnectionId() {
         return sourceConnectionId;
@@ -439,7 +439,7 @@ public class QuicConnection {
      * Returns the destination (peer) connection ID.
      *
      * @return the destination connection ID
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long destinationConnectionId() {
         return destinationConnectionId;
@@ -449,7 +449,7 @@ public class QuicConnection {
      * Sets the destination (peer) connection ID.
      *
      * @param destinationConnectionId the peer connection ID
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setDestinationConnectionId(long destinationConnectionId) {
         this.destinationConnectionId = destinationConnectionId;
@@ -459,7 +459,7 @@ public class QuicConnection {
      * Returns the stream manager for this connection.
      *
      * @return the {@link QuicStreamManager}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicStreamManager streamManager() {
         return streamManager;
@@ -469,7 +469,7 @@ public class QuicConnection {
      * Returns the flow control for this connection.
      *
      * @return the {@link QuicFlowControl}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicFlowControl flowControl() {
         return flowControl;
@@ -479,7 +479,7 @@ public class QuicConnection {
      * Returns the local transport parameters.
      *
      * @return the local {@link QuicSettings}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicSettings localSettings() {
         return localSettings;
@@ -489,7 +489,7 @@ public class QuicConnection {
      * Returns the peer transport parameters.
      *
      * @return the peer {@link QuicSettings}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicSettings peerSettings() {
         return peerSettings;
@@ -499,7 +499,7 @@ public class QuicConnection {
      * Sets the peer transport parameters (received during handshake).
      *
      * @param peerSettings the peer settings
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setPeerSettings(QuicSettings peerSettings) {
         this.peerSettings = peerSettings;
@@ -509,7 +509,7 @@ public class QuicConnection {
      * Returns the remote address.
      *
      * @return the remote {@link SocketAddress}, or {@code null} if not connected
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SocketAddress remoteAddress() {
         return remoteAddress;
@@ -519,7 +519,7 @@ public class QuicConnection {
      * Returns the next packet number and increments the counter.
      *
      * @return the next packet number
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long nextPacketNumber() {
         return nextPacketNumber.getAndIncrement();
@@ -529,7 +529,7 @@ public class QuicConnection {
      * Returns the current TLS handshake phase.
      *
      * @return the current {@link HandshakePhase}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HandshakePhase handshakePhase() {
         return handshakePhase;
@@ -539,7 +539,7 @@ public class QuicConnection {
      * Returns the negotiated ALPN protocol (e.g., "h3").
      *
      * @return the ALPN protocol, or {@code null} if not yet negotiated
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String negotiatedAlpn() {
         return negotiatedAlpn;
@@ -549,7 +549,7 @@ public class QuicConnection {
      * Returns the negotiated cipher suite (e.g., "TLS_AES_128_GCM_SHA256").
      *
      * @return the cipher suite, or {@code null} if not yet negotiated
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String negotiatedCipherSuite() {
         return negotiatedCipherSuite;
@@ -559,7 +559,7 @@ public class QuicConnection {
      * Returns the negotiated TLS protocol version (e.g., "TLSv1.3").
      *
      * @return the protocol version, or {@code null} if not yet negotiated
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String negotiatedProtocol() {
         return negotiatedProtocol;
@@ -569,7 +569,7 @@ public class QuicConnection {
      * Returns the peer's X.509 certificates from the TLS handshake.
      *
      * @return the peer certificates, or {@code null} if not available
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public X509Certificate[] peerCertificates() {
         return peerCertificates;
@@ -579,7 +579,7 @@ public class QuicConnection {
      * Returns the underlying TLS engine, or {@code null} if not initialised.
      *
      * @return the {@link QuicTlsEngine}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicTlsEngine tlsEngine() {
         return tlsEngine;

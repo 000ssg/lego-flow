@@ -12,7 +12,7 @@ import java.util.Objects;
  * @param personal the personal namespace entries
  * @param otherUsers the other users' namespace entries
  * @param shared the shared namespace entries
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record NamespaceConfig(
         List<NamespaceEntry> personal,

@@ -12,7 +12,7 @@ import java.util.Map;
  * the first occurrence takes precedence (per STOMP 1.2 spec). This implementation
  * preserves insertion order via {@link LinkedHashMap}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class StompHeaders implements Iterable<Map.Entry<String, String>> {
 

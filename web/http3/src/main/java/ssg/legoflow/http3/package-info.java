@@ -5,6 +5,6 @@
  * providing multiplexed, low-latency HTTP communication without
  * head-of-line blocking at the transport layer.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 package ssg.legoflow.http3;

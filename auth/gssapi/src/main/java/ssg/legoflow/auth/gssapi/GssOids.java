@@ -6,7 +6,7 @@ import org.ietf.jgss.Oid;
 /**
  * Standard OID constants for GSS-API mechanisms.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class GssOids {
 

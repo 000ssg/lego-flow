@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Unit tests for async wrappers: {@link AsyncWebService},
  * {@link AsyncWebServiceRegistry}, and {@link AsyncEndpointInvoker}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class AsyncWebServiceTest {
 
@@ -135,5 +135,55 @@ class AsyncWebServiceTest {
         var invoker = new EndpointInvoker(List.of());
         var asyncInvoker = new AsyncEndpointInvoker(invoker);
         assertThat(asyncInvoker.sync()).isSameAs(invoker);
+    }
+
+    // ======================== Constructor with custom executor ========================
+
+    @Test
+    void testAsyncWebServiceWithCustomExecutor() throws Exception {
+        var executor = java.util.concurrent.Executors.newSingleThreadExecutor();
+        try {
+            var async = new AsyncWebService(helloService, executor);
+            assertThat(async.sync()).isSameAs(helloService);
+            // verify it works
+            var request = HttpRequest.of(HttpMethod.GET, "/hello");
+            var response = async.handle(null, request).get();
+            assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void testAsyncRegistryWithCustomExecutor() throws Exception {
+        var executor = java.util.concurrent.Executors.newSingleThreadExecutor();
+        var registry = new WebServiceRegistry();
+        try {
+            var asyncRegistry = new AsyncWebServiceRegistry(registry, executor);
+            assertThat(asyncRegistry.sync()).isSameAs(registry);
+            asyncRegistry.register(helloService).get();
+            assertThat(asyncRegistry.getService("/hello").get()).isNotNull();
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void testAsyncEndpointInvokerWithCustomExecutor() throws Exception {
+        var endpoints = List.of(
+                new Endpoint("/custom", HttpMethod.GET,
+                        (ctx, req) -> HttpResponse.of(HttpStatus.OK, "custom-exec"))
+        );
+        var executor = java.util.concurrent.Executors.newSingleThreadExecutor();
+        try {
+            var invoker = new EndpointInvoker(endpoints);
+            var asyncInvoker = new AsyncEndpointInvoker(invoker, executor);
+            assertThat(asyncInvoker.sync()).isSameAs(invoker);
+            var request = HttpRequest.of(HttpMethod.GET, "/custom");
+            var response = asyncInvoker.invoke(null, request).get();
+            assertThat(response.getBodyAsString()).isEqualTo("custom-exec");
+        } finally {
+            executor.shutdownNow();
+        }
     }
 }

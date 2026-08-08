@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Tracks partition leadership, ISR sets, leader epochs, and watermarks
  * for all replicas hosted on a single broker.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ReplicaManager {
 

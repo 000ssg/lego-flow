@@ -36,7 +36,7 @@ import java.util.concurrent.CompletableFuture;
  *   COMPLETED -> TERMINATED (Timer K fires)
  * </pre>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ClientTransaction extends SipTransaction {
 
@@ -52,7 +52,7 @@ public final class ClientTransaction extends SipTransaction {
      * @param branchId        the branch ID
      * @param method          the request method
      * @param originalRequest the original request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ClientTransaction(String branchId, SipMethod method, SipRequest originalRequest) {
         super(branchId, method, originalRequest);
@@ -64,7 +64,7 @@ public final class ClientTransaction extends SipTransaction {
      *
      * <p>Transitions to CALLING (INVITE) or TRYING (non-INVITE).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() {
         if (isInvite()) {
@@ -79,7 +79,7 @@ public final class ClientTransaction extends SipTransaction {
      * Processes a response received for this client transaction.
      *
      * @param response the received response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void processResponse(SipResponse response) {
@@ -172,7 +172,7 @@ public final class ClientTransaction extends SipTransaction {
      * Returns a future that completes when a final response is received.
      *
      * @return the response future
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CompletableFuture<SipResponse> responseFuture() {
         return responseFuture;
@@ -182,7 +182,7 @@ public final class ClientTransaction extends SipTransaction {
      * Returns the last provisional response, if any.
      *
      * @return the last provisional response, or null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipResponse lastProvisionalResponse() {
         return lastProvisionalResponse;
@@ -192,7 +192,7 @@ public final class ClientTransaction extends SipTransaction {
      * Returns the final response, if received.
      *
      * @return the final response, or null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipResponse finalResponse() {
         return finalResponse;

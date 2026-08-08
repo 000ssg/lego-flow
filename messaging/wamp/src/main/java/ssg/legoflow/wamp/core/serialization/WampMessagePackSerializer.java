@@ -10,7 +10,7 @@ import java.util.List;
  *
  * <p>Corresponds to the {@code wamp.2.msgpack} WebSocket subprotocol.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class WampMessagePackSerializer extends WampBinarySerializer {
 

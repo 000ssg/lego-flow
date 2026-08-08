@@ -11,7 +11,7 @@ import java.util.zip.Inflater;
  * <p>Same as standard zlib compression, but only activates after user authentication
  * completes. Before authentication, data passes through uncompressed.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ZlibOpenSshCompression implements SshCompression {
 

@@ -15,7 +15,7 @@ import java.util.Objects;
  *
  * <p>Handles "scp -t" (sink/upload) and "scp -f" (source/download) commands.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ScpServer {
 

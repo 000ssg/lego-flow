@@ -16,7 +16,7 @@ import java.util.List;
  * renderers representing different rooms (living room, bedroom, kitchen).
  * A control point plays the same track on all renderers simultaneously.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MultiRoomDemo {
 
@@ -27,7 +27,7 @@ public class MultiRoomDemo {
     /**
      * Creates the multi-room demo with one server and three renderers.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MultiRoomDemo() {
         this.serverDemo = new SimpleMediaServerDemo();
@@ -41,7 +41,7 @@ public class MultiRoomDemo {
     /**
      * Starts all components.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() {
         serverDemo.start();
@@ -57,7 +57,7 @@ public class MultiRoomDemo {
     /**
      * Stops all components.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         controlPoint.stop();
@@ -71,7 +71,7 @@ public class MultiRoomDemo {
      * Returns the control point.
      *
      * @return the control point
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ControlPoint getControlPoint() {
         return controlPoint;
@@ -81,7 +81,7 @@ public class MultiRoomDemo {
      * Returns the server demo.
      *
      * @return the server demo
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SimpleMediaServerDemo getServerDemo() {
         return serverDemo;
@@ -91,7 +91,7 @@ public class MultiRoomDemo {
      * Returns the list of renderer demos.
      *
      * @return the renderer demos
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<SimpleMediaRendererDemo> getRendererDemos() {
         return rendererDemos;
@@ -101,7 +101,7 @@ public class MultiRoomDemo {
      * Plays a content item on all renderers simultaneously.
      *
      * @param item the content item to play
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void playOnAllRenderers(ContentItem item) {
         List<MediaRendererProxy> renderers = controlPoint.discoverMediaRenderers();
@@ -113,7 +113,7 @@ public class MultiRoomDemo {
     /**
      * Stops playback on all renderers.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stopAll() {
         List<MediaRendererProxy> renderers = controlPoint.discoverMediaRenderers();
@@ -127,7 +127,7 @@ public class MultiRoomDemo {
      *
      * @param rendererIndex the index of the renderer (0=Living Room, 1=Bedroom, 2=Kitchen)
      * @param volume        the desired volume (0-100)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setVolume(int rendererIndex, int volume) {
         List<MediaRendererProxy> renderers = controlPoint.discoverMediaRenderers();
@@ -140,7 +140,7 @@ public class MultiRoomDemo {
      * Main entry point for running the demo standalone.
      *
      * @param args command-line arguments (unused)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void main(String[] args) {
         var demo = new MultiRoomDemo();

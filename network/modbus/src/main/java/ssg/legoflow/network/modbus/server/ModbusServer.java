@@ -20,7 +20,7 @@ import java.net.Socket;
  * {@link DeviceMemory} instance. Each connection is handled in its
  * own virtual thread.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ModbusServer implements AutoCloseable {
 

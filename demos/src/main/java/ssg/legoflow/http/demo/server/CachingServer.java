@@ -20,7 +20,7 @@ import java.time.format.DateTimeFormatter;
  * <p>Uses {@link CacheValidator} to handle conditional GET requests and return
  * 304 Not Modified when the resource has not changed.
  *
- * @since 1.0
+ * @since 0.1
  */
 public class CachingServer {
 

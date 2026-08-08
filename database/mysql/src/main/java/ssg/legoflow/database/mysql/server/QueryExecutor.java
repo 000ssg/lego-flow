@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
  * keyword-delimited clauses (SELECT, FROM, JOIN, WHERE, GROUP BY, HAVING,
  * ORDER BY, LIMIT) which are parsed independently.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class QueryExecutor {
 

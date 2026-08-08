@@ -3,7 +3,7 @@ package ssg.legoflow.messaging.kafka.common;
 /**
  * Strategy for selecting a partition for a record.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 @FunctionalInterface
 public interface Partitioner {

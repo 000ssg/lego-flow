@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.*;
 /**
  * Tests for {@link DlnaDeviceClass} — DLNA device certification headers.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class DlnaDeviceClassTest {
 

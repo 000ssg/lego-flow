@@ -6,7 +6,7 @@ package ssg.legoflow.upnp.mediarenderer;
  * <p>Represents the current playback state of a media renderer
  * as defined by the UPnP AVTransport:1 service specification.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum TransportState {
 
@@ -41,7 +41,7 @@ public enum TransportState {
      * Returns the UPnP string value for this state.
      *
      * @return the state string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String value() {
         return value;
@@ -53,7 +53,7 @@ public enum TransportState {
      * @param value the state string
      * @return the transport state
      * @throws IllegalArgumentException if the value is unknown
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static TransportState fromValue(String value) {
         for (TransportState state : values()) {

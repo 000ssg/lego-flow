@@ -4,7 +4,7 @@ package ssg.legoflow.http.auth;
  * Extracted credentials from an HTTP request. Each authentication scheme provides
  * its own implementation carrying scheme-specific credential data.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface AuthCredentials
         permits AuthCredentials.Basic, AuthCredentials.Bearer, AuthCredentials.Digest, AuthCredentials.None {
@@ -14,7 +14,7 @@ public sealed interface AuthCredentials
      *
      * @param username the username
      * @param password the password
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Basic(String username, String password) implements AuthCredentials {
     }
@@ -23,7 +23,7 @@ public sealed interface AuthCredentials
      * Bearer token credentials.
      *
      * @param token the bearer token
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Bearer(String token) implements AuthCredentials {
     }
@@ -41,7 +41,7 @@ public sealed interface AuthCredentials
      * @param nc        the nonce count
      * @param qop       the quality of protection
      * @param opaque    the opaque value from the server
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Digest(String username, String realm, String nonce, String uri,
                   String response, String algorithm, String cnonce,
@@ -51,7 +51,7 @@ public sealed interface AuthCredentials
     /**
      * No credentials found in the request.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record None() implements AuthCredentials {
     }

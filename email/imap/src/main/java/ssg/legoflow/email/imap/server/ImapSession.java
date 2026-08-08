@@ -25,7 +25,7 @@ import java.util.function.Consumer;
  * management commands. Transitions between connection states
  * (Not Authenticated, Authenticated, Selected, Logout) as commands execute.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ImapSession implements Runnable, AutoCloseable {
 

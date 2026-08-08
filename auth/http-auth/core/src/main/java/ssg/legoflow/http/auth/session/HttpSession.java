@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * HTTP session with attributes, creation time, and last access tracking.
  * Thread-safe — attributes are stored in a ConcurrentHashMap.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class HttpSession {
 
@@ -23,7 +23,7 @@ public class HttpSession {
      * Creates a new HTTP session.
      *
      * @param id the session identifier
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpSession(String id) {
         this.id = Objects.requireNonNull(id, "id must not be null");
@@ -36,7 +36,7 @@ public class HttpSession {
      * Returns the session identifier.
      *
      * @return the session ID
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getId() {
         return id;
@@ -46,7 +46,7 @@ public class HttpSession {
      * Returns when this session was created.
      *
      * @return the creation time
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Instant getCreationTime() {
         return creationTime;
@@ -56,7 +56,7 @@ public class HttpSession {
      * Returns when this session was last accessed.
      *
      * @return the last access time
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Instant getLastAccessTime() {
         return lastAccessTime;
@@ -65,7 +65,7 @@ public class HttpSession {
     /**
      * Updates the last access time to now.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void touch() {
         this.lastAccessTime = Instant.now();
@@ -76,7 +76,7 @@ public class HttpSession {
      *
      * @param name  the attribute name
      * @param value the attribute value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setAttribute(String name, Object value) {
         checkValid();
@@ -89,7 +89,7 @@ public class HttpSession {
      * @param name the attribute name
      * @param <T>  the expected value type
      * @return the attribute value, or null if not present
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @SuppressWarnings("unchecked")
     public <T> T getAttribute(String name) {
@@ -101,7 +101,7 @@ public class HttpSession {
      * Removes a session attribute.
      *
      * @param name the attribute name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void removeAttribute(String name) {
         checkValid();
@@ -112,7 +112,7 @@ public class HttpSession {
      * Returns all attribute names.
      *
      * @return the attribute names
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public java.util.Set<String> getAttributeNames() {
         checkValid();
@@ -122,7 +122,7 @@ public class HttpSession {
     /**
      * Invalidates this session, clearing all attributes.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void invalidate() {
         this.invalidated = true;
@@ -133,7 +133,7 @@ public class HttpSession {
      * Returns whether this session has been invalidated.
      *
      * @return true if invalidated
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isInvalidated() {
         return invalidated;
@@ -144,7 +144,7 @@ public class HttpSession {
      *
      * @param timeoutSeconds the timeout in seconds
      * @return true if expired
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isExpired(long timeoutSeconds) {
         if (invalidated) return true;

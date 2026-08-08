@@ -14,7 +14,7 @@ import java.util.Set;
  * Implements Redis key commands: DEL, EXISTS, EXPIRE, EXPIREAT, PEXPIRE,
  * TTL, PTTL, PERSIST, TYPE, KEYS, SCAN, RENAME, RANDOMKEY, UNLINK.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class KeyCommands {
 

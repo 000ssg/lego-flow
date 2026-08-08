@@ -17,7 +17,7 @@ import java.util.Objects;
  * <p>Supports command execution, pipelining, and pub/sub subscriptions.
  * Uses the RESP protocol for wire-format encoding/decoding.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RedisClient implements AutoCloseable {
 
@@ -165,7 +165,7 @@ public final class RedisClient implements AutoCloseable {
      * @param data the bytes
      * @throws IOException if I/O fails
      */
-    void sendRaw(byte[] data) throws IOException {
+    public void sendRaw(byte[] data) throws IOException {
         synchronized (output) {
             output.write(data);
             output.flush();

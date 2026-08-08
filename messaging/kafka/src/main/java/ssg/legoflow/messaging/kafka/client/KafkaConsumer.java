@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *   <li>Rebalance listener</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class KafkaConsumer implements AutoCloseable {
 

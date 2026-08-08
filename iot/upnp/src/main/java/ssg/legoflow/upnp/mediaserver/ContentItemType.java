@@ -13,7 +13,7 @@ package ssg.legoflow.upnp.mediaserver;
  * the same category (audio/video/image/container) or {@link #GENERIC_ITEM}
  * for truly unrecognized classes.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum ContentItemType {
 
@@ -23,7 +23,7 @@ public enum ContentItemType {
      * object.container.album.*, object.container.genre.*,
      * object.container.person.*, object.container.playlistContainer, etc.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     CONTAINER("object.container"),
 
@@ -32,7 +32,7 @@ public enum ContentItemType {
      * Matches: object.item.audioItem, object.item.audioItem.musicTrack,
      * object.item.audioItem.audioBroadcast, object.item.audioItem.audioBook, etc.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     AUDIO_ITEM("object.item.audioItem.musicTrack"),
 
@@ -41,7 +41,7 @@ public enum ContentItemType {
      * Matches: object.item.videoItem, object.item.videoItem.movie,
      * object.item.videoItem.videoBroadcast, object.item.videoItem.musicVideoClip, etc.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     VIDEO_ITEM("object.item.videoItem"),
 
@@ -49,7 +49,7 @@ public enum ContentItemType {
      * An image item (photo, artwork, etc.).
      * Matches: object.item.imageItem, object.item.imageItem.photo, etc.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     IMAGE_ITEM("object.item.imageItem.photo"),
 
@@ -57,7 +57,7 @@ public enum ContentItemType {
      * A playlist item referencing other media items.
      * Matches: object.item.playlistItem
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     PLAYLIST_ITEM("object.item.playlistItem"),
 
@@ -65,7 +65,7 @@ public enum ContentItemType {
      * A text item (document, eBook, etc.).
      * Matches: object.item.textItem, object.item.textItem.bookmarkItem, etc.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     TEXT_ITEM("object.item.textItem"),
 
@@ -74,7 +74,7 @@ public enum ContentItemType {
      * Used as a fallback for bare "object.item", vendor-specific classes, or
      * completely unrecognized class values.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     GENERIC_ITEM("object.item");
 
@@ -88,7 +88,7 @@ public enum ContentItemType {
      * Returns the UPnP class string for this item type.
      *
      * @return the UPnP class (e.g. "object.item.audioItem.musicTrack")
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String upnpClass() {
         return upnpClass;
@@ -116,7 +116,7 @@ public enum ContentItemType {
      *
      * @param upnpClass the UPnP class string (may be null)
      * @return the matching content item type, never null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static ContentItemType fromUpnpClass(String upnpClass) {
         if (upnpClass == null || upnpClass.isBlank()) {

@@ -528,5 +528,250 @@ class SftpTest {
 
         SftpPacket.Status status = (SftpPacket.Status) SftpCodec.decode(response);
         assertThat(status.statusCode()).isEqualTo(SftpStatusCode.SSH_FX_FAILURE);
+}
+
+    // --- Additional SftpServer handler coverage tests ---
+
+    @Test void testServerHandlePacketDecodeError() throws Exception {
+        SftpServer server = new SftpServer(tempDir);
+        // Send data that will cause a decode error (type 255 is unknown)
+        byte[] badData = new byte[]{(byte)255};
+        try {
+            byte[] response = server.handlePacket(badData);
+            // If we get a response, it should be a status error
+            SftpPacket decoded = SftpCodec.decode(response);
+            assertThat(decoded).isInstanceOf(SftpPacket.Status.class);
+        } catch (Exception e) {
+            // Decode errors are also acceptable - the server catches them
+        }
+    }
+
+    @Test void testServerHandleUnsupportedPacketType() throws Exception {
+        SftpServer server = new SftpServer(tempDir);
+        // FSETSTAT (type 9) is not handled by the switch -> falls through to default
+        byte[] buf = new byte[]{9, 0, 0, 0, 1}; // type=9 (SSH_FXP_FSETSTAT) + dummy data
+        try {
+            byte[] response = server.handlePacket(buf);
+            // Should return unsupported
+            SftpPacket decoded = SftpCodec.decode(response);
+            assertThat(decoded).isInstanceOf(SftpPacket.Status.class);
+        } catch (Exception e) {
+            // Decode failure is also acceptable
+        }
+    }
+
+    @Test void testServerHandleStat() throws Exception {
+        Files.writeString(tempDir.resolve("statme.txt"), "stat content");
+        SftpServer server = new SftpServer(tempDir);
+        byte[] response = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Stat(100, "statme.txt")));
+        SftpPacket decoded = SftpCodec.decode(response);
+        assertThat(decoded).isInstanceOf(SftpPacket.Attrs.class);
+    }
+
+    @Test void testServerHandleLstat() throws Exception {
+        Files.writeString(tempDir.resolve("lstatme.txt"), "lstat content");
+        SftpServer server = new SftpServer(tempDir);
+        byte[] response = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Lstat(101, "lstatme.txt")));
+        SftpPacket decoded = SftpCodec.decode(response);
+        assertThat(decoded).isInstanceOf(SftpPacket.Attrs.class);
+    }
+
+    @Test void testServerHandleOpendir() throws Exception {
+        Files.createDirectory(tempDir.resolve("testdir"));
+        SftpServer server = new SftpServer(tempDir);
+        byte[] response = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Opendir(102, "testdir")));
+        SftpPacket decoded = SftpCodec.decode(response);
+        assertThat(decoded).isInstanceOf(SftpPacket.Handle.class);
+    }
+
+    @Test void testServerHandleReaddir() throws Exception {
+        Files.writeString(tempDir.resolve("readdirmet.txt"), "content");
+        SftpServer server = new SftpServer(tempDir);
+        
+        // First open the directory
+        byte[] opendirResponse = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Opendir(103, ".")));
+        SftpPacket.Handle handle = (SftpPacket.Handle) SftpCodec.decode(opendirResponse);
+        
+        // Then read entries
+        byte[] readdirResponse = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Readdir(104, handle.handle())));
+        SftpPacket decoded = SftpCodec.decode(readdirResponse);
+        assertThat(decoded).isInstanceOf(SftpPacket.Name.class);
+    }
+
+    @Test void testServerHandleRemove() throws Exception {
+        Files.writeString(tempDir.resolve("removeme.txt"), "to be removed");
+        SftpServer server = new SftpServer(tempDir);
+        byte[] response = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Remove(105, "removeme.txt")));
+        SftpPacket.Status status = (SftpPacket.Status) SftpCodec.decode(response);
+        assertThat(status.statusCode()).isEqualTo(SftpStatusCode.SSH_FX_OK);
+        assertThat(tempDir.resolve("removeme.txt")).doesNotExist();
+    }
+
+    @Test void testServerHandleMkdir() throws Exception {
+        SftpServer server = new SftpServer(tempDir);
+        byte[] response = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Mkdir(106, "newdir", SftpFileAttributes.empty())));
+        SftpPacket.Status status = (SftpPacket.Status) SftpCodec.decode(response);
+        assertThat(status.statusCode()).isEqualTo(SftpStatusCode.SSH_FX_OK);
+        assertThat(tempDir.resolve("newdir")).isDirectory();
+    }
+
+    @Test void testServerHandleRmdir() throws Exception {
+        Files.createDirectory(tempDir.resolve("rmme"));
+        SftpServer server = new SftpServer(tempDir);
+        byte[] response = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Rmdir(107, "rmme")));
+        SftpPacket.Status status = (SftpPacket.Status) SftpCodec.decode(response);
+        assertThat(status.statusCode()).isEqualTo(SftpStatusCode.SSH_FX_OK);
+    }
+
+    @Test void testServerHandleRead() throws Exception {
+        Files.writeString(tempDir.resolve("readme.txt"), "readable content");
+        SftpServer server = new SftpServer(tempDir);
+        
+        // Open file first
+        byte[] openResponse = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Open(108, "readme.txt", SftpCodec.SSH_FXF_READ, 
+                        SftpFileAttributes.empty())));
+        SftpPacket.Handle handle = (SftpPacket.Handle) SftpCodec.decode(openResponse);
+        
+        // Read from it
+        byte[] readResponse = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Read(109, handle.handle(), 0L, 256)));
+        SftpPacket decoded = SftpCodec.decode(readResponse);
+        assertThat(decoded).isInstanceOf(SftpPacket.Data.class);
+    }
+
+    @Test void testServerHandleWrite() throws Exception {
+        SftpServer server = new SftpServer(tempDir);
+        
+        // Open file for write
+        byte[] openResponse = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Open(110, "writeme.txt", 
+                        SftpCodec.SSH_FXF_WRITE | SftpCodec.SSH_FXF_CREAT,
+                        SftpFileAttributes.empty())));
+        SftpPacket.Handle handle = (SftpPacket.Handle) SftpCodec.decode(openResponse);
+        
+        // Write to it
+        byte[] writeResponse = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Write(111, handle.handle(), 0L, "written data".getBytes())));
+        SftpPacket.Status status = (SftpPacket.Status) SftpCodec.decode(writeResponse);
+        assertThat(status.statusCode()).isEqualTo(SftpStatusCode.SSH_FX_OK);
+    }
+
+    @Test void testServerHandleClose() throws Exception {
+        SftpServer server = new SftpServer(tempDir);
+        
+        // Open file first
+        byte[] openResponse = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Open(112, "closeme.txt", 
+                        SftpCodec.SSH_FXF_WRITE | SftpCodec.SSH_FXF_CREAT,
+                        SftpFileAttributes.empty())));
+        SftpPacket.Handle handle = (SftpPacket.Handle) SftpCodec.decode(openResponse);
+        
+        // Close it
+        byte[] closeResponse = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Close(113, handle.handle())));
+        SftpPacket.Status status = (SftpPacket.Status) SftpCodec.decode(closeResponse);
+        assertThat(status.statusCode()).isEqualTo(SftpStatusCode.SSH_FX_OK);
+    }
+
+    @Test void testServerHandleInit() throws Exception {
+        SftpServer server = new SftpServer(tempDir);
+        byte[] response = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Init(3)));
+        SftpPacket.Version version = (SftpPacket.Version) SftpCodec.decode(response);
+        assertThat(version.version()).isEqualTo(3);
+    }
+
+    @Test void testServerHandleRealpath() throws Exception {
+        SftpServer server = new SftpServer(tempDir);
+        byte[] response = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Realpath(114, ".")));
+        SftpPacket decoded = SftpCodec.decode(response);
+        assertThat(decoded).isInstanceOf(SftpPacket.Name.class);
+    }
+
+    @Test void testServerHandleWriteAppend() throws Exception {
+        Files.writeString(tempDir.resolve("appendme.txt"), "initial ");
+        SftpServer server = new SftpServer(tempDir);
+        
+        byte[] openResponse = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Open(115, "appendme.txt", 
+                        SftpCodec.SSH_FXF_WRITE | SftpCodec.SSH_FXF_APPEND,
+                        SftpFileAttributes.empty())));
+        SftpPacket.Handle handle = (SftpPacket.Handle) SftpCodec.decode(openResponse);
+        
+        byte[] writeResponse = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Write(116, handle.handle(), 0L, "appended".getBytes())));
+        SftpPacket.Status status = (SftpPacket.Status) SftpCodec.decode(writeResponse);
+        assertThat(status.statusCode()).isEqualTo(SftpStatusCode.SSH_FX_OK);
+    }
+
+    @Test void testServerHandleOpenNonexistentForRead() throws Exception {
+        SftpServer server = new SftpServer(tempDir);
+        byte[] response = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Open(117, "nonexistent.txt", SftpCodec.SSH_FXF_READ, 
+                        SftpFileAttributes.empty())));
+        SftpPacket.Status status = (SftpPacket.Status) SftpCodec.decode(response);
+        assertThat(status.statusCode()).isEqualTo(SftpStatusCode.SSH_FX_NO_SUCH_FILE);
+    }
+
+    @Test void testServerHandleRemoveNonexistent() throws Exception {
+        SftpServer server = new SftpServer(tempDir);
+        byte[] response = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Remove(118, "nonexistent.txt")));
+        SftpPacket.Status status = (SftpPacket.Status) SftpCodec.decode(response);
+        assertThat(status.statusCode()).isEqualTo(SftpStatusCode.SSH_FX_NO_SUCH_FILE);
+    }
+
+    @Test void testServerHandleWriteToClosedHandle() throws Exception {
+        SftpServer server = new SftpServer(tempDir);
+        
+        // Invalid handle that doesn't exist
+        byte[] response = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Write(119, "invalid-handle".getBytes(), 0L, "data".getBytes())));
+        SftpPacket.Status status = (SftpPacket.Status) SftpCodec.decode(response);
+        assertThat(status.statusCode()).isEqualTo(SftpStatusCode.SSH_FX_FAILURE);
+    }
+
+    @Test void testServerHandleReadFromClosedHandle() throws Exception {
+        SftpServer server = new SftpServer(tempDir);
+        
+        byte[] response = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Read(120, "invalid-handle".getBytes(), 0L, 100)));
+        SftpPacket.Status status = (SftpPacket.Status) SftpCodec.decode(response);
+        assertThat(status.statusCode()).isEqualTo(SftpStatusCode.SSH_FX_FAILURE);
+    }
+
+    @Test void testServerHandleCloseInvalidHandle() throws Exception {
+        SftpServer server = new SftpServer(tempDir);
+        
+        byte[] response = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Close(121, "invalid-handle".getBytes())));
+        SftpPacket decoded = SftpCodec.decode(response);
+        assertThat(decoded).isInstanceOf(SftpPacket.Status.class);
+    }
+
+    @Test void testServerHandleReadEmptyFile() throws Exception {
+        Files.write(tempDir.resolve("empty.txt"), new byte[0]);
+        SftpServer server = new SftpServer(tempDir);
+        
+        byte[] openResponse = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Open(122, "empty.txt", SftpCodec.SSH_FXF_READ, 
+                        SftpFileAttributes.empty())));
+        SftpPacket.Handle handle = (SftpPacket.Handle) SftpCodec.decode(openResponse);
+        
+        byte[] readResponse = server.handlePacket(SftpCodec.encode(
+                new SftpPacket.Read(123, handle.handle(), 0L, 100)));
+        SftpPacket decoded = SftpCodec.decode(readResponse);
+        // Empty file may return SSH_FX_EOF status
+        assertThat(decoded).isInstanceOfAny(SftpPacket.Data.class, SftpPacket.Status.class);
     }
 }

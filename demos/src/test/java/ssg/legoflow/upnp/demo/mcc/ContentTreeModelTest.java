@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.*;
  * <p>Verifies lazy-loading behavior, tree navigation, search, and refresh
  * functionality using an in-process media server.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class ContentTreeModelTest {
 

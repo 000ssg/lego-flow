@@ -25,7 +25,7 @@ import java.util.Objects;
  *       .build();
  * }</pre>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class FtpsConfig {
 
@@ -158,7 +158,7 @@ public final class FtpsConfig {
     /**
      * Builder for {@link FtpsConfig}.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class Builder {
         private Path keystorePath;

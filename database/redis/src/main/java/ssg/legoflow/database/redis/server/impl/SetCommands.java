@@ -13,7 +13,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * Implements Redis set commands: SADD, SREM, SMEMBERS, SISMEMBER, SCARD,
  * SINTER, SUNION, SDIFF, SRANDMEMBER, SPOP, SMOVE.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SetCommands {
 

@@ -30,7 +30,7 @@ import java.util.List;
  *
  * <p>All visual elements use the {@link DarkTheme} colour palette.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class DeviceDetailsPanel extends JPanel {
 
@@ -83,7 +83,7 @@ public class DeviceDetailsPanel extends JPanel {
     /**
      * Creates a new device details panel.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DeviceDetailsPanel() {
         setLayout(new BorderLayout());
@@ -136,7 +136,7 @@ public class DeviceDetailsPanel extends JPanel {
      * Shows details for the given device, switching to the appropriate card.
      *
      * @param device the device to display details for
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void showDevice(DeviceProxy device) {
         if (device == null) {
@@ -158,7 +158,7 @@ public class DeviceDetailsPanel extends JPanel {
     /**
      * Shows the empty placeholder card.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void showEmpty() {
         cardLayout.show(cardsPanel, CARD_EMPTY);
@@ -169,7 +169,7 @@ public class DeviceDetailsPanel extends JPanel {
      * and the raw response text from the device.
      *
      * @param failedDevice the failed device to display
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void showFailedDevice(ControlPoint.FailedDevice failedDevice) {
         if (failedDevice == null) {

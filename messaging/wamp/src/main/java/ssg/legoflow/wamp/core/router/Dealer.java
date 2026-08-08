@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Supports Advanced Profile features: progressive call results, call cancellation,
  * caller identification, and shared registrations with load-balancing policies.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class Dealer {
 
@@ -269,14 +269,14 @@ public class Dealer {
     /**
      * Registration entry with invoke policy for shared registrations.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record RegistrationEntry(long registrationId, WampTransport transport, String invokePolicy) {}
 
     /**
      * Pending invocation tracking caller and callee info.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record PendingInvocation(WampTransport callerTransport, long callRequestId,
                              boolean receiveProgress, WampTransport calleeTransport) {

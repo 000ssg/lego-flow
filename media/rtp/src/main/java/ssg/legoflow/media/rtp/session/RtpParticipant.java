@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * <p>Tracks sender and receiver statistics for this participant including
  * packet counts, byte counts, jitter, and last activity time.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RtpParticipant {
 

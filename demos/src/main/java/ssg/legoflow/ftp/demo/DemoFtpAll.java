@@ -58,7 +58,7 @@ import java.util.List;
  *   <li>FTPS configuration — TLS explicit/implicit modes, PBSZ, PROT</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoFtpAll {
 

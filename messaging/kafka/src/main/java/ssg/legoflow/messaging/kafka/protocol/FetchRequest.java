@@ -9,7 +9,7 @@ import java.util.List;
  * @param minBytes   the minimum number of bytes to wait for
  * @param maxBytes   the maximum number of bytes to return
  * @param topics     the topics and partitions to fetch from
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record FetchRequest(int maxWaitMs, int minBytes, int maxBytes, List<TopicFetch> topics) {
 

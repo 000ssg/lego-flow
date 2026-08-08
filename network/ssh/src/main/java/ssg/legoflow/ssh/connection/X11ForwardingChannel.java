@@ -9,7 +9,7 @@ import ssg.legoflow.ssh.transport.SshTransport;
  * Created when the remote server opens a channel of type {@code "x11"} after
  * X11 forwarding has been requested on a session channel.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class X11ForwardingChannel extends SshChannel {
 

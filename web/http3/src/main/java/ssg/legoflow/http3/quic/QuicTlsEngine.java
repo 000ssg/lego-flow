@@ -30,7 +30,7 @@ import java.util.Objects;
  *       class; it only manages the handshake and exports keying material.</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class QuicTlsEngine {
 
@@ -46,7 +46,7 @@ public final class QuicTlsEngine {
     /**
      * Handshake state of the QUIC TLS engine.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum HandshakeState {
         /** Not yet started. */
@@ -70,7 +70,7 @@ public final class QuicTlsEngine {
      * @param peerPort the server port
      * @return a client-side TLS engine
      * @throws QuicTlsException if TLS 1.3 is not available
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static QuicTlsEngine forClient(String peerHost, int peerPort) {
         return forClient(peerHost, peerPort, null);
@@ -84,7 +84,7 @@ public final class QuicTlsEngine {
      * @param sslContext the SSLContext to use, or {@code null} for default
      * @return a client-side TLS engine
      * @throws QuicTlsException if TLS 1.3 is not available
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static QuicTlsEngine forClient(String peerHost, int peerPort, SSLContext sslContext) {
         var ctx = resolveContext(sslContext);
@@ -99,7 +99,7 @@ public final class QuicTlsEngine {
      * @param sslContext the SSLContext (must have a KeyManager configured)
      * @return a server-side TLS engine
      * @throws QuicTlsException if TLS 1.3 is not available
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static QuicTlsEngine forServer(SSLContext sslContext) {
         Objects.requireNonNull(sslContext, "SSLContext is required for server");
@@ -125,7 +125,7 @@ public final class QuicTlsEngine {
      * Begins the TLS handshake.
      *
      * @throws QuicTlsException if the handshake cannot be initiated
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void beginHandshake() {
         try {
@@ -146,7 +146,7 @@ public final class QuicTlsEngine {
      *
      * @return the handshake data to send, or an empty buffer if nothing to produce
      * @throws QuicTlsException on TLS errors
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ByteBuffer produceHandshakeData() {
         var outBuf = ByteBuffer.allocate(engine.getSession().getPacketBufferSize());
@@ -171,7 +171,7 @@ public final class QuicTlsEngine {
      * @param data the received handshake data
      * @return the unwrapped application data (empty during handshake)
      * @throws QuicTlsException on TLS errors
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ByteBuffer consumeHandshakeData(ByteBuffer data) {
         var appBuf = ByteBuffer.allocate(engine.getSession().getApplicationBufferSize());
@@ -192,7 +192,7 @@ public final class QuicTlsEngine {
      * <p>Call this when the SSLEngine's handshake status is
      * {@link SSLEngineResult.HandshakeStatus#NEED_TASK NEED_TASK}.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void runDelegatedTasks() {
         Runnable task;
@@ -205,7 +205,7 @@ public final class QuicTlsEngine {
      * Returns the current handshake status from the underlying SSLEngine.
      *
      * @return the current handshake status
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SSLEngineResult.HandshakeStatus handshakeStatus() {
         return engine.getHandshakeStatus();
@@ -215,7 +215,7 @@ public final class QuicTlsEngine {
      * Returns the negotiated ALPN protocol after handshake completes.
      *
      * @return the ALPN protocol string, or {@code null} if not yet negotiated
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String negotiatedAlpn() {
         return engine.getApplicationProtocol();
@@ -225,7 +225,7 @@ public final class QuicTlsEngine {
      * Returns the negotiated TLS protocol version.
      *
      * @return the protocol version string (e.g., "TLSv1.3")
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String negotiatedProtocol() {
         return engine.getSession().getProtocol();
@@ -235,7 +235,7 @@ public final class QuicTlsEngine {
      * Returns the negotiated cipher suite.
      *
      * @return the cipher suite name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String cipherSuite() {
         return engine.getSession().getCipherSuite();
@@ -245,7 +245,7 @@ public final class QuicTlsEngine {
      * Returns the current handshake state.
      *
      * @return the handshake state
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HandshakeState handshakeState() {
         return handshakeState;
@@ -255,7 +255,7 @@ public final class QuicTlsEngine {
      * Returns the underlying SSLEngine for advanced configuration.
      *
      * @return the SSLEngine
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SSLEngine sslEngine() {
         return engine;
@@ -265,7 +265,7 @@ public final class QuicTlsEngine {
      * Returns whether this is the server side.
      *
      * @return {@code true} for server, {@code false} for client
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isServer() {
         return isServer;
@@ -274,7 +274,7 @@ public final class QuicTlsEngine {
     /**
      * Closes the TLS engine, sending close_notify.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void close() {
         engine.closeOutbound();

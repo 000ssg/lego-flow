@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
  * and an INBOX created automatically for each authenticated user.
  * Suitable for testing and development.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class InMemoryMailStore implements MailStore {
 

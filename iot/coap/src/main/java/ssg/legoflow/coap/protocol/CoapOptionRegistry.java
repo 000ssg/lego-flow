@@ -11,14 +11,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * critical or elective, unsafe or safe-to-forward, whether it acts as a
  * no-cache-key, its format, length constraints, and whether it is repeatable.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class CoapOptionRegistry {
 
     /**
      * Option value format types.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum Format {
         /** Empty value (zero-length). */
@@ -43,7 +43,7 @@ public final class CoapOptionRegistry {
      * @param minLength   the minimum value length in bytes
      * @param maxLength   the maximum value length in bytes
      * @param repeatable  whether the option may appear multiple times
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record OptionInfo(
             int number,
@@ -90,7 +90,7 @@ public final class CoapOptionRegistry {
      * Registers option metadata.
      *
      * @param info the option info to register
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void register(OptionInfo info) {
         REGISTRY.put(info.number(), info);
@@ -101,7 +101,7 @@ public final class CoapOptionRegistry {
      *
      * @param number the option number
      * @return an {@link Optional} containing the info, or empty if unregistered
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Optional<OptionInfo> lookup(int number) {
         return Optional.ofNullable(REGISTRY.get(number));
@@ -112,7 +112,7 @@ public final class CoapOptionRegistry {
      *
      * @param number the option number
      * @return {@code true} if the option is critical
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static boolean isCritical(int number) {
         return (number & 1) == 1;
@@ -123,7 +123,7 @@ public final class CoapOptionRegistry {
      *
      * @param number the option number
      * @return {@code true} if the option is elective
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static boolean isElective(int number) {
         return (number & 1) == 0;
@@ -134,7 +134,7 @@ public final class CoapOptionRegistry {
      *
      * @param number the option number
      * @return {@code true} if the option is unsafe
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static boolean isUnsafe(int number) {
         return (number & 2) == 2;
@@ -145,7 +145,7 @@ public final class CoapOptionRegistry {
      *
      * @param number the option number
      * @return {@code true} if the option is safe to forward
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static boolean isSafeToForward(int number) {
         return !isUnsafe(number);
@@ -156,7 +156,7 @@ public final class CoapOptionRegistry {
      *
      * @param number the option number
      * @return {@code true} if the option is a no-cache-key
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static boolean isNoCacheKey(int number) {
         return (number & 0x1E) == 0x1C;

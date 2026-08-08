@@ -50,7 +50,7 @@ import java.util.List;
  *   <li>Extension negotiation — EHLO capabilities: SIZE, 8BITMIME, PIPELINING, AUTH</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoSmtpAll {
 

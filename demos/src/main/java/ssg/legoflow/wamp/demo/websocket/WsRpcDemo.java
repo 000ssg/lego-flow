@@ -20,7 +20,7 @@ import java.util.Map;
  * <p>Uses two pairs of WebSocket sessions wired back-to-back to simulate
  * network communication without an actual HTTP server.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class WsRpcDemo {
 

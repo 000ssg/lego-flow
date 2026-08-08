@@ -3,7 +3,7 @@ package ssg.legoflow.network.common.ber;
 /**
  * Exception thrown when BER decoding encounters malformed or unexpected data.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class BerDecodingException extends RuntimeException {
 

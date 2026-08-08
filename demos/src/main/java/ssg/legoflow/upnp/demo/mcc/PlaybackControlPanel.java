@@ -36,7 +36,7 @@ import java.util.function.Consumer;
  *   <li>{@code ⏭} Next</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class PlaybackControlPanel extends JPanel implements PlaybackListener {
 
@@ -77,7 +77,7 @@ public class PlaybackControlPanel extends JPanel implements PlaybackListener {
      * buttons, volume slider, mute toggle, position slider, and renderer selector.
      *
      * @param controlPoint the control point for discovering renderers
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public PlaybackControlPanel(ControlPoint controlPoint) {
         setLayout(new BorderLayout(4, 4));
@@ -185,7 +185,7 @@ public class PlaybackControlPanel extends JPanel implements PlaybackListener {
      * Sets the callback invoked when a renderer is selected from the combo box.
      *
      * @param callback the callback
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setRendererSelectedCallback(Consumer<MediaRendererProxy> callback) {
         this.rendererSelectedCallback = callback;
@@ -195,7 +195,7 @@ public class PlaybackControlPanel extends JPanel implements PlaybackListener {
      * Sets the active media renderer for playback control.
      *
      * @param renderer the renderer proxy, or {@code null} to clear
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setRenderer(MediaRendererProxy renderer) {
         this.currentRenderer = renderer;
@@ -222,7 +222,7 @@ public class PlaybackControlPanel extends JPanel implements PlaybackListener {
      * Returns the currently selected renderer.
      *
      * @return the renderer proxy, or {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MediaRendererProxy getRenderer() {
         return currentRenderer;
@@ -232,7 +232,7 @@ public class PlaybackControlPanel extends JPanel implements PlaybackListener {
      * Updates the renderer combo box with the given list of renderers.
      *
      * @param renderers the available renderers
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void updateRendererList(List<MediaRendererProxy> renderers) {
         SwingUtilities.invokeLater(() -> {
@@ -257,7 +257,7 @@ public class PlaybackControlPanel extends JPanel implements PlaybackListener {
      * Plays the given content item on the currently selected renderer.
      *
      * @param item the content item to play
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void playItem(ContentItem item) {
         var renderer = currentRenderer;
@@ -282,7 +282,7 @@ public class PlaybackControlPanel extends JPanel implements PlaybackListener {
     /**
      * {@inheritDoc}
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void onPlaybackEvent(PlaybackEvent event) {
@@ -326,7 +326,7 @@ public class PlaybackControlPanel extends JPanel implements PlaybackListener {
      * Sets the now-playing panel to update when items are dropped on the control panel.
      *
      * @param panel the now-playing panel
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setNowPlayingPanel(NowPlayingPanel panel) {
         this.nowPlayingPanel = panel;
@@ -341,7 +341,7 @@ public class PlaybackControlPanel extends JPanel implements PlaybackListener {
      * that is playing locally through the demo renderer.
      *
      * @param engine the local playback engine
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setLocalPlaybackEngine(LocalPlaybackEngine engine) {
         this.localPlaybackEngine = engine;
@@ -569,7 +569,7 @@ public class PlaybackControlPanel extends JPanel implements PlaybackListener {
      *
      * @param name  the display name
      * @param proxy the renderer proxy
-     * @since 1.0.0
+     * @since 0.1.0
      */
     private record RendererEntry(String name, MediaRendererProxy proxy) {
         @Override
@@ -582,7 +582,7 @@ public class PlaybackControlPanel extends JPanel implements PlaybackListener {
      * Transfer handler that accepts drops of {@link ContentItemTransferable} on
      * the playback control panel, triggering playback on the selected renderer.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     private class PlaybackControlTransferHandler extends TransferHandler {
 
@@ -591,7 +591,7 @@ public class PlaybackControlPanel extends JPanel implements PlaybackListener {
          *
          * @param support the transfer support info
          * @return {@code true} if the transfer contains a content item and a renderer is selected
-         * @since 1.0.0
+         * @since 0.1.0
          */
         @Override
         public boolean canImport(TransferSupport support) {
@@ -604,7 +604,7 @@ public class PlaybackControlPanel extends JPanel implements PlaybackListener {
          *
          * @param support the transfer support info
          * @return {@code true} if the drop was successfully handled
-         * @since 1.0.0
+         * @since 0.1.0
          */
         @Override
         public boolean importData(TransferSupport support) {

@@ -5,7 +5,7 @@
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](../LICENSE)
 [![Tests](https://img.shields.io/badge/Tests-113-brightgreen.svg)]()
-[![Version](https://img.shields.io/badge/Version-1.0.0--SNAPSHOT-blue.svg)]()
+[![Version](https://img.shields.io/badge/Version-0.1.0-SNAPSHOT-blue.svg)]()
 
 SNMPv3 protocol module for the Lego Flow framework, providing agent (server) and manager (client) implementations with USM security and VACM access control.
 

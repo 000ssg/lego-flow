@@ -16,7 +16,7 @@ import java.net.InetSocketAddress;
  * <p>Each syslog message is sent as a single UDP datagram. Messages that
  * exceed the maximum datagram size may be truncated by the network.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class UdpSender implements AutoCloseable {
 

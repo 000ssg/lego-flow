@@ -21,7 +21,7 @@
 13. Base64-encoded SAML response support
 14. Issuer validation against config
 15. Principal conversion from SAML assertions with role extraction
-16. All public classes with Javadoc @since 1.0.0
+16. All public classes with Javadoc @since 0.1.0
 
 ## Implementation
 

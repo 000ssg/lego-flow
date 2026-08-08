@@ -14,7 +14,7 @@ import java.time.Duration;
  * @param playMedium          the play medium (e.g. "NETWORK")
  * @param recordMedium        the record medium (e.g. "NOT_IMPLEMENTED")
  * @param writeStatus         the write status (e.g. "NOT_IMPLEMENTED")
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record MediaInfo(
         int nrTracks,
@@ -32,7 +32,7 @@ public record MediaInfo(
      * Creates a default media info with no media loaded.
      *
      * @return empty media info
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static MediaInfo empty() {
         return new MediaInfo(0, Duration.ZERO, "", "", "", "",

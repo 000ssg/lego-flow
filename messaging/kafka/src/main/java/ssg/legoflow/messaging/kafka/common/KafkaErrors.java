@@ -3,7 +3,7 @@ package ssg.legoflow.messaging.kafka.common;
 /**
  * Kafka protocol error codes as defined in the Apache Kafka specification.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum KafkaErrors {
 

@@ -12,7 +12,7 @@ import java.util.Objects;
  *
  * @param profile the profile-specific extension identifier (16 bits)
  * @param data    the extension data (length must be a multiple of 4 bytes)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record HeaderExtension(int profile, byte[] data) {
 

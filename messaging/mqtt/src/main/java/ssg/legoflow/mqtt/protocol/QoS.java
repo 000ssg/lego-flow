@@ -10,7 +10,7 @@ package ssg.legoflow.mqtt.protocol;
  *   <li>{@link #EXACTLY_ONCE} — assured delivery (QoS 2)</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum QoS {
 

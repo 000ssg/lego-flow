@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Entries expire based on the record's TTL. Thread-safe via
  * {@link ConcurrentHashMap}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DnsCache {
 
@@ -31,7 +31,7 @@ public final class DnsCache {
      * Creates a cache with a maximum number of entries.
      *
      * @param maxEntries the maximum number of cache entries
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DnsCache(long maxEntries) {
         this.maxEntries = maxEntries;
@@ -40,7 +40,7 @@ public final class DnsCache {
     /**
      * Creates a cache with default capacity (10000).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DnsCache() {
         this(10_000);
@@ -50,7 +50,7 @@ public final class DnsCache {
      * Stores records from a DNS response in the cache.
      *
      * @param response the DNS response to cache
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void put(DnsMessage response) {
         cacheRecords(response.answers());
@@ -62,7 +62,7 @@ public final class DnsCache {
      * Stores a single record in the cache.
      *
      * @param record the record to cache
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void put(DnsRecord record) {
         CacheKey key = new CacheKey(record.name(), record.type());
@@ -77,7 +77,7 @@ public final class DnsCache {
      * @param name the domain name
      * @param type the record type
      * @return list of cached records, empty if not found or expired
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<DnsRecord> get(DnsName name, RecordType type) {
         CacheKey key = new CacheKey(name, type);
@@ -111,7 +111,7 @@ public final class DnsCache {
      * Returns the number of entries in the cache.
      *
      * @return the cache size
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int size() {
         return cache.values().stream().mapToInt(List::size).sum();
@@ -120,7 +120,7 @@ public final class DnsCache {
     /**
      * Clears all entries from the cache.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void clear() {
         cache.clear();
@@ -130,7 +130,7 @@ public final class DnsCache {
      * Evicts expired entries from the cache.
      *
      * @return the number of evicted entries
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int evictExpired() {
         Instant now = Instant.now();

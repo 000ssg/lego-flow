@@ -19,7 +19,7 @@ import java.util.function.Consumer;
  * registered handler. Each datagram is expected to contain exactly one
  * syslog message.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class UdpCollector implements AutoCloseable {
 

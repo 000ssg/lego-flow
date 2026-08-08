@@ -60,7 +60,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *   <li>Protobuf encoding — schema-aware encode/decode round-trip</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoGrpcAll {
 

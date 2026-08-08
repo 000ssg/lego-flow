@@ -10,7 +10,7 @@ import java.util.Objects;
  * @param ackTimeout         the ACK timeout in milliseconds (RFC 7252: 2000ms)
  * @param maxRetransmit      the maximum number of retransmissions (RFC 7252: 4)
  * @param preferredBlockSize the preferred block size for blockwise transfer
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record CoapClientConfig(
         String host,
@@ -41,7 +41,7 @@ public record CoapClientConfig(
      *
      * @param host the target host
      * @return the default configuration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapClientConfig defaults(String host) {
         return new CoapClientConfig(host, 5683, 2000, 4, 512);
@@ -53,7 +53,7 @@ public record CoapClientConfig(
      * @param host the target host
      * @param port the target port
      * @return the default configuration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapClientConfig defaults(String host, int port) {
         return new CoapClientConfig(host, port, 2000, 4, 512);

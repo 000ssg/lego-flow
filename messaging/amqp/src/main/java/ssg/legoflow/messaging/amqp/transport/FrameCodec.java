@@ -7,6 +7,7 @@ import ssg.legoflow.messaging.amqp.types.AmqpType;
 import ssg.legoflow.messaging.amqp.types.TypeCodec;
 
 import java.nio.ByteBuffer;
+import ssg.legoflow.service.util.BufferPool;
 
 /**
  * Encodes and decodes AMQP 1.0 frames to/from the wire format.
@@ -19,7 +20,7 @@ import java.nio.ByteBuffer;
  * +-------+-------+-------+-------+-------+-------+-------+-------+------...
  * </pre>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class FrameCodec {
 
@@ -47,7 +48,7 @@ public final class FrameCodec {
                     "Frame size " + totalSize + " exceeds max " + maxFrameSize);
         }
 
-        ByteBuffer buf = ByteBuffer.allocate(totalSize);
+        ByteBuffer buf = BufferPool.getBuffer(totalSize);
         buf.putInt(totalSize);
         buf.put((byte) 2); // DOFF = 2 (header is 8 bytes = 2 * 4-byte words)
         buf.put(frame.type());

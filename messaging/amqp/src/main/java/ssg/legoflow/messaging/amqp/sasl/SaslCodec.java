@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Encodes and decodes SASL frames for AMQP 1.0 authentication negotiation.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SaslCodec {
 

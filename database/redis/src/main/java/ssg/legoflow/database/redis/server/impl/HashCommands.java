@@ -15,7 +15,7 @@ import java.util.Map;
  * Implements Redis hash commands: HSET, HGET, HMSET, HMGET, HDEL, HEXISTS,
  * HLEN, HKEYS, HVALS, HGETALL, HINCRBY, HINCRBYFLOAT, HSETNX.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class HashCommands {
 

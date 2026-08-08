@@ -20,7 +20,7 @@ import java.util.Map;
  * <p>Creates a server with multiple endpoints and sends multiple
  * requests concurrently using separate QUIC bidirectional streams.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MultiplexingDemo {
 
@@ -30,7 +30,7 @@ public class MultiplexingDemo {
     /**
      * Creates a new multiplexing demo with three resource endpoints.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MultiplexingDemo() {
         this.config = Http3Config.defaults().maxConcurrentStreams(10);
@@ -48,7 +48,7 @@ public class MultiplexingDemo {
      * Returns the server.
      *
      * @return the server
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Server server() {
         return server;
@@ -58,7 +58,7 @@ public class MultiplexingDemo {
      * Returns the config.
      *
      * @return the config
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Config config() {
         return config;
@@ -70,7 +70,7 @@ public class MultiplexingDemo {
      * @param connection the HTTP/3 connection
      * @param paths      the request paths
      * @return the list of streams used for the requests
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<QuicStream> sendConcurrentRequests(Http3Connection connection, String... paths) {
         var streams = new ArrayList<QuicStream>();

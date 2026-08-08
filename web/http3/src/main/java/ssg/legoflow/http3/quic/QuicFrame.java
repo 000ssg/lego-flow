@@ -15,7 +15,7 @@ import java.nio.ByteBuffer;
  * @param payload  the frame payload data
  * @param offset   the byte offset within the stream
  * @param fin      {@code true} if this frame ends the stream
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record QuicFrame(
         QuicFrameType type,
@@ -31,7 +31,7 @@ public record QuicFrame(
      * @param type    the frame type
      * @param payload the frame payload
      * @return a new {@code QuicFrame} with streamId 0, offset 0, and fin false
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static QuicFrame connectionFrame(QuicFrameType type, ByteBuffer payload) {
         return new QuicFrame(type, 0, payload, 0, false);
@@ -45,7 +45,7 @@ public record QuicFrame(
      * @param offset   the byte offset in the stream
      * @param fin      {@code true} if this is the last frame for the stream
      * @return a new {@code QuicFrame} of type {@link QuicFrameType#STREAM}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static QuicFrame streamFrame(long streamId, ByteBuffer payload, long offset, boolean fin) {
         return new QuicFrame(QuicFrameType.STREAM, streamId, payload, offset, fin);

@@ -9,7 +9,7 @@ import ssg.legoflow.http3.Http3Settings;
  * with QUIC transport settings (idle timeout, stream limits, flow control).
  * Provides factory methods for common configurations.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class Http3Config {
 
@@ -28,7 +28,7 @@ public class Http3Config {
      * Returns the maximum field section size.
      *
      * @return the maximum field section size
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long maxFieldSectionSize() {
         return maxFieldSectionSize;
@@ -39,7 +39,7 @@ public class Http3Config {
      *
      * @param maxFieldSectionSize the maximum size
      * @return this config for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Config maxFieldSectionSize(long maxFieldSectionSize) {
         this.maxFieldSectionSize = maxFieldSectionSize;
@@ -50,7 +50,7 @@ public class Http3Config {
      * Returns the QPACK maximum table capacity.
      *
      * @return the QPACK max table capacity
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int qpackMaxTableCapacity() {
         return qpackMaxTableCapacity;
@@ -61,7 +61,7 @@ public class Http3Config {
      *
      * @param qpackMaxTableCapacity the capacity
      * @return this config for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Config qpackMaxTableCapacity(int qpackMaxTableCapacity) {
         this.qpackMaxTableCapacity = qpackMaxTableCapacity;
@@ -72,7 +72,7 @@ public class Http3Config {
      * Returns the QPACK blocked streams limit.
      *
      * @return the blocked streams limit
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int qpackBlockedStreams() {
         return qpackBlockedStreams;
@@ -83,7 +83,7 @@ public class Http3Config {
      *
      * @param qpackBlockedStreams the limit
      * @return this config for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Config qpackBlockedStreams(int qpackBlockedStreams) {
         this.qpackBlockedStreams = qpackBlockedStreams;
@@ -94,7 +94,7 @@ public class Http3Config {
      * Returns the maximum idle timeout in milliseconds.
      *
      * @return the max idle timeout
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long maxIdleTimeout() {
         return maxIdleTimeout;
@@ -105,7 +105,7 @@ public class Http3Config {
      *
      * @param maxIdleTimeout the timeout
      * @return this config for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Config maxIdleTimeout(long maxIdleTimeout) {
         this.maxIdleTimeout = maxIdleTimeout;
@@ -116,7 +116,7 @@ public class Http3Config {
      * Returns the maximum number of concurrent streams.
      *
      * @return the max concurrent streams
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int maxConcurrentStreams() {
         return maxConcurrentStreams;
@@ -127,7 +127,7 @@ public class Http3Config {
      *
      * @param maxConcurrentStreams the limit
      * @return this config for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Config maxConcurrentStreams(int maxConcurrentStreams) {
         this.maxConcurrentStreams = maxConcurrentStreams;
@@ -138,7 +138,7 @@ public class Http3Config {
      * Returns the initial maximum data for the connection.
      *
      * @return the initial max data
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long initialMaxData() {
         return initialMaxData;
@@ -149,7 +149,7 @@ public class Http3Config {
      *
      * @param initialMaxData the data limit
      * @return this config for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Config initialMaxData(long initialMaxData) {
         this.initialMaxData = initialMaxData;
@@ -160,7 +160,7 @@ public class Http3Config {
      * Returns the server port.
      *
      * @return the port number
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int port() {
         return port;
@@ -171,7 +171,7 @@ public class Http3Config {
      *
      * @param port the port number
      * @return this config for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Config port(int port) {
         this.port = port;
@@ -182,7 +182,7 @@ public class Http3Config {
      * Returns the server host.
      *
      * @return the host address
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String host() {
         return host;
@@ -193,7 +193,7 @@ public class Http3Config {
      *
      * @param host the host address
      * @return this config for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Config host(String host) {
         this.host = host;
@@ -204,7 +204,7 @@ public class Http3Config {
      * Returns whether server push is enabled.
      *
      * @return {@code true} if push is enabled
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean enablePush() {
         return enablePush;
@@ -215,7 +215,7 @@ public class Http3Config {
      *
      * @param enablePush {@code true} to enable push
      * @return this config for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Config enablePush(boolean enablePush) {
         this.enablePush = enablePush;
@@ -226,7 +226,7 @@ public class Http3Config {
      * Returns whether 0-RTT is enabled.
      *
      * @return {@code true} if 0-RTT is enabled
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean enable0Rtt() {
         return enable0Rtt;
@@ -237,7 +237,7 @@ public class Http3Config {
      *
      * @param enable0Rtt {@code true} to enable 0-RTT
      * @return this config for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Config enable0Rtt(boolean enable0Rtt) {
         this.enable0Rtt = enable0Rtt;
@@ -248,7 +248,7 @@ public class Http3Config {
      * Creates a default configuration.
      *
      * @return a new default config
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Http3Config defaults() {
         return new Http3Config();
@@ -258,7 +258,7 @@ public class Http3Config {
      * Creates a high-performance configuration with larger buffers and stream limits.
      *
      * @return a new high-performance config
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Http3Config highPerformance() {
         return new Http3Config()
@@ -273,7 +273,7 @@ public class Http3Config {
      * Creates a low-latency configuration optimised for fast response times.
      *
      * @return a new low-latency config
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Http3Config lowLatency() {
         return new Http3Config()

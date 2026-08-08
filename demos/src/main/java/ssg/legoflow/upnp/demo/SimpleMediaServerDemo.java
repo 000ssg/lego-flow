@@ -29,7 +29,7 @@ import java.time.Duration;
  * <p>The server advertises itself via SSDP and serves content metadata
  * via the ContentDirectory service.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SimpleMediaServerDemo {
 
@@ -38,7 +38,7 @@ public class SimpleMediaServerDemo {
     /**
      * Creates and initializes the demo media server.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SimpleMediaServerDemo() {
         server = new MediaServerDevice("Lego Flow Demo Media Server");
@@ -51,7 +51,7 @@ public class SimpleMediaServerDemo {
      * Returns the media server device.
      *
      * @return the server device
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MediaServerDevice getServer() {
         return server;
@@ -60,7 +60,7 @@ public class SimpleMediaServerDemo {
     /**
      * Starts the demo media server.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() {
         server.start();
@@ -69,7 +69,7 @@ public class SimpleMediaServerDemo {
     /**
      * Stops the demo media server.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         server.stop();
@@ -152,7 +152,7 @@ public class SimpleMediaServerDemo {
      * Main entry point for running the demo standalone.
      *
      * @param args command-line arguments (unused)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void main(String[] args) {
         var demo = new SimpleMediaServerDemo();

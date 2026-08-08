@@ -8,7 +8,7 @@ import java.util.*;
  * <p>Handles the JSON types needed for GraphQL: objects, arrays, strings,
  * numbers, booleans, and null. No external dependencies.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class JsonCodec {
 

@@ -21,7 +21,7 @@ import java.util.*;
  * optional SASL authentication. After setup, the connection is ready for
  * mail transactions.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SmtpConnection implements AutoCloseable {
 

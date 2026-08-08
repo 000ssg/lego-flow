@@ -18,7 +18,7 @@ import java.util.Map;
  * associated resources (e.g., stylesheets) using PUSH_PROMISE,
  * eliminating the round trip needed for the client to discover them.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ServerPushDemo {
 
@@ -27,7 +27,7 @@ public class ServerPushDemo {
     /**
      * Creates a new server push demo with a page and stylesheet endpoint.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ServerPushDemo() {
         var config = Http3Config.defaults().enablePush(true);
@@ -46,7 +46,7 @@ public class ServerPushDemo {
      * Returns the server.
      *
      * @return the server
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Server server() {
         return server;
@@ -59,7 +59,7 @@ public class ServerPushDemo {
      * @param requestStream the request stream
      * @param headers      the request headers
      * @param body         the request body
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void handleRequestWithPush(Http3Connection connection, QuicStream requestStream,
                                       List<Map.Entry<String, String>> headers, ByteBuffer body) {

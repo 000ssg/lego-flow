@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * <p>Builds REGISTER requests for initial registration, refresh, and
  * unregistration. Tracks Call-ID and CSeq for the registration sequence.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SipRegistrationClient {
 
@@ -30,7 +30,7 @@ public final class SipRegistrationClient {
      * @param registrarUri the registrar URI (e.g., "sip:registrar.example.com")
      * @param aor          the Address-of-Record to register
      * @param contactUri   the Contact URI (where to reach this UA)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipRegistrationClient(String registrarUri, String aor, String contactUri) {
         this.registrarUri = Objects.requireNonNull(registrarUri, "registrarUri");
@@ -45,7 +45,7 @@ public final class SipRegistrationClient {
      *
      * @param expires the registration expiration in seconds
      * @return the REGISTER request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipRequest register(int expires) {
         return SipRequest.builder(SipMethod.REGISTER, registrarUri)
@@ -64,7 +64,7 @@ public final class SipRegistrationClient {
      * Builds a REGISTER request for unregistration (expires=0).
      *
      * @return the unregister request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipRequest unregister() {
         return register(0);
@@ -74,7 +74,7 @@ public final class SipRegistrationClient {
      * Returns the Call-ID used for this registration sequence.
      *
      * @return the Call-ID
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String callId() {
         return callId;
@@ -84,7 +84,7 @@ public final class SipRegistrationClient {
      * Returns the current CSeq value.
      *
      * @return the CSeq
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long currentCSeq() {
         return cseq.get();

@@ -18,7 +18,7 @@ import java.time.Duration;
  * replies to the requester's inbox. The requester uses the
  * built-in request/reply API with timeout handling.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RequestReplyDemo {
 

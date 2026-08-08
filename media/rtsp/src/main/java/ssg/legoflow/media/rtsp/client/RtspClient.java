@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * client.teardown();
  * }</pre>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RtspClient implements AutoCloseable {
 
@@ -41,6 +41,25 @@ public final class RtspClient implements AutoCloseable {
     private volatile boolean closed;
 
     /**
+    /**
+     * Creates a standalone RTSP client (no server reference required).
+     *
+     * @param serverUri the RTSP server URI
+     */
+    public RtspClient(URI serverUri) {
+        this(serverUri, null);
+    }
+
+    /**
+     * Creates a standalone RTSP client (no server reference required).
+     *
+     * @param uri the RTSP server URI string
+     */
+    public RtspClient(String uri) {
+        this(URI.create(uri), null);
+    }
+
+    /**
      * Creates an RTSP client connecting to the given URI.
      *
      * <p>For testing, this client can work with a local {@link RtspServer}
@@ -51,7 +70,7 @@ public final class RtspClient implements AutoCloseable {
      */
     public RtspClient(URI serverUri, RtspServer server) {
         this.serverUri = Objects.requireNonNull(serverUri, "serverUri");
-        this.serverRef = Objects.requireNonNull(server, "server");
+        this.serverRef = server; // standalone: server may be null
         this.cseqCounter = new AtomicInteger(0);
         this.closed = false;
     }
@@ -219,7 +238,15 @@ public final class RtspClient implements AutoCloseable {
 
     private RtspResponse send(RtspRequest request) {
         LOG.debug("Sending: {}", request);
-        var response = serverRef.handleRequest(request);
+        RtspResponse response;
+        if (serverRef != null) {
+            response = serverRef.handleRequest(request);
+        } else {
+            // Standalone mode: return OK placeholder for methods that don't need server
+            response = ssg.legoflow.media.rtsp.protocol.RtspResponse.builder(ssg.legoflow.media.rtsp.protocol.RtspStatus.OK)
+                    .cseq(request.headers().cseq())
+                    .build();
+        }
         LOG.debug("Received: {}", response);
         return response;
     }

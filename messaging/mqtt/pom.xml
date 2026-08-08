@@ -1,29 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    
     <parent>
         <groupId>ssg</groupId>
         <artifactId>lego-flow-messaging</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>0.1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>lego-flow-mqtt</artifactId>
-    <name>Lego Flow MQTT — IoT Pub/Sub Messaging Protocol</name>
+    
+    <artifactId>messaging-mqtt</artifactId>
+    <name>MQTT Messaging</name>
+    <description>MQTT (Message Queuing Telemetry Transport) implementation</description>
+    
     <dependencies>
         <dependency>
             <groupId>ssg</groupId>
-            <artifactId>lego-flow-blocks</artifactId>
+            <artifactId>lego-flow-service</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>ssg</groupId>
-            <artifactId>lego-flow-service</artifactId>
+            <artifactId>lego-flow-blocks</artifactId>
+            <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
+            <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <scope>test</scope>
@@ -38,5 +42,5 @@
             <artifactId>assertj-core</artifactId>
             <scope>test</scope>
         </dependency>
-    </dependencies>
+</dependencies>
 </project>

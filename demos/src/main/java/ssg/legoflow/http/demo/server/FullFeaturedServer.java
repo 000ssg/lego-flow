@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Full-featured HTTP server demo combining static content, REST routes,
  * caching, security (TLS + HSTS), WebSocket, and compression.
  *
- * @since 1.0
+ * @since 0.1
  */
 public class FullFeaturedServer {
 

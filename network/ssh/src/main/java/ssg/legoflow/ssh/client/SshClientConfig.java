@@ -8,7 +8,7 @@ import java.util.Objects;
 /**
  * SSH client configuration with preferred algorithms and timeouts.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SshClientConfig {
 
@@ -70,7 +70,7 @@ public final class SshClientConfig {
     /**
      * Builder for SSH client configuration.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class Builder {
         private List<String> preferredKexAlgorithms = List.of(

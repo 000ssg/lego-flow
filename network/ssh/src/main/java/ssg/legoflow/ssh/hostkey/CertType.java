@@ -3,7 +3,7 @@ package ssg.legoflow.ssh.hostkey;
 /**
  * SSH certificate type per OpenSSH PROTOCOL.certkeys.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum CertType {
 

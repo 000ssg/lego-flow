@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
  *
  * @param warnings number of warnings
  * @param statusFlags server status flags
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record EofPacket(int warnings, int statusFlags) {
 

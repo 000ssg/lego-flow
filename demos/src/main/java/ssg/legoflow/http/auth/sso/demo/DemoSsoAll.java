@@ -38,7 +38,7 @@ import java.util.Set;
  *   <li>SAML Logout — LogoutRequest generation</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoSsoAll {
 
@@ -58,7 +58,7 @@ public final class DemoSsoAll {
      * @param samlAuthnRequest    true if SAML AuthnRequest generation works
      * @param samlAssertionParsing true if SAML assertion parsing works
      * @param samlLogout          true if SAML logout request generation works
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record Results(
             boolean ssoManager,
@@ -74,7 +74,7 @@ public final class DemoSsoAll {
      *
      * @return results from each feature section
      * @throws Exception if any operation fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Results runAll() throws Exception {
         boolean manager = demoSsoManager();
@@ -94,7 +94,7 @@ public final class DemoSsoAll {
      * and federated logout with service propagation.
      *
      * @return true if SSO manager operations work correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoSsoManager() {
         LOG.info("=== 1. SSO Manager ===");
@@ -137,7 +137,7 @@ public final class DemoSsoAll {
      * session attributes, and expiration checking.
      *
      * @return true if SSO session operations work correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoSsoSession() {
         LOG.info("=== 2. SSO Session ===");
@@ -176,7 +176,7 @@ public final class DemoSsoAll {
      * Demonstrates reverse proxy SSO with header injection and principal extraction.
      *
      * @return true if reverse proxy SSO works correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoReverseProxySso() {
         LOG.info("=== 3. Reverse Proxy SSO ===");
@@ -226,7 +226,7 @@ public final class DemoSsoAll {
      * and HTTP-POST bindings.
      *
      * @return true if AuthnRequest generation works correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoSamlAuthnRequest() {
         LOG.info("=== 4. SAML AuthnRequest ===");
@@ -270,7 +270,7 @@ public final class DemoSsoAll {
      * Attributes, and Conditions from a SAML Response XML.
      *
      * @return true if assertion parsing works correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoSamlAssertionParsing() {
         LOG.info("=== 5. SAML Assertion Parsing ===");
@@ -341,7 +341,7 @@ public final class DemoSsoAll {
      * Demonstrates SAML logout request generation and response parsing.
      *
      * @return true if SAML logout operations work correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoSamlLogout() {
         LOG.info("=== 6. SAML Logout ===");

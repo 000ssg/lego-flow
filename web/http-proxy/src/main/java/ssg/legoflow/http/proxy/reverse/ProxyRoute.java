@@ -8,7 +8,7 @@ import java.util.List;
  * <p>Routes are matched by path prefix. The longest matching prefix wins.
  * Each route has its own load balancer and list of backend servers.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ProxyRoute {
 
@@ -24,7 +24,7 @@ public class ProxyRoute {
      * @param backends the backend servers for this route
      * @param loadBalancer the load balancer to use
      * @param stripPrefix whether to strip the prefix from forwarded requests
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ProxyRoute(String pathPrefix, List<BackendServer> backends,
                       LoadBalancer loadBalancer, boolean stripPrefix) {
@@ -40,7 +40,7 @@ public class ProxyRoute {
      * @param pathPrefix the path prefix
      * @param backends the backends
      * @return the route
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static ProxyRoute of(String pathPrefix, List<BackendServer> backends) {
         return new ProxyRoute(pathPrefix, backends, new RoundRobinBalancer(), false);
@@ -52,7 +52,7 @@ public class ProxyRoute {
      * @param pathPrefix the path prefix
      * @param backend the backend server
      * @return the route
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static ProxyRoute of(String pathPrefix, BackendServer backend) {
         return new ProxyRoute(pathPrefix, List.of(backend), new RoundRobinBalancer(), false);
@@ -63,7 +63,7 @@ public class ProxyRoute {
      *
      * @param path the request path
      * @return true if the path starts with this route's prefix
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean matches(String path) {
         if (pathPrefix.equals("/")) {
@@ -78,7 +78,7 @@ public class ProxyRoute {
      *
      * @param originalPath the original request path
      * @return the rewritten path
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String rewritePath(String originalPath) {
         if (!stripPrefix || pathPrefix.equals("/")) {
@@ -98,7 +98,7 @@ public class ProxyRoute {
      * Selects a backend server using this route's load balancer.
      *
      * @return the selected backend, or null if none available
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public BackendServer selectBackend() {
         return loadBalancer.select(backends);
@@ -108,7 +108,7 @@ public class ProxyRoute {
      * Returns the path prefix.
      *
      * @return the path prefix
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getPathPrefix() {
         return pathPrefix;
@@ -118,7 +118,7 @@ public class ProxyRoute {
      * Returns the backend servers.
      *
      * @return the backends
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<BackendServer> getBackends() {
         return backends;
@@ -128,7 +128,7 @@ public class ProxyRoute {
      * Returns the load balancer.
      *
      * @return the load balancer
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public LoadBalancer getLoadBalancer() {
         return loadBalancer;
@@ -138,7 +138,7 @@ public class ProxyRoute {
      * Returns whether prefix stripping is enabled.
      *
      * @return true if prefix is stripped
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isStripPrefix() {
         return stripPrefix;

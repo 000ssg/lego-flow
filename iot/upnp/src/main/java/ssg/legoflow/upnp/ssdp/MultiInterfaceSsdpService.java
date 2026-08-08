@@ -24,7 +24,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * <p>Listeners registered on this service receive events from all underlying
  * per-interface services.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MultiInterfaceSsdpService implements Closeable {
 
@@ -38,7 +38,7 @@ public class MultiInterfaceSsdpService implements Closeable {
     /**
      * Creates a new multi-interface SSDP service with the default multicast TTL.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MultiInterfaceSsdpService() {
         this(SsdpService.DEFAULT_MULTICAST_TTL);
@@ -49,7 +49,7 @@ public class MultiInterfaceSsdpService implements Closeable {
      *
      * @param multicastTtl the multicast Time-To-Live for all interfaces
      * @throws IllegalArgumentException if {@code multicastTtl} is out of range
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MultiInterfaceSsdpService(int multicastTtl) {
         if (multicastTtl < 1 || multicastTtl > 255) {
@@ -65,7 +65,7 @@ public class MultiInterfaceSsdpService implements Closeable {
      * @param networkInterface the network interface to add
      * @throws IOException          if the SSDP service for this interface cannot be created
      * @throws NullPointerException if {@code networkInterface} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addInterface(NetworkInterface networkInterface) throws IOException {
         Objects.requireNonNull(networkInterface, "networkInterface must not be null");
@@ -87,7 +87,7 @@ public class MultiInterfaceSsdpService implements Closeable {
     /**
      * Starts SSDP discovery on all registered interfaces.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() {
         running = true;
@@ -100,7 +100,7 @@ public class MultiInterfaceSsdpService implements Closeable {
     /**
      * Stops SSDP discovery on all interfaces.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         running = false;
@@ -114,7 +114,7 @@ public class MultiInterfaceSsdpService implements Closeable {
      * Sends an M-SEARCH for all devices on all interfaces.
      *
      * @return a future that completes with all collected responses from all interfaces
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CompletableFuture<List<SsdpMessage>> searchAll() {
         var futures = services.stream()
@@ -139,7 +139,7 @@ public class MultiInterfaceSsdpService implements Closeable {
      * @param server   the server identification string
      * @param maxAge   the cache max-age in seconds
      * @throws IOException if sending fails on any interface
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void advertise(String location, String nt, String usn, String server, int maxAge) throws IOException {
         for (var service : services) {
@@ -153,7 +153,7 @@ public class MultiInterfaceSsdpService implements Closeable {
      * @param nt  the notification type
      * @param usn the unique service name
      * @throws IOException if sending fails on any interface
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void sendByebye(String nt, String usn) throws IOException {
         for (var service : services) {
@@ -165,7 +165,7 @@ public class MultiInterfaceSsdpService implements Closeable {
      * Adds a listener that receives events from all interfaces.
      *
      * @param listener the listener to add
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addListener(SsdpListener listener) {
         Objects.requireNonNull(listener, "listener must not be null");
@@ -176,7 +176,7 @@ public class MultiInterfaceSsdpService implements Closeable {
      * Removes a previously added listener.
      *
      * @param listener the listener to remove
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void removeListener(SsdpListener listener) {
         listeners.remove(listener);
@@ -186,7 +186,7 @@ public class MultiInterfaceSsdpService implements Closeable {
      * Returns an unmodifiable view of the underlying per-interface services.
      *
      * @return the list of per-interface SSDP services
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<SsdpService> getServices() {
         return Collections.unmodifiableList(services);
@@ -196,7 +196,7 @@ public class MultiInterfaceSsdpService implements Closeable {
      * Returns whether the service is currently running.
      *
      * @return {@code true} if running
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isRunning() {
         return running;

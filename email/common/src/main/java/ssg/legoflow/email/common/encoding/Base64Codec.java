@@ -8,7 +8,7 @@ import java.util.Base64;
  * <p>MIME Base64 wraps output at 76 characters per line with CRLF line endings.
  * Decoding is lenient and ignores whitespace.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class Base64Codec {
 

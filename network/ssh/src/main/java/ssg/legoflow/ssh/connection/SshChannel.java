@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Abstract SSH channel with windowed flow control per RFC 4254.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public abstract class SshChannel implements AutoCloseable {
 

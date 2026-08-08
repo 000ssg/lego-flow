@@ -3,7 +3,7 @@ package ssg.legoflow.ftp.security;
 /**
  * FTPS connection mode as defined in RFC 4217.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum FtpsMode {
 

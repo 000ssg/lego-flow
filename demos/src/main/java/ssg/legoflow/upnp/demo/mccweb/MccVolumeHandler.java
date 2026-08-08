@@ -17,7 +17,7 @@ import static ssg.legoflow.upnp.demo.mccweb.MccDeviceHandler.jsonResponse;
  * <p>Provides endpoints for getting and setting volume levels and mute
  * state on media renderers.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MccVolumeHandler {
 
@@ -27,7 +27,7 @@ public class MccVolumeHandler {
      * Creates a new volume handler.
      *
      * @param controlPoint the UPnP control point
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MccVolumeHandler(ControlPoint controlPoint) {
         this.controlPoint = Objects.requireNonNull(controlPoint, "controlPoint must not be null");
@@ -39,7 +39,7 @@ public class MccVolumeHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with volume JSON
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse getVolume(HttpContext ctx, HttpRequest request) {
         String udn = MccPlaybackHandler.extractRendererUdn(request.getUri(), "/volume");
@@ -67,7 +67,7 @@ public class MccVolumeHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with updated volume JSON
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse setVolume(HttpContext ctx, HttpRequest request) {
         String udn = MccPlaybackHandler.extractRendererUdn(request.getUri(), "/volume");
@@ -97,7 +97,7 @@ public class MccVolumeHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with updated volume JSON
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse setMute(HttpContext ctx, HttpRequest request) {
         String udn = MccPlaybackHandler.extractRendererUdn(request.getUri(), "/mute");

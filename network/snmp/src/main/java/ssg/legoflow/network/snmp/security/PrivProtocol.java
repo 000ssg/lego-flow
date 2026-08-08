@@ -3,7 +3,7 @@ package ssg.legoflow.network.snmp.security;
 /**
  * Privacy (encryption) protocol identifiers for USM (RFC 3414, RFC 3826).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum PrivProtocol {
 

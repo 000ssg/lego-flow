@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
  * using {@link DeliveryState.TransactionalState}. The transaction coordinator
  * is local only — no distributed transactions.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class TransactionDemo {
 

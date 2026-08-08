@@ -17,7 +17,7 @@ import java.util.List;
  * @param constructed whether this uses constructed (explicit) encoding
  * @param value       the inner value (for constructed) or raw bytes (for primitive)
  * @param rawBytes    the raw byte content (for implicit/primitive encoding)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Asn1ContextSpecific(
         int tagNumber,

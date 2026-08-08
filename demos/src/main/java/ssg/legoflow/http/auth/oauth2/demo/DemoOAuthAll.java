@@ -32,7 +32,7 @@ import java.util.Set;
  *   <li>OAuth2Error — standard error response handling</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoOAuthAll {
 
@@ -53,7 +53,7 @@ public final class DemoOAuthAll {
      * @param oauthProviders       true if pre-configured provider templates work
      * @param oidcDiscovery        true if OIDC discovery metadata works
      * @param oauthError           true if error response handling works
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record Results(
             boolean oauthConfig,
@@ -70,7 +70,7 @@ public final class DemoOAuthAll {
      *
      * @return results from each feature section
      * @throws Exception if any operation fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Results runAll() throws Exception {
         boolean config = demoOAuthConfig();
@@ -90,7 +90,7 @@ public final class DemoOAuthAll {
      * Demonstrates OAuth2Config builder with all endpoint configurations.
      *
      * @return true if configuration is built correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoOAuthConfig() {
         LOG.info("=== 1. OAuth2Config Builder ===");
@@ -125,7 +125,7 @@ public final class DemoOAuthAll {
      * challenge methods, including generation and verification.
      *
      * @return true if PKCE operations work correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoPkceChallenge() {
         LOG.info("=== 2. PKCE (RFC 7636) ===");
@@ -170,7 +170,7 @@ public final class DemoOAuthAll {
      * token store with issuance and validation, and authorization code store.
      *
      * @return true if all server components work correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoAuthorizationServer() {
         LOG.info("=== 3. Authorization Server Components ===");
@@ -232,7 +232,7 @@ public final class DemoOAuthAll {
      * and expiration checking.
      *
      * @return true if token response operations work correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoTokenResponse() {
         LOG.info("=== 4. Token Response ===");
@@ -271,7 +271,7 @@ public final class DemoOAuthAll {
      * Demonstrates pre-configured OAuth provider templates for Google and GitHub.
      *
      * @return true if provider configurations are valid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoOAuthProviders() {
         LOG.info("=== 5. OAuth Providers ===");
@@ -310,7 +310,7 @@ public final class DemoOAuthAll {
      * and UserInfo response parsing.
      *
      * @return true if OIDC components work correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoOidcDiscovery() {
         LOG.info("=== 6. OIDC Discovery ===");
@@ -360,7 +360,7 @@ public final class DemoOAuthAll {
      * Demonstrates OAuth 2.0 standard error response handling.
      *
      * @return true if error handling works correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoOAuthError() {
         LOG.info("=== 7. OAuth2Error ===");

@@ -149,7 +149,7 @@ public class ChunkedCodec extends AbstractDataFilter<ByteBuffer> {
      * Returns whether this codec has buffered partial data from a previous decode call.
      *
      * @return true if there is buffered data awaiting more input
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean hasBufferedData() {
         return accumulator != null && accumulator.hasRemaining();

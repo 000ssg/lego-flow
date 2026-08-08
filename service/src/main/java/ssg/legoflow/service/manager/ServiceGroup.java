@@ -45,7 +45,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * }
  * }</pre>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ServiceGroup implements AutoCloseable {
 
@@ -91,7 +91,7 @@ public class ServiceGroup implements AutoCloseable {
      *
      * @param name the group name
      * @return a new builder
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Builder builder(String name) {
         return new Builder(name);
@@ -103,7 +103,7 @@ public class ServiceGroup implements AutoCloseable {
      * <p>Creates N+1 virtual threads: one for the connector selector and one
      * for each data selector.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() {
         if (running.compareAndSet(false, true)) {
@@ -128,7 +128,7 @@ public class ServiceGroup implements AutoCloseable {
     /**
      * Stops the event loop by setting the running flag to false and waking all selectors.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         if (running.compareAndSet(true, false)) {
@@ -152,7 +152,7 @@ public class ServiceGroup implements AutoCloseable {
      * Returns whether the event loop is running.
      *
      * @return {@code true} if the event loop is active
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isRunning() {
         return running.get();
@@ -167,7 +167,7 @@ public class ServiceGroup implements AutoCloseable {
      * @param pipeline          the channel pipeline
      * @return the selection key
      * @throws IOException if registration fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SelectionKey registerConnector(SelectableChannel selectableChannel, int ops,
                                           DataChannel channel, ChannelPipeline pipeline) throws IOException {
@@ -189,7 +189,7 @@ public class ServiceGroup implements AutoCloseable {
      * @param pipeline          the channel pipeline
      * @return the selection key
      * @throws IOException if registration fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SelectionKey registerData(SelectableChannel selectableChannel, int ops,
                                      DataChannel channel, ChannelPipeline pipeline) throws IOException {
@@ -206,7 +206,7 @@ public class ServiceGroup implements AutoCloseable {
      * Returns the index of the data selector that will be used for the next registration.
      *
      * @return the next data selector index (0-based within data selectors)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getNextDataSelectorIndex() {
         return nextSelectorIndex.get() % dataSelectorCount;
@@ -216,7 +216,7 @@ public class ServiceGroup implements AutoCloseable {
      * Returns the connector selector (index 0).
      *
      * @return the connector selector
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Selector getConnectorSelector() {
         return connectorSelector;
@@ -228,7 +228,7 @@ public class ServiceGroup implements AutoCloseable {
      * @param index the data selector index (0-based)
      * @return the data selector
      * @throws IndexOutOfBoundsException if index is out of range
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Selector getDataSelector(int index) {
         return dataSelectors[index];
@@ -238,7 +238,7 @@ public class ServiceGroup implements AutoCloseable {
      * Returns the statistics tracker for this group.
      *
      * @return the statistics
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ServiceGroupStatistics getStatistics() {
         return statistics;
@@ -248,7 +248,7 @@ public class ServiceGroup implements AutoCloseable {
      * Returns the group name.
      *
      * @return the name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getName() {
         return name;
@@ -258,7 +258,7 @@ public class ServiceGroup implements AutoCloseable {
      * Returns the number of data selectors.
      *
      * @return the data selector count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getDataSelectorCount() {
         return dataSelectorCount;
@@ -268,7 +268,7 @@ public class ServiceGroup implements AutoCloseable {
      * Returns the buffer size used for processing.
      *
      * @return the buffer size in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getBufferSize() {
         return bufferSize;
@@ -278,7 +278,7 @@ public class ServiceGroup implements AutoCloseable {
      * Returns the list of currently registered channels.
      *
      * @return an unmodifiable view of registered channels
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<DataChannel> getRegisteredChannels() {
         return List.copyOf(registeredChannels);
@@ -373,7 +373,7 @@ public class ServiceGroup implements AutoCloseable {
     /**
      * Closes this service group, stopping the event loop and releasing all resources.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void close() {
@@ -406,14 +406,14 @@ public class ServiceGroup implements AutoCloseable {
      *
      * @param channel  the data channel
      * @param pipeline the channel pipeline
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record ChannelRegistration(DataChannel channel, ChannelPipeline pipeline) {}
 
     /**
      * Builder for {@link ServiceGroup}.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static class Builder {
 
@@ -431,7 +431,7 @@ public class ServiceGroup implements AutoCloseable {
          *
          * @param count the number of data selectors (must be positive)
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder dataSelectorCount(int count) {
             if (count <= 0) throw new IllegalArgumentException("dataSelectorCount must be positive: " + count);
@@ -444,7 +444,7 @@ public class ServiceGroup implements AutoCloseable {
          *
          * @param size the buffer size in bytes (must be positive)
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder bufferSize(int size) {
             if (size <= 0) throw new IllegalArgumentException("bufferSize must be positive: " + size);
@@ -457,7 +457,7 @@ public class ServiceGroup implements AutoCloseable {
          *
          * @param timeoutMs the timeout in milliseconds (must be positive)
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder selectTimeoutMs(long timeoutMs) {
             if (timeoutMs <= 0) throw new IllegalArgumentException("selectTimeoutMs must be positive: " + timeoutMs);
@@ -469,7 +469,7 @@ public class ServiceGroup implements AutoCloseable {
          * Builds and returns a new {@link ServiceGroup}.
          *
          * @return the new service group
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public ServiceGroup build() {
             return new ServiceGroup(name, dataSelectorCount, bufferSize, selectTimeoutMs);

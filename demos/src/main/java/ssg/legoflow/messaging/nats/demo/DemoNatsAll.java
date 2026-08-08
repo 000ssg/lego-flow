@@ -53,7 +53,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *   <li>Authentication — token-based and user/password authentication</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoNatsAll {
 

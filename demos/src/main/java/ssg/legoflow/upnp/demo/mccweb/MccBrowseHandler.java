@@ -20,7 +20,7 @@ import static ssg.legoflow.upnp.demo.mccweb.MccDeviceHandler.jsonResponse;
  * <p>Provides endpoints for browsing media server content directories,
  * searching content, and retrieving individual content items.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MccBrowseHandler {
 
@@ -30,7 +30,7 @@ public class MccBrowseHandler {
      * Creates a new browse handler.
      *
      * @param controlPoint the UPnP control point
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MccBrowseHandler(ControlPoint controlPoint) {
         this.controlPoint = Objects.requireNonNull(controlPoint, "controlPoint must not be null");
@@ -44,7 +44,7 @@ public class MccBrowseHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with JSON array of content items
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse browse(HttpContext ctx, HttpRequest request) {
         String udn = MccDeviceHandler.extractUdn(request.getUri(), "/api/servers/");
@@ -78,7 +78,7 @@ public class MccBrowseHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with JSON array of root items
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse browseRoot(HttpContext ctx, HttpRequest request) {
         String udn = extractServerUdn(request.getUri(), "/api/servers/", "/browse/root");
@@ -105,7 +105,7 @@ public class MccBrowseHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with JSON array of matching items
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse search(HttpContext ctx, HttpRequest request) {
         String udn = extractServerUdn(request.getUri(), "/api/servers/", "/search");
@@ -137,7 +137,7 @@ public class MccBrowseHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with content item JSON or 404
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse getContent(HttpContext ctx, HttpRequest request) {
         String path = request.getUri().contains("?")

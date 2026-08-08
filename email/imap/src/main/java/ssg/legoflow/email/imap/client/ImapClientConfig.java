@@ -6,7 +6,7 @@ import java.util.Objects;
 /**
  * Configuration for {@link ImapClient} with a fluent builder API.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ImapClientConfig {
 

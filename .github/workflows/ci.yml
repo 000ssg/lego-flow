@@ -14,7 +14,7 @@ name: CI
 
 on:
   push:
-    branches: [main, productize, "3-tests-pipeline*"]
+    branches: [main, productize, "3-tests-pipeline*", "4-code-coverage"]
   pull_request:
     branches: [main, productize]
 

@@ -7,7 +7,7 @@ package ssg.legoflow.http3.quic;
  * {@link #HANDSHAKE}, and {@link #RETRY}. Short header packets
  * use {@link #ONE_RTT} after the handshake completes.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum QuicPacketType {
 

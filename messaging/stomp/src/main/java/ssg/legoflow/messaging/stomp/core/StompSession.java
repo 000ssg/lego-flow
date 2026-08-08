@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * <p>Tracks subscriptions, pending receipts, and active transactions for the session.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class StompSession {
 

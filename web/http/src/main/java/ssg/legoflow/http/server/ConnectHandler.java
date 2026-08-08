@@ -13,7 +13,7 @@ import java.util.Set;
  * target host. The request-target is the authority (host:port) of the
  * destination server.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ConnectHandler implements HttpRequestHandler {
 
@@ -23,7 +23,7 @@ public class ConnectHandler implements HttpRequestHandler {
     /**
      * Callback interface invoked when a tunnel is established.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @FunctionalInterface
     public interface TunnelCallback {
@@ -111,7 +111,7 @@ public class ConnectHandler implements HttpRequestHandler {
      *
      * @param host the hostname
      * @param port the port number
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record HostPort(String host, int port) {
         public HostPort {

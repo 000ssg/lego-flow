@@ -17,7 +17,7 @@ import java.util.Map;
  * {@code :path}) to a standard HTTP request, and converts a standard
  * HTTP response back to HTTP/3 pseudo-headers plus body.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class Http3RequestAdapter {
 
@@ -28,7 +28,7 @@ public class Http3RequestAdapter {
      * @param body    the request body, or {@code null}
      * @return the adapted HTTP request
      * @throws IllegalStateException if required pseudo-headers are missing
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpRequest adaptRequest(Map<String, String> headers, ByteBuffer body) {
         var method = headers.get(":method");
@@ -70,7 +70,7 @@ public class Http3RequestAdapter {
      * @param headerEntries the decoded HTTP/3 header entries
      * @param body          the request body, or {@code null}
      * @return the adapted HTTP request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpRequest adaptRequest(List<Map.Entry<String, String>> headerEntries, ByteBuffer body) {
         var headersMap = new java.util.LinkedHashMap<String, String>();
@@ -85,7 +85,7 @@ public class Http3RequestAdapter {
      *
      * @param response the HTTP response
      * @return a list of header entries including the {@code :status} pseudo-header
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<Map.Entry<String, String>> adaptResponseHeaders(HttpResponse response) {
         var headers = new ArrayList<Map.Entry<String, String>>();
@@ -109,7 +109,7 @@ public class Http3RequestAdapter {
      *
      * @param response the HTTP response
      * @return the body buffer, or {@code null} if empty
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ByteBuffer adaptResponseBody(HttpResponse response) {
         var body = response.getBody();

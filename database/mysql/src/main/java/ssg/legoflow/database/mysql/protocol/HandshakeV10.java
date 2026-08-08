@@ -22,7 +22,7 @@ import java.security.SecureRandom;
  * @param authPluginDataLength total length of auth plugin data
  * @param authPluginDataPart2 remaining auth plugin data
  * @param authPluginName name of the default auth plugin
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record HandshakeV10(
         int protocolVersion,

@@ -61,7 +61,7 @@ import java.util.List;
  *   <li>CNAME resolution — authoritative CNAME alias response</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoDnsAll {
 

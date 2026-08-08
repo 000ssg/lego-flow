@@ -23,7 +23,7 @@ import java.util.Objects;
  * by registering a catch-all handler on the default route and dispatching
  * internally based on URI prefix matching.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MccApiRouter {
 
@@ -40,7 +40,7 @@ public class MccApiRouter {
      * Creates a new API router with all handlers.
      *
      * @param controlPoint the UPnP control point
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MccApiRouter(ControlPoint controlPoint) {
         this.controlPoint = Objects.requireNonNull(controlPoint, "controlPoint must not be null");
@@ -57,7 +57,7 @@ public class MccApiRouter {
      * Returns the event handler for subscribing to renderer events.
      *
      * @return the event handler
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MccEventHandler getEventHandler() {
         return eventHandler;
@@ -70,7 +70,7 @@ public class MccApiRouter {
      * default handler for dynamic path segments.
      *
      * @param router the HTTP router to configure
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void configureRoutes(HttpRouter router) {
         // Static SPA routes
@@ -107,7 +107,7 @@ public class MccApiRouter {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     private HttpResponse dispatchDynamic(HttpContext ctx, HttpRequest request) {
         String path = request.getUri().contains("?")
@@ -239,7 +239,7 @@ public class MccApiRouter {
      * Adds CORS headers to a response for development mode.
      *
      * @param response the HTTP response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static void addCorsHeaders(HttpResponse response) {
         response.getHeaders().set("access-control-allow-origin", "*");
@@ -252,7 +252,7 @@ public class MccApiRouter {
     /**
      * Closes resources held by this router (event handler scheduler).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void close() {
         eventHandler.close();

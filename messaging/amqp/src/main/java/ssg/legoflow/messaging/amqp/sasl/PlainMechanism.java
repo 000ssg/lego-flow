@@ -9,7 +9,7 @@ import java.util.Objects;
  * <p>The initial response is encoded as: {@code \0username\0password}
  * (NUL-separated authzid, authcid, passwd, with empty authzid).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class PlainMechanism implements SaslMechanism {
 

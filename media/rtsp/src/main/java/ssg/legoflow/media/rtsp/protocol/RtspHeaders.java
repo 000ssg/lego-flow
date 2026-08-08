@@ -13,7 +13,7 @@ import java.util.Optional;
  *
  * <p>Preserves insertion order and supports multiple values per header name.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RtspHeaders {
 

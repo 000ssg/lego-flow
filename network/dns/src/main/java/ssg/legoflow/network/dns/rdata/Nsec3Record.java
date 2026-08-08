@@ -18,7 +18,7 @@ import java.util.TreeSet;
  * @param salt            the salt bytes
  * @param nextHashedOwner the next hashed owner name
  * @param types           the set of record types at the original owner
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Nsec3Record(
         int hashAlgorithm,
@@ -59,7 +59,7 @@ public record Nsec3Record(
      * Returns whether the opt-out flag is set.
      *
      * @return {@code true} if opt-out
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isOptOut() {
         return (flags & FLAG_OPT_OUT) != 0;

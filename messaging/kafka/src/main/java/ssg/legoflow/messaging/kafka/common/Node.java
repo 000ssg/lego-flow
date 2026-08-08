@@ -6,7 +6,7 @@ package ssg.legoflow.messaging.kafka.common;
  * @param id   the broker ID
  * @param host the broker hostname
  * @param port the broker port
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Node(int id, String host, int port) {
 

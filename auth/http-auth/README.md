@@ -70,7 +70,7 @@ mvn test -pl http-auth/core,http-auth/basic-digest,http-auth/oauth,http-auth/sso
 ## Version
 
 - JDK: 24
-- Version: 1.0.0-SNAPSHOT
+- Version: 0.1.0-SNAPSHOT
 
 ## Documentation
 

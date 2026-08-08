@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Demonstrates large payload transfer using CoAP Block1 and Block2 options (RFC 7959).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class BlockTransferDemo {
 
@@ -30,7 +30,7 @@ public final class BlockTransferDemo {
      * Creates the block transfer demo with a server on the given port.
      *
      * @param port the UDP port
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public BlockTransferDemo(int port) {
         this.server = new CoapServer(CoapServerConfig.withPort(port));
@@ -42,7 +42,7 @@ public final class BlockTransferDemo {
      * Starts the demo server.
      *
      * @throws IOException if binding fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() throws IOException {
         server.start();
@@ -51,7 +51,7 @@ public final class BlockTransferDemo {
     /**
      * Stops the demo server.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         server.stop();
@@ -61,7 +61,7 @@ public final class BlockTransferDemo {
      * Returns the server.
      *
      * @return the server
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapServer server() {
         return server;
@@ -71,7 +71,7 @@ public final class BlockTransferDemo {
      * Returns the large resource.
      *
      * @return the large resource
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public LargeResource largeResource() {
         return largeResource;
@@ -82,7 +82,7 @@ public final class BlockTransferDemo {
      *
      * @param sizeBytes the desired payload size in bytes
      * @return the generated payload
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static byte[] generateLargePayload(int sizeBytes) {
         var sb = new StringBuilder(sizeBytes);
@@ -96,7 +96,7 @@ public final class BlockTransferDemo {
     /**
      * A resource that holds a large payload for blockwise transfer testing.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class LargeResource extends CoapResource {
 

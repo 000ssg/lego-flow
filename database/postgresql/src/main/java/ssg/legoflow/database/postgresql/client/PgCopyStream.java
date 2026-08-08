@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * Handles COPY IN/OUT streaming operations on the client side.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class PgCopyStream {
 

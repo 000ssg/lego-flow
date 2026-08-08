@@ -12,7 +12,7 @@ import ssg.legoflow.http.server.HttpServer;
  * <p>Uses the {@code serverMinimal} profile which includes only core HTTP features,
  * fixed-length transfer, and basic connection management.
  *
- * @since 1.0
+ * @since 0.1
  */
 public class MinimalServer {
 

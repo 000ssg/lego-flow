@@ -11,7 +11,7 @@ import java.util.Map;
  * <p>Provides lenient charset lookup with common aliases, BOM detection,
  * and charset-safe conversions between UTF-8, ISO-8859-1, US-ASCII, and others.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class CharsetUtils {
 

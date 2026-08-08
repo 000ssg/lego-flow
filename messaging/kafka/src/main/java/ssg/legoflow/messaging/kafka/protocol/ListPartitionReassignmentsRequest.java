@@ -9,7 +9,7 @@ import java.util.List;
  *
  * @param timeoutMs the timeout in milliseconds
  * @param topics    the topics to list reassignments for (null for all)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ListPartitionReassignmentsRequest(int timeoutMs, List<TopicData> topics) {
 

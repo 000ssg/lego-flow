@@ -6,7 +6,7 @@ import java.util.List;
  * ListOffsets response (API key 2).
  *
  * @param topics the per-topic offset responses
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ListOffsetsResponse(List<TopicResponse> topics) {
 

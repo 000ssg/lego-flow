@@ -15,7 +15,7 @@ import java.net.SocketAddress;
  * from Wi-Fi to cellular) without disrupting ongoing requests. This
  * demo establishes a connection and migrates it to a new address.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ConnectionMigrationDemo {
 
@@ -26,7 +26,7 @@ public class ConnectionMigrationDemo {
     /**
      * Creates a new connection migration demo.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ConnectionMigrationDemo() {
         this.config = Http3Config.defaults();
@@ -36,7 +36,7 @@ public class ConnectionMigrationDemo {
      * Returns the configuration.
      *
      * @return the config
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Config config() {
         return config;
@@ -47,7 +47,7 @@ public class ConnectionMigrationDemo {
      *
      * @param address the initial remote address
      * @return the HTTP/3 connection
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Connection connect(SocketAddress address) {
         var quicSettings = QuicSettings.builder()
@@ -69,7 +69,7 @@ public class ConnectionMigrationDemo {
      *
      * @param newAddress the new remote address
      * @throws IllegalStateException if not connected or migration is disabled
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void migrate(SocketAddress newAddress) {
         if (quicConnection == null || !quicConnection.isConnected()) {
@@ -82,7 +82,7 @@ public class ConnectionMigrationDemo {
      * Returns the underlying QUIC connection.
      *
      * @return the QUIC connection
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicConnection quicConnection() {
         return quicConnection;
@@ -92,7 +92,7 @@ public class ConnectionMigrationDemo {
      * Returns the HTTP/3 connection.
      *
      * @return the HTTP/3 connection
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Connection h3Connection() {
         return h3Connection;
@@ -102,7 +102,7 @@ public class ConnectionMigrationDemo {
      * Returns the current remote address.
      *
      * @return the remote address
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SocketAddress currentRemoteAddress() {
         return quicConnection != null ? quicConnection.remoteAddress() : null;

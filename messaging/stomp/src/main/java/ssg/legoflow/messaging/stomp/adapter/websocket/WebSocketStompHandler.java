@@ -12,7 +12,7 @@ import ssg.legoflow.messaging.stomp.core.StompBroker;
  * <p>The STOMP-over-WebSocket subprotocol is typically identified as
  * {@code v12.stomp} in the WebSocket handshake.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class WebSocketStompHandler {
 

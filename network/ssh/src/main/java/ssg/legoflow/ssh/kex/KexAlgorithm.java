@@ -8,7 +8,7 @@ import java.security.KeyPair;
  * <p>Implementations provide the cryptographic operations needed to establish
  * a shared secret between client and server per RFC 4253 section 8.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface KexAlgorithm {
 

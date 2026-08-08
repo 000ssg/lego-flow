@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * by resolving the service control URL from the device description XML
  * and using {@link SoapClient} to send SOAP requests over HTTP.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class DeviceProxy {
 
@@ -50,7 +50,7 @@ public class DeviceProxy {
      * @param deviceType     the UPnP device type URN
      * @param baseUrl        the base URL for the device
      * @param descriptionXml the raw device description XML
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DeviceProxy(String udn, String friendlyName, String deviceType,
                        URL baseUrl, String descriptionXml) {
@@ -65,7 +65,7 @@ public class DeviceProxy {
      * Returns the Unique Device Name.
      *
      * @return the UDN
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getUdn() {
         return udn;
@@ -75,7 +75,7 @@ public class DeviceProxy {
      * Sets the message log for diagnostic capture of SOAP requests/responses.
      *
      * @param messageLog the message log, or {@code null} to disable
-     * @since 1.0.0
+     * @since 0.1.0
      */
     void setMessageLog(UpnpMessageLog messageLog) {
         this.messageLog = messageLog;
@@ -85,7 +85,7 @@ public class DeviceProxy {
      * Returns the human-readable device name.
      *
      * @return the friendly name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getFriendlyName() {
         return friendlyName;
@@ -95,7 +95,7 @@ public class DeviceProxy {
      * Returns the UPnP device type URN.
      *
      * @return the device type
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getDeviceType() {
         return deviceType;
@@ -105,7 +105,7 @@ public class DeviceProxy {
      * Returns the base URL for accessing the device's services.
      *
      * @return the base URL
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public URL getBaseUrl() {
         return baseUrl;
@@ -115,7 +115,7 @@ public class DeviceProxy {
      * Returns the raw device description XML.
      *
      * @return the description XML
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getDescriptionXml() {
         return descriptionXml;
@@ -134,7 +134,7 @@ public class DeviceProxy {
      * @param args       the input arguments
      * @return the output arguments
      * @throws UnsupportedOperationException if the service cannot be found or invocation fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Map<String, String> invokeAction(String serviceId, String actionName,
                                             Map<String, String> args) {

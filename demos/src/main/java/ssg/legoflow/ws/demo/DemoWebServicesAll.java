@@ -51,7 +51,7 @@ import java.util.Set;
  *   <li>Response formats — JSON, XML, and plain-text output</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoWebServicesAll {
 

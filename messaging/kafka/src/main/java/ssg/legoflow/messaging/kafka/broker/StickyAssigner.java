@@ -18,7 +18,7 @@ import java.util.*;
  *   <li>Assign each unassigned partition to the member with fewest current partitions</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class StickyAssigner implements PartitionAssigner {
 

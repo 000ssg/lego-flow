@@ -19,7 +19,7 @@ package ssg.legoflow.messaging.amqp.message;
  * @param groupId          group identifier for grouping related messages
  * @param groupSequence    sequence number within a group
  * @param replyToGroupId   group identifier for reply messages
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Properties(
         String messageId,
@@ -45,7 +45,7 @@ public record Properties(
     /**
      * Fluent builder for {@link Properties}.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class Builder {
         private String messageId;

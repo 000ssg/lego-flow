@@ -15,7 +15,7 @@ import java.util.TreeSet;
  * They are organized by window (block) number, where each window
  * covers 256 type values.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class TypeBitMaps {
 
@@ -26,7 +26,7 @@ public final class TypeBitMaps {
      *
      * @param types the record types to encode
      * @return the encoded bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static byte[] encode(Set<RecordType> types) {
         // Group types by window number (high byte)
@@ -67,7 +67,7 @@ public final class TypeBitMaps {
      * @param offset the starting offset
      * @param length the total length
      * @return the set of record types
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Set<RecordType> decode(byte[] data, int offset, int length) {
         Set<RecordType> types = new TreeSet<>();

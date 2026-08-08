@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit;
  *   <li>Cluster client — MOVED/ASK redirect handling with hash slot routing</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoRedisAll {
 

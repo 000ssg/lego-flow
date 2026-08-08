@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *   <li>Receive interval = MAX(server-cx, client-cy) if both non-zero, else 0</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class HeartbeatMonitor {
 

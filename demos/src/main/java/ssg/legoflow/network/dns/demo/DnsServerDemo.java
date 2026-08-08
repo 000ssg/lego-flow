@@ -16,7 +16,7 @@ import java.time.Duration;
  * <p>Creates a server with an example.com zone, adds various record types,
  * and resolves queries against it.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DnsServerDemo {
 
@@ -26,7 +26,7 @@ public final class DnsServerDemo {
      * Runs the DNS server demo.
      *
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void run() throws IOException {
         // Create zone

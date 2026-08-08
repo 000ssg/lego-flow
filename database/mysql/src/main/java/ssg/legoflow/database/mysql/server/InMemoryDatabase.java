@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * UPDATE, and DELETE operations. Thread-safe for concurrent access from
  * multiple client sessions.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class InMemoryDatabase {
 

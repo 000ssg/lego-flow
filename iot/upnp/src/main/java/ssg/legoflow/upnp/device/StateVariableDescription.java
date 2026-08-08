@@ -14,7 +14,7 @@ import java.util.Objects;
  * @param minimum        the minimum value for numeric types; may be {@code null}
  * @param maximum        the maximum value for numeric types; may be {@code null}
  * @param step           the step increment for numeric types; may be {@code null}
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record StateVariableDescription(
         String name,
@@ -46,7 +46,7 @@ public record StateVariableDescription(
      * @param dataType   the data type
      * @param sendEvents whether to send events
      * @return a new state variable description
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static StateVariableDescription of(String name, String dataType, boolean sendEvents) {
         return new StateVariableDescription(name, dataType, sendEvents, null, List.of(), null, null, null);
@@ -56,7 +56,7 @@ public record StateVariableDescription(
      * Returns whether this variable has a restricted set of allowed values.
      *
      * @return {@code true} if allowed values are specified
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean hasAllowedValues() {
         return !allowedValues.isEmpty();
@@ -66,7 +66,7 @@ public record StateVariableDescription(
      * Returns whether this variable has a numeric range restriction.
      *
      * @return {@code true} if minimum or maximum is specified
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean hasRange() {
         return minimum != null || maximum != null;
@@ -76,7 +76,7 @@ public record StateVariableDescription(
      * Serializes this state variable to SCPD XML fragment.
      *
      * @return the XML representation
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toXml() {
         var sb = new StringBuilder();

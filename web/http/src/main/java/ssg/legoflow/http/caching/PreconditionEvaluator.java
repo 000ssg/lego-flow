@@ -12,7 +12,7 @@ import ssg.legoflow.http.header.EntityTag;
  * <p>Handles If-Match (§3.1), If-None-Match (§3.2), and the 412 Precondition
  * Failed response when a precondition is not met.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class PreconditionEvaluator {
 

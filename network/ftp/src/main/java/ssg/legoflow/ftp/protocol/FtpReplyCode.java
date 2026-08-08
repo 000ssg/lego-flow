@@ -12,7 +12,7 @@ package ssg.legoflow.ftp.protocol;
  *   <li>5xx — Permanent Negative (command failed, do not retry)</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum FtpReplyCode {
 

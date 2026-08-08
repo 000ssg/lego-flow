@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * A WAMP realm provides isolation for sessions, subscriptions, and registrations.
  * Each realm has its own Broker and Dealer.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class Realm {
 

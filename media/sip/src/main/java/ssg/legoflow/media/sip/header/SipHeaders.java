@@ -16,7 +16,7 @@ import java.util.Optional;
  * Compact forms (single-letter abbreviations) are automatically mapped to
  * their full names per RFC 3261 section 7.3.3.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SipHeaders {
 
@@ -69,7 +69,7 @@ public final class SipHeaders {
     /**
      * Creates an empty header collection.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipHeaders() {
         this.headers = new LinkedHashMap<>();
@@ -79,7 +79,7 @@ public final class SipHeaders {
      * Creates a header collection from existing entries.
      *
      * @param headers the initial headers
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipHeaders(Map<String, List<String>> headers) {
         this.headers = new LinkedHashMap<>();
@@ -91,7 +91,7 @@ public final class SipHeaders {
      * Creates a deep copy of this header collection.
      *
      * @return a new copy of these headers
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipHeaders copy() {
         var copy = new SipHeaders();
@@ -118,7 +118,7 @@ public final class SipHeaders {
      * @param name  the header name
      * @param value the header value
      * @return this headers instance for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipHeaders set(String name, String value) {
         Objects.requireNonNull(name, "name");
@@ -135,7 +135,7 @@ public final class SipHeaders {
      * @param name  the header name
      * @param value the header value
      * @return this headers instance for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipHeaders add(String name, String value) {
         Objects.requireNonNull(name, "name");
@@ -149,7 +149,7 @@ public final class SipHeaders {
      *
      * @param name the header name
      * @return the first value, or empty
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<String> first(String name) {
         var values = headers.get(normalizeName(name));
@@ -161,7 +161,7 @@ public final class SipHeaders {
      *
      * @param name the header name
      * @return all values, or empty list
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<String> all(String name) {
         var values = headers.get(normalizeName(name));
@@ -173,7 +173,7 @@ public final class SipHeaders {
      *
      * @param name the header name
      * @return true if the header exists
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean contains(String name) {
         return headers.containsKey(normalizeName(name));
@@ -184,7 +184,7 @@ public final class SipHeaders {
      *
      * @param name the header name
      * @return this headers instance for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipHeaders remove(String name) {
         headers.remove(normalizeName(name));
@@ -196,7 +196,7 @@ public final class SipHeaders {
      *
      * @return the Call-ID
      * @throws IllegalStateException if Call-ID is missing
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String callId() {
         return first(CALL_ID)
@@ -208,7 +208,7 @@ public final class SipHeaders {
      *
      * @return the CSeq header
      * @throws IllegalStateException if CSeq is missing
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CSeqHeader cseq() {
         return first(CSEQ)
@@ -220,7 +220,7 @@ public final class SipHeaders {
      * Gets the Content-Length value.
      *
      * @return the content length, or 0 if missing
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int contentLength() {
         return first(CONTENT_LENGTH).map(Integer::parseInt).orElse(0);
@@ -230,7 +230,7 @@ public final class SipHeaders {
      * Gets the Max-Forwards value.
      *
      * @return the max-forwards, or empty
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<Integer> maxForwards() {
         return first(MAX_FORWARDS).map(Integer::parseInt);
@@ -240,7 +240,7 @@ public final class SipHeaders {
      * Gets the Expires value.
      *
      * @return the expires in seconds, or empty
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<Integer> expires() {
         return first(EXPIRES).map(Integer::parseInt);
@@ -251,7 +251,7 @@ public final class SipHeaders {
      *
      * @return the From address header
      * @throws IllegalStateException if From is missing
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AddressHeader from() {
         return first(FROM)
@@ -264,7 +264,7 @@ public final class SipHeaders {
      *
      * @return the To address header
      * @throws IllegalStateException if To is missing
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AddressHeader to() {
         return first(TO)
@@ -277,7 +277,7 @@ public final class SipHeaders {
      *
      * @return the top Via header
      * @throws IllegalStateException if Via is missing
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ViaHeader topVia() {
         return first(VIA)
@@ -289,7 +289,7 @@ public final class SipHeaders {
      * Returns the number of distinct header names.
      *
      * @return the header count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int size() {
         return headers.size();
@@ -299,7 +299,7 @@ public final class SipHeaders {
      * Returns an unmodifiable view of all headers.
      *
      * @return all headers as a map
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Map<String, List<String>> toMap() {
         return Collections.unmodifiableMap(headers);
@@ -309,7 +309,7 @@ public final class SipHeaders {
      * Formats all headers as SIP header lines (name: value\r\n).
      *
      * @return the formatted headers
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String format() {
         var sb = new StringBuilder();

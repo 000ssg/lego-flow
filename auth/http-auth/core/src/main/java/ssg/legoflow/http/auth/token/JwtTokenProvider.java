@@ -19,7 +19,7 @@ import java.util.*;
  *
  * <p>Token format: Base64url(header).Base64url(payload).Base64url(signature)</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class JwtTokenProvider implements TokenProvider {
 
@@ -54,7 +54,7 @@ public class JwtTokenProvider implements TokenProvider {
      * @param issuer        the token issuer
      * @param tokenLifetime the token lifetime
      * @return the JWT provider
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static JwtTokenProvider hmac256(byte[] secret, String issuer, Duration tokenLifetime) {
         Objects.requireNonNull(secret, "secret must not be null");
@@ -71,7 +71,7 @@ public class JwtTokenProvider implements TokenProvider {
      * @param issuer        the token issuer
      * @param tokenLifetime the token lifetime
      * @return the JWT provider
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static JwtTokenProvider hmac256(String secret, String issuer, Duration tokenLifetime) {
         return hmac256(secret.getBytes(StandardCharsets.UTF_8), issuer, tokenLifetime);
@@ -85,7 +85,7 @@ public class JwtTokenProvider implements TokenProvider {
      * @param issuer        the token issuer
      * @param tokenLifetime the token lifetime
      * @return the JWT provider
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static JwtTokenProvider rsa256(PrivateKey privateKey, PublicKey publicKey,
                                           String issuer, Duration tokenLifetime) {
@@ -101,7 +101,7 @@ public class JwtTokenProvider implements TokenProvider {
      * @param tokenLifetime   the token lifetime
      * @return the JWT provider
      * @throws GeneralSecurityException if key parsing fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static JwtTokenProvider rsa256(byte[] privateKeyBytes, byte[] publicKeyBytes,
                                           String issuer, Duration tokenLifetime)
@@ -219,7 +219,7 @@ public class JwtTokenProvider implements TokenProvider {
      *
      * @param token the JWT token
      * @return the header, or empty if malformed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<JwtHeader> parseHeader(String token) {
         if (token == null) return Optional.empty();
@@ -238,7 +238,7 @@ public class JwtTokenProvider implements TokenProvider {
      *
      * @param token the JWT token
      * @return the claims, or empty if malformed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<JwtClaims> parseClaims(String token) {
         if (token == null) return Optional.empty();
@@ -256,7 +256,7 @@ public class JwtTokenProvider implements TokenProvider {
      * Returns the signing algorithm.
      *
      * @return the algorithm
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getAlgorithm() {
         return algorithm;
@@ -336,7 +336,7 @@ public class JwtTokenProvider implements TokenProvider {
      *
      * @param data the data to encode
      * @return the base64url-encoded string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String base64UrlEncode(byte[] data) {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(data);
@@ -347,7 +347,7 @@ public class JwtTokenProvider implements TokenProvider {
      *
      * @param encoded the base64url-encoded string
      * @return the decoded bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static byte[] base64UrlDecode(String encoded) {
         return Base64.getUrlDecoder().decode(encoded);

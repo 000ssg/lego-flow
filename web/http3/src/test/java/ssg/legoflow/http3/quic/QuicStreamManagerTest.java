@@ -8,7 +8,7 @@ import static org.assertj.core.api.Assertions.*;
  * Tests for {@link QuicStreamManager} — ID allocation, max streams enforcement,
  * close, and stream counting.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class QuicStreamManagerTest {
 

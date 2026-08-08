@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * Demonstrates a simple CoAP server with temperature and humidity resources
  * supporting GET and PUT operations.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SimpleServerDemo {
 
@@ -25,7 +25,7 @@ public final class SimpleServerDemo {
      * Creates the demo with a server on the given port.
      *
      * @param port the UDP port
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SimpleServerDemo(int port) {
         this.server = new CoapServer(CoapServerConfig.withPort(port));
@@ -38,7 +38,7 @@ public final class SimpleServerDemo {
      * Starts the demo server.
      *
      * @throws IOException if binding fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() throws IOException {
         server.start();
@@ -47,7 +47,7 @@ public final class SimpleServerDemo {
     /**
      * Stops the demo server.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         server.stop();
@@ -57,7 +57,7 @@ public final class SimpleServerDemo {
      * Returns the server instance.
      *
      * @return the server
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapServer server() {
         return server;
@@ -66,7 +66,7 @@ public final class SimpleServerDemo {
     /**
      * Temperature sensor resource supporting GET and PUT.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class TemperatureResource extends CoapResource {
 
@@ -107,7 +107,7 @@ public final class SimpleServerDemo {
     /**
      * Humidity sensor resource supporting GET and PUT.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class HumidityResource extends CoapResource {
 

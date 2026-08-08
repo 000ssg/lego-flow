@@ -17,7 +17,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *
  * <p>Thread-safe: uses read-write locks for concurrent access.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DeviceMemory {
 

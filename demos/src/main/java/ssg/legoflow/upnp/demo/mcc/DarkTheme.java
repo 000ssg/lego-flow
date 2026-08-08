@@ -40,98 +40,98 @@ import javax.swing.tree.DefaultTreeCellRenderer;
  * <p>Provides color constants, global UIManager defaults, and factory methods
  * for styled Swing components that match the web variant's CSS dark theme.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DarkTheme {
 
     /**
      * Body / root background color ({@code #0f172a}).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final Color BODY_BG = new Color(0x0f172a);
 
     /**
      * Panel background color ({@code #1e293b}).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final Color PANEL_BG = new Color(0x1e293b);
 
     /**
      * Border color ({@code #334155}).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final Color BORDER = new Color(0x334155);
 
     /**
      * Primary text color ({@code #e2e8f0}).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final Color TEXT = new Color(0xe2e8f0);
 
     /**
      * Secondary text color ({@code #94a3b8}).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final Color SECONDARY_TEXT = new Color(0x94a3b8);
 
     /**
      * Muted text color ({@code #64748b}).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final Color MUTED_TEXT = new Color(0x64748b);
 
     /**
      * Hover background color ({@code #334155}).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final Color HOVER_BG = new Color(0x334155);
 
     /**
      * Selected / active background color ({@code #1e3a5f}).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final Color SELECTED_BG = new Color(0x1e3a5f);
 
     /**
      * Accent blue color ({@code #60a5fa}).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final Color ACCENT = new Color(0x60a5fa);
 
     /**
      * Success green color ({@code #4ade80}).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final Color SUCCESS = new Color(0x4ade80);
 
     /**
      * Warning yellow color ({@code #fbbf24}).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final Color WARNING = new Color(0xfbbf24);
 
     /**
      * Error red color ({@code #ef4444}).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final Color ERROR = new Color(0xef4444);
 
     /**
      * Header background color ({@code #1e293b}), same as {@link #PANEL_BG}.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final Color HEADER_BG = new Color(0x1e293b);
 
@@ -151,7 +151,7 @@ public final class DarkTheme {
      * <p>This method should be called once at application startup, before any
      * Swing components are created.</p>
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void apply() {
         ColorUIResource bodyBg = res(BODY_BG);
@@ -422,7 +422,7 @@ public final class DarkTheme {
      * @param text    the text to render in the centre of the button
      * @param tooltip the tooltip text
      * @return a styled circular {@link JButton}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static JButton createCircleButton(String text, String tooltip) {
         return createCircleButtonInternal(text, tooltip, 40);
@@ -435,7 +435,7 @@ public final class DarkTheme {
      * @param text    the text to render in the centre of the button
      * @param tooltip the tooltip text
      * @return a styled circular {@link JButton}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static JButton createSmallCircleButton(String text, String tooltip) {
         return createCircleButtonInternal(text, tooltip, 32);
@@ -515,7 +515,7 @@ public final class DarkTheme {
      * leaves or completes.</p>
      *
      * @return a styled {@link JPanel} configured as a drop zone
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static JPanel createDropZone() {
         JPanel panel = new JPanel();
@@ -575,7 +575,7 @@ public final class DarkTheme {
      *
      * @param title the border title
      * @return a dark-themed titled {@link Border}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Border panelBorder(String title) {
         return BorderFactory.createTitledBorder(
@@ -594,7 +594,7 @@ public final class DarkTheme {
      * row colours, header styling, and grid colour.
      *
      * @param table the table to style
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void styleTable(JTable table) {
         table.setBackground(BODY_BG);
@@ -637,7 +637,7 @@ public final class DarkTheme {
      * colours and cell renderer colours.
      *
      * @param tree the tree to style
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void styleTree(JTree tree) {
         tree.setBackground(BODY_BG);
@@ -658,7 +658,7 @@ public final class DarkTheme {
      * Creates a dark-themed {@link JProgressBar} with blue fill.
      *
      * @return a styled progress bar
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static JProgressBar createProgressBar() {
         JProgressBar bar = new JProgressBar();
@@ -678,7 +678,7 @@ public final class DarkTheme {
      * <p>The slider ranges from 0 to 100 with an initial value of 50.</p>
      *
      * @return a styled slider
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static JSlider createVolumeSlider() {
         JSlider slider = new JSlider(0, 100, 50);

@@ -7,7 +7,7 @@ import java.util.Optional;
  * Interface for token generation and validation. Implementations handle specific
  * token formats (JWT, opaque tokens, etc.).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface TokenProvider {
 
@@ -17,7 +17,7 @@ public interface TokenProvider {
      * @param subject the token subject (typically a user ID or username)
      * @param claims  additional claims to include in the token
      * @return the generated token string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     String generateToken(String subject, Map<String, Object> claims);
 
@@ -26,7 +26,7 @@ public interface TokenProvider {
      *
      * @param subject the token subject
      * @return the generated token string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     default String generateToken(String subject) {
         return generateToken(subject, Map.of());
@@ -37,7 +37,7 @@ public interface TokenProvider {
      *
      * @param token the token to validate
      * @return the claims if the token is valid, empty otherwise
-     * @since 1.0.0
+     * @since 0.1.0
      */
     Optional<Map<String, Object>> validateToken(String token);
 
@@ -46,7 +46,7 @@ public interface TokenProvider {
      *
      * @param token the token
      * @return the subject, or empty if the token is malformed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     Optional<String> getSubject(String token);
 
@@ -55,7 +55,7 @@ public interface TokenProvider {
      *
      * @param token the token
      * @return true if expired
-     * @since 1.0.0
+     * @since 0.1.0
      */
     boolean isExpired(String token);
 }

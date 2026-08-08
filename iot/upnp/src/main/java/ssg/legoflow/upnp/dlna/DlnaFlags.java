@@ -10,7 +10,7 @@ import java.util.Set;
  * DLNA content transfer. They are combined into a 32-bit hex string
  * followed by 24 zero bytes for the primary and remaining flags fields.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum DlnaFlags {
 
@@ -60,7 +60,7 @@ public enum DlnaFlags {
      * Returns the bit mask value for this flag.
      *
      * @return the bit mask
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int bitMask() {
         return bitMask;
@@ -74,7 +74,7 @@ public enum DlnaFlags {
      *
      * @param flags the set of flags to combine
      * @return the hex flag string (e.g. "01700000000000000000000000000000")
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String toHexString(Set<DlnaFlags> flags) {
         int combined = 0;
@@ -89,7 +89,7 @@ public enum DlnaFlags {
      *
      * @param flags the flags to combine
      * @return the hex flag string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String toHexString(DlnaFlags... flags) {
         return toHexString(flags.length == 0 ? EnumSet.noneOf(DlnaFlags.class) : EnumSet.of(flags[0], flags));
@@ -101,7 +101,7 @@ public enum DlnaFlags {
      * @param hexString the hex string (at least 8 hex digits)
      * @return the set of flags present in the string
      * @throws IllegalArgumentException if the hex string is invalid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Set<DlnaFlags> fromHexString(String hexString) {
         if (hexString == null || hexString.length() < 8) {
@@ -121,7 +121,7 @@ public enum DlnaFlags {
      * Creates a default flags string suitable for streaming media.
      *
      * @return the streaming flags hex string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String streamingFlags() {
         return toHexString(EnumSet.of(
@@ -136,7 +136,7 @@ public enum DlnaFlags {
      * Creates a default flags string suitable for interactive image browsing.
      *
      * @return the interactive flags hex string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String interactiveFlags() {
         return toHexString(EnumSet.of(

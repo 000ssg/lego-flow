@@ -62,7 +62,7 @@ import java.util.List;
  *   <li>Feature profiles — minimal, standard, full server configurations</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoHttpAll {
 

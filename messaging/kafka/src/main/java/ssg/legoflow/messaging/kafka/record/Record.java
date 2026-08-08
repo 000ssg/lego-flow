@@ -10,7 +10,7 @@ import java.util.List;
  * @param key            the record key (may be null)
  * @param value          the record value (may be null)
  * @param headers        the record headers
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Record(int offsetDelta, long timestampDelta, byte[] key, byte[] value,
                      List<Header> headers) {

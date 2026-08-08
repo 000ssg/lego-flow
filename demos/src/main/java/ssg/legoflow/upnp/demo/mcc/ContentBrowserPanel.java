@@ -31,7 +31,7 @@ import java.util.function.Consumer;
  * dark theme, including alternating row colours, styled tree/table components,
  * dark breadcrumb buttons, and emoji-based type icons.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ContentBrowserPanel extends JPanel {
 
@@ -53,7 +53,7 @@ public class ContentBrowserPanel extends JPanel {
     /**
      * Creates a new content browser panel styled with the dark theme.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentBrowserPanel() {
         setLayout(new BorderLayout(4, 4));
@@ -215,7 +215,7 @@ public class ContentBrowserPanel extends JPanel {
      * Sets the action invoked when "Play on Renderer" is selected.
      *
      * @param action the consumer receiving the content item to play
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setPlayOnRendererAction(Consumer<ContentItem> action) {
         this.playOnRendererAction = action;
@@ -225,7 +225,7 @@ public class ContentBrowserPanel extends JPanel {
      * Sets the action invoked when "Play Locally" is selected.
      *
      * @param action the consumer receiving the content item to play locally
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setPlayLocallyAction(Consumer<ContentItem> action) {
         this.playLocallyAction = action;
@@ -235,7 +235,7 @@ public class ContentBrowserPanel extends JPanel {
      * Sets the media server to browse and loads its root content.
      *
      * @param server the media server proxy
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setServer(MediaServerProxy server) {
         this.currentServer = server;
@@ -261,7 +261,7 @@ public class ContentBrowserPanel extends JPanel {
      * @param containerId    the container object ID
      * @param title          the container title for the breadcrumb
      * @param fromBreadcrumb whether this navigation is from a breadcrumb click
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void navigateTo(String containerId, String title, boolean fromBreadcrumb) {
         if (fromBreadcrumb) {
@@ -297,7 +297,7 @@ public class ContentBrowserPanel extends JPanel {
     /**
      * Refreshes the current content view.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void refresh() {
         if (treeModel != null) {
@@ -451,7 +451,7 @@ public class ContentBrowserPanel extends JPanel {
      * Applies dark button styling to a standard {@link JButton}.
      *
      * @param button the button to style
-     * @since 1.0.0
+     * @since 0.1.0
      */
     private static void styleButton(JButton button) {
         button.setBackground(DarkTheme.PANEL_BG);
@@ -467,7 +467,7 @@ public class ContentBrowserPanel extends JPanel {
      * Applies dark menu item styling to a {@link JMenuItem}.
      *
      * @param item the menu item to style
-     * @since 1.0.0
+     * @since 0.1.0
      */
     private static void styleMenuItem(JMenuItem item) {
         item.setBackground(DarkTheme.PANEL_BG);
@@ -479,7 +479,7 @@ public class ContentBrowserPanel extends JPanel {
      *
      * @param bytes the size in bytes
      * @return the formatted size string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static String formatSize(long bytes) {
         if (bytes < 1024) return bytes + " B";
@@ -493,7 +493,7 @@ public class ContentBrowserPanel extends JPanel {
      *
      * @param d the duration to format, may be {@code null}
      * @return the formatted duration string, or empty string if {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static String formatDuration(Duration d) {
         if (d == null) return "";
@@ -510,7 +510,7 @@ public class ContentBrowserPanel extends JPanel {
      *
      * @param type the content item type
      * @return an emoji string for the type
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static String typeIcon(ContentItemType type) {
         return switch (type) {
@@ -529,7 +529,7 @@ public class ContentBrowserPanel extends JPanel {
      *
      * @param id    the container object ID
      * @param title the display title
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record BreadcrumbEntry(String id, String title) {
     }
@@ -538,7 +538,7 @@ public class ContentBrowserPanel extends JPanel {
      * Table model for the content item list with columns for icon, title,
      * creator, duration, size, and format.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static class ContentTableModel extends AbstractTableModel {
 
@@ -549,7 +549,7 @@ public class ContentBrowserPanel extends JPanel {
          * Sets the items to display.
          *
          * @param items the content items
-         * @since 1.0.0
+         * @since 0.1.0
          */
         void setItems(List<ContentItem> items) {
             this.items = items != null ? List.copyOf(items) : List.of();
@@ -561,7 +561,7 @@ public class ContentBrowserPanel extends JPanel {
          *
          * @param row the row index
          * @return the content item
-         * @since 1.0.0
+         * @since 0.1.0
          */
         ContentItem getItemAt(int row) {
             return items.get(row);
@@ -571,7 +571,7 @@ public class ContentBrowserPanel extends JPanel {
          * Returns all current items.
          *
          * @return the item list
-         * @since 1.0.0
+         * @since 0.1.0
          */
         List<ContentItem> getItems() {
             return items;
@@ -620,7 +620,7 @@ public class ContentBrowserPanel extends JPanel {
      * Renders {@link Duration} values as human-readable time strings with
      * dark theme alternating row background colours.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     private static class DurationCellRenderer extends DefaultTableCellRenderer {
 
@@ -652,7 +652,7 @@ public class ContentBrowserPanel extends JPanel {
      * Renders file size values as human-readable strings (KB/MB/GB) with
      * dark theme alternating row background colours.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     private static class SizeCellRenderer extends DefaultTableCellRenderer {
 
@@ -687,7 +687,7 @@ public class ContentBrowserPanel extends JPanel {
      *
      * @param e the exception to extract a message from
      * @return a descriptive error message
-     * @since 1.0.0
+     * @since 0.1.0
      */
     private static String extractErrorMessage(Throwable e) {
         Throwable cause = e;
@@ -709,7 +709,7 @@ public class ContentBrowserPanel extends JPanel {
      * about failures without blocking the UI thread.
      *
      * @param message the diagnostic message to display
-     * @since 1.0.0
+     * @since 0.1.0
      */
     private void showDiagnosticMessage(String message) {
         // Log to stderr for debugging
@@ -730,7 +730,7 @@ public class ContentBrowserPanel extends JPanel {
      * <p>Creates a {@link ContentItemTransferable} carrying the full {@link ContentItem}
      * so that drop targets can access all metadata, not just the resource URL.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     private class ContentTransferHandler extends TransferHandler {
 
@@ -744,7 +744,7 @@ public class ContentBrowserPanel extends JPanel {
          *
          * @param c the source component
          * @return a transferable wrapping the selected content item, or {@code null}
-         * @since 1.0.0
+         * @since 0.1.0
          */
         @Override
         protected Transferable createTransferable(JComponent c) {
@@ -767,7 +767,7 @@ public class ContentBrowserPanel extends JPanel {
      * The full {@link ContentItem} stored in the tree node is transferred
      * so that drop targets (renderer panel, local player) receive all metadata.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     private class TreeContentTransferHandler extends TransferHandler {
 
@@ -781,7 +781,7 @@ public class ContentBrowserPanel extends JPanel {
          *
          * @param c the source component (the JTree)
          * @return a transferable wrapping the selected content item, or {@code null}
-         * @since 1.0.0
+         * @since 0.1.0
          */
         @Override
         protected Transferable createTransferable(JComponent c) {

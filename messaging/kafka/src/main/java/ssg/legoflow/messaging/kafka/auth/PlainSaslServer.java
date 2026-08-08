@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
  * {@code authzid \0 authcid \0 password}. The authzid (authorization identity)
  * may be empty. Authentication is single-step.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class PlainSaslServer implements SaslMechanism {
 

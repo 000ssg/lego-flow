@@ -6,7 +6,7 @@ package ssg.legoflow.network.ldap.protocol;
  * <p>Indicates the completion of a search operation.
  *
  * @param result the LDAP result
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SearchResultDone(LdapResult result) implements LdapProtocolOp {
 

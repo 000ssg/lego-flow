@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.*;
  * management, seek positioning, and device property retrieval using in-process
  * demo devices.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class MediaControlCenterTest {
 

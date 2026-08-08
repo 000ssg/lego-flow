@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * query handling to a {@link DnsHandler} implementation, which can be
  * an {@link AuthoritativeZone} or a custom handler.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DnsServer implements AutoCloseable {
 
@@ -52,7 +52,7 @@ public final class DnsServer implements AutoCloseable {
      *
      * @param bindAddress the address to bind to
      * @param handler     the query handler
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DnsServer(InetSocketAddress bindAddress, DnsHandler handler) {
         this.bindAddress = Objects.requireNonNull(bindAddress);
@@ -63,7 +63,7 @@ public final class DnsServer implements AutoCloseable {
      * Creates a DNS server with a zone-based handler.
      *
      * @param bindAddress the address to bind to
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DnsServer(InetSocketAddress bindAddress) {
         this.bindAddress = Objects.requireNonNull(bindAddress);
@@ -74,7 +74,7 @@ public final class DnsServer implements AutoCloseable {
      * Adds an authoritative zone to the server.
      *
      * @param zone the zone to add
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addZone(AuthoritativeZone zone) {
         zones.put(zone.origin(), zone);
@@ -84,7 +84,7 @@ public final class DnsServer implements AutoCloseable {
      * Starts the server on both UDP and TCP.
      *
      * @throws IOException if the server cannot start
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() throws IOException {
         if (!running.compareAndSet(false, true)) {
@@ -112,7 +112,7 @@ public final class DnsServer implements AutoCloseable {
      * Returns the actual bound address (useful when binding to port 0).
      *
      * @return the bound address, or {@code null} if not started
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public InetSocketAddress boundAddress() {
         if (udpChannel != null) {
@@ -129,7 +129,7 @@ public final class DnsServer implements AutoCloseable {
      * Returns the number of queries received.
      *
      * @return the query count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long queriesReceived() {
         return queriesReceived.get();
@@ -139,7 +139,7 @@ public final class DnsServer implements AutoCloseable {
      * Returns the number of responses sent.
      *
      * @return the response count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long responsesSent() {
         return responsesSent.get();
@@ -149,7 +149,7 @@ public final class DnsServer implements AutoCloseable {
      * Returns whether the server is running.
      *
      * @return {@code true} if running
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isRunning() {
         return running.get();

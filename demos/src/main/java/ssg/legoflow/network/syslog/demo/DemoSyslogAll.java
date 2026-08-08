@@ -49,7 +49,7 @@ import java.util.concurrent.TimeUnit;
  *   <li>High-level collector — SyslogCollector with multi-transport support</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoSyslogAll {
 

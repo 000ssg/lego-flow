@@ -15,7 +15,7 @@ import java.util.List;
  * <p>Request control OID: {@value #REQUEST_OID}
  * <p>Response control OID: {@value #RESPONSE_OID}
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SortControl {
 
@@ -33,7 +33,7 @@ public final class SortControl {
      * @param attributeType the attribute to sort by
      * @param orderingRule  the optional matching rule OID (null if default)
      * @param reverseOrder  true to sort in descending order
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record SortKey(String attributeType, String orderingRule, boolean reverseOrder) {
 

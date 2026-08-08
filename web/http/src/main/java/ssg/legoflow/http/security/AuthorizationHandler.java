@@ -15,7 +15,7 @@ import java.util.Objects;
  * <p>Supports Basic and Bearer authentication schemes. Parses the Authorization
  * header from requests and generates WWW-Authenticate challenges for 401 responses.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class AuthorizationHandler {
 
@@ -24,7 +24,7 @@ public class AuthorizationHandler {
      *
      * @param scheme     the authentication scheme (e.g., "Basic", "Bearer")
      * @param credentials the credential string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record Credentials(String scheme, String credentials) {
         public Credentials {
@@ -38,7 +38,7 @@ public class AuthorizationHandler {
      *
      * @param username the username
      * @param password the password
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record BasicCredentials(String username, String password) {
         public BasicCredentials {

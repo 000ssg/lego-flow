@@ -23,7 +23,7 @@ import java.util.Optional;
  *   <li>{@code <CipherValue>} contains the Base64-encoded ciphertext</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SamlEncryptedAssertion {
 
@@ -35,7 +35,7 @@ public class SamlEncryptedAssertion {
      * Creates an encrypted assertion handler with the SP's private key.
      *
      * @param privateKey the SP's RSA private key for key unwrapping
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SamlEncryptedAssertion(PrivateKey privateKey) {
         this.privateKey = Objects.requireNonNull(privateKey, "privateKey must not be null");
@@ -47,7 +47,7 @@ public class SamlEncryptedAssertion {
      *
      * @param samlResponseXml the SAML Response XML containing an EncryptedAssertion
      * @return the decrypted assertion XML, or empty if decryption fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<String> decrypt(String samlResponseXml) {
         if (samlResponseXml == null || samlResponseXml.isBlank()) {
@@ -100,7 +100,7 @@ public class SamlEncryptedAssertion {
      * @param algorithm    the key encryption algorithm URI
      * @return the unwrapped AES key bytes
      * @throws Exception if unwrapping fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     byte[] unwrapKey(byte[] encryptedKey, String algorithm) throws Exception {
         String cipherAlg;
@@ -122,7 +122,7 @@ public class SamlEncryptedAssertion {
      * @param algorithm     the data encryption algorithm URI
      * @return the decrypted string
      * @throws Exception if decryption fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static String decryptData(byte[] aesKey, byte[] encryptedData, String algorithm) throws Exception {
         SecretKeySpec keySpec = new SecretKeySpec(aesKey, "AES");

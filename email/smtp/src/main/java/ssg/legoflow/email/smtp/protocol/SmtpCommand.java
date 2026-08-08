@@ -11,7 +11,7 @@ package ssg.legoflow.email.smtp.protocol;
  *   <li>RFC 3030 -- SMTP Service Extensions for Transmission of Large and Binary MIME Messages (BDAT)</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum SmtpCommand {
 

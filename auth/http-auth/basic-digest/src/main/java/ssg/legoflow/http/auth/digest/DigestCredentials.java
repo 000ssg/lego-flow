@@ -13,7 +13,7 @@ package ssg.legoflow.http.auth.digest;
  * @param nc        the nonce count (hex string)
  * @param qop       the quality of protection (auth or auth-int)
  * @param opaque    the opaque value
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record DigestCredentials(
         String username,
@@ -31,7 +31,7 @@ public record DigestCredentials(
      * Returns whether this uses the auth quality of protection.
      *
      * @return true if qop is "auth"
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isQopAuth() {
         return "auth".equals(qop);
@@ -41,7 +41,7 @@ public record DigestCredentials(
      * Returns whether this uses the auth-int quality of protection.
      *
      * @return true if qop is "auth-int"
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isQopAuthInt() {
         return "auth-int".equals(qop);

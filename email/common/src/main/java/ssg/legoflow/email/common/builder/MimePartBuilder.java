@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * Fluent builder for creating {@link MimePart} instances.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MimePartBuilder {
 

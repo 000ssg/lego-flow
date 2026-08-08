@@ -13,7 +13,7 @@ import java.util.List;
  * OID-value pairs being requested or returned.
  *
  * @param bindings the list of variable bindings
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record VarBindList(List<VarBind> bindings) implements Iterable<VarBind> {
 
@@ -103,7 +103,7 @@ public record VarBindList(List<VarBind> bindings) implements Iterable<VarBind> {
     /**
      * Builder for constructing VarBindList incrementally.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class Builder {
         private final List<VarBind> bindings = new ArrayList<>();

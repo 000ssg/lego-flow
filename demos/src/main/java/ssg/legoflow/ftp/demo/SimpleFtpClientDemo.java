@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * Demonstrates basic FTP client operations: connect, login, list, upload, download.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SimpleFtpClientDemo {
 

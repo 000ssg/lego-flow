@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * Standard HTTP/3 feature profiles for server and client configurations.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class Http3Profiles {
 
@@ -19,7 +19,7 @@ public class Http3Profiles {
      * Standard server HTTP/3 profile with core, transfer, connection, and HTTP/3 features.
      *
      * @return the server feature set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static HttpFeatureSet serverHttp3() {
         return new HttpFeatureSet("SERVER_HTTP3")
@@ -33,7 +33,7 @@ public class Http3Profiles {
      * Standard client HTTP/3 profile with core, transfer, connection, and HTTP/3 features.
      *
      * @return the client feature set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static HttpFeatureSet clientHttp3() {
         return new HttpFeatureSet("CLIENT_HTTP3")
@@ -47,7 +47,7 @@ public class Http3Profiles {
      * Full server HTTP/3 profile with all feature categories enabled.
      *
      * @return the full server feature set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static HttpFeatureSet serverHttp3Full() {
         return new HttpFeatureSet("SERVER_HTTP3_FULL")

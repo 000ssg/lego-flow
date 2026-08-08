@@ -5,6 +5,6 @@
  * management, SASL authentication, roster and presence management, and IoT extensions
  * for sensor data (XEP-0323), control (XEP-0325), and discovery (XEP-0347).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 package ssg.legoflow.xmpp;

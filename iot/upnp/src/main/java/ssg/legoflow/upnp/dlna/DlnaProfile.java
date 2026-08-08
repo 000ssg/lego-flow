@@ -7,35 +7,35 @@ package ssg.legoflow.upnp.dlna;
  * the DLNA (Digital Living Network Alliance) guidelines. Devices advertise
  * their profile so that control points can determine capabilities.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum DlnaProfile {
 
     /**
      * Digital Media Server — stores and serves media content.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     DIGITAL_MEDIA_SERVER("DMS"),
 
     /**
      * Digital Media Renderer — renders (plays) media content received from the network.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     DIGITAL_MEDIA_RENDERER("DMR"),
 
     /**
      * Digital Media Player — discovers, selects, and plays media content locally.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     DIGITAL_MEDIA_PLAYER("DMP"),
 
     /**
      * Digital Media Controller — discovers media on servers and directs renderers to play it.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     DIGITAL_MEDIA_CONTROLLER("DMC");
 
@@ -49,7 +49,7 @@ public enum DlnaProfile {
      * Returns the short code for this profile (e.g. "DMS", "DMR").
      *
      * @return the DLNA profile code
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String code() {
         return code;
@@ -61,7 +61,7 @@ public enum DlnaProfile {
      * @param code the profile code (e.g. "DMS")
      * @return the matching profile
      * @throws IllegalArgumentException if the code is unknown
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static DlnaProfile fromCode(String code) {
         for (DlnaProfile profile : values()) {

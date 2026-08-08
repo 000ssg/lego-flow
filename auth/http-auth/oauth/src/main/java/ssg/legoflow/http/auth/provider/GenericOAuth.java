@@ -6,7 +6,7 @@ import java.util.Set;
 /**
  * Generic OAuth 2.0 provider configurable for any OAuth 2.0/OpenID Connect server.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class GenericOAuth extends OAuthProvider {
 
@@ -25,7 +25,7 @@ public class GenericOAuth extends OAuthProvider {
      * @param userInfoUrl      the user info endpoint URL (may be null)
      * @param revocationUrl    the revocation endpoint URL (may be null)
      * @param scopes           the default scopes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public GenericOAuth(String name, String authorizationUrl, String tokenUrl,
                         String userInfoUrl, String revocationUrl, Set<String> scopes) {

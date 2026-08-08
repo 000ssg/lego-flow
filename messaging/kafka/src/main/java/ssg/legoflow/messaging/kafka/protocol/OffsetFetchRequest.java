@@ -7,7 +7,7 @@ import java.util.List;
  *
  * @param groupId the consumer group ID
  * @param topics  the topics and partitions to fetch offsets for
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record OffsetFetchRequest(String groupId, List<TopicPartitions> topics) {
 

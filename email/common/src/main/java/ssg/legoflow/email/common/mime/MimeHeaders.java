@@ -13,7 +13,7 @@ import java.util.*;
  * <p>Supports RFC 5322 header folding (long lines wrapped with CRLF + whitespace)
  * and unfolding (removing the CRLF and leading whitespace).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MimeHeaders {
 

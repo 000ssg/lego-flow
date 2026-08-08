@@ -7,7 +7,7 @@ package ssg.legoflow.messaging.amqp.common;
  * AMQP 1.0 specification. Each condition is represented as a symbol string
  * following the {@code amqp:} prefix convention.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class AmqpError {
 

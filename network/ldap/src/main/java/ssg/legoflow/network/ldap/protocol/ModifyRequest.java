@@ -17,7 +17,7 @@ import java.util.List;
  *
  * @param object  the DN of the entry to modify
  * @param changes the list of modifications
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ModifyRequest(
         String object,
@@ -42,7 +42,7 @@ public record ModifyRequest(
      *
      * @param operation    the modification operation
      * @param modification the attribute to modify
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record Change(ModifyOperation operation, LdapAttribute modification) {
         /** Creates a change with validation. */
@@ -55,7 +55,7 @@ public record ModifyRequest(
     /**
      * Modification operations.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum ModifyOperation {
         /** Add values to the attribute. */

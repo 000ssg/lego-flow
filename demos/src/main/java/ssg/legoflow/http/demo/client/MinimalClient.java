@@ -12,7 +12,7 @@ import ssg.legoflow.http.core.HttpRequest;
  * <p>Uses the {@code clientMinimal} profile which includes core HTTP features
  * and fixed-length transfer encoding.
  *
- * @since 1.0
+ * @since 0.1
  */
 public class MinimalClient {
 

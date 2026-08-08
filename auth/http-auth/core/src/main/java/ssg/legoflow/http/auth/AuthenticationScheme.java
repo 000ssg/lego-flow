@@ -10,7 +10,7 @@ import ssg.legoflow.http.core.HttpResponse;
  * <p>Implementations include Basic (RFC 7617), Digest (RFC 7616), Bearer (RFC 6750),
  * and custom schemes.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface AuthenticationScheme {
 
@@ -19,7 +19,7 @@ public interface AuthenticationScheme {
      * (e.g., "Basic", "Bearer", "Digest").
      *
      * @return the scheme name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     String schemeName();
 
@@ -29,7 +29,7 @@ public interface AuthenticationScheme {
      * @param request the HTTP request
      * @param context the authentication context with realm, user store, etc.
      * @return the authentication result (success, failure, or challenge)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     AuthResult authenticate(HttpRequest request, AuthContext context);
 
@@ -38,7 +38,7 @@ public interface AuthenticationScheme {
      *
      * @param response the HTTP response to add the challenge to
      * @param context  the authentication context (for realm, etc.)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     void challenge(HttpResponse response, AuthContext context);
 
@@ -47,7 +47,7 @@ public interface AuthenticationScheme {
      *
      * @param request the HTTP request
      * @return the extracted credentials, or {@link AuthCredentials.None} if not present
-     * @since 1.0.0
+     * @since 0.1.0
      */
     AuthCredentials extractCredentials(HttpRequest request);
 }

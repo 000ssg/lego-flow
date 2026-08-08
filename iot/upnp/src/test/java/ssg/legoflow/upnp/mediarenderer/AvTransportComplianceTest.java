@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.*;
  * Compliance tests for AVTransport new features: SetNextAVTransportURI,
  * GetDeviceCapabilities, GetTransportSettings, and gapless playback.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class AvTransportComplianceTest {
 

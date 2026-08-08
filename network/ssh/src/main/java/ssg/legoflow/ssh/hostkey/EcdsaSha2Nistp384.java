@@ -10,7 +10,7 @@ import java.security.spec.ECGenParameterSpec;
 /**
  * ECDSA host key algorithm with nistp384 curve (ecdsa-sha2-nistp384).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class EcdsaSha2Nistp384 implements HostKeyAlgorithm {
 

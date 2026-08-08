@@ -52,7 +52,7 @@ import java.util.Optional;
  *   <li>Session management — session ID tracking, CSeq numbering</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoRtspAll {
 

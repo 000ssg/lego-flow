@@ -4,7 +4,7 @@ package ssg.legoflow.network.ldap.protocol;
  * LDAP Compare Response (APPLICATION 15) as defined in RFC 4511 Section 4.10.
  *
  * @param result the LDAP result (COMPARE_TRUE or COMPARE_FALSE)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record CompareResponse(LdapResult result) implements LdapProtocolOp {
 

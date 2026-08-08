@@ -13,7 +13,7 @@ import java.util.Objects;
  * @param protocol  must be 3
  * @param algorithm the algorithm number
  * @param publicKey the public key bytes
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record DnskeyRecord(int flags, int protocol, int algorithm, byte[] publicKey)
         implements RData {
@@ -46,7 +46,7 @@ public record DnskeyRecord(int flags, int protocol, int algorithm, byte[] public
      * Returns whether this is a zone signing key.
      *
      * @return {@code true} if the zone key flag is set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isZoneKey() {
         return (flags & FLAG_ZONE_KEY) != 0;
@@ -56,7 +56,7 @@ public record DnskeyRecord(int flags, int protocol, int algorithm, byte[] public
      * Returns whether this is a secure entry point (KSK).
      *
      * @return {@code true} if the SEP flag is set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isSecureEntryPoint() {
         return (flags & FLAG_SEP) != 0;
@@ -66,7 +66,7 @@ public record DnskeyRecord(int flags, int protocol, int algorithm, byte[] public
      * Computes the key tag per RFC 4034 Appendix B.
      *
      * @return the 16-bit key tag
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int keyTag() {
         // Encode the RDATA: flags(2) + protocol(1) + algorithm(1) + publicKey

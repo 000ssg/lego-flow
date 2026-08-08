@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
  * The publisher sends messages to a destination, and the subscriber
  * receives them via its subscription handler.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SimplePubSubDemo {
 

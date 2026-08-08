@@ -91,7 +91,7 @@ public class ChannelPipeline {
      *
      * @param channel the data channel the datagram was received on
      * @param packet  the datagram packet information including sender address and payload
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void fireDatagram(DataChannel channel, DatagramPacketInfo packet) {
         for (var handler : handlers) {

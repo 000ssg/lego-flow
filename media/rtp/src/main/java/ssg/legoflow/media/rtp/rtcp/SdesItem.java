@@ -9,7 +9,7 @@ import java.util.Objects;
  *
  * @param type  the SDES item type
  * @param value the text value
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SdesItem(Type type, String value) {
 
@@ -27,7 +27,7 @@ public record SdesItem(Type type, String value) {
     /**
      * SDES item types as defined in RFC 3550 Section 6.5.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum Type {
         /** End of SDES list (used internally). */

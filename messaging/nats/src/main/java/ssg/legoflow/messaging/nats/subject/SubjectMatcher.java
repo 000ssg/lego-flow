@@ -13,7 +13,7 @@ import ssg.legoflow.messaging.nats.protocol.NatsProtocol;
  *   <li>Exact tokens must match exactly
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SubjectMatcher {
 

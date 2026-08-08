@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * Sealed interface for all backend (server to client) messages.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface BackendMessage extends PgMessage {
 

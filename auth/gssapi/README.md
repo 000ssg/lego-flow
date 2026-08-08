@@ -4,7 +4,7 @@
 ![Maven](https://img.shields.io/badge/Maven-3.9%2B-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Tests](https://img.shields.io/badge/Tests-105-brightgreen)
-![Version](https://img.shields.io/badge/Version-1.0.0--SNAPSHOT-orange)
+![Version](https://img.shields.io/badge/Version-0.1.0-SNAPSHOT-orange)
 
 Shared GSS-API / Kerberos V5 / SPNEGO authentication module for the Lego Flow framework. Wraps the JDK's `org.ietf.jgss` and JAAS APIs behind simpler abstractions used by SSH (gssapi-with-mic) and HTTP (Negotiate/SPNEGO) modules.
 

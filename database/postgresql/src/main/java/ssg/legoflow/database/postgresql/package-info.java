@@ -5,6 +5,6 @@
  * wire protocol including startup, authentication (cleartext, MD5, SCRAM-SHA-256),
  * simple and extended query protocols, COPY protocol, and LISTEN/NOTIFY.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 package ssg.legoflow.database.postgresql;

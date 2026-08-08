@@ -10,7 +10,7 @@ import java.util.Arrays;
  * encoded strings, binary data, or nested TLV structures.
  *
  * @param value the raw byte data
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Asn1OctetString(byte[] value) implements Asn1Type {
 

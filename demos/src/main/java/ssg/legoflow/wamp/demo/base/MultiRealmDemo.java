@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Multi-realm demo: creates multiple WAMP realms and demonstrates that
  * procedures and topics in one realm are isolated from another.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MultiRealmDemo {
 

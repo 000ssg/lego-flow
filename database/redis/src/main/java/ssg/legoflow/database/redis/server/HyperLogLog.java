@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
  * 64-bit hash function. Provides bias correction using the harmonic mean formula
  * and small range correction (linear counting) when many registers are zero.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class HyperLogLog {
 

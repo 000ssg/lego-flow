@@ -6,7 +6,7 @@ package ssg.legoflow.email.imap.protocol;
  * <p>Each command knows which connection state(s) it is valid in,
  * enabling the server to reject commands issued in the wrong state.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum ImapCommand {
 

@@ -12,7 +12,7 @@ import java.util.Map;
  * <p>Registers the HTTP/3 capability with the feature registry,
  * allowing HTTP/3 to be included in feature sets and profiles.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class Http3Feature implements HttpFeature {
 

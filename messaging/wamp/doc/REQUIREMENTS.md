@@ -140,7 +140,7 @@
 3. Reuse existing demos: SimpleRpcDemo, SimplePubSubDemo, MultiRealmDemo, CalculatorServiceDemo, ChatRoomDemo
 4. Use InMemoryTransport pairs for session lifecycle and prefix subscription demos
 5. Create `DemoWampAllTest` with AssertJ assertions on each Results field
-6. Javadoc on all public classes/methods with @since 1.0.0
+6. Javadoc on all public classes/methods with @since 0.1.0
 
 ### Final Design Decisions
 - Reuse existing demo classes (SimpleRpcDemo, SimplePubSubDemo, etc.) for proven patterns

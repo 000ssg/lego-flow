@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * <p>This class is thread-safe.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class UsmEngine {
 
@@ -349,7 +349,7 @@ public final class UsmEngine {
      *
      * @param encryptedData the ciphertext
      * @param privParams    the privacy parameters (salt/IV information)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record EncryptionResult(byte[] encryptedData, byte[] privParams) {
         /**

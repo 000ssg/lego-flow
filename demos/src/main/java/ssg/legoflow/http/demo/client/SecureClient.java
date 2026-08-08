@@ -12,7 +12,7 @@ import ssg.legoflow.http.security.SslConfig;
  * <p>Uses {@link SslConfig} to configure a trust store for server certificate
  * verification when communicating over TLS.
  *
- * @since 1.0
+ * @since 0.1
  */
 public class SecureClient {
 

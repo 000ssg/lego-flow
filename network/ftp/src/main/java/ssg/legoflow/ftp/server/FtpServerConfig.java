@@ -7,7 +7,7 @@ import java.time.Duration;
 /**
  * Configuration for an FTP server.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class FtpServerConfig {
 
@@ -71,7 +71,7 @@ public final class FtpServerConfig {
     /**
      * Builder for {@link FtpServerConfig}.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class Builder {
         private String host = "0.0.0.0";

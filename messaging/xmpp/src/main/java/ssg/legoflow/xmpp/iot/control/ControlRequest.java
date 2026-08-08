@@ -11,7 +11,7 @@ import java.util.Objects;
  * @param from       the requesting JID
  * @param nodeId     the target node identifier
  * @param parameters the control parameters to set
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ControlRequest(JID from, String nodeId, List<ControlParameter> parameters) {
 

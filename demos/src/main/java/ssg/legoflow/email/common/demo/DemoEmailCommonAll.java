@@ -30,7 +30,7 @@ import java.util.Arrays;
  *   <li>Content type — parsing and inspection</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoEmailCommonAll {
 
@@ -53,7 +53,7 @@ public final class DemoEmailCommonAll {
      * @param encodedWords        true if RFC 2047 encode/decode round-trip
      * @param emailAddresses      true if email address parsing succeeded
      * @param contentTypeParsing  true if content type parsing succeeded
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record Results(
             boolean mimeParsing,
@@ -72,7 +72,7 @@ public final class DemoEmailCommonAll {
      *
      * @return results from each feature section
      * @throws Exception if any operation fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Results runAll() throws Exception {
         boolean parsing = demoMimeParsing();
@@ -96,7 +96,7 @@ public final class DemoEmailCommonAll {
     /**
      * Demonstrates parsing a raw email message into a structured MimeMessage.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoMimeParsing() {
         LOG.info("=== 1. MIME Parsing ===");
@@ -136,7 +136,7 @@ public final class DemoEmailCommonAll {
     /**
      * Demonstrates writing a MimeMessage to bytes.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoMimeWriting() {
         LOG.info("=== 2. MIME Writing ===");
@@ -167,7 +167,7 @@ public final class DemoEmailCommonAll {
     /**
      * Demonstrates parse-write-parse round-trip preserving key data.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoRoundTrip() {
         LOG.info("=== 3. Round-Trip ===");
@@ -201,7 +201,7 @@ public final class DemoEmailCommonAll {
     /**
      * Demonstrates the fluent MimeMessageBuilder for constructing messages.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoMessageBuilder() {
         LOG.info("=== 4. Message Builder ===");
@@ -231,7 +231,7 @@ public final class DemoEmailCommonAll {
     /**
      * Demonstrates building and parsing multipart (mixed, alternative) messages.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoMultipartMessage() {
         LOG.info("=== 5. Multipart Message ===");
@@ -271,7 +271,7 @@ public final class DemoEmailCommonAll {
     /**
      * Demonstrates Base64 and Quoted-Printable encoding/decoding.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoContentEncodings() {
         LOG.info("=== 6. Content Encodings ===");
@@ -307,7 +307,7 @@ public final class DemoEmailCommonAll {
     /**
      * Demonstrates RFC 2047 encoded-word encoding and decoding for headers.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoEncodedWords() {
         LOG.info("=== 7. Encoded Words ===");
@@ -348,7 +348,7 @@ public final class DemoEmailCommonAll {
     /**
      * Demonstrates email address parsing and validation.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoEmailAddresses() {
         LOG.info("=== 8. Email Addresses ===");
@@ -384,7 +384,7 @@ public final class DemoEmailCommonAll {
     /**
      * Demonstrates ContentType parsing and inspection.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoContentTypeParsing() {
         LOG.info("=== 9. Content Type Parsing ===");

@@ -21,7 +21,7 @@ import java.util.function.Consumer;
  * <p>
  * Thread-safe. Statistics are tracked with atomic counters and can be read at any time.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class EstablishedConnection implements AutoCloseable {
 

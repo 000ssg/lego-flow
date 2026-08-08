@@ -10,7 +10,7 @@ import java.util.List;
  * <p>Implementations provide the actual directory data and logic for
  * handling LDAP protocol operations.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface DirectoryBackend {
 

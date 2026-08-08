@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
  * @param name            the portal name (empty for unnamed)
  * @param statement       the source prepared statement
  * @param parameterValues the bound parameter values (null for SQL NULL)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Portal(String name, PreparedStatement statement, byte[][] parameterValues) {
 

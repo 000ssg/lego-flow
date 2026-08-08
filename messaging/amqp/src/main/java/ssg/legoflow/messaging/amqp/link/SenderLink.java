@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * <p>Credit-based flow control: the sender can only transfer messages when
  * the remote receiver has granted link credit via flow performatives.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SenderLink {
 

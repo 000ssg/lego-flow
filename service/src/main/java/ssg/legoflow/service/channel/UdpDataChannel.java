@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>This class is thread-safe. All operations on the underlying channel are synchronized
  * where necessary.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class UdpDataChannel implements DataChannel {
 
@@ -46,7 +46,7 @@ public class UdpDataChannel implements DataChannel {
      * @param selector        the NIO selector for event registration
      * @throws IOException          if registration with the selector fails
      * @throws NullPointerException if {@code datagramChannel} or {@code selector} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     /**
      * Creates a new {@code UdpDataChannel} with deferred selector registration.
@@ -57,7 +57,7 @@ public class UdpDataChannel implements DataChannel {
      * @param datagramChannel the underlying NIO datagram channel
      * @throws IOException          if configuring non-blocking mode fails
      * @throws NullPointerException if {@code datagramChannel} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public UdpDataChannel(DatagramChannel datagramChannel) throws IOException {
         Objects.requireNonNull(datagramChannel, "datagramChannel must not be null");
@@ -80,7 +80,7 @@ public class UdpDataChannel implements DataChannel {
      * @throws IOException           if registration fails
      * @throws IllegalStateException if this channel is already registered with a selector
      * @throws NullPointerException  if {@code selector} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SelectionKey registerWith(Selector selector) throws IOException {
         Objects.requireNonNull(selector, "selector must not be null");
@@ -101,7 +101,7 @@ public class UdpDataChannel implements DataChannel {
      * @param buffer the buffer to read data into
      * @return the number of bytes read, or 0 if no datagram was available
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public int read(ByteBuffer buffer) throws IOException {
@@ -121,7 +121,7 @@ public class UdpDataChannel implements DataChannel {
      * @return the number of bytes written
      * @throws IOException          if an I/O error occurs
      * @throws IllegalStateException if the channel is not connected
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public int write(ByteBuffer buffer) throws IOException {
@@ -141,7 +141,7 @@ public class UdpDataChannel implements DataChannel {
      * @return the number of bytes sent
      * @throws IOException          if an I/O error occurs
      * @throws NullPointerException if {@code data} or {@code target} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int sendTo(ByteBuffer data, SocketAddress target) throws IOException {
         Objects.requireNonNull(data, "data must not be null");
@@ -157,7 +157,7 @@ public class UdpDataChannel implements DataChannel {
      * @return a {@link DatagramPacketInfo} with sender, data, and timestamp;
      *         or {@code null} if no datagram was available
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DatagramPacketInfo receiveDatagram() throws IOException {
         var buffer = ByteBuffer.allocate(maxPacketSize.get());
@@ -175,7 +175,7 @@ public class UdpDataChannel implements DataChannel {
      * @param address the local address to bind to
      * @throws IOException          if an I/O error occurs or the socket is already bound
      * @throws NullPointerException if {@code address} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void bind(SocketAddress address) throws IOException {
         Objects.requireNonNull(address, "address must not be null");
@@ -193,7 +193,7 @@ public class UdpDataChannel implements DataChannel {
      * @param address the remote address to connect to
      * @throws IOException          if an I/O error occurs
      * @throws NullPointerException if {@code address} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void connect(SocketAddress address) throws IOException {
         Objects.requireNonNull(address, "address must not be null");
@@ -207,7 +207,7 @@ public class UdpDataChannel implements DataChannel {
      *
      * @return the local address, or {@code null} if unbound
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SocketAddress getLocalAddress() throws IOException {
         return datagramChannel.getLocalAddress();
@@ -218,7 +218,7 @@ public class UdpDataChannel implements DataChannel {
      *
      * @return the remote address, or {@code null} if not connected
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SocketAddress getRemoteAddress() throws IOException {
         return datagramChannel.getRemoteAddress();
@@ -228,7 +228,7 @@ public class UdpDataChannel implements DataChannel {
      * Returns whether this channel's socket is bound to a local address.
      *
      * @return {@code true} if the socket is bound
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isBound() {
         return bound.get();
@@ -238,7 +238,7 @@ public class UdpDataChannel implements DataChannel {
      * Returns whether this channel is in connected UDP mode.
      *
      * @return {@code true} if connected to a remote address
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isConnectedUdp() {
         return connectedUdp.get();
@@ -248,7 +248,7 @@ public class UdpDataChannel implements DataChannel {
      * Returns the maximum datagram packet size in bytes.
      *
      * @return the maximum packet size
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getMaxPacketSize() {
         return maxPacketSize.get();
@@ -259,7 +259,7 @@ public class UdpDataChannel implements DataChannel {
      *
      * @param size the maximum packet size; must be positive
      * @throws IllegalArgumentException if {@code size} is not positive
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setMaxPacketSize(int size) {
         if (size <= 0) {
@@ -272,7 +272,7 @@ public class UdpDataChannel implements DataChannel {
      * Returns whether the underlying datagram channel is open.
      *
      * @return {@code true} if the channel is open
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public boolean isOpen() {
@@ -283,7 +283,7 @@ public class UdpDataChannel implements DataChannel {
      * Returns the selection key for this channel's selector registration.
      *
      * @return the selection key
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public SelectionKey getSelectionKey() {
@@ -294,7 +294,7 @@ public class UdpDataChannel implements DataChannel {
      * Closes the underlying datagram channel and cancels the selection key.
      *
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void close() throws IOException {
@@ -311,7 +311,7 @@ public class UdpDataChannel implements DataChannel {
      * Returns the underlying NIO {@link DatagramChannel}.
      *
      * @return the datagram channel
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DatagramChannel getDatagramChannel() {
         return datagramChannel;

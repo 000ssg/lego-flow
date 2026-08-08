@@ -15,7 +15,7 @@ import java.util.Arrays;
  * @param msgSecurityModel the security model (3 = USM)
  * @param securityParams   the USM security parameters (encoded)
  * @param scopedPdu        the scoped PDU
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SnmpMessage(
         int msgVersion,
@@ -122,7 +122,7 @@ public record SnmpMessage(
     /**
      * Builder for constructing SNMPv3 messages.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class Builder {
         private int msgVersion = VERSION_3;

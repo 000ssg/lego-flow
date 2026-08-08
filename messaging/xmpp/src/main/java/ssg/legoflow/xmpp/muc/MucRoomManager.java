@@ -19,7 +19,7 @@ import java.util.function.Consumer;
  * <p>Provides operations for creating, joining, leaving MUC rooms, sending
  * groupchat messages, and managing occupant roles and affiliations.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MucRoomManager {
 

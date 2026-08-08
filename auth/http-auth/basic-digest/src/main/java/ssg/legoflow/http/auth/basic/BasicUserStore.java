@@ -8,7 +8,7 @@ import java.util.Optional;
  * Interface for user/password storage used by Basic authentication.
  * Implementations can store passwords in memory, in a database, or hashed.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface BasicUserStore {
 
@@ -18,7 +18,7 @@ public interface BasicUserStore {
      * @param username the username
      * @param password the password
      * @return the principal if credentials are valid, empty otherwise
-     * @since 1.0.0
+     * @since 0.1.0
      */
     Optional<AuthPrincipal> authenticate(String username, String password);
 
@@ -27,7 +27,7 @@ public interface BasicUserStore {
      *
      * @param username the username
      * @return true if the user exists
-     * @since 1.0.0
+     * @since 0.1.0
      */
     boolean userExists(String username);
 }

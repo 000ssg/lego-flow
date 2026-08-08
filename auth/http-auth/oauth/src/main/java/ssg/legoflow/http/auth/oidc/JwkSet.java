@@ -21,7 +21,7 @@ import java.util.*;
  *   <li>Key ID (kid) based lookup for key rotation</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class JwkSet {
 
@@ -35,7 +35,7 @@ public class JwkSet {
      *
      * @param json the JWK Set JSON (e.g., from a jwks_uri endpoint)
      * @return the parsed JWK Set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static JwkSet fromJson(String json) {
         var jwkSet = new JwkSet();
@@ -75,7 +75,7 @@ public class JwkSet {
      *
      * @param kid the key ID
      * @return the public key, or empty if not found
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<PublicKey> getKey(String kid) {
         return Optional.ofNullable(keys.get(kid));
@@ -85,7 +85,7 @@ public class JwkSet {
      * Returns the first available public key. Useful when kid is not specified.
      *
      * @return the first key, or empty if no keys
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<PublicKey> getFirstKey() {
         return allKeys.isEmpty() ? Optional.empty() : Optional.of(allKeys.getFirst());
@@ -95,7 +95,7 @@ public class JwkSet {
      * Returns all public keys in this set.
      *
      * @return unmodifiable list of public keys
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<PublicKey> getAllKeys() {
         return Collections.unmodifiableList(allKeys);
@@ -105,7 +105,7 @@ public class JwkSet {
      * Returns the number of keys in this set.
      *
      * @return the key count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int size() {
         return allKeys.size();
@@ -115,7 +115,7 @@ public class JwkSet {
      * Returns all key IDs in this set.
      *
      * @return unmodifiable set of key IDs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Set<String> getKeyIds() {
         return Collections.unmodifiableSet(keys.keySet());

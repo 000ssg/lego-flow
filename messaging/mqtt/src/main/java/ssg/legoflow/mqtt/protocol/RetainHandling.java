@@ -5,7 +5,7 @@ package ssg.legoflow.mqtt.protocol;
  *
  * <p>Controls whether retained messages are sent when a subscription is established.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum RetainHandling {
 

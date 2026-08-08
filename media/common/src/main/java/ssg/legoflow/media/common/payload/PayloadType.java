@@ -14,7 +14,7 @@ import java.util.OptionalInt;
  * @param clockRate the clock rate in Hz
  * @param channels  the number of audio channels, or empty for video
  * @param mediaType the media type ("audio" or "video")
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record PayloadType(
         int number,

@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.*;
  * Tests for {@link QuicStream} — state transitions, flow control,
  * ID type detection, and send/receive operations.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class QuicStreamTest {
 

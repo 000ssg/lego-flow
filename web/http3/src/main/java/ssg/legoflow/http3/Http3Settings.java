@@ -13,7 +13,7 @@ import java.util.Map;
  * frames. Unlike HTTP/2, there is no acknowledgement — settings take
  * effect immediately upon receipt.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class Http3Settings {
 
@@ -40,7 +40,7 @@ public class Http3Settings {
     /**
      * Creates settings with all default values.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Settings() {
         settings.put(SETTINGS_MAX_FIELD_SECTION_SIZE, (long) DEFAULT_MAX_FIELD_SECTION_SIZE);
@@ -53,7 +53,7 @@ public class Http3Settings {
      *
      * @param id the setting identifier
      * @return the setting value, or 0 if not set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long get(long id) {
         return settings.getOrDefault(id, 0L);
@@ -65,7 +65,7 @@ public class Http3Settings {
      * @param id    the setting identifier
      * @param value the setting value
      * @return this settings instance for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Settings set(long id, long value) {
         settings.put(id, value);
@@ -76,7 +76,7 @@ public class Http3Settings {
      * Returns the maximum field section size.
      *
      * @return the maximum field section size
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long maxFieldSectionSize() {
         return settings.get(SETTINGS_MAX_FIELD_SECTION_SIZE);
@@ -86,7 +86,7 @@ public class Http3Settings {
      * Returns the QPACK maximum table capacity.
      *
      * @return the QPACK maximum table capacity
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long qpackMaxTableCapacity() {
         return settings.get(SETTINGS_QPACK_MAX_TABLE_CAPACITY);
@@ -96,7 +96,7 @@ public class Http3Settings {
      * Returns the QPACK blocked streams limit.
      *
      * @return the maximum number of blocked streams
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long qpackBlockedStreams() {
         return settings.get(SETTINGS_QPACK_BLOCKED_STREAMS);
@@ -108,7 +108,7 @@ public class Http3Settings {
      * <p>Each setting is a pair of variable-length integers: identifier and value.</p>
      *
      * @return a {@link ByteBuffer} containing the encoded settings
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ByteBuffer encode() {
         var buf = ByteBuffer.allocate(settings.size() * 16);
@@ -125,7 +125,7 @@ public class Http3Settings {
      *
      * @param data the encoded settings data
      * @return a new {@code Http3Settings} instance
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Http3Settings decode(ByteBuffer data) {
         var settings = new Http3Settings();
@@ -142,7 +142,7 @@ public class Http3Settings {
      * Applies settings from another instance, overwriting existing values.
      *
      * @param other the settings to apply
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void applyFrom(Http3Settings other) {
         for (var entry : other.settings.entrySet()) {
@@ -154,7 +154,7 @@ public class Http3Settings {
      * Returns an unmodifiable copy of all settings.
      *
      * @return a map of setting identifiers to values
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Map<Long, Long> toMap() {
         return Map.copyOf(settings);
@@ -164,7 +164,7 @@ public class Http3Settings {
      * Returns a new builder for constructing settings.
      *
      * @return a new builder
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Builder builder() {
         return new Builder();
@@ -173,7 +173,7 @@ public class Http3Settings {
     /**
      * Fluent builder for {@link Http3Settings}.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static class Builder {
 
@@ -186,7 +186,7 @@ public class Http3Settings {
          *
          * @param maxFieldSectionSize the maximum size
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder maxFieldSectionSize(long maxFieldSectionSize) {
             this.maxFieldSectionSize = maxFieldSectionSize;
@@ -198,7 +198,7 @@ public class Http3Settings {
          *
          * @param qpackMaxTableCapacity the table capacity
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder qpackMaxTableCapacity(long qpackMaxTableCapacity) {
             this.qpackMaxTableCapacity = qpackMaxTableCapacity;
@@ -210,7 +210,7 @@ public class Http3Settings {
          *
          * @param qpackBlockedStreams the blocked streams limit
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder qpackBlockedStreams(long qpackBlockedStreams) {
             this.qpackBlockedStreams = qpackBlockedStreams;
@@ -221,7 +221,7 @@ public class Http3Settings {
          * Builds the settings instance.
          *
          * @return a new {@code Http3Settings}
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Http3Settings build() {
             var settings = new Http3Settings();

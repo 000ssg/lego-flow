@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
  * <p>Routes published messages to all subscribers matching the channel
  * by exact name or by glob pattern.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class PubSubManager {
 

@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * backoff instead of {@code Thread.sleep()} to avoid flaky failures under parallel
  * execution (-T 1C).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class CleanStartTest {
 

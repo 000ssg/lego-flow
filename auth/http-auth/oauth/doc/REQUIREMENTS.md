@@ -22,7 +22,7 @@
 14. OIDC authentication flow with nonce for ID token binding
 15. Pre-configured providers: Google, GitHub, Microsoft (with tenant), Facebook, Twitter, Apple
 16. Generic fully-configurable provider
-17. All public classes with Javadoc @since 1.0.0
+17. All public classes with Javadoc @since 0.1.0
 
 ## Implementation
 

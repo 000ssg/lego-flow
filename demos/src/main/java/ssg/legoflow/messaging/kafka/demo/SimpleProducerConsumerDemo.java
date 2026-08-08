@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Simple demo: start broker, produce messages, consume them.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SimpleProducerConsumerDemo {
 

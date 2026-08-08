@@ -60,7 +60,7 @@ import java.util.List;
  *   <li>GOAWAY — graceful connection shutdown</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoHttp2All {
 

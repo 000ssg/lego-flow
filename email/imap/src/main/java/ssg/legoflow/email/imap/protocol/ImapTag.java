@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Convention uses a prefix letter followed by a zero-padded number (e.g., A001, A002).
  * The special tag {@code *} denotes untagged responses.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ImapTag {
 

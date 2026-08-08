@@ -12,7 +12,7 @@ import java.util.Map;
  * <p>Provides access to the source object (parent value), field arguments,
  * the execution context, and schema information.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DataFetchingEnvironment {
 

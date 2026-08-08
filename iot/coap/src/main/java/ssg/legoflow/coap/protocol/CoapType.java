@@ -6,7 +6,7 @@ package ssg.legoflow.coap.protocol;
  * <p>The type field is a 2-bit unsigned integer in the CoAP message header
  * indicating the message type: Confirmable, Non-confirmable, Acknowledgement, or Reset.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum CoapType {
 
@@ -32,7 +32,7 @@ public enum CoapType {
      * Returns the numeric value used in the CoAP message header.
      *
      * @return the type value (0-3)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int value() {
         return value;
@@ -44,7 +44,7 @@ public enum CoapType {
      * @param value the type value from the message header
      * @return the matching type
      * @throws IllegalArgumentException if the value is not recognized
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapType fromValue(int value) {
         return switch (value) {

@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
  * <p>Produces RFC 2045-compliant output with properly delimited multipart
  * boundaries, encoded content, and folded headers.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MimeWriter {
 

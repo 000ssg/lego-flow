@@ -11,7 +11,7 @@ import java.util.List;
  * <p>Demonstrates load balancing across multiple backend servers using
  * round-robin and least-connections strategies.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class LoadBalancedProxyDemo {
 
@@ -23,7 +23,7 @@ public class LoadBalancedProxyDemo {
     /**
      * Creates the demo with multiple backends and load balancing.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public LoadBalancedProxyDemo() {
         var config = new ReverseProxyConfig();
@@ -50,7 +50,7 @@ public class LoadBalancedProxyDemo {
      * Runs the demo showing request distribution across backends.
      *
      * @return the results summary
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String run() {
         var sb = new StringBuilder();
@@ -84,7 +84,7 @@ public class LoadBalancedProxyDemo {
      * Returns the reverse proxy instance.
      *
      * @return the proxy
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ReverseProxy getProxy() {
         return proxy;
@@ -94,7 +94,7 @@ public class LoadBalancedProxyDemo {
      * Returns backend server 1.
      *
      * @return backend 1
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public BackendServer getBackend1() {
         return backend1;
@@ -104,7 +104,7 @@ public class LoadBalancedProxyDemo {
      * Returns backend server 2.
      *
      * @return backend 2
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public BackendServer getBackend2() {
         return backend2;
@@ -114,7 +114,7 @@ public class LoadBalancedProxyDemo {
      * Returns backend server 3.
      *
      * @return backend 3
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public BackendServer getBackend3() {
         return backend3;

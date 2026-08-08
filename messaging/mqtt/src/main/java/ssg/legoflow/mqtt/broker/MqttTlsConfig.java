@@ -19,7 +19,7 @@ import java.util.Objects;
  * Creates {@link SSLContext} and {@link SSLEngine} instances for both
  * client and server modes.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MqttTlsConfig {
 
@@ -138,7 +138,7 @@ public final class MqttTlsConfig {
     /**
      * Fluent builder for {@link MqttTlsConfig}.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class Builder {
 

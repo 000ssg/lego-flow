@@ -6,7 +6,7 @@ import java.util.List;
  * DeleteGroups response (API key 42).
  *
  * @param results the per-group deletion results
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record DeleteGroupsResponse(List<GroupResult> results) {
 

@@ -7,7 +7,7 @@ import java.util.List;
  *
  * @param errorCode  the error code (0 for success, 33 for unsupported mechanism)
  * @param mechanisms the list of server-supported SASL mechanisms
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SaslHandshakeResponse(short errorCode, List<String> mechanisms) {
 }

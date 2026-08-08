@@ -15,7 +15,7 @@ import java.util.*;
  * geohash as the score. This matches Redis's approach of leveraging sorted sets
  * for geospatial indexing.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class GeoCommands {
 

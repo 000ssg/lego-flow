@@ -14,7 +14,7 @@ import java.net.InetSocketAddress;
  * data immediately without waiting for the handshake to complete,
  * reducing latency for repeat connections.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ZeroRttDemo {
 
@@ -25,7 +25,7 @@ public class ZeroRttDemo {
     /**
      * Creates a new 0-RTT demo with 0-RTT enabled.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ZeroRttDemo() {
         this.config = Http3Config.defaults().enable0Rtt(true);
@@ -35,7 +35,7 @@ public class ZeroRttDemo {
      * Returns the configuration.
      *
      * @return the config
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Config config() {
         return config;
@@ -45,7 +45,7 @@ public class ZeroRttDemo {
      * Performs the initial connection (full handshake).
      *
      * @return the HTTP/3 connection
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Connection initialConnect() {
         var quicSettings = QuicSettings.builder()
@@ -66,7 +66,7 @@ public class ZeroRttDemo {
      *
      * @return the resumed HTTP/3 connection
      * @throws IllegalStateException if no initial connection was established
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Connection resumeConnection() {
         if (firstConnection == null) {
@@ -91,7 +91,7 @@ public class ZeroRttDemo {
      * Returns the initial HTTP/3 connection.
      *
      * @return the first connection
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Connection firstConnection() {
         return firstH3Connection;

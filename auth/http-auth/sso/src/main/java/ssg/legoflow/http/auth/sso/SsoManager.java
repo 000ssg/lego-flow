@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Single Sign-On orchestrator managing federated sessions across services.
  * Uses JWT tokens for session federation and cookie-based session tracking.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SsoManager implements AutoCloseable {
 
@@ -34,7 +34,7 @@ public class SsoManager implements AutoCloseable {
      *
      * @param config        the SSO configuration
      * @param tokenProvider the JWT token provider for SSO tokens
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SsoManager(SsoConfig config, JwtTokenProvider tokenProvider) {
         this.config = Objects.requireNonNull(config);
@@ -47,7 +47,7 @@ public class SsoManager implements AutoCloseable {
      * @param principal the authenticated principal
      * @param response  the HTTP response to add the cookie to
      * @return the SSO session
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SsoSession login(AuthPrincipal principal, HttpResponse response) {
         String sessionId = generateSessionId();
@@ -74,7 +74,7 @@ public class SsoManager implements AutoCloseable {
      *
      * @param request the HTTP request
      * @return the SSO session, or empty if not authenticated
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<SsoSession> validateSession(HttpRequest request) {
         String cookieHeader = request.getHeaders().get(COOKIE_HEADER);
@@ -113,7 +113,7 @@ public class SsoManager implements AutoCloseable {
      * @param request  the HTTP request
      * @param response the HTTP response
      * @return the set of service URLs that need logout propagation
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Set<String> logout(HttpRequest request, HttpResponse response) {
         String cookieHeader = request.getHeaders().get(COOKIE_HEADER);
@@ -148,7 +148,7 @@ public class SsoManager implements AutoCloseable {
      * Returns the number of active SSO sessions.
      *
      * @return the session count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getActiveSessionCount() {
         return sessions.size();
@@ -158,7 +158,7 @@ public class SsoManager implements AutoCloseable {
      * Cleans up expired sessions.
      *
      * @return the number of sessions removed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int cleanExpiredSessions() {
         long timeoutSeconds = config.getSessionTimeout().toSeconds();
@@ -177,7 +177,7 @@ public class SsoManager implements AutoCloseable {
      * Returns the SSO configuration.
      *
      * @return the config
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SsoConfig getConfig() {
         return config;

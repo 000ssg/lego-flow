@@ -20,7 +20,7 @@ import java.util.List;
  * for user input to stop. The React SPA is accessible at the URL
  * printed on startup (default port 8080, bound to all interfaces).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MccWebApp {
 
@@ -32,7 +32,7 @@ public class MccWebApp {
     /**
      * Creates and initializes the web application.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MccWebApp() {
         this(8080);
@@ -42,7 +42,7 @@ public class MccWebApp {
      * Creates and initializes the web application on the specified port.
      *
      * @param port the HTTP port
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MccWebApp(int port) {
         // Create demo devices
@@ -67,7 +67,7 @@ public class MccWebApp {
     /**
      * Starts the web application.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() {
         webServer.start();
@@ -76,7 +76,7 @@ public class MccWebApp {
     /**
      * Stops the web application and all associated devices.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         webServer.stop();
@@ -89,7 +89,7 @@ public class MccWebApp {
      * Returns the web server.
      *
      * @return the web server
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MccWebServer getWebServer() {
         return webServer;
@@ -99,7 +99,7 @@ public class MccWebApp {
      * Returns the control point.
      *
      * @return the control point
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ControlPoint getControlPoint() {
         return controlPoint;
@@ -193,7 +193,7 @@ public class MccWebApp {
      * <p>Starts the server and waits for the user to press Enter to stop.
      *
      * @param args command-line arguments (unused)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void main(String[] args) {
         int port = args.length > 0 ? Integer.parseInt(args[0]) : 8080;

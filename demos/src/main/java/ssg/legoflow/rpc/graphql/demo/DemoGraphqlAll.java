@@ -51,7 +51,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *   <li>JSON codec — encode/decode round-trip for transport</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoGraphqlAll {
 

@@ -5,7 +5,7 @@ package ssg.legoflow.database.postgresql.common;
  *
  * <p>Each code is a 5-character string: 2-character class + 3-character subclass.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum SqlState {
 

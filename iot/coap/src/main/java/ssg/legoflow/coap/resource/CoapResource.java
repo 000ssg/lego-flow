@@ -17,7 +17,7 @@ import java.util.function.Consumer;
  * and DELETE operations. Observable resources can trigger notifications to
  * registered observers.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class CoapResource {
 
@@ -36,7 +36,7 @@ public class CoapResource {
      * @param name       the resource name (last path segment)
      * @param path       the full resource path (e.g. "/sensors/temperature")
      * @param observable whether this resource supports observe
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapResource(String name, String path, boolean observable) {
         this.name = Objects.requireNonNull(name, "name must not be null");
@@ -50,7 +50,7 @@ public class CoapResource {
      *
      * @param name the resource name
      * @param path the full resource path
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapResource(String name, String path) {
         this(name, path, false);
@@ -60,7 +60,7 @@ public class CoapResource {
      * Returns the resource name.
      *
      * @return the name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String name() {
         return name;
@@ -70,7 +70,7 @@ public class CoapResource {
      * Returns the full resource path.
      *
      * @return the path
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String path() {
         return path;
@@ -80,7 +80,7 @@ public class CoapResource {
      * Returns whether this resource is observable.
      *
      * @return {@code true} if observable
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isObservable() {
         return observable;
@@ -90,7 +90,7 @@ public class CoapResource {
      * Returns the resource attributes for discovery.
      *
      * @return the resource attributes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ResourceAttributes getAttributes() {
         return attributes;
@@ -100,7 +100,7 @@ public class CoapResource {
      * Handles a GET request. Default returns 4.05 Method Not Allowed.
      *
      * @param exchange the exchange context
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void handleGet(CoapExchange exchange) {
         exchange.respond(CoapCode.METHOD_NOT_ALLOWED);
@@ -110,7 +110,7 @@ public class CoapResource {
      * Handles a POST request. Default returns 4.05 Method Not Allowed.
      *
      * @param exchange the exchange context
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void handlePost(CoapExchange exchange) {
         exchange.respond(CoapCode.METHOD_NOT_ALLOWED);
@@ -120,7 +120,7 @@ public class CoapResource {
      * Handles a PUT request. Default returns 4.05 Method Not Allowed.
      *
      * @param exchange the exchange context
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void handlePut(CoapExchange exchange) {
         exchange.respond(CoapCode.METHOD_NOT_ALLOWED);
@@ -130,7 +130,7 @@ public class CoapResource {
      * Handles a DELETE request. Default returns 4.05 Method Not Allowed.
      *
      * @param exchange the exchange context
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void handleDelete(CoapExchange exchange) {
         exchange.respond(CoapCode.METHOD_NOT_ALLOWED);
@@ -141,7 +141,7 @@ public class CoapResource {
      *
      * @param child the child resource
      * @throws NullPointerException if {@code child} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addChild(CoapResource child) {
         Objects.requireNonNull(child, "child must not be null");
@@ -153,7 +153,7 @@ public class CoapResource {
      *
      * @param name the child resource name
      * @return the child resource, or {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapResource getChild(String name) {
         return children.get(name);
@@ -163,7 +163,7 @@ public class CoapResource {
      * Returns an unmodifiable map of child resources.
      *
      * @return the children map
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Map<String, CoapResource> children() {
         return Collections.unmodifiableMap(children);
@@ -173,7 +173,7 @@ public class CoapResource {
      * Sets the callback for triggering observe notifications.
      *
      * @param notifier the notifier callback accepting the resource path
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setObserveNotifier(Consumer<String> notifier) {
         this.observeNotifier = notifier;
@@ -184,7 +184,7 @@ public class CoapResource {
      *
      * <p>Only works if this resource is observable and a notifier has been set.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void notifyObservers() {
         if (observable && observeNotifier != null) {
@@ -196,7 +196,7 @@ public class CoapResource {
      * Returns the CoRE Link Format representation of this resource.
      *
      * @return the link-format string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toCoreLinkFormat() {
         return "<" + path + ">" + attributes.toCoreLinkFormat();

@@ -21,7 +21,7 @@ import java.util.function.Consumer;
  * <p>Accepts TLS connections and reads syslog messages using octet counting
  * framing as required by RFC 5425.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class TlsCollector implements AutoCloseable {
 

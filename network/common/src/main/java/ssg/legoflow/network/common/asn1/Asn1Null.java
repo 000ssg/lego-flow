@@ -5,7 +5,7 @@ package ssg.legoflow.network.common.asn1;
  *
  * <p>Represents the absence of a value. Encoded as tag 0x05 with zero-length content.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Asn1Null() implements Asn1Type {
 

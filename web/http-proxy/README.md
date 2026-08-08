@@ -1,6 +1,6 @@
 # Lego Flow HTTP Proxy
 
-![Version](https://img.shields.io/badge/version-1.0.0--SNAPSHOT-blue)
+![Version](https://img.shields.io/badge/version-0.1.0-SNAPSHOT-blue)
 ![JDK](https://img.shields.io/badge/JDK-25-orange)
 ![Tests](https://img.shields.io/badge/tests-252%20passing-brightgreen)
 ![License](https://img.shields.io/badge/license-proprietary-lightgrey)

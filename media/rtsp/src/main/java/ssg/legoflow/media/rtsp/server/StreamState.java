@@ -3,7 +3,7 @@ package ssg.legoflow.media.rtsp.server;
 /**
  * Stream playback states for the RTSP session state machine.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum StreamState {
 

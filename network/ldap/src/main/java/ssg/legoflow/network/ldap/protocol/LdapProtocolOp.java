@@ -7,7 +7,7 @@ package ssg.legoflow.network.ldap.protocol;
  * identified by an APPLICATION tag in the BER encoding. The sealed hierarchy
  * enables exhaustive pattern matching in {@code switch} expressions.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface LdapProtocolOp
         permits BindRequest, BindResponse,

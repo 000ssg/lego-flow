@@ -13,7 +13,7 @@ import java.util.Objects;
  * Each item has metadata (title, creator, genre, etc.), a resource URL for
  * streaming, and DLNA protocol information for format negotiation.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ContentItem {
 
@@ -39,7 +39,7 @@ public class ContentItem {
      * @param parentId the ID of the parent container
      * @param title    the display title
      * @param type     the content item type
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentItem(String id, String parentId, String title, ContentItemType type) {
         this.id = Objects.requireNonNull(id, "id must not be null");
@@ -52,7 +52,7 @@ public class ContentItem {
      * Returns the unique object ID.
      *
      * @return the object ID
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getId() {
         return id;
@@ -62,7 +62,7 @@ public class ContentItem {
      * Returns the parent container ID.
      *
      * @return the parent ID
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getParentId() {
         return parentId;
@@ -72,7 +72,7 @@ public class ContentItem {
      * Returns the display title.
      *
      * @return the title
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getTitle() {
         return title;
@@ -82,7 +82,7 @@ public class ContentItem {
      * Returns the content item type.
      *
      * @return the type
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentItemType getType() {
         return type;
@@ -92,7 +92,7 @@ public class ContentItem {
      * Returns the creator/artist name.
      *
      * @return the creator, or null if not set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getCreator() {
         return creator;
@@ -103,7 +103,7 @@ public class ContentItem {
      *
      * @param creator the creator name
      * @return this item for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentItem setCreator(String creator) {
         this.creator = creator;
@@ -114,7 +114,7 @@ public class ContentItem {
      * Returns the album art URI.
      *
      * @return the album art URI, or null if not set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getAlbumArtUri() {
         return albumArtUri;
@@ -125,7 +125,7 @@ public class ContentItem {
      *
      * @param albumArtUri the album art URI
      * @return this item for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentItem setAlbumArtUri(String albumArtUri) {
         this.albumArtUri = albumArtUri;
@@ -136,7 +136,7 @@ public class ContentItem {
      * Returns the genre.
      *
      * @return the genre, or null if not set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getGenre() {
         return genre;
@@ -147,7 +147,7 @@ public class ContentItem {
      *
      * @param genre the genre
      * @return this item for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentItem setGenre(String genre) {
         this.genre = genre;
@@ -158,7 +158,7 @@ public class ContentItem {
      * Returns the date string (ISO 8601 or similar).
      *
      * @return the date, or null if not set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getDate() {
         return date;
@@ -169,7 +169,7 @@ public class ContentItem {
      *
      * @param date the date
      * @return this item for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentItem setDate(String date) {
         this.date = date;
@@ -180,7 +180,7 @@ public class ContentItem {
      * Returns the content size in bytes.
      *
      * @return the size
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long getSize() {
         return size;
@@ -191,7 +191,7 @@ public class ContentItem {
      *
      * @param size the size
      * @return this item for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentItem setSize(long size) {
         this.size = size;
@@ -202,7 +202,7 @@ public class ContentItem {
      * Returns the playback duration.
      *
      * @return the duration, or null for non-temporal items
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Duration getDuration() {
         return duration;
@@ -213,7 +213,7 @@ public class ContentItem {
      *
      * @param duration the duration
      * @return this item for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentItem setDuration(Duration duration) {
         this.duration = duration;
@@ -224,7 +224,7 @@ public class ContentItem {
      * Returns the resolution string (e.g. "1920x1080").
      *
      * @return the resolution, or null if not set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getResolution() {
         return resolution;
@@ -235,7 +235,7 @@ public class ContentItem {
      *
      * @param resolution the resolution (e.g. "1920x1080")
      * @return this item for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentItem setResolution(String resolution) {
         this.resolution = resolution;
@@ -246,7 +246,7 @@ public class ContentItem {
      * Returns the DLNA protocol info.
      *
      * @return the protocol info, or null if not set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DlnaProtocolInfo getProtocolInfo() {
         return protocolInfo;
@@ -257,7 +257,7 @@ public class ContentItem {
      *
      * @param protocolInfo the protocol info
      * @return this item for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentItem setProtocolInfo(DlnaProtocolInfo protocolInfo) {
         this.protocolInfo = protocolInfo;
@@ -268,7 +268,7 @@ public class ContentItem {
      * Returns the resource URL for streaming.
      *
      * @return the resource URL, or null if not set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public URL getResourceUrl() {
         return resourceUrl;
@@ -279,7 +279,7 @@ public class ContentItem {
      *
      * @param resourceUrl the resource URL
      * @return this item for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentItem setResourceUrl(URL resourceUrl) {
         this.resourceUrl = resourceUrl;
@@ -291,7 +291,7 @@ public class ContentItem {
      *
      * @param d the duration
      * @return the formatted time string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String formatDuration(Duration d) {
         if (d == null) {
@@ -309,7 +309,7 @@ public class ContentItem {
      *
      * @param timeString the time string
      * @return the duration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Duration parseDuration(String timeString) {
         if (timeString == null || timeString.isEmpty() || "NOT_IMPLEMENTED".equals(timeString)) {

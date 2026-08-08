@@ -18,7 +18,7 @@ package ssg.legoflow.messaging.nats.protocol;
  * @param authRequired whether authentication is required
  * @param tlsRequired whether TLS is required
  * @param clientId    assigned client ID
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ServerInfo(
         String serverId,

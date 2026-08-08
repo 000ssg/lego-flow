@@ -6,7 +6,7 @@ package ssg.legoflow.http3;
  * <p>These error codes are used in QUIC CONNECTION_CLOSE and
  * RESET_STREAM frames to indicate HTTP/3-specific errors.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum Http3ErrorCode {
 
@@ -80,7 +80,7 @@ public enum Http3ErrorCode {
      * Returns the wire-format error code.
      *
      * @return the error code
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long code() {
         return code;
@@ -92,7 +92,7 @@ public enum Http3ErrorCode {
      * @param code the error code from the wire format
      * @return the matching {@code Http3ErrorCode}
      * @throws IllegalArgumentException if the code is not recognised
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Http3ErrorCode fromCode(long code) {
         for (var error : values()) {

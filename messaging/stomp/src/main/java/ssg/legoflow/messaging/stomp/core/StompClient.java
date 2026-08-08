@@ -22,7 +22,7 @@ import java.util.function.Consumer;
  * <p>Messages received from subscriptions are dispatched to registered handlers.
  * Receipt confirmations are tracked via {@link CompletableFuture}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class StompClient implements AutoCloseable {
 

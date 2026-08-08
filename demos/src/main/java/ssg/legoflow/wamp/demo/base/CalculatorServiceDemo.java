@@ -15,7 +15,7 @@ import java.util.function.Function;
  * Calculator service demo: registers math operations (add, multiply, divide) as separate
  * callees and routes calls through a shared Dealer. Division by zero produces a WAMP error.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class CalculatorServiceDemo {
 

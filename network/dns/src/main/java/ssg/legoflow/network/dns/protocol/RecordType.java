@@ -6,7 +6,7 @@ package ssg.legoflow.network.dns.protocol;
  * <p>Each constant maps to the 16-bit TYPE value carried in DNS questions
  * and resource records.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum RecordType {
 
@@ -59,7 +59,7 @@ public enum RecordType {
      * Returns the 16-bit numeric value for this record type.
      *
      * @return the type value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int value() {
         return value;
@@ -71,7 +71,7 @@ public enum RecordType {
      * @param value the 16-bit type value
      * @return the matching record type
      * @throws IllegalArgumentException if the value is unknown
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static RecordType fromValue(int value) {
         for (RecordType rt : values()) {
@@ -88,7 +88,7 @@ public enum RecordType {
      *
      * @param value the 16-bit type value
      * @return the matching record type or {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static RecordType fromValueOrNull(int value) {
         for (RecordType rt : values()) {

@@ -8,6 +8,7 @@ import ssg.legoflow.coap.protocol.CoapType;
 import ssg.legoflow.coap.protocol.CoapVersion;
 
 import java.nio.ByteBuffer;
+import ssg.legoflow.service.util.BufferPool;
 
 /**
  * CoAP message codec implementing encoding and decoding of CoAP messages
@@ -26,7 +27,7 @@ import java.nio.ByteBuffer;
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * </pre>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class CoapCodec extends AbstractDataFilter<ByteBuffer> {
 
@@ -36,7 +37,7 @@ public class CoapCodec extends AbstractDataFilter<ByteBuffer> {
     /**
      * Creates a new CoAP codec.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapCodec() {
         super(ByteBuffer.class);
@@ -49,7 +50,7 @@ public class CoapCodec extends AbstractDataFilter<ByteBuffer> {
      * @param ctx  the processing context
      * @param data the input byte buffers
      * @return the input buffers unchanged
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     @SuppressWarnings("unchecked")
@@ -63,7 +64,7 @@ public class CoapCodec extends AbstractDataFilter<ByteBuffer> {
      * @param message the message to encode
      * @return a byte buffer containing the encoded message (flipped, ready for reading)
      * @throws IllegalArgumentException if the token length exceeds 8
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ByteBuffer encode(CoapMessage message) {
         byte[] token = message.token();
@@ -79,7 +80,7 @@ public class CoapCodec extends AbstractDataFilter<ByteBuffer> {
             size += 1 + payload.length; // payload marker + payload
         }
 
-        var buffer = ByteBuffer.allocate(size);
+        var buffer = BufferPool.getBuffer(size);
 
         // Header byte 1: Ver(2) + T(2) + TKL(4)
         int firstByte = (message.version().versionNumber() << 6)
@@ -119,7 +120,7 @@ public class CoapCodec extends AbstractDataFilter<ByteBuffer> {
      * @param buffer the buffer containing the encoded message (position at start)
      * @return the decoded message
      * @throws IllegalArgumentException if the buffer is too short or contains invalid data
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapMessage decode(ByteBuffer buffer) {
         if (buffer.remaining() < 4) {

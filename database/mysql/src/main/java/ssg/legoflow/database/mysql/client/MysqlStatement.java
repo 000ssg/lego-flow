@@ -14,7 +14,7 @@ import java.util.List;
  * <p>Sends COM_QUERY commands and reads the response — either an OK/ERR
  * packet or a full result set with column definitions and rows.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MysqlStatement {
 

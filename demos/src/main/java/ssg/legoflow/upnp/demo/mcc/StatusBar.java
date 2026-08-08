@@ -15,7 +15,7 @@ import java.awt.*;
  * Auto-updates when devices are added or removed. Uses the {@link DarkTheme}
  * colour palette for all visual elements.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class StatusBar extends JPanel implements DeviceListener {
 
@@ -33,7 +33,7 @@ public class StatusBar extends JPanel implements DeviceListener {
      * Creates a new status bar bound to the given control point.
      *
      * @param controlPoint the control point to monitor
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public StatusBar(ControlPoint controlPoint) {
         this.controlPoint = controlPoint;
@@ -97,7 +97,7 @@ public class StatusBar extends JPanel implements DeviceListener {
      * Shows a transient status message in the status bar.
      *
      * @param message the status message to display
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setStatus(String message) {
         SwingUtilities.invokeLater(() -> {
@@ -110,7 +110,7 @@ public class StatusBar extends JPanel implements DeviceListener {
      * Sets the name of the currently selected media server.
      *
      * @param name the server friendly name, or {@code null} for none
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setCurrentServer(String name) {
         currentServerName = name != null ? name : "None";
@@ -121,7 +121,7 @@ public class StatusBar extends JPanel implements DeviceListener {
      * Sets the name of the currently selected media renderer.
      *
      * @param name the renderer friendly name, or {@code null} for none
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setCurrentRenderer(String name) {
         currentRendererName = name != null ? name : "None";
@@ -135,7 +135,7 @@ public class StatusBar extends JPanel implements DeviceListener {
      * playing media type, or a "not supported" message.
      *
      * @param info the media support info string, or {@code null} to clear
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setMediaSupportInfo(String info) {
         SwingUtilities.invokeLater(() -> {
@@ -150,7 +150,7 @@ public class StatusBar extends JPanel implements DeviceListener {
     /**
      * {@inheritDoc}
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void onDeviceAdded(DeviceProxy device) {
@@ -160,7 +160,7 @@ public class StatusBar extends JPanel implements DeviceListener {
     /**
      * {@inheritDoc}
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void onDeviceRemoved(DeviceProxy device) {

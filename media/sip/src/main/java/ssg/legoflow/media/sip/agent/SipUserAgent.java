@@ -50,7 +50,7 @@ import java.util.function.Consumer;
  * });
  * }</pre>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SipUserAgent implements AutoCloseable {
 
@@ -73,7 +73,7 @@ public final class SipUserAgent implements AutoCloseable {
      *
      * @param aor        the Address-of-Record (e.g., "sip:alice@example.com")
      * @param contactUri the Contact URI (e.g., "sip:alice@192.168.1.1:5060")
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipUserAgent(String aor, String contactUri) {
         this.aor = Objects.requireNonNull(aor, "aor");
@@ -92,7 +92,7 @@ public final class SipUserAgent implements AutoCloseable {
      * @param aor        the Address-of-Record
      * @param contactUri the Contact URI
      * @param registrar  the local registrar for handling REGISTER requests
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipUserAgent(String aor, String contactUri, SipRegistrar registrar) {
         this.aor = Objects.requireNonNull(aor, "aor");
@@ -109,7 +109,7 @@ public final class SipUserAgent implements AutoCloseable {
      * Sets the local SDP capabilities for offer/answer negotiation.
      *
      * @param sdp the local SDP session description
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setLocalSdp(SessionDescription sdp) {
         this.localSdp = sdp;
@@ -119,7 +119,7 @@ public final class SipUserAgent implements AutoCloseable {
      * Sets a handler for incoming INVITE requests.
      *
      * @param handler the INVITE handler
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setInviteHandler(Consumer<SipRequest> handler) {
         this.inviteHandler = handler;
@@ -130,7 +130,7 @@ public final class SipUserAgent implements AutoCloseable {
      *
      * @param targetUri the target SIP URI
      * @return the INVITE request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipRequest createInvite(String targetUri) {
         String branch = generateBranch();
@@ -161,7 +161,7 @@ public final class SipUserAgent implements AutoCloseable {
      *
      * @param request the incoming request
      * @return the response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipResponse handleRequest(SipRequest request) {
         return switch (request.method()) {
@@ -325,7 +325,7 @@ public final class SipUserAgent implements AutoCloseable {
      *
      * @param dialog the dialog to terminate
      * @return the BYE request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipRequest createBye(SipDialog dialog) {
         return dialog.createRequest(SipMethod.BYE)
@@ -341,7 +341,7 @@ public final class SipUserAgent implements AutoCloseable {
      * @param invite   the original INVITE request
      * @param response the 2xx response
      * @return the ACK request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipRequest createAck(SipRequest invite, SipResponse response) {
         String toHeader = response.headers().first(SipHeaders.TO)
@@ -362,7 +362,7 @@ public final class SipUserAgent implements AutoCloseable {
      * Processes a response received for a client transaction.
      *
      * @param response the received response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void processResponse(SipResponse response) {
         String branch = response.headers().topVia().branch();
@@ -391,7 +391,7 @@ public final class SipUserAgent implements AutoCloseable {
      *
      * @param branch the branch ID
      * @param tx     the client transaction
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addClientTransaction(String branch, ClientTransaction tx) {
         clientTransactions.put(branch, tx);
@@ -401,7 +401,7 @@ public final class SipUserAgent implements AutoCloseable {
      * Returns the Address-of-Record.
      *
      * @return the AOR
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String aor() { return aor; }
 
@@ -409,7 +409,7 @@ public final class SipUserAgent implements AutoCloseable {
      * Returns the Contact URI.
      *
      * @return the contact URI
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String contactUri() { return contactUri; }
 
@@ -417,7 +417,7 @@ public final class SipUserAgent implements AutoCloseable {
      * Returns the active dialogs.
      *
      * @return unmodifiable map of dialogs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Map<String, SipDialog> dialogs() {
         return Map.copyOf(dialogs);
@@ -427,7 +427,7 @@ public final class SipUserAgent implements AutoCloseable {
      * Returns the negotiated remote SDP, if any.
      *
      * @return the remote SDP, or null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SessionDescription remoteSdp() {
         return remoteSdp;
@@ -437,7 +437,7 @@ public final class SipUserAgent implements AutoCloseable {
      * Returns the local SDP capabilities.
      *
      * @return the local SDP, or null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SessionDescription localSdp() {
         return localSdp;

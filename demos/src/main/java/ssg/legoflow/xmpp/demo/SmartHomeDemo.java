@@ -20,7 +20,7 @@ import java.util.Map;
 /**
  * Complete smart home demo combining sensors, controllers, discovery, and chat notifications.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SmartHomeDemo {
 

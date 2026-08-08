@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Each client connection is handled on its own virtual thread.
  * Supports pipelining (multiple commands per TCP read).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RedisServer implements AutoCloseable {
 

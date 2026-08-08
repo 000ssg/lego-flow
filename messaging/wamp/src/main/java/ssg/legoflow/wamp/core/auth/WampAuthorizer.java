@@ -10,7 +10,7 @@ import ssg.legoflow.wamp.core.WampSession;
  * Custom implementations can restrict access based on session attributes
  * (authid, authrole, realm, etc.).</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface WampAuthorizer {
 

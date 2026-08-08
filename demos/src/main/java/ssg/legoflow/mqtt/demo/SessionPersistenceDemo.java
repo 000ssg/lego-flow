@@ -16,7 +16,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * Demo demonstrating clean session vs persistent session: offline message queuing.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SessionPersistenceDemo {
 

@@ -9,7 +9,7 @@ import java.util.*;
  * and directives. Unlike object types, input objects cannot have resolvers
  * and their fields are input fields.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class InputObjectType implements GraphQLType {
 
@@ -79,7 +79,7 @@ public final class InputObjectType implements GraphQLType {
      * @param type            the field type (must be an input type)
      * @param defaultValue    the default value
      * @param hasDefaultValue whether a default is provided
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record InputFieldDefinition(String name, String description, GraphQLType type,
                                        Object defaultValue, boolean hasDefaultValue) {

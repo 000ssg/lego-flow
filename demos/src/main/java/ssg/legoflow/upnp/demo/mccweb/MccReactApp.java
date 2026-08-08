@@ -14,14 +14,14 @@ import ssg.legoflow.http.core.HttpStatus;
  * CDN-loaded React and Babel, a JSX application script, and a CSS
  * stylesheet. No build tooling is required.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MccReactApp {
 
     /**
      * Creates a new React app server.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MccReactApp() {
     }
@@ -32,7 +32,7 @@ public class MccReactApp {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with HTML content
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse serveIndex(HttpContext ctx, HttpRequest request) {
         String html = INDEX_HTML_TEMPLATE.formatted(BUILD_TS, BUILD_TS);
@@ -48,7 +48,7 @@ public class MccReactApp {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with JavaScript content
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse serveAppJs(HttpContext ctx, HttpRequest request) {
         HttpResponse response = HttpResponse.of(HttpStatus.OK, APP_JS);
@@ -63,7 +63,7 @@ public class MccReactApp {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with CSS content
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse serveAppCss(HttpContext ctx, HttpRequest request) {
         HttpResponse response = HttpResponse.of(HttpStatus.OK, APP_CSS);

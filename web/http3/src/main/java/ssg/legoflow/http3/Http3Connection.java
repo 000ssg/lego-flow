@@ -29,7 +29,7 @@ import java.util.function.Consumer;
  * <p>This class is thread-safe. Stream maps and listener lists use
  * concurrent data structures.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class Http3Connection {
 
@@ -65,7 +65,7 @@ public class Http3Connection {
      * Creates a new HTTP/3 connection wrapping the given QUIC connection.
      *
      * @param quicConnection the underlying QUIC connection
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Connection(QuicConnection quicConnection) {
         this(quicConnection, new Http3Settings());
@@ -76,7 +76,7 @@ public class Http3Connection {
      *
      * @param quicConnection the underlying QUIC connection
      * @param settings       the local HTTP/3 settings
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Connection(QuicConnection quicConnection, Http3Settings settings) {
         this.quicConnection = quicConnection;
@@ -91,7 +91,7 @@ public class Http3Connection {
      * Initialises the HTTP/3 connection by creating control and QPACK streams,
      * and sending the initial SETTINGS frame.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void initialize() {
         // Create control stream (unidirectional, type 0x00)
@@ -117,7 +117,7 @@ public class Http3Connection {
      * @param headers the request headers (pseudo-headers + regular headers)
      * @param body    the request body, or {@code null}
      * @return the QUIC stream used for the request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicStream sendRequest(List<Map.Entry<String, String>> headers, ByteBuffer body) {
         var stream = quicConnection.createStream(true);
@@ -144,7 +144,7 @@ public class Http3Connection {
      * @param stream  the request stream to respond on
      * @param headers the response headers (pseudo-headers + regular headers)
      * @param body    the response body, or {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void sendResponse(QuicStream stream, List<Map.Entry<String, String>> headers, ByteBuffer body) {
         var encodedHeaders = encoder.encode(headers);
@@ -163,7 +163,7 @@ public class Http3Connection {
      * @param stream        the request stream
      * @param pushId        the push ID
      * @param promiseHeaders the promised request headers
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void sendPushPromise(QuicStream stream, long pushId, List<Map.Entry<String, String>> promiseHeaders) {
         var encodedHeaders = encoder.encode(promiseHeaders);
@@ -179,7 +179,7 @@ public class Http3Connection {
      *
      * @param stream the stream to read from
      * @return the decoded headers, or an empty list if no data is available
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<Map.Entry<String, String>> receiveHeaders(QuicStream stream) {
         var data = stream.getAccumulatedData();
@@ -201,7 +201,7 @@ public class Http3Connection {
      *
      * @param stream the stream to read from
      * @return the body data, or an empty buffer
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ByteBuffer receiveBody(QuicStream stream) {
         var data = stream.getAccumulatedData();
@@ -241,7 +241,7 @@ public class Http3Connection {
      * Sends a GOAWAY frame on the control stream.
      *
      * @param lastStreamId the last stream ID that was or might be processed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void sendGoaway(long lastStreamId) {
         if (controlStream == null) {
@@ -259,7 +259,7 @@ public class Http3Connection {
      * Adds a listener for frames processed by this connection.
      *
      * @param listener the frame listener
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addFrameListener(Consumer<Http3Frame> listener) {
         frameListeners.add(listener);
@@ -268,7 +268,7 @@ public class Http3Connection {
     /**
      * Closes the HTTP/3 connection gracefully.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void close() {
         if (!goawaySent && controlStream != null && quicConnection.isConnected()) {
@@ -283,7 +283,7 @@ public class Http3Connection {
      * Returns whether the connection is currently active.
      *
      * @return {@code true} if the QUIC connection is connected
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isConnected() {
         return quicConnection.isConnected();
@@ -293,7 +293,7 @@ public class Http3Connection {
      * Returns the underlying QUIC connection.
      *
      * @return the QUIC connection
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicConnection quicConnection() {
         return quicConnection;
@@ -303,7 +303,7 @@ public class Http3Connection {
      * Returns the local HTTP/3 settings.
      *
      * @return the local settings
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Settings localSettings() {
         return localSettings;
@@ -313,7 +313,7 @@ public class Http3Connection {
      * Returns the remote HTTP/3 settings.
      *
      * @return the remote settings
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Settings remoteSettings() {
         return remoteSettings;
@@ -323,7 +323,7 @@ public class Http3Connection {
      * Sets the remote settings (received from peer).
      *
      * @param settings the remote settings
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setRemoteSettings(Http3Settings settings) {
         this.remoteSettings = settings;
@@ -333,7 +333,7 @@ public class Http3Connection {
      * Returns the QPACK encoder.
      *
      * @return the encoder
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QpackEncoder encoder() {
         return encoder;
@@ -343,7 +343,7 @@ public class Http3Connection {
      * Returns the QPACK decoder.
      *
      * @return the decoder
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QpackDecoder decoder() {
         return decoder;
@@ -353,7 +353,7 @@ public class Http3Connection {
      * Returns the HTTP/3 frame codec.
      *
      * @return the frame codec
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3FrameCodec frameCodec() {
         return frameCodec;
@@ -363,7 +363,7 @@ public class Http3Connection {
      * Returns the control stream.
      *
      * @return the control stream, or {@code null} if not initialized
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicStream controlStream() {
         return controlStream;
@@ -373,7 +373,7 @@ public class Http3Connection {
      * Returns the QPACK encoder stream.
      *
      * @return the encoder stream, or {@code null} if not initialized
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicStream qpackEncoderStream() {
         return qpackEncoderStream;
@@ -383,7 +383,7 @@ public class Http3Connection {
      * Returns the QPACK decoder stream.
      *
      * @return the decoder stream, or {@code null} if not initialized
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicStream qpackDecoderStream() {
         return qpackDecoderStream;
@@ -393,7 +393,7 @@ public class Http3Connection {
      * Returns whether a GOAWAY has been sent.
      *
      * @return {@code true} if GOAWAY was sent
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isGoawaySent() {
         return goawaySent;
@@ -403,7 +403,7 @@ public class Http3Connection {
      * Returns whether a GOAWAY has been received.
      *
      * @return {@code true} if GOAWAY was received
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isGoawayReceived() {
         return goawayReceived;
@@ -412,7 +412,7 @@ public class Http3Connection {
     /**
      * Marks that a GOAWAY was received from the peer.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void markGoawayReceived() {
         this.goawayReceived = true;
@@ -422,7 +422,7 @@ public class Http3Connection {
      * Returns the last stream ID.
      *
      * @return the last stream ID
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long lastStreamId() {
         return lastStreamId;
@@ -432,7 +432,7 @@ public class Http3Connection {
      * Returns the map of active request streams.
      *
      * @return the request stream map
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Map<Long, QuicStream> requestStreams() {
         return Map.copyOf(requestStreams);

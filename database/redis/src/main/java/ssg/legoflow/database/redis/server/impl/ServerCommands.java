@@ -13,7 +13,7 @@ import java.util.*;
  * Implements Redis server commands: PING, ECHO, INFO, DBSIZE, FLUSHDB, FLUSHALL,
  * SELECT, COMMAND, CLIENT, CONFIG, DEBUG, HELLO, QUIT, RESET, EVAL, EVALSHA, CLUSTER.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ServerCommands {
 

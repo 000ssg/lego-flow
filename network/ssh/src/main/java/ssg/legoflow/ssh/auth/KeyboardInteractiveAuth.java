@@ -10,7 +10,7 @@ import java.util.function.Function;
 /**
  * Keyboard-interactive authentication per RFC 4256.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class KeyboardInteractiveAuth implements AuthMethod {
 

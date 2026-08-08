@@ -14,7 +14,7 @@ package ssg.legoflow.mqtt.broker;
  * @param maxQueuedMessages       the maximum number of queued messages per session
  * @param tlsConfig               optional TLS configuration for MQTTS (may be {@code null})
  * @param authenticator           optional client authenticator (may be {@code null})
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record MqttBrokerConfig(
         String host,

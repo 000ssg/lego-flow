@@ -23,7 +23,7 @@ import java.util.concurrent.Executors;
  * frameworks that expect {@code CompletableFuture}-based APIs).</p>
  *
  * @see WebService
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class AsyncWebService {
 

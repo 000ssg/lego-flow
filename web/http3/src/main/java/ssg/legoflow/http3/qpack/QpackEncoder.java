@@ -24,7 +24,7 @@ import java.util.Map;
  * When enabled, the encoder inserts new header fields into the dynamic table
  * and references them in subsequent encodes for improved compression.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class QpackEncoder {
 
@@ -36,7 +36,7 @@ public class QpackEncoder {
     /**
      * Creates a new encoder with default dynamic table capacity (4096 bytes).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QpackEncoder() {
         this(4096);
@@ -46,7 +46,7 @@ public class QpackEncoder {
      * Creates a new encoder with the given dynamic table capacity.
      *
      * @param maxTableCapacity the maximum dynamic table capacity in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QpackEncoder(int maxTableCapacity) {
         this.dynamicTable = new QpackDynamicTable(maxTableCapacity);
@@ -56,7 +56,7 @@ public class QpackEncoder {
      * Sets whether to use Huffman encoding for string values.
      *
      * @param useHuffman {@code true} to enable Huffman encoding
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setUseHuffman(boolean useHuffman) {
         this.useHuffman = useHuffman;
@@ -71,7 +71,7 @@ public class QpackEncoder {
      * retrieved via {@link #drainEncoderInstructions()}.</p>
      *
      * @param useDynamicTable {@code true} to enable dynamic table insertion
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setUseDynamicTable(boolean useDynamicTable) {
         this.useDynamicTable = useDynamicTable;
@@ -81,7 +81,7 @@ public class QpackEncoder {
      * Returns whether the dynamic table is used for encoding.
      *
      * @return {@code true} if dynamic table insertion is enabled
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isUseDynamicTable() {
         return useDynamicTable;
@@ -96,7 +96,7 @@ public class QpackEncoder {
      *
      * @param headers the header fields to encode
      * @return a {@link ByteBuffer} containing the encoded header block
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ByteBuffer encode(List<Map.Entry<String, String>> headers) {
         var fieldData = new ByteArrayOutputStream();
@@ -131,7 +131,7 @@ public class QpackEncoder {
      * @param nameValuePairs alternating name/value strings
      * @return a {@link ByteBuffer} containing the encoded header block
      * @throws IllegalArgumentException if the array length is not even
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ByteBuffer encodeHeaderList(String... nameValuePairs) {
         if (nameValuePairs.length % 2 != 0) {
@@ -152,7 +152,7 @@ public class QpackEncoder {
      *
      * @param capacity the new dynamic table capacity
      * @return a {@link ByteBuffer} containing the encoder instruction
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ByteBuffer encodeSetDynamicTableCapacity(int capacity) {
         var out = new ByteArrayOutputStream();
@@ -171,7 +171,7 @@ public class QpackEncoder {
      * @param staticIndex the static table index
      * @param value       the header field value
      * @return a {@link ByteBuffer} containing the encoder instruction
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ByteBuffer encodeInsertWithStaticNameReference(int staticIndex, String value) {
         var out = new ByteArrayOutputStream();
@@ -191,7 +191,7 @@ public class QpackEncoder {
      * @param relativeIndex the dynamic table relative index
      * @param value         the header field value
      * @return a {@link ByteBuffer} containing the encoder instruction
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ByteBuffer encodeInsertWithDynamicNameReference(int relativeIndex, String value) {
         var out = new ByteArrayOutputStream();
@@ -211,7 +211,7 @@ public class QpackEncoder {
      * @param name  the header field name
      * @param value the header field value
      * @return a {@link ByteBuffer} containing the encoder instruction
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ByteBuffer encodeInsertWithLiteralName(String name, String value) {
         var out = new ByteArrayOutputStream();
@@ -231,7 +231,7 @@ public class QpackEncoder {
      *
      * @param relativeIndex the relative index of the entry to duplicate
      * @return a {@link ByteBuffer} containing the encoder instruction
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ByteBuffer encodeDuplicate(int relativeIndex) {
         var out = new ByteArrayOutputStream();
@@ -250,7 +250,7 @@ public class QpackEncoder {
      * retrieves and clears the accumulated instructions.</p>
      *
      * @return a {@link ByteBuffer} containing the encoder instructions, or empty if none
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ByteBuffer drainEncoderInstructions() {
         if (encoderInstructions.size() == 0) {
@@ -266,7 +266,7 @@ public class QpackEncoder {
      *
      * @param relativeIndex the relative index (0 = newest)
      * @return the absolute index
-     * @since 1.0.0
+     * @since 0.1.0
      */
     private int relativeToAbsolute(int relativeIndex) {
         return dynamicTable.getInsertCount() - 1 - relativeIndex;
@@ -370,7 +370,7 @@ public class QpackEncoder {
      * @param value      the integer value
      * @param prefixBits the number of prefix bits (1-8)
      * @param prefix     the prefix byte pattern
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void encodeInteger(ByteArrayOutputStream out, int value, int prefixBits, int prefix) {
         int maxPrefix = (1 << prefixBits) - 1;
@@ -392,7 +392,7 @@ public class QpackEncoder {
      *
      * @param out   the output stream
      * @param value the string to encode
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void encodeString(ByteArrayOutputStream out, String value) {
         encodeStringTo(out, value);
@@ -419,7 +419,7 @@ public class QpackEncoder {
      * Returns the dynamic table used by this encoder.
      *
      * @return the dynamic table
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QpackDynamicTable getDynamicTable() {
         return dynamicTable;
@@ -429,7 +429,7 @@ public class QpackEncoder {
      * Sets the maximum dynamic table capacity.
      *
      * @param maxCapacity the new maximum capacity
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setMaxTableCapacity(int maxCapacity) {
         dynamicTable.setCapacity(maxCapacity);

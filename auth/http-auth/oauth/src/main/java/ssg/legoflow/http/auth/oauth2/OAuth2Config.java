@@ -6,7 +6,7 @@ import java.util.Set;
 /**
  * OAuth 2.0 client configuration containing all necessary parameters for OAuth flows.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class OAuth2Config {
 
@@ -34,7 +34,7 @@ public class OAuth2Config {
      * Creates a new builder.
      *
      * @return the builder
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Builder builder() {
         return new Builder();
@@ -54,7 +54,7 @@ public class OAuth2Config {
     /**
      * Builder for OAuth2Config.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static class Builder {
         private String clientId;
@@ -79,7 +79,7 @@ public class OAuth2Config {
          * Builds the configuration.
          *
          * @return the OAuth2Config
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public OAuth2Config build() {
             return new OAuth2Config(this);

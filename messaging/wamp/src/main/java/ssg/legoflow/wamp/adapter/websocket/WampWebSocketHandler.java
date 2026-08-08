@@ -9,7 +9,7 @@ import ssg.legoflow.http.websocket.WebSocketHandshake;
  * Validates that the WebSocket handshake request specifies the {@code wamp.2.json} subprotocol
  * and produces the appropriate handshake response with the subprotocol header set.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class WampWebSocketHandler {
 

@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * IoT Sensor demo: sensor node publishes temperature/humidity, client reads data.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class IoTSensorDemo {
 

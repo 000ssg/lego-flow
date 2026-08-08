@@ -10,7 +10,7 @@ import ssg.legoflow.network.common.oid.ObjectIdentifier;
  *
  * @param oid   the object identifier
  * @param value the associated value
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record VarBind(ObjectIdentifier oid, SnmpValue value) {
 

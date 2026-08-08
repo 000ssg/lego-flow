@@ -14,7 +14,7 @@ import javax.crypto.KeyAgreement;
  * <p>Uses the X25519 key agreement scheme. The public values are 32-byte
  * Curve25519 points exchanged as opaque byte strings.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class Curve25519Sha256 implements KexAlgorithm {
 

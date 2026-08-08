@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * an external CoAP server (Californium, libcoap), set
  * {@code DemoCoapAll.USE_EXTERNAL = true} and configure host/port.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class DemoCoapAllTest {
 

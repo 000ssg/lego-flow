@@ -15,7 +15,7 @@ import ssg.legoflow.http.server.HttpServer;
  * <p>Configures an {@link SslConfig} for TLS and attaches an {@link HstsPolicy}
  * header to every response, enforcing HTTPS connections.
  *
- * @since 1.0
+ * @since 0.1
  */
 public class SecureServer {
 

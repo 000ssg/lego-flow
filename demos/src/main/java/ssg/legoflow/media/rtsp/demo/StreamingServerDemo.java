@@ -14,7 +14,7 @@ import java.util.OptionalInt;
  * <p>Creates a server with a video media source that provides
  * an SDP description for H.264 video.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class StreamingServerDemo {
 

@@ -17,7 +17,7 @@ import java.nio.ByteBuffer;
  * {@link HttpServer#handleRequest} method, simulating a full exchange
  * without opening network sockets.
  *
- * @since 1.0
+ * @since 0.1
  */
 public class ClientServerPairDemo {
 

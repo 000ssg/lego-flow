@@ -16,7 +16,7 @@ import java.util.Objects;
  * <p>Provides endpoints for listing all devices, servers, renderers,
  * getting device details by UDN, and triggering device re-discovery.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MccDeviceHandler {
 
@@ -26,7 +26,7 @@ public class MccDeviceHandler {
      * Creates a new device handler.
      *
      * @param controlPoint the UPnP control point
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MccDeviceHandler(ControlPoint controlPoint) {
         this.controlPoint = Objects.requireNonNull(controlPoint, "controlPoint must not be null");
@@ -38,7 +38,7 @@ public class MccDeviceHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with JSON array of devices
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse listDevices(HttpContext ctx, HttpRequest request) {
         var devices = controlPoint.getDevices();
@@ -52,7 +52,7 @@ public class MccDeviceHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with JSON array of servers
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse listServers(HttpContext ctx, HttpRequest request) {
         var servers = controlPoint.discoverMediaServers();
@@ -66,7 +66,7 @@ public class MccDeviceHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with JSON array of renderers
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse listRenderers(HttpContext ctx, HttpRequest request) {
         var renderers = controlPoint.discoverMediaRenderers();
@@ -82,7 +82,7 @@ public class MccDeviceHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with device JSON or 404
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse getDevice(HttpContext ctx, HttpRequest request) {
         String udn = extractUdn(request.getUri(), "/api/devices/");
@@ -111,7 +111,7 @@ public class MccDeviceHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with JSON array of failed devices
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse listFailedDevices(HttpContext ctx, HttpRequest request) {
         var failed = controlPoint.getFailedDevices();
@@ -125,7 +125,7 @@ public class MccDeviceHandler {
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response confirming refresh
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse refreshDevices(HttpContext ctx, HttpRequest request) {
         controlPoint.refresh();
@@ -139,7 +139,7 @@ public class MccDeviceHandler {
      * @param uri    the request URI
      * @param prefix the path prefix before the UDN
      * @return the extracted UDN, or null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static String extractUdn(String uri, String prefix) {
         String path = uri.contains("?") ? uri.substring(0, uri.indexOf('?')) : uri;

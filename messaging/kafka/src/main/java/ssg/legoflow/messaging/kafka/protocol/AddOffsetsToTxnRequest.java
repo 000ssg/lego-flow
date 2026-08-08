@@ -10,7 +10,7 @@ package ssg.legoflow.messaging.kafka.protocol;
  * @param producerId      the producer ID
  * @param producerEpoch   the producer epoch
  * @param groupId         the consumer group ID whose offsets will be committed in this transaction
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record AddOffsetsToTxnRequest(String transactionalId, long producerId,
                                      short producerEpoch, String groupId) {

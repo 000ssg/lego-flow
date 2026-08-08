@@ -5,7 +5,7 @@ package ssg.legoflow.messaging.kafka.common;
  *
  * @param topic     the topic name
  * @param partition the partition index
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record TopicPartition(String topic, int partition) {
 

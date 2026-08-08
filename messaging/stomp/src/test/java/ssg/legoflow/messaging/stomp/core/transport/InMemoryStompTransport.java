@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
  * by one side are received by the other, enabling transport-agnostic testing
  * of the STOMP protocol without any network I/O.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class InMemoryStompTransport implements StompTransport {
 

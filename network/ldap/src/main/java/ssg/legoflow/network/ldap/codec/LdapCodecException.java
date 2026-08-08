@@ -3,7 +3,7 @@ package ssg.legoflow.network.ldap.codec;
 /**
  * Exception thrown when encoding or decoding LDAP messages fails.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class LdapCodecException extends RuntimeException {
 

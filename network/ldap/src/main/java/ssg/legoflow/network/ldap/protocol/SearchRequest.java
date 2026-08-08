@@ -28,7 +28,7 @@ import java.util.List;
  * @param typesOnly    if true, return only attribute types (no values)
  * @param filter       the search filter
  * @param attributes   the list of attribute descriptions to return (empty = all)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SearchRequest(
         String baseObject,

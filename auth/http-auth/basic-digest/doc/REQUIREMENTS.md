@@ -17,7 +17,7 @@
 9. Digest Auth: Stale nonce detection and re-challenge
 10. Digest Auth: Opaque parameter support
 11. DigestChallenge for building WWW-Authenticate header
-12. All public classes with Javadoc @since 1.0.0
+12. All public classes with Javadoc @since 0.1.0
 
 ## Implementation
 

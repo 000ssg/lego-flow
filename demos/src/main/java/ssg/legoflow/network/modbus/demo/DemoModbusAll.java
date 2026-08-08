@@ -48,7 +48,7 @@ import java.util.Arrays;
  *   <li>Function codes and data types — enum coverage and validation</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoModbusAll {
 

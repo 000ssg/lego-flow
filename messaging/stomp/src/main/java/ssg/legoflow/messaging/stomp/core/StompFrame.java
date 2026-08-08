@@ -17,7 +17,7 @@ import java.nio.charset.StandardCharsets;
  * @param command the STOMP command
  * @param headers the frame headers
  * @param body    the frame body (may be empty, never null)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record StompFrame(StompCommand command, StompHeaders headers, byte[] body) {
 

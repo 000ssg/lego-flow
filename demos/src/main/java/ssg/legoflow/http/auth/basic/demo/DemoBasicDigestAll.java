@@ -33,7 +33,7 @@ import java.util.Set;
  *   <li>Digest challenge — WWW-Authenticate header generation</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoBasicDigestAll {
 
@@ -53,7 +53,7 @@ public final class DemoBasicDigestAll {
      * @param digestAuthMd5        true if Digest MD5 authentication works
      * @param digestAuthSha256     true if Digest SHA-256 authentication works
      * @param digestChallenge      true if Digest challenge header is generated correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record Results(
             boolean basicAuth,
@@ -69,7 +69,7 @@ public final class DemoBasicDigestAll {
      *
      * @return results from each feature section
      * @throws Exception if any operation fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Results runAll() throws Exception {
         boolean basic = demoBasicAuth();
@@ -89,7 +89,7 @@ public final class DemoBasicDigestAll {
      * with a valid user, rejecting invalid credentials, and issuing challenges.
      *
      * @return true if all Basic auth operations succeed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoBasicAuth() {
         LOG.info("=== 1. HTTP Basic Authentication ===");
@@ -139,7 +139,7 @@ public final class DemoBasicDigestAll {
      * and credential validation.
      *
      * @return true if all user store operations succeed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoInMemoryUserStore() {
         LOG.info("=== 2. InMemoryUserStore ===");
@@ -183,7 +183,7 @@ public final class DemoBasicDigestAll {
      * per-user salt for secure credential storage.
      *
      * @return true if hashed password operations succeed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoHashedPasswordStore() {
         LOG.info("=== 3. HashedPasswordStore (SHA-256) ===");
@@ -221,7 +221,7 @@ public final class DemoBasicDigestAll {
      * nonce management, response hash computation, and the full auth cycle.
      *
      * @return true if Digest MD5 auth works correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoDigestAuthMd5() {
         LOG.info("=== 4. HTTP Digest Authentication (MD5) ===");
@@ -262,7 +262,7 @@ public final class DemoBasicDigestAll {
      * Demonstrates HTTP Digest authentication with SHA-256 algorithm variant.
      *
      * @return true if Digest SHA-256 auth works correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoDigestAuthSha256() {
         LOG.info("=== 5. HTTP Digest Authentication (SHA-256) ===");
@@ -300,7 +300,7 @@ public final class DemoBasicDigestAll {
      * including realm, nonce, opaque, algorithm, and qop parameters.
      *
      * @return true if challenge header is generated correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoDigestChallenge() {
         LOG.info("=== 6. Digest Challenge ===");

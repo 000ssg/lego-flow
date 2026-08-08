@@ -12,6 +12,6 @@
  *   <li>JetStream persistent streaming with streams, consumers, and pull subscriptions
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 package ssg.legoflow.messaging.nats;

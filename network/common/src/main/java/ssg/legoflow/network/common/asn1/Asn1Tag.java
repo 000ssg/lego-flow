@@ -9,7 +9,7 @@ package ssg.legoflow.network.common.asn1;
  * @param tagClass    the tag class (UNIVERSAL, APPLICATION, CONTEXT_SPECIFIC, PRIVATE)
  * @param constructed whether this is a constructed (vs primitive) encoding
  * @param number      the tag number (0-30 for short form, 31+ for long form)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Asn1Tag(TagClass tagClass, boolean constructed, int number) {
 

@@ -8,7 +8,7 @@ import java.util.*;
  * <p>A result contains optional data and optional errors. Per the spec,
  * partial results are allowed: data may be present alongside errors.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ExecutionResult {
 
@@ -91,7 +91,7 @@ public final class ExecutionResult {
     /**
      * Represents a GraphQL error.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record GraphQLError(String message, List<Object> path,
                                 List<SourceLocation> locations,

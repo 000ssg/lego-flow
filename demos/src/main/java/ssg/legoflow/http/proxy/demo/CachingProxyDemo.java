@@ -11,7 +11,7 @@ import java.util.List;
  *
  * <p>Demonstrates HTTP caching with Cache-Control, ETag, and conditional requests.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class CachingProxyDemo {
 
@@ -20,7 +20,7 @@ public class CachingProxyDemo {
     /**
      * Creates the demo with a caching proxy backed by an in-memory cache.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CachingProxyDemo() {
         var config = new ReverseProxyConfig();
@@ -48,7 +48,7 @@ public class CachingProxyDemo {
      * Runs the demo showing cache hits, misses, and conditional requests.
      *
      * @return the results summary
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String run() {
         var sb = new StringBuilder();
@@ -87,7 +87,7 @@ public class CachingProxyDemo {
      * Returns the caching proxy instance.
      *
      * @return the caching proxy
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CachingProxy getCachingProxy() {
         return cachingProxy;

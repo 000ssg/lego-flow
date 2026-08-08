@@ -10,7 +10,7 @@ import java.util.Objects;
  * @param payload   the item payload (XML content)
  * @param publisher the JID of the publisher (bare JID string)
  * @param timestamp the time the item was published
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record PubSubItem(String id, String payload, String publisher, Instant timestamp) {
 

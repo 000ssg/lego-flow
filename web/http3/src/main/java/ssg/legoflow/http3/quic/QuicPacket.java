@@ -14,7 +14,7 @@ import java.util.List;
  * @param packetNumber the packet number
  * @param frames       the list of frames in this packet
  * @param version      the QUIC version (1 for RFC 9000)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record QuicPacket(
         QuicPacketType type,

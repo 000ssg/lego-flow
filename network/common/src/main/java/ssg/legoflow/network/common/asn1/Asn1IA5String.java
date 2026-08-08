@@ -7,7 +7,7 @@ package ssg.legoflow.network.common.asn1;
  * which is essentially ASCII (characters 0x00-0x7F).
  *
  * @param value the string value
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Asn1IA5String(String value) implements Asn1Type {
 

@@ -18,7 +18,7 @@ import java.util.Objects;
  *   <li>Multi-line: {@code code-text CRLF ... code SP text CRLF}</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class FtpProtocolCodec {
 

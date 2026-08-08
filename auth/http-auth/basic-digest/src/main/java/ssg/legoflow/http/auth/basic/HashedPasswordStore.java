@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Password store using SHA-256 hashed passwords with per-user salt.
  * Passwords are stored as salt:hash where both are hex-encoded.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class HashedPasswordStore implements BasicUserStore, AuthContext.UserStore {
 
@@ -31,7 +31,7 @@ public class HashedPasswordStore implements BasicUserStore, AuthContext.UserStor
     /**
      * Creates an empty hashed password store.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HashedPasswordStore() {
     }
@@ -43,7 +43,7 @@ public class HashedPasswordStore implements BasicUserStore, AuthContext.UserStor
      * @param password the plaintext password
      * @param roles    the user roles
      * @return this store for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HashedPasswordStore addUser(String username, String password, Set<String> roles) {
         byte[] salt = new byte[SALT_LENGTH];
@@ -59,7 +59,7 @@ public class HashedPasswordStore implements BasicUserStore, AuthContext.UserStor
      * @param username the username
      * @param password the plaintext password
      * @return this store for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HashedPasswordStore addUser(String username, String password) {
         return addUser(username, password, Set.of());
@@ -73,7 +73,7 @@ public class HashedPasswordStore implements BasicUserStore, AuthContext.UserStor
      * @param hashHex    the hex-encoded hash
      * @param roles      the user roles
      * @return this store for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HashedPasswordStore addHashedUser(String username, String saltHex, String hashHex,
                                              Set<String> roles) {
@@ -118,7 +118,7 @@ public class HashedPasswordStore implements BasicUserStore, AuthContext.UserStor
      * @param password the plaintext password
      * @param salt     the salt bytes
      * @return the hash bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static byte[] hashPassword(String password, byte[] salt) {
         try {
@@ -135,7 +135,7 @@ public class HashedPasswordStore implements BasicUserStore, AuthContext.UserStor
      *
      * @param bytes the bytes
      * @return the hex string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String bytesToHex(byte[] bytes) {
         var sb = new StringBuilder(bytes.length * 2);
@@ -150,7 +150,7 @@ public class HashedPasswordStore implements BasicUserStore, AuthContext.UserStor
      *
      * @param hex the hex string
      * @return the bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static byte[] hexToBytes(String hex) {
         int len = hex.length();
@@ -166,7 +166,7 @@ public class HashedPasswordStore implements BasicUserStore, AuthContext.UserStor
      * Returns the number of users.
      *
      * @return the user count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int size() {
         return users.size();

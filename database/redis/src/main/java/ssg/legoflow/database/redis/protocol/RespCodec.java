@@ -14,7 +14,7 @@ import java.util.*;
  * byte buffers back into typed values. Supports all RESP2 types and all
  * RESP3 extension types.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RespCodec {
 

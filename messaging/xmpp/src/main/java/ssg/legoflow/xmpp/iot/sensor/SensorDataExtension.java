@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
  * <p>Handles the {@code <req>}, {@code <accepted>}, {@code <fields>}, and
  * {@code <done>} elements within the {@code urn:xmpp:iot:sensordata} namespace.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SensorDataExtension implements XmppExtension {
 

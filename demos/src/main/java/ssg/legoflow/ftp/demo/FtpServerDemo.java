@@ -9,7 +9,7 @@ import java.io.IOException;
 /**
  * Demonstrates starting an FTP server with in-memory filesystem.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class FtpServerDemo {
 

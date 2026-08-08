@@ -14,7 +14,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *
  * <p>Represents a device that can be controlled remotely via XMPP IQ stanzas.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ControllableNode {
 

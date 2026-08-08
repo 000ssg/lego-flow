@@ -16,7 +16,7 @@ import java.util.Optional;
  * @param port      the sent-by port, or -1 if not specified
  * @param branch    the branch parameter (transaction ID)
  * @param params    additional parameters
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ViaHeader(
         String protocol,
@@ -33,7 +33,7 @@ public record ViaHeader(
     /**
      * Creates a Via header.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ViaHeader {
         Objects.requireNonNull(protocol, "protocol");
@@ -49,7 +49,7 @@ public record ViaHeader(
      * @param value the Via header value
      * @return the parsed Via header
      * @throws IllegalArgumentException if the format is invalid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static ViaHeader parse(String value) {
         Objects.requireNonNull(value, "value");
@@ -128,7 +128,7 @@ public record ViaHeader(
      * Returns the received parameter, if present.
      *
      * @return the received IP address, or empty
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<String> received() {
         return Optional.ofNullable(params.get("received"));
@@ -138,7 +138,7 @@ public record ViaHeader(
      * Returns the rport parameter, if present.
      *
      * @return the rport value, or empty
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<Integer> rport() {
         String rp = params.get("rport");
@@ -150,7 +150,7 @@ public record ViaHeader(
      * Formats this Via header as a string value.
      *
      * @return the formatted Via value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String format() {
         var sb = new StringBuilder();

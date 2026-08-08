@@ -9,7 +9,7 @@ import ssg.legoflow.media.rtsp.server.RtspServer;
  * <p>Demonstrates: OPTIONS, DESCRIBE, SETUP, PLAY, PAUSE, PLAY (resume),
  * TEARDOWN sequence against a local RTSP server.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ClientPlaybackDemo {
 

@@ -3,7 +3,7 @@ package ssg.legoflow.network.modbus.protocol;
 /**
  * Exception for Modbus protocol errors.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ModbusException extends RuntimeException {
 

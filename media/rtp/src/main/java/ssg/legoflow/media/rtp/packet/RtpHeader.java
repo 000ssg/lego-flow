@@ -35,7 +35,7 @@ import java.util.Optional;
  * @param ssrc           the synchronization source identifier
  * @param csrcList       the contributing source identifiers (0-15 entries)
  * @param headerExtension the optional header extension
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record RtpHeader(
         int version,

@@ -12,7 +12,7 @@ import java.util.List;
  * affected rows, and last insert ID. Supports both text and binary protocol
  * result sets.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MysqlResult {
 

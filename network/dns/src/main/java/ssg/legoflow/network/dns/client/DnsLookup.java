@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * <p>Provides convenience methods for resolving hostnames to addresses,
  * looking up MX records, SRV records, and other common queries.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DnsLookup {
 
@@ -30,7 +30,7 @@ public final class DnsLookup {
      * Creates a lookup utility with the given client.
      *
      * @param client the DNS client
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DnsLookup(DnsClient client) {
         this.client = Objects.requireNonNull(client, "client must not be null");
@@ -41,7 +41,7 @@ public final class DnsLookup {
      *
      * @param server  the DNS server address
      * @param timeout the query timeout
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DnsLookup(InetSocketAddress server, Duration timeout) {
         this(new DnsClient(server, timeout));
@@ -53,7 +53,7 @@ public final class DnsLookup {
      * @param hostname the hostname to resolve
      * @return list of IPv4 addresses
      * @throws IOException if the query fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<Inet4Address> resolveA(String hostname) throws IOException {
         DnsMessage response = client.query(hostname, RecordType.A);
@@ -69,7 +69,7 @@ public final class DnsLookup {
      * @param hostname the hostname to resolve
      * @return list of IPv6 addresses
      * @throws IOException if the query fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<Inet6Address> resolveAAAA(String hostname) throws IOException {
         DnsMessage response = client.query(hostname, RecordType.AAAA);
@@ -85,7 +85,7 @@ public final class DnsLookup {
      * @param hostname the hostname to resolve
      * @return list of addresses
      * @throws IOException if the query fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<InetAddress> resolve(String hostname) throws IOException {
         List<InetAddress> addresses = new ArrayList<>();
@@ -100,7 +100,7 @@ public final class DnsLookup {
      * @param domain the domain name
      * @return sorted list of MX records
      * @throws IOException if the query fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<MxRecord> lookupMx(String domain) throws IOException {
         DnsMessage response = client.query(domain, RecordType.MX);
@@ -117,7 +117,7 @@ public final class DnsLookup {
      * @param service the SRV service name (e.g., "_sip._tcp.example.com")
      * @return sorted list of SRV records
      * @throws IOException if the query fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<SrvRecord> lookupSrv(String service) throws IOException {
         DnsMessage response = client.query(service, RecordType.SRV);
@@ -134,7 +134,7 @@ public final class DnsLookup {
      * @param domain the domain name
      * @return list of TXT record strings
      * @throws IOException if the query fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<String> lookupTxt(String domain) throws IOException {
         DnsMessage response = client.query(domain, RecordType.TXT);
@@ -150,7 +150,7 @@ public final class DnsLookup {
      * @param address the IP address to look up
      * @return list of PTR domain names
      * @throws IOException if the query fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<DnsName> reverseLookup(InetAddress address) throws IOException {
         String ptrName = buildPtrName(address);

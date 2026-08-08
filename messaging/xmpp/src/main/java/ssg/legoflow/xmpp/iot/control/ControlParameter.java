@@ -8,14 +8,14 @@ import java.util.Objects;
  * @param name  the parameter name
  * @param value the parameter value as a string
  * @param type  the parameter data type
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ControlParameter(String name, String value, ControlParameterType type) {
 
     /**
      * Control parameter data types.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum ControlParameterType {
         /** Boolean value. */

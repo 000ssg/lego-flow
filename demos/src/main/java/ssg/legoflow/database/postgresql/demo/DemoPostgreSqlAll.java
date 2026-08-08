@@ -54,7 +54,7 @@ import java.util.concurrent.atomic.AtomicReference;
  *   <li>MD5 authentication — salted MD5 hash authentication</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoPostgreSqlAll {
 

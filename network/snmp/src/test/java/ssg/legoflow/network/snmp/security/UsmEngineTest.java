@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * Tests for {@link UsmEngine} authentication and encryption.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class UsmEngineTest {
 

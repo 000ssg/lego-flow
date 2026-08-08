@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *   <li>DELETE /items/{id} — delete an item</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class CoapRestDemo {
 
@@ -38,7 +38,7 @@ public final class CoapRestDemo {
      * Creates the REST demo with a server on the given port.
      *
      * @param port the UDP port
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapRestDemo(int port) {
         this.server = new CoapServer(CoapServerConfig.withPort(port));
@@ -50,7 +50,7 @@ public final class CoapRestDemo {
      * Starts the demo server.
      *
      * @throws IOException if binding fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() throws IOException {
         server.start();
@@ -59,7 +59,7 @@ public final class CoapRestDemo {
     /**
      * Stops the demo server.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         server.stop();
@@ -69,7 +69,7 @@ public final class CoapRestDemo {
      * Returns the server.
      *
      * @return the server
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapServer server() {
         return server;
@@ -79,7 +79,7 @@ public final class CoapRestDemo {
      * Returns the item collection resource.
      *
      * @return the collection resource
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ItemCollectionResource collectionResource() {
         return collectionResource;
@@ -88,7 +88,7 @@ public final class CoapRestDemo {
     /**
      * Collection resource for managing items via CRUD operations.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class ItemCollectionResource extends CoapResource {
 
@@ -159,7 +159,7 @@ public final class CoapRestDemo {
     /**
      * Individual item resource supporting GET, PUT, DELETE.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class ItemResource extends CoapResource {
 

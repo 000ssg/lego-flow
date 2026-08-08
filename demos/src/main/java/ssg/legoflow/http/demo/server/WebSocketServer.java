@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Uses {@link WebSocketHandshake} for protocol upgrade validation and
  * {@link WebSocketSession} for session lifecycle management.
  *
- * @since 1.0
+ * @since 0.1
  */
 public class WebSocketServer {
 

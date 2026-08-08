@@ -20,7 +20,7 @@ import java.util.UUID;
  * <p>Demonstrates using correlation-id and reply-to properties to
  * implement a request/reply communication pattern.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RequestReplyDemo {
 

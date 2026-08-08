@@ -37,7 +37,7 @@ import java.util.Base64;
  *   <li>SPNEGO integration — token detection and processing flow</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoSpnegoAll {
 
@@ -56,7 +56,7 @@ public final class DemoSpnegoAll {
      * @param tokenExtraction     true if credential extraction from headers works
      * @param challengeGeneration true if WWW-Authenticate challenge is generated
      * @param spnegoIntegration   true if SPNEGO token processing flow works
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record Results(
             boolean spnegoConfig,
@@ -71,7 +71,7 @@ public final class DemoSpnegoAll {
      *
      * @return results from each feature section
      * @throws Exception if any operation fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Results runAll() throws Exception {
         boolean config = demoSpnegoConfig();
@@ -90,7 +90,7 @@ public final class DemoSpnegoAll {
      * options like realm stripping from principal names.
      *
      * @return true if configuration is built correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoSpnegoConfig() {
         LOG.info("=== 1. SpnegoConfig Builder ===");
@@ -137,7 +137,7 @@ public final class DemoSpnegoAll {
      * when no Authorization header is present (issues challenge).
      *
      * @return true if scheme properties are correct
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoNegotiateScheme() {
         LOG.info("=== 2. NegotiateAuthScheme ===");
@@ -179,7 +179,7 @@ public final class DemoSpnegoAll {
      * Demonstrates credential extraction from the Authorization: Negotiate header.
      *
      * @return true if token extraction works correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoTokenExtraction() {
         LOG.info("=== 3. Token Extraction ===");
@@ -223,7 +223,7 @@ public final class DemoSpnegoAll {
      * Demonstrates WWW-Authenticate: Negotiate challenge header generation.
      *
      * @return true if challenge header is generated correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoChallengeGeneration() {
         LOG.info("=== 4. Challenge Generation ===");
@@ -255,7 +255,7 @@ public final class DemoSpnegoAll {
      * the token parsing and detection pipeline is exercised.
      *
      * @return true if the integration flow works correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoSpnegoIntegration() {
         LOG.info("=== 5. SPNEGO Integration ===");

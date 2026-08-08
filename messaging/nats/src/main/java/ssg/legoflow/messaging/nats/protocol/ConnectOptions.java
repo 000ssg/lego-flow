@@ -19,7 +19,7 @@ package ssg.legoflow.messaging.nats.protocol;
  * @param echo         whether the server should echo published messages back
  * @param headers      whether the client supports headers (HPUB/HMSG)
  * @param noResponders whether the server should send no-responders status
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ConnectOptions(
         boolean verbose,

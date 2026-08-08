@@ -18,7 +18,7 @@ import java.util.Arrays;
  * the client to send the password encrypted with the server's RSA public key.
  * This implementation supports the fast-auth path only.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class CachingSha2Password implements AuthPlugin {
 

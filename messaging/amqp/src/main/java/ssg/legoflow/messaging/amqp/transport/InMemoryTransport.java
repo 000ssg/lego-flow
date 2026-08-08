@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>Creates a pair of connected transports: data sent on one end is received
  * on the other. Useful for unit testing the invariant core in isolation.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class InMemoryTransport implements AmqpTransport {
 

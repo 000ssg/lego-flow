@@ -18,7 +18,7 @@ import java.util.Base64;
  * <p>Uses {@link WebSocketHandshake} for the opening handshake and
  * {@link WebSocketSession} for managing the connection lifecycle.
  *
- * @since 1.0
+ * @since 0.1
  */
 public class WebSocketClient {
 

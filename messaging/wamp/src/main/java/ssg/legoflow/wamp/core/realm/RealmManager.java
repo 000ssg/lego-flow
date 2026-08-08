@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Manages multiple WAMP realms, providing creation, lookup, and removal.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class RealmManager {
 

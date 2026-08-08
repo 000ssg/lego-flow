@@ -8,7 +8,7 @@ package ssg.legoflow.mqtt.broker;
  * the connection handshake and rejects clients that fail authentication
  * with an appropriate CONNACK return code.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 @FunctionalInterface
 public interface MqttAuthenticator {

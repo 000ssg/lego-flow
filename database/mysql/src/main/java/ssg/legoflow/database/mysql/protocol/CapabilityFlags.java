@@ -7,7 +7,7 @@ package ssg.legoflow.database.mysql.protocol;
  * supported by both client and server. Flags are represented as a 32-bit
  * bitmask split across two 16-bit words in the handshake packets.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class CapabilityFlags {
 

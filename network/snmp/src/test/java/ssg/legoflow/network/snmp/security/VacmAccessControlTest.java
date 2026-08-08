@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for {@link VacmAccessControl} access control.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class VacmAccessControlTest {
 

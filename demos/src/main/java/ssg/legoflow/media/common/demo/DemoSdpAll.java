@@ -30,7 +30,7 @@ import java.util.OptionalInt;
  *   <li>SDP model types — Origin, Timing, Bandwidth, ConnectionInfo, Direction</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoSdpAll {
 
@@ -52,7 +52,7 @@ public final class DemoSdpAll {
      * @param negotiation      true if offer/answer negotiation produced a valid answer
      * @param payloadRegistry  number of static payload types in the registry
      * @param modelTypes       true if all SDP model types parsed and formatted correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record Results(
             boolean sdpParsing,
@@ -70,7 +70,7 @@ public final class DemoSdpAll {
      *
      * @return results from each feature section
      * @throws Exception if any operation fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Results runAll() throws Exception {
         boolean parsing = demoSdpParsing();
@@ -93,7 +93,7 @@ public final class DemoSdpAll {
     /**
      * Demonstrates parsing a complete SDP document into a typed model.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoSdpParsing() {
         LOG.info("=== 1. SDP Parsing ===");
@@ -141,7 +141,7 @@ public final class DemoSdpAll {
     /**
      * Demonstrates serializing a SessionDescription to RFC 4566 text.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoSdpWriting() {
         LOG.info("=== 2. SDP Writing ===");
@@ -177,7 +177,7 @@ public final class DemoSdpAll {
     /**
      * Demonstrates lossless parse-write-parse round-trip.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoRoundTrip() {
         LOG.info("=== 3. Parse-Write Round-Trip ===");
@@ -221,7 +221,7 @@ public final class DemoSdpAll {
     /**
      * Demonstrates the fluent SessionBuilder API.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoSessionBuilder() {
         LOG.info("=== 4. Session Builder ===");
@@ -264,7 +264,7 @@ public final class DemoSdpAll {
     /**
      * Demonstrates the fluent MediaBuilder API with automatic attribute management.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoMediaBuilder() {
         LOG.info("=== 5. Media Builder ===");
@@ -302,7 +302,7 @@ public final class DemoSdpAll {
     /**
      * Demonstrates RFC 3264 offer/answer negotiation.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoNegotiation() {
         LOG.info("=== 6. Offer/Answer Negotiation ===");
@@ -360,7 +360,7 @@ public final class DemoSdpAll {
     /**
      * Demonstrates static and dynamic payload type management.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static int demoPayloadRegistry() {
         LOG.info("=== 7. Payload Registry ===");
@@ -401,7 +401,7 @@ public final class DemoSdpAll {
     /**
      * Demonstrates SDP model types: Origin, Timing, Bandwidth, ConnectionInfo, Direction.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoModelTypes() {
         LOG.info("=== 8. SDP Model Types ===");

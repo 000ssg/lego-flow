@@ -6,41 +6,41 @@ package ssg.legoflow.upnp.gena;
  * <p>Defines the HTTP headers and values used in GENA SUBSCRIBE, UNSUBSCRIBE,
  * and NOTIFY messages.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class GenaConstants {
 
-    /** SID (Subscription ID) header name. @since 1.0.0 */
+    /** SID (Subscription ID) header name. @since 0.1.0 */
     public static final String HEADER_SID = "SID";
 
-    /** SEQ (event sequence number) header name. @since 1.0.0 */
+    /** SEQ (event sequence number) header name. @since 0.1.0 */
     public static final String HEADER_SEQ = "SEQ";
 
-    /** NT (notification type) header name. @since 1.0.0 */
+    /** NT (notification type) header name. @since 0.1.0 */
     public static final String HEADER_NT = "NT";
 
-    /** NTS (notification sub-type) header name. @since 1.0.0 */
+    /** NTS (notification sub-type) header name. @since 0.1.0 */
     public static final String HEADER_NTS = "NTS";
 
-    /** TIMEOUT header name. @since 1.0.0 */
+    /** TIMEOUT header name. @since 0.1.0 */
     public static final String HEADER_TIMEOUT = "TIMEOUT";
 
-    /** CALLBACK header name. @since 1.0.0 */
+    /** CALLBACK header name. @since 0.1.0 */
     public static final String HEADER_CALLBACK = "CALLBACK";
 
-    /** NT value for GENA event subscriptions. @since 1.0.0 */
+    /** NT value for GENA event subscriptions. @since 0.1.0 */
     public static final String NT_UPNP_EVENT = "upnp:event";
 
-    /** NTS value for property change notifications. @since 1.0.0 */
+    /** NTS value for property change notifications. @since 0.1.0 */
     public static final String NTS_PROPCHANGE = "upnp:propchange";
 
-    /** Default subscription timeout in seconds. @since 1.0.0 */
+    /** Default subscription timeout in seconds. @since 0.1.0 */
     public static final int DEFAULT_TIMEOUT_SECONDS = 1800;
 
-    /** Prefix for the TIMEOUT header value. @since 1.0.0 */
+    /** Prefix for the TIMEOUT header value. @since 0.1.0 */
     public static final String TIMEOUT_PREFIX = "Second-";
 
-    /** Infinite timeout value. @since 1.0.0 */
+    /** Infinite timeout value. @since 0.1.0 */
     public static final String TIMEOUT_INFINITE = "infinite";
 
     private GenaConstants() {
@@ -52,7 +52,7 @@ public final class GenaConstants {
      *
      * @param seconds the timeout in seconds
      * @return the formatted timeout string (e.g., "Second-1800")
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String formatTimeout(long seconds) {
         return TIMEOUT_PREFIX + seconds;
@@ -63,7 +63,7 @@ public final class GenaConstants {
      *
      * @param timeoutHeader the TIMEOUT header value (e.g., "Second-1800")
      * @return the timeout in seconds, or {@link #DEFAULT_TIMEOUT_SECONDS} if unparseable
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static long parseTimeout(String timeoutHeader) {
         if (timeoutHeader == null || timeoutHeader.isBlank()) {
@@ -88,7 +88,7 @@ public final class GenaConstants {
      *
      * @param callbackUrl the callback URL
      * @return the formatted callback header value (e.g., "&lt;http://host:port/callback&gt;")
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String formatCallback(String callbackUrl) {
         return "<" + callbackUrl + ">";
@@ -99,7 +99,7 @@ public final class GenaConstants {
      *
      * @param callbackHeader the CALLBACK header value (e.g., "&lt;http://host:port/callback&gt;")
      * @return the extracted callback URL
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String parseCallback(String callbackHeader) {
         if (callbackHeader == null) {

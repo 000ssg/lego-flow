@@ -10,7 +10,7 @@ import java.util.Map;
  * <p>Transports handle the mechanics of receiving GraphQL requests
  * and sending results, independent of the execution engine.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface GraphQLTransport {
 

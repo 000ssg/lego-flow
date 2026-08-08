@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * IoT Discovery demo: register things, search by tags, claim ownership.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class IoTDiscoveryDemo {
 

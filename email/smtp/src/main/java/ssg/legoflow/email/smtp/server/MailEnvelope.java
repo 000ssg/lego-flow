@@ -10,7 +10,7 @@ import java.util.*;
  * extension parameters (SIZE, BODY, DSN). It is built during an SMTP transaction
  * and delivered to a {@link MessageStore} upon successful DATA/BDAT completion.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MailEnvelope {
 

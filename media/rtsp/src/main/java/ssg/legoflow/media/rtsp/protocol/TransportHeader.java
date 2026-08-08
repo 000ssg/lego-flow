@@ -10,7 +10,7 @@ import java.util.OptionalInt;
  * <p>Format: {@code RTP/AVP[/UDP|/TCP];unicast|multicast;destination=addr;source=addr;
  * client_port=p1-p2;server_port=p1-p2;ssrc=SSRC;interleaved=ch1-ch2}
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class TransportHeader {
 

@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * multicast, statistics, multi-selector distribution, channel manager basics,
  * and service lifecycle.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class DemoServiceAll {
 
@@ -54,7 +54,7 @@ public class DemoServiceAll {
      * @param serviceGroupMultiSelector whether channels distribute across selectors
      * @param channelManagerBasics    whether SelectableChannelManager basic operations work
      * @param serviceLifecycle        whether AbstractService connect/disconnect lifecycle works
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record Results(
             boolean serviceGroupLifecycle,
@@ -71,7 +71,7 @@ public class DemoServiceAll {
      *
      * @return the results record
      * @throws Exception if any demo fails unexpectedly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Results runAll() throws Exception {
         boolean lifecycle = demoServiceGroupLifecycle();
@@ -90,7 +90,7 @@ public class DemoServiceAll {
      *
      * @return {@code true} if the lifecycle transitions succeed
      * @throws Exception if an error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static boolean demoServiceGroupLifecycle() throws Exception {
         try (var group = ServiceGroup.builder("lifecycle-demo")
@@ -117,7 +117,7 @@ public class DemoServiceAll {
      *
      * @return the number of echo responses received
      * @throws Exception if an error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static int demoServiceGroupUdpEcho() throws Exception {
         int messageCount = 10;
@@ -204,7 +204,7 @@ public class DemoServiceAll {
      *
      * @return {@code true} if multicast send/receive succeeds
      * @throws Exception if an error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static boolean demoServiceGroupMulticast() throws Exception {
         try (var group = ServiceGroup.builder("multicast-demo")
@@ -292,7 +292,7 @@ public class DemoServiceAll {
      *
      * @return {@code true} if statistics captured non-zero bytes
      * @throws Exception if an error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static boolean demoServiceGroupStatistics() throws Exception {
         try (var group = ServiceGroup.builder("stats-demo")
@@ -327,7 +327,7 @@ public class DemoServiceAll {
      *
      * @return {@code true} if channels are distributed across multiple selectors
      * @throws Exception if an error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static boolean demoServiceGroupMultiSelector() throws Exception {
         try (var group = ServiceGroup.builder("multi-selector-demo")
@@ -368,7 +368,7 @@ public class DemoServiceAll {
      *
      * @return {@code true} if basic operations succeed
      * @throws Exception if an error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static boolean demoChannelManagerBasics() throws Exception {
         var ctx = new DefaultServiceContext(ServiceUser.anonymous());
@@ -391,7 +391,7 @@ public class DemoServiceAll {
      *
      * @return {@code true} if the lifecycle transitions succeed
      * @throws Exception if an error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static boolean demoServiceLifecycle() throws Exception {
         var service = new AbstractService<String, String>(String.class, String.class,

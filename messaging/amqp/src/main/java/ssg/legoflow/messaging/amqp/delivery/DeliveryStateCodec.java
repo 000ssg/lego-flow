@@ -11,7 +11,7 @@ import java.util.*;
 /**
  * Encodes and decodes AMQP 1.0 delivery states to/from described types.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DeliveryStateCodec {
 

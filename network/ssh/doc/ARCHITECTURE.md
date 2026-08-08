@@ -17,7 +17,7 @@ graph TD
 ```
 
 ### Transport Layer (`transport`)
-- `SshVersion`: Version string exchange (SSH-2.0-legoflow_1.0)
+- `SshVersion`: Version string exchange (SSH-2.0-legoflow_0.1)
 - `SshMessageType`: Enum with all message type codes (1-100)
 - `SshPacket`: Sealed interface with 30 inner record types for exhaustive pattern matching
 - `SshTransportCodec`: Binary packet encoding/decoding with string, binary, name-list, boolean, uint32 helpers

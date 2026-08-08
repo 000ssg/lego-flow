@@ -13,7 +13,7 @@ import java.util.function.Function;
  * {@link AsyncServicePipeline} for {@link CompletableFuture}-based processing.
  *
  * @param <T> element type
- * @since 1.0
+ * @since 0.1
  */
 public class AsyncPipelineDemo<T> {
 

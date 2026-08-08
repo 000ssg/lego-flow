@@ -15,6 +15,6 @@
  *   <li>{@code demo} — Example applications</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 package ssg.legoflow.ftp;

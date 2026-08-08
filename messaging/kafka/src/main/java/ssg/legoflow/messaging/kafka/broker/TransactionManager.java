@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Manages transactional producers: producer ID allocation, idempotency dedup,
  * and transaction lifecycle (begin, addPartitions, commit, abort).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class TransactionManager {
 

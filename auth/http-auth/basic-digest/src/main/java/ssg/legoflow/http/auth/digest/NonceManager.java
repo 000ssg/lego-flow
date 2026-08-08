@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Manages nonce generation, tracking, and expiry for HTTP Digest authentication.
  * Thread-safe — uses ConcurrentHashMap for nonce tracking.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class NonceManager {
 
@@ -29,7 +29,7 @@ public class NonceManager {
      * Creates a nonce manager with the given nonce lifetime.
      *
      * @param nonceLifetime how long nonces remain valid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public NonceManager(Duration nonceLifetime) {
         this.nonceLifetime = nonceLifetime;
@@ -38,7 +38,7 @@ public class NonceManager {
     /**
      * Creates a nonce manager with a 5-minute nonce lifetime.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public NonceManager() {
         this(Duration.ofMinutes(5));
@@ -48,7 +48,7 @@ public class NonceManager {
      * Generates a new nonce.
      *
      * @return the nonce string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String generateNonce() {
         byte[] bytes = new byte[24];
@@ -70,7 +70,7 @@ public class NonceManager {
      * @param nonce the nonce to validate
      * @param nc    the nonce count as a hex string
      * @return true if valid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean validateNonce(String nonce, String nc) {
         if (nonce == null) return false;
@@ -111,7 +111,7 @@ public class NonceManager {
      *
      * @param nonce the nonce to check
      * @return true if the nonce is stale
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isStale(String nonce) {
         var entry = nonces.get(nonce);
@@ -123,7 +123,7 @@ public class NonceManager {
      * Removes a nonce.
      *
      * @param nonce the nonce to remove
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void removeNonce(String nonce) {
         nonces.remove(nonce);
@@ -133,7 +133,7 @@ public class NonceManager {
      * Removes all expired nonces.
      *
      * @return the number of expired nonces removed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int cleanExpired() {
         Instant now = Instant.now();
@@ -149,7 +149,7 @@ public class NonceManager {
      * Returns the number of tracked nonces.
      *
      * @return the nonce count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int size() {
         return nonces.size();

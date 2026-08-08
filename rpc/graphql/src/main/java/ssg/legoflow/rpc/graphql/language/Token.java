@@ -7,7 +7,7 @@ package ssg.legoflow.rpc.graphql.language;
  * @param value the token value
  * @param line  the source line number
  * @param col   the source column number
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Token(Type type, String value, int line, int col) {
 

@@ -13,7 +13,7 @@ import java.util.Objects;
  * @param expires     the expiration time
  * @param callId      the Call-ID of the REGISTER request
  * @param cseq        the CSeq of the REGISTER request
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record RegistrationBinding(
         String aor,
@@ -26,7 +26,7 @@ public record RegistrationBinding(
     /**
      * Creates a registration binding.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public RegistrationBinding {
         Objects.requireNonNull(aor, "aor");
@@ -39,7 +39,7 @@ public record RegistrationBinding(
      * Returns true if this binding has expired.
      *
      * @return true if expired
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isExpired() {
         return Instant.now().isAfter(expires);
@@ -49,7 +49,7 @@ public record RegistrationBinding(
      * Returns the remaining time-to-live in seconds.
      *
      * @return the TTL in seconds, or 0 if expired
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long ttlSeconds() {
         long remaining = expires.getEpochSecond() - Instant.now().getEpochSecond();

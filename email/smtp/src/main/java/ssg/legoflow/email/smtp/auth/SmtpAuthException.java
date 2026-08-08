@@ -3,7 +3,7 @@ package ssg.legoflow.email.smtp.auth;
 /**
  * Exception thrown when SMTP authentication fails.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SmtpAuthException extends Exception {
 

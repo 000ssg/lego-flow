@@ -5,7 +5,7 @@ import java.util.Objects;
 /**
  * Builds WWW-Authenticate challenge headers for HTTP Digest authentication (RFC 7616).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class DigestChallenge {
 
@@ -25,7 +25,7 @@ public class DigestChallenge {
      * @param algorithm the hash algorithm (MD5 or SHA-256)
      * @param qop       the quality of protection options
      * @param stale     whether the nonce is stale (client should retry with new nonce)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DigestChallenge(String realm, String nonce, String opaque,
                            String algorithm, String qop, boolean stale) {
@@ -41,7 +41,7 @@ public class DigestChallenge {
      * Builds the WWW-Authenticate header value.
      *
      * @return the header value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toHeaderValue() {
         var sb = new StringBuilder("Digest ");

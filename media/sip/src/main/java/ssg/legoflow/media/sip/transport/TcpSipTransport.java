@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Maintains persistent connections and handles framing using
  * Content-Length headers. Each connection is handled on a virtual thread.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class TcpSipTransport implements SipTransport {
 
@@ -38,7 +38,7 @@ public final class TcpSipTransport implements SipTransport {
      *
      * @param bindAddress the local address to bind to
      * @throws IOException if binding fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public TcpSipTransport(InetSocketAddress bindAddress) throws IOException {
         this.serverChannel = ServerSocketChannel.open();
@@ -53,7 +53,7 @@ public final class TcpSipTransport implements SipTransport {
      * Creates a TCP transport on any available port.
      *
      * @throws IOException if creation fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public TcpSipTransport() throws IOException {
         this(new InetSocketAddress(0));

@@ -8,7 +8,7 @@ import java.util.*;
  * <p>Controls which senders and recipients are allowed, whether authentication
  * is required, and maximum message size.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RelayConfig {
 

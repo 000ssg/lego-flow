@@ -51,7 +51,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>This class is thread-safe.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class Http3Client {
 
@@ -68,7 +68,7 @@ public class Http3Client {
      * Creates a new HTTP/3 client with the given configuration.
      *
      * @param config the client configuration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Client(Http3Config config) {
         this.config = config;
@@ -81,7 +81,7 @@ public class Http3Client {
      * Connects to the configured server.
      *
      * @return the established HTTP/3 connection
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Connection connect() {
         var quicSettings = QuicSettings.builder()
@@ -122,7 +122,7 @@ public class Http3Client {
      * @param request the HTTP request
      * @return the HTTP response with status, headers, and body
      * @throws IllegalStateException if not connected
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse send(HttpRequest request) {
         if (connection == null) {
@@ -147,7 +147,7 @@ public class Http3Client {
      * @param request the HTTP request
      * @return a future that completes with the HTTP response
      * @throws IllegalStateException if not connected
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CompletableFuture<HttpResponse> sendAsync(HttpRequest request) {
         if (connection == null) {
@@ -161,7 +161,7 @@ public class Http3Client {
      * Returns whether 0-RTT is enabled for this client.
      *
      * @return {@code true} if 0-RTT is enabled
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isZeroRttEnabled() {
         return zeroRttEnabled;
@@ -171,7 +171,7 @@ public class Http3Client {
      * Sets whether 0-RTT connection resumption is enabled.
      *
      * @param enabled {@code true} to enable 0-RTT
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setZeroRttEnabled(boolean enabled) {
         this.zeroRttEnabled = enabled;
@@ -180,7 +180,7 @@ public class Http3Client {
     /**
      * Closes the HTTP/3 client connection.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void close() {
         if (connection != null) {
@@ -194,7 +194,7 @@ public class Http3Client {
      * Returns the underlying HTTP/3 connection.
      *
      * @return the connection, or {@code null} if not connected
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Connection connection() {
         return connection;
@@ -204,7 +204,7 @@ public class Http3Client {
      * Returns the client configuration.
      *
      * @return the configuration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Config config() {
         return config;
@@ -214,7 +214,7 @@ public class Http3Client {
      * Returns the QUIC connection's negotiated ALPN protocol.
      *
      * @return the ALPN string (e.g., "h3"), or {@code null} if not connected
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String negotiatedAlpn() {
         if (connection == null) return null;
@@ -225,7 +225,7 @@ public class Http3Client {
      * Returns the QUIC connection's negotiated cipher suite.
      *
      * @return the cipher suite string, or {@code null} if not connected
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String negotiatedCipherSuite() {
         if (connection == null) return null;
@@ -236,7 +236,7 @@ public class Http3Client {
      * Returns the QUIC connection's TLS handshake phase.
      *
      * @return the handshake phase, or {@code null} if not connected
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicConnection.HandshakePhase handshakePhase() {
         if (connection == null) return null;

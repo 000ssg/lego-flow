@@ -12,7 +12,7 @@ import java.util.Objects;
  * @param repeatInterval the repeat interval in seconds
  * @param activeDuration the active duration in seconds
  * @param offsets        offsets from start-time in seconds
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record RepeatTime(String repeatInterval, String activeDuration, List<String> offsets) {
 

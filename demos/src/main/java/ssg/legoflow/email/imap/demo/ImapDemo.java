@@ -23,7 +23,7 @@ import java.util.Set;
  * <p>Starts an in-memory IMAP server, seeds it with test messages, then
  * connects a client to perform mailbox operations.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ImapDemo {
 

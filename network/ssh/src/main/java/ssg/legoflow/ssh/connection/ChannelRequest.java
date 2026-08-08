@@ -7,7 +7,7 @@ package ssg.legoflow.ssh.connection;
  * @param requestType      the request type name
  * @param wantReply        whether a reply is expected
  * @param data             request-specific data
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ChannelRequest(
         int recipientChannel,

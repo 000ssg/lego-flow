@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>Uses virtual threads for scalable concurrency. Each client connection
  * is handled by an {@link ImapSession} on its own virtual thread.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ImapServer implements AutoCloseable {
 

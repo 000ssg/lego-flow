@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.*;
  * Tests that the media proxy correctly streams content from an upstream server
  * to the browser via the /api/media/stream endpoint.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class MccMediaProxyTest {
 

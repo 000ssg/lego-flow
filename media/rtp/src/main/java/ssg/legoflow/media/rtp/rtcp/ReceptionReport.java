@@ -12,7 +12,7 @@ package ssg.legoflow.media.rtp.rtcp;
  * @param jitter           the interarrival jitter estimate
  * @param lastSR           the middle 32 bits of the NTP timestamp from the most recent SR
  * @param delaySinceLastSR the delay since last SR, in units of 1/65536 seconds
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ReceptionReport(
         long ssrc,

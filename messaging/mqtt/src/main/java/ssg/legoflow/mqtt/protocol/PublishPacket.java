@@ -10,7 +10,7 @@ package ssg.legoflow.mqtt.protocol;
  * @param dup        whether this is a re-delivery
  * @param packetId   the packet identifier (0 for QoS 0)
  * @param properties MQTT 5.0 properties
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record PublishPacket(
         String topic,

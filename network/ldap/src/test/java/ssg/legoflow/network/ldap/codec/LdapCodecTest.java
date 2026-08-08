@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.*;
 /**
  * Tests for {@link LdapCodec} BER encoding/decoding round-trips.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class LdapCodecTest {
 

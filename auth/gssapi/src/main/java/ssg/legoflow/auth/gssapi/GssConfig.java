@@ -9,7 +9,7 @@ import java.util.Objects;
  * keytab path. Can apply settings as JVM system properties for the built-in
  * Kerberos implementation.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class GssConfig {
 
@@ -31,7 +31,7 @@ public final class GssConfig {
      * Returns the Kerberos realm (e.g., "EXAMPLE.COM").
      *
      * @return the realm
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String realm() {
         return realm;
@@ -41,7 +41,7 @@ public final class GssConfig {
      * Returns the KDC hostname.
      *
      * @return the KDC hostname
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String kdc() {
         return kdc;
@@ -51,7 +51,7 @@ public final class GssConfig {
      * Returns the service principal (e.g., "host/server.example.com@EXAMPLE.COM").
      *
      * @return the service principal
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String servicePrincipal() {
         return servicePrincipal;
@@ -61,7 +61,7 @@ public final class GssConfig {
      * Returns the path to the keytab file, or null if not set.
      *
      * @return the keytab path, or null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String keytabPath() {
         return keytabPath;
@@ -71,7 +71,7 @@ public final class GssConfig {
      * Returns whether to use only credentials from the Subject.
      *
      * @return true if only Subject credentials should be used
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean useSubjectCredsOnly() {
         return useSubjectCredsOnly;
@@ -82,7 +82,7 @@ public final class GssConfig {
      *
      * <p>Sets {@code java.security.krb5.realm} and {@code java.security.krb5.kdc}.</p>
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void applyAsSystemProperties() {
         System.setProperty("java.security.krb5.realm", realm);
@@ -95,7 +95,7 @@ public final class GssConfig {
      * Creates a new builder for GssConfig.
      *
      * @return the builder
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Builder builder() {
         return new Builder();
@@ -112,7 +112,7 @@ public final class GssConfig {
     /**
      * Builder for {@link GssConfig}.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class Builder {
 
@@ -130,7 +130,7 @@ public final class GssConfig {
          *
          * @param realm the realm (e.g., "EXAMPLE.COM")
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder realm(String realm) {
             this.realm = realm;
@@ -142,7 +142,7 @@ public final class GssConfig {
          *
          * @param kdc the KDC hostname
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder kdc(String kdc) {
             this.kdc = kdc;
@@ -154,7 +154,7 @@ public final class GssConfig {
          *
          * @param servicePrincipal the service principal
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder servicePrincipal(String servicePrincipal) {
             this.servicePrincipal = servicePrincipal;
@@ -166,7 +166,7 @@ public final class GssConfig {
          *
          * @param keytabPath the keytab file path, or null
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder keytabPath(String keytabPath) {
             this.keytabPath = keytabPath;
@@ -178,7 +178,7 @@ public final class GssConfig {
          *
          * @param useSubjectCredsOnly true to use only Subject credentials (default: true)
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder useSubjectCredsOnly(boolean useSubjectCredsOnly) {
             this.useSubjectCredsOnly = useSubjectCredsOnly;
@@ -190,7 +190,7 @@ public final class GssConfig {
          *
          * @return the configuration
          * @throws NullPointerException if required fields are missing
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public GssConfig build() {
             return new GssConfig(this);

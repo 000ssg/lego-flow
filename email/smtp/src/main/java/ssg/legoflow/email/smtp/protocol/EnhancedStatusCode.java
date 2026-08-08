@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
  * @param statusClass the class digit (2, 4, or 5)
  * @param subject     the subject digit (0-9)
  * @param detail      the detail number (0-999)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record EnhancedStatusCode(int statusClass, int subject, int detail) {
 

@@ -2,6 +2,7 @@ package ssg.legoflow.rpc.grpc.transport;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import ssg.legoflow.service.util.BufferPool;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.Deflater;

@@ -15,7 +15,7 @@ import java.util.Objects;
  * &lt;/sensors/temp&gt;;rt="temperature";obs;ct=0,&lt;/sensors/humidity&gt;;rt="humidity"
  * </pre>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class LinkFormatParser {
 
@@ -29,7 +29,7 @@ public final class LinkFormatParser {
      * @param linkFormat the link format string
      * @return the parsed entries
      * @throws NullPointerException if {@code linkFormat} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static List<LinkFormatEntry> parse(String linkFormat) {
         Objects.requireNonNull(linkFormat, "linkFormat must not be null");
@@ -89,7 +89,7 @@ public final class LinkFormatParser {
      * @param entries the entries to serialize
      * @return the link format string
      * @throws NullPointerException if {@code entries} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String serialize(List<LinkFormatEntry> entries) {
         Objects.requireNonNull(entries, "entries must not be null");

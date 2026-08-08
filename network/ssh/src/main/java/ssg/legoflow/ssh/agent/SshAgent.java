@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Manages SSH key pairs and provides signing operations. Thread-safe via
  * {@link ConcurrentHashMap} for identity storage.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SshAgent {
 

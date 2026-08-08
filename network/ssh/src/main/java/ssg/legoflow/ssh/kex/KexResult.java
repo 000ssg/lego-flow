@@ -8,7 +8,7 @@ import java.util.Objects;
  * @param sharedSecret the computed shared secret K (SSH mpint encoded)
  * @param exchangeHash the exchange hash H
  * @param sessionId    the session identifier (exchange hash from the first key exchange)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record KexResult(
         byte[] sharedSecret,

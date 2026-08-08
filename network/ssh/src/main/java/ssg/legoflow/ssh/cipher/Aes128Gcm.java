@@ -13,7 +13,7 @@ import java.security.GeneralSecurityException;
  * When used, no separate MAC algorithm is needed. The IV is incremented
  * for each packet.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class Aes128Gcm implements SshCipher {
 

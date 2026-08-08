@@ -6,7 +6,7 @@ import java.util.List;
  * OffsetFetch response (API key 9).
  *
  * @param topics the per-topic offset responses
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record OffsetFetchResponse(List<TopicResponse> topics) {
 

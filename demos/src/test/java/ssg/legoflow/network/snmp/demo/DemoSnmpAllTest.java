@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * an external Net-SNMP agent, set {@code DemoSnmpAll.USE_EXTERNAL = true}
  * and configure host/port before running.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class DemoSnmpAllTest {
 

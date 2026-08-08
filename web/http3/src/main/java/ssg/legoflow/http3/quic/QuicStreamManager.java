@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * <p>This class is thread-safe. All operations use concurrent data structures
  * and atomic counters.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class QuicStreamManager {
 
@@ -39,7 +39,7 @@ public class QuicStreamManager {
      * @param maxStreamsUni        maximum number of unidirectional streams
      * @param initialSendWindow   initial send window per stream
      * @param initialReceiveWindow initial receive window per stream
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicStreamManager(boolean isServer, long maxStreamsBidi, long maxStreamsUni,
                              long initialSendWindow, long initialReceiveWindow) {
@@ -55,7 +55,7 @@ public class QuicStreamManager {
      *
      * @return the new stream
      * @throws IllegalStateException if the maximum stream limit is reached
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicStream createBidiStream() {
         long count = streams.values().stream()
@@ -78,7 +78,7 @@ public class QuicStreamManager {
      *
      * @return the new stream
      * @throws IllegalStateException if the maximum stream limit is reached
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicStream createUniStream() {
         long count = streams.values().stream()
@@ -101,7 +101,7 @@ public class QuicStreamManager {
      *
      * @param streamId the stream identifier
      * @return the existing or newly created stream
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicStream getOrCreateStream(long streamId) {
         return streams.computeIfAbsent(streamId,
@@ -113,7 +113,7 @@ public class QuicStreamManager {
      *
      * @param streamId the stream identifier
      * @return the stream, or {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicStream getStream(long streamId) {
         return streams.get(streamId);
@@ -123,7 +123,7 @@ public class QuicStreamManager {
      * Closes a stream by transitioning it to the {@link QuicStreamState#CLOSED} state.
      *
      * @param streamId the stream identifier
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void closeStream(long streamId) {
         var stream = streams.get(streamId);
@@ -136,7 +136,7 @@ public class QuicStreamManager {
      * Returns all currently active (non-closed) streams.
      *
      * @return an unmodifiable collection of active streams
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Collection<QuicStream> getActiveStreams() {
         return streams.values().stream()
@@ -148,7 +148,7 @@ public class QuicStreamManager {
      * Returns the total number of streams (including closed).
      *
      * @return the total stream count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getStreamCount() {
         return streams.size();
@@ -158,7 +158,7 @@ public class QuicStreamManager {
      * Returns the number of active (non-closed) streams.
      *
      * @return the active stream count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getActiveStreamCount() {
         return (int) streams.values().stream()
@@ -170,7 +170,7 @@ public class QuicStreamManager {
      * Updates the maximum bidirectional stream limit.
      *
      * @param maxStreamsBidi the new limit
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setMaxStreamsBidi(long maxStreamsBidi) {
         this.maxStreamsBidi = maxStreamsBidi;
@@ -180,7 +180,7 @@ public class QuicStreamManager {
      * Updates the maximum unidirectional stream limit.
      *
      * @param maxStreamsUni the new limit
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setMaxStreamsUni(long maxStreamsUni) {
         this.maxStreamsUni = maxStreamsUni;
@@ -190,7 +190,7 @@ public class QuicStreamManager {
      * Returns the maximum bidirectional stream limit.
      *
      * @return the max bidi streams
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long maxStreamsBidi() {
         return maxStreamsBidi;
@@ -200,7 +200,7 @@ public class QuicStreamManager {
      * Returns the maximum unidirectional stream limit.
      *
      * @return the max uni streams
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long maxStreamsUni() {
         return maxStreamsUni;
@@ -210,7 +210,7 @@ public class QuicStreamManager {
      * Returns whether this manager is for the server side.
      *
      * @return {@code true} if server-side
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isServer() {
         return isServer;

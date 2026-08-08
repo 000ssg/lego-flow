@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * an external proxy (Squid, Nginx, HAProxy), set
  * {@code DemoHttpProxyAll.USE_EXTERNAL = true} and configure host/port before running.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class DemoHttpProxyAllTest {
 

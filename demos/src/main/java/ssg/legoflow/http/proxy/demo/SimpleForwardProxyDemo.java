@@ -15,7 +15,7 @@ import java.util.Set;
  * <p>Demonstrates setting up a simple forward proxy with access control
  * and handling both plain HTTP and CONNECT requests.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SimpleForwardProxyDemo {
 
@@ -24,7 +24,7 @@ public class SimpleForwardProxyDemo {
     /**
      * Creates the demo with a pre-configured forward proxy.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SimpleForwardProxyDemo() {
         var config = new ForwardProxyConfig();
@@ -47,7 +47,7 @@ public class SimpleForwardProxyDemo {
      * Runs the demo by sending various requests through the proxy.
      *
      * @return the results summary
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String run() {
         var sb = new StringBuilder();
@@ -77,7 +77,7 @@ public class SimpleForwardProxyDemo {
      * Returns the forward proxy instance.
      *
      * @return the proxy
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ForwardProxy getProxy() {
         return proxy;

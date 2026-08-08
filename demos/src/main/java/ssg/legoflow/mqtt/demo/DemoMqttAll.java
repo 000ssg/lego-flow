@@ -56,7 +56,7 @@ import java.util.concurrent.TimeUnit;
  *   <li>Topic tree -- hierarchical topic structure with wildcard routing</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoMqttAll {
 

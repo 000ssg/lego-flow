@@ -26,7 +26,7 @@ import java.util.function.BiFunction;
  *   <li>Streaming body forwarding</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ReverseProxy implements AutoCloseable {
 
@@ -44,7 +44,7 @@ public class ReverseProxy implements AutoCloseable {
      * Creates a new reverse proxy with the given configuration.
      *
      * @param config the proxy configuration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ReverseProxy(ReverseProxyConfig config) {
         this.config = config;
@@ -56,7 +56,7 @@ public class ReverseProxy implements AutoCloseable {
      * Adds a route to the reverse proxy.
      *
      * @param route the route to add
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addRoute(ProxyRoute route) {
         routes.add(route);
@@ -72,7 +72,7 @@ public class ReverseProxy implements AutoCloseable {
      * Removes a route from the reverse proxy.
      *
      * @param pathPrefix the path prefix of the route to remove
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void removeRoute(String pathPrefix) {
         routes.removeIf(r -> r.getPathPrefix().equals(pathPrefix));
@@ -83,7 +83,7 @@ public class ReverseProxy implements AutoCloseable {
      *
      * @param request the incoming request
      * @return the proxy response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse handleRequest(HttpRequest request) {
         requestCount.incrementAndGet();
@@ -118,7 +118,7 @@ public class ReverseProxy implements AutoCloseable {
      * @param route the matched route
      * @param backend the selected backend
      * @return the response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     HttpResponse forwardRequest(HttpRequest request, ProxyRoute route, BackendServer backend) {
         backend.acquireConnection();
@@ -195,7 +195,7 @@ public class ReverseProxy implements AutoCloseable {
      * @param request the forwarded request
      * @param backend the target backend
      * @return a synthetic response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     protected HttpResponse simulateBackendResponse(HttpRequest request, BackendServer backend) {
         String body = "Response from " + backend.getId() + " for " + request.getUri();
@@ -206,7 +206,7 @@ public class ReverseProxy implements AutoCloseable {
      * Sets a custom request forwarder for real upstream connections.
      *
      * @param forwarder the forwarder function
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setRequestForwarder(BiFunction<HttpRequest, BackendServer, HttpResponse> forwarder) {
         this.requestForwarder = forwarder;
@@ -218,7 +218,7 @@ public class ReverseProxy implements AutoCloseable {
      * @param request the upgrade request
      * @param path the request path
      * @return the upgrade response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     HttpResponse handleWebSocketUpgrade(HttpRequest request, String path) {
         ProxyRoute route = findRoute(path);
@@ -248,7 +248,7 @@ public class ReverseProxy implements AutoCloseable {
      *
      * @param path the request path
      * @return the matching route, or null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     ProxyRoute findRoute(String path) {
         for (ProxyRoute route : routes) {
@@ -310,7 +310,7 @@ public class ReverseProxy implements AutoCloseable {
      * Adds a filter to the proxy pipeline.
      *
      * @param filter the filter
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addFilter(ProxyFilter filter) {
         filters.add(filter);
@@ -320,7 +320,7 @@ public class ReverseProxy implements AutoCloseable {
      * Returns the proxy configuration.
      *
      * @return the config
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ReverseProxyConfig getConfig() {
         return config;
@@ -330,7 +330,7 @@ public class ReverseProxy implements AutoCloseable {
      * Returns the registered routes.
      *
      * @return the routes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<ProxyRoute> getRoutes() {
         return List.copyOf(routes);
@@ -340,7 +340,7 @@ public class ReverseProxy implements AutoCloseable {
      * Returns the health checker.
      *
      * @return the health checker
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HealthChecker getHealthChecker() {
         return healthChecker;
@@ -350,7 +350,7 @@ public class ReverseProxy implements AutoCloseable {
      * Returns the total number of requests handled.
      *
      * @return the request count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long getRequestCount() {
         return requestCount.get();
@@ -360,7 +360,7 @@ public class ReverseProxy implements AutoCloseable {
      * Returns the registered filters.
      *
      * @return the filters
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<ProxyFilter> getFilters() {
         return List.copyOf(filters);

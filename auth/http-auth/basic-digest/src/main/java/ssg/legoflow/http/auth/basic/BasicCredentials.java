@@ -5,7 +5,7 @@ package ssg.legoflow.http.auth.basic;
  *
  * @param username the username
  * @param password the password
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record BasicCredentials(String username, String password) {
 
@@ -14,7 +14,7 @@ public record BasicCredentials(String username, String password) {
      *
      * @param username the username
      * @param password the password
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public BasicCredentials {
         if (username == null || username.isEmpty()) {

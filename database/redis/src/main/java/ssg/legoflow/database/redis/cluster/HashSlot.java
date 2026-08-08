@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
  * (e.g., {@code {tag}key}), only the content between the first {@code \{}
  * and the first subsequent {@code \}} is hashed.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class HashSlot {
 

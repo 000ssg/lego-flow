@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  *
  * <p>The implementation tracks bytes in flight to enforce the congestion window.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class QuicCongestionController {
 
@@ -40,7 +40,7 @@ public final class QuicCongestionController {
     /**
      * Congestion control phases per RFC 9002 Section 7.3.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum Phase {
         /** Exponential growth — cwnd += acked_bytes per ACK. */
@@ -61,7 +61,7 @@ public final class QuicCongestionController {
     /**
      * Creates a congestion controller with default parameters.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicCongestionController() {
         this(DEFAULT_MAX_DATAGRAM_SIZE);
@@ -71,7 +71,7 @@ public final class QuicCongestionController {
      * Creates a congestion controller with a custom max datagram size.
      *
      * @param maxDatagramSize the maximum datagram size in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicCongestionController(int maxDatagramSize) {
         this.maxDatagramSize = maxDatagramSize;
@@ -86,7 +86,7 @@ public final class QuicCongestionController {
      * Records bytes sent, adding them to the bytes-in-flight counter.
      *
      * @param sentBytes the number of bytes sent
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void onPacketSent(int sentBytes) {
         bytesInFlight += sentBytes;
@@ -104,7 +104,7 @@ public final class QuicCongestionController {
      *
      * @param ackedBytes the number of acknowledged bytes
      * @param sentTime   the time the acknowledged packet was sent (System.nanoTime())
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void onPacketAcked(int ackedBytes, long sentTime) {
         bytesInFlight = Math.max(0, bytesInFlight - ackedBytes);
@@ -152,7 +152,7 @@ public final class QuicCongestionController {
      * <p>Multiple losses in the same recovery period do not further reduce the window.
      *
      * @param sentTime the time the lost packet was sent (System.nanoTime())
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void onPacketLost(int lostBytes, long sentTime) {
         bytesInFlight = Math.max(0, bytesInFlight - lostBytes);
@@ -179,7 +179,7 @@ public final class QuicCongestionController {
      * <p>Persistent congestion means packets spanning an entire PTO period
      * are all lost. The congestion window is collapsed to the minimum.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void onPersistentCongestion() {
         long minimumWindow = (long) MINIMUM_WINDOW_PACKETS * maxDatagramSize;
@@ -193,7 +193,7 @@ public final class QuicCongestionController {
      * Returns whether the sender is allowed to send more data.
      *
      * @return {@code true} if bytesInFlight is less than the congestion window
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean canSend() {
         return bytesInFlight < congestionWindow;
@@ -203,7 +203,7 @@ public final class QuicCongestionController {
      * Returns the number of bytes available to send within the congestion window.
      *
      * @return the available bytes, or 0 if the window is full
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long availableBytes() {
         return Math.max(0, congestionWindow - bytesInFlight);

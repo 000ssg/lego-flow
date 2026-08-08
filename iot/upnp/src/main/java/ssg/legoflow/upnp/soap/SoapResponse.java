@@ -8,7 +8,7 @@ import java.util.Map;
  * @param success         {@code true} if the action completed successfully
  * @param outputArguments the output arguments from a successful invocation; empty on failure
  * @param fault           the SOAP fault details on failure; {@code null} on success
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SoapResponse(boolean success, Map<String, String> outputArguments, SoapFault fault) {
 
@@ -17,7 +17,7 @@ public record SoapResponse(boolean success, Map<String, String> outputArguments,
      *
      * @param outputArguments the output arguments
      * @return a successful response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SoapResponse success(Map<String, String> outputArguments) {
         return new SoapResponse(true, Map.copyOf(outputArguments), null);
@@ -28,7 +28,7 @@ public record SoapResponse(boolean success, Map<String, String> outputArguments,
      *
      * @param fault the SOAP fault details
      * @return a failed response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SoapResponse failure(SoapFault fault) {
         return new SoapResponse(false, Map.of(), fault);

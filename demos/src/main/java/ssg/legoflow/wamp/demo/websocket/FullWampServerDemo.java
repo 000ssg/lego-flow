@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  * Demonstrates a realistic scenario where multiple WebSocket clients interact
  * through a realm-based WAMP router, performing both RPC calls and pub/sub messaging.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class FullWampServerDemo {
 

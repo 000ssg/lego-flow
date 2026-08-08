@@ -11,7 +11,7 @@ import java.util.Arrays;
  * @param contextEngineId the context engine ID (identifies the entity)
  * @param contextName     the context name (identifies the MIB view)
  * @param pdu             the actual PDU
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ScopedPdu(byte[] contextEngineId, String contextName, SnmpPdu pdu) {
 

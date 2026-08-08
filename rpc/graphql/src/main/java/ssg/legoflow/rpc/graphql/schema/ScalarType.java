@@ -10,7 +10,7 @@ import java.util.function.Function;
  * scalars are Int, Float, String, Boolean, and ID. Custom scalars can be
  * defined with serialization and parsing functions.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ScalarType implements GraphQLType {
 

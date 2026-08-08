@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * the payload back to the original sender address. Tracks the total number of
  * echoed datagrams via an atomic counter.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class UdpEchoService extends AbstractService<byte[], byte[]> implements DatagramHandler {
 
@@ -32,7 +32,7 @@ public class UdpEchoService extends AbstractService<byte[], byte[]> implements D
     /**
      * Creates a new {@code UdpEchoService} with the default descriptor.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public UdpEchoService() {
         super(byte[].class, byte[].class, new ServiceDescriptor("udp-echo", "UDP echo service"));
@@ -43,7 +43,7 @@ public class UdpEchoService extends AbstractService<byte[], byte[]> implements D
      *
      * @param channel the data channel that received the datagram
      * @param packet  the received datagram packet with sender address and payload
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void onDatagram(DataChannel channel, DatagramPacketInfo packet) {
@@ -67,7 +67,7 @@ public class UdpEchoService extends AbstractService<byte[], byte[]> implements D
      *
      * @param channel the data channel that sent the datagram
      * @param target  the destination address
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void onSendComplete(DataChannel channel, java.net.SocketAddress target) {
@@ -78,7 +78,7 @@ public class UdpEchoService extends AbstractService<byte[], byte[]> implements D
      * Returns the total number of datagrams echoed.
      *
      * @return the echo count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long getEchoCount() {
         return echoCount.get();
@@ -90,7 +90,7 @@ public class UdpEchoService extends AbstractService<byte[], byte[]> implements D
      * @param ctx   the processing context
      * @param input the input data
      * @return the same data as output
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @SuppressWarnings("unchecked")
     @Override
@@ -104,7 +104,7 @@ public class UdpEchoService extends AbstractService<byte[], byte[]> implements D
      * @param ctx    the processing context
      * @param output the output data
      * @return the same data as input
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @SuppressWarnings("unchecked")
     @Override

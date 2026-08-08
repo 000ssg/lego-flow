@@ -6,7 +6,7 @@ package ssg.legoflow.database.postgresql.protocol;
  * <p>These OIDs are used in RowDescription messages to identify column types,
  * and in Parse messages to specify parameter types.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum PgType {
 

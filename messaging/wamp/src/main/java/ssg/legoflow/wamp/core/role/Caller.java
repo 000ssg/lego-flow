@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * WAMP Caller role — invokes remote procedures and awaits results.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class Caller {
 

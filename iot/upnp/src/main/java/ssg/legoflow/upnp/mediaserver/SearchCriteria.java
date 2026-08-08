@@ -31,7 +31,7 @@ import java.util.function.Predicate;
  *   * (matches everything)
  * </pre>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SearchCriteria {
 
@@ -46,7 +46,7 @@ public final class SearchCriteria {
      * @param criteria the search criteria string; may be {@code "*"} or empty to match all
      * @return a predicate that returns {@code true} for matching items
      * @throws NullPointerException if {@code criteria} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Predicate<ContentItem> parse(String criteria) {
         Objects.requireNonNull(criteria, "criteria must not be null");
@@ -172,7 +172,7 @@ public final class SearchCriteria {
      * @param item     the content item
      * @param property the property name (e.g. "dc:title", "upnp:class", "dc:creator")
      * @return the property value, or {@code null} if not set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static String getPropertyValue(ContentItem item, String property) {
         // Strip namespace prefix for matching

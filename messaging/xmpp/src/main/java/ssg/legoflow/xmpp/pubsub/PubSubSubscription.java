@@ -9,14 +9,14 @@ import java.util.Objects;
  * @param jid          the subscriber's bare JID string
  * @param subscriptionId the subscription identifier
  * @param state        the subscription state
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record PubSubSubscription(String nodeId, String jid, String subscriptionId, State state) {
 
     /**
      * Subscription states.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum State {
         /** Subscription is pending approval. */

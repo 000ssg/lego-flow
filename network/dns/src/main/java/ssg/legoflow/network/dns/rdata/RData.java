@@ -8,7 +8,7 @@ import ssg.legoflow.network.dns.protocol.RecordType;
  * <p>Each permitted subtype represents a specific DNS record type's data
  * payload. The sealed hierarchy enables exhaustive pattern matching.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface RData permits
         ARecord, AaaaRecord, NsRecord, CnameRecord, PtrRecord,
@@ -21,7 +21,7 @@ public sealed interface RData permits
      * Returns the DNS record type for this RDATA.
      *
      * @return the record type
-     * @since 1.0.0
+     * @since 0.1.0
      */
     RecordType type();
 }

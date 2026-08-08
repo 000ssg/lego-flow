@@ -13,7 +13,7 @@ import ssg.legoflow.http.core.HttpRequest;
  * <p>Creates requests with Accept, Accept-Encoding, and Accept-Charset headers
  * for automatic content negotiation.
  *
- * @since 1.0
+ * @since 0.1
  */
 public class AdaptiveClient {
 

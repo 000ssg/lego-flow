@@ -15,7 +15,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Chat room demo using WAMP pub/sub with multiple subscribers, join/leave notifications,
  * and message broadcasting across topics within a realm.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ChatRoomDemo {
 

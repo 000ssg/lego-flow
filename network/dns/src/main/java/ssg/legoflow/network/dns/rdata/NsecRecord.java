@@ -16,7 +16,7 @@ import java.util.TreeSet;
  *
  * @param nextDomainName the next owner name in canonical order
  * @param types          the set of record types present at the owner name
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record NsecRecord(DnsName nextDomainName, Set<RecordType> types) implements RData {
 
@@ -35,7 +35,7 @@ public record NsecRecord(DnsName nextDomainName, Set<RecordType> types) implemen
      * Encodes the type bit maps for wire format.
      *
      * @return the encoded type bit maps
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public byte[] encodeTypeBitMaps() {
         return TypeBitMaps.encode(types);
@@ -48,7 +48,7 @@ public record NsecRecord(DnsName nextDomainName, Set<RecordType> types) implemen
      * @param offset the starting offset
      * @param length the length
      * @return the set of record types
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Set<RecordType> decodeTypeBitMaps(byte[] data, int offset, int length) {
         return TypeBitMaps.decode(data, offset, length);

@@ -18,7 +18,7 @@ import java.util.*;
  *   <li>Original message or headers (message/rfc822 or text/rfc822-headers)</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DsnGenerator {
 

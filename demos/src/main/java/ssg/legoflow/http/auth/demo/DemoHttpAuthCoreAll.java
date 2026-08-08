@@ -41,7 +41,7 @@ import java.util.Set;
  *   <li>JWT claims — standard and custom claims, expiration checks</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoHttpAuthCoreAll {
 
@@ -63,7 +63,7 @@ public final class DemoHttpAuthCoreAll {
      * @param jwtHs256           true if HMAC-SHA256 JWT generation and validation works
      * @param jwtRs256           true if RSA-SHA256 JWT generation and validation works
      * @param jwtClaims          true if JWT claims parsing and validation works
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record Results(
             boolean authCredentials,
@@ -81,7 +81,7 @@ public final class DemoHttpAuthCoreAll {
      *
      * @return results from each feature section
      * @throws Exception if any operation fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Results runAll() throws Exception {
         boolean creds = demoAuthCredentials();
@@ -103,7 +103,7 @@ public final class DemoHttpAuthCoreAll {
      * across all four credential types: Basic, Bearer, Digest, None.
      *
      * @return true if all credential types work correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoAuthCredentials() {
         LOG.info("=== 1. AuthCredentials Sealed Interface ===");
@@ -143,7 +143,7 @@ public final class DemoHttpAuthCoreAll {
      * and Challenge variants using factory methods and pattern matching.
      *
      * @return true if all result types work correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoAuthResults() {
         LOG.info("=== 2. AuthResult Sealed Interface ===");
@@ -176,7 +176,7 @@ public final class DemoHttpAuthCoreAll {
      * including role checking and attribute retrieval.
      *
      * @return true if principal operations work correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoAuthPrincipal() {
         LOG.info("=== 3. AuthPrincipal ===");
@@ -208,7 +208,7 @@ public final class DemoHttpAuthCoreAll {
      * case-insensitive lookup, and removal.
      *
      * @return true if registry operations work correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoSchemeRegistry() {
         LOG.info("=== 4. AuthSchemeRegistry ===");
@@ -253,7 +253,7 @@ public final class DemoHttpAuthCoreAll {
      * session retrieval, expiration checking, and session destruction.
      *
      * @return true if session management works correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoSessionManagement() {
         LOG.info("=== 5. Session Management ===");
@@ -294,7 +294,7 @@ public final class DemoHttpAuthCoreAll {
      * Demonstrates JWT token generation and validation using HMAC-SHA256.
      *
      * @return true if JWT HS256 works correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoJwtHs256() {
         LOG.info("=== 6. JWT HS256 (HMAC-SHA256) ===");
@@ -340,7 +340,7 @@ public final class DemoHttpAuthCoreAll {
      *
      * @return true if JWT RS256 works correctly
      * @throws Exception if key generation fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoJwtRs256() throws Exception {
         LOG.info("=== 7. JWT RS256 (RSA-SHA256) ===");
@@ -379,7 +379,7 @@ public final class DemoHttpAuthCoreAll {
      * including expiration and not-before validation.
      *
      * @return true if JWT claims work correctly
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoJwtClaims() {
         LOG.info("=== 8. JWT Claims ===");

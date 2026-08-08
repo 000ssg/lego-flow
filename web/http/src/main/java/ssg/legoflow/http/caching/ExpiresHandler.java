@@ -16,7 +16,7 @@ import java.time.format.DateTimeParseException;
  * considered stale. A Cache-Control max-age or s-maxage directive takes
  * priority over Expires.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ExpiresHandler {
 

@@ -13,7 +13,7 @@ import java.util.Objects;
  * <p>Each string is encoded as a length-prefixed byte sequence (max 255 bytes).
  *
  * @param strings the text strings
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record TxtRecord(List<String> strings) implements RData {
 
@@ -32,7 +32,7 @@ public record TxtRecord(List<String> strings) implements RData {
      *
      * @param text the text string
      * @return the TXT record
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static TxtRecord of(String text) {
         return new TxtRecord(List.of(text));
@@ -43,7 +43,7 @@ public record TxtRecord(List<String> strings) implements RData {
      *
      * @param texts the text strings
      * @return the TXT record
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static TxtRecord of(String... texts) {
         return new TxtRecord(List.of(texts));
@@ -53,7 +53,7 @@ public record TxtRecord(List<String> strings) implements RData {
      * Returns the concatenated text (all strings joined).
      *
      * @return the full text
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String text() {
         return String.join("", strings);

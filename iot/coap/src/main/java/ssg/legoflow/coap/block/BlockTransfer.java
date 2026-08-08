@@ -16,7 +16,7 @@ import java.util.Objects;
  * (server-to-client response payload) transfers by splitting large payloads
  * into blocks and reassembling them.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class BlockTransfer {
 
@@ -32,7 +32,7 @@ public final class BlockTransfer {
      * @return a list of {@link BlockOption} instances describing each block
      * @throws NullPointerException     if {@code payload} is {@code null}
      * @throws IllegalArgumentException if {@code blockSize} is invalid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static List<BlockOption> splitPayload(byte[] payload, int blockSize) {
         Objects.requireNonNull(payload, "payload must not be null");
@@ -60,7 +60,7 @@ public final class BlockTransfer {
      * @param payload   the full payload
      * @param block     the block option identifying which block to extract
      * @return the block's payload bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static byte[] getBlockPayload(byte[] payload, BlockOption block) {
         Objects.requireNonNull(payload, "payload must not be null");
@@ -88,7 +88,7 @@ public final class BlockTransfer {
      * @param messages the list of messages carrying block payloads
      * @return the assembled complete payload
      * @throws IllegalArgumentException if messages are empty or missing block options
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static byte[] assembleBlocks(List<CoapMessage> messages) {
         Objects.requireNonNull(messages, "messages must not be null");
@@ -126,7 +126,7 @@ public final class BlockTransfer {
      *
      * @param message the message to check
      * @return {@code true} if the message has a Block1 option
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static boolean hasBlock1(CoapMessage message) {
         return message.getOption(CoapOption.BLOCK1) != null;
@@ -137,7 +137,7 @@ public final class BlockTransfer {
      *
      * @param message the message to check
      * @return {@code true} if the message has a Block2 option
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static boolean hasBlock2(CoapMessage message) {
         return message.getOption(CoapOption.BLOCK2) != null;
@@ -148,7 +148,7 @@ public final class BlockTransfer {
      *
      * @param message the message
      * @return the Block1 option, or {@code null} if absent
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static BlockOption getBlock1(CoapMessage message) {
         var opt = message.getOption(CoapOption.BLOCK1);
@@ -160,7 +160,7 @@ public final class BlockTransfer {
      *
      * @param message the message
      * @return the Block2 option, or {@code null} if absent
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static BlockOption getBlock2(CoapMessage message) {
         var opt = message.getOption(CoapOption.BLOCK2);

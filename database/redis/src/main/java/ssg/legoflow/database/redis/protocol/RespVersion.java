@@ -7,7 +7,7 @@ package ssg.legoflow.database.redis.protocol;
  * RESP3, introduced in Redis 6.0, adds richer type information including
  * maps, sets, doubles, booleans, and nulls as first-class types.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum RespVersion {
 

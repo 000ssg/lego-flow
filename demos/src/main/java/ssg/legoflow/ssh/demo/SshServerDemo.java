@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * Demo: Embedded SSH server with shell and SFTP.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SshServerDemo {
 

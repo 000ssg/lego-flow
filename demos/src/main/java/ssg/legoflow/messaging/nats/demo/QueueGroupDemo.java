@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>Multiple subscribers in the same queue group receive messages
  * in a round-robin fashion, enabling horizontal scaling.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class QueueGroupDemo {
 

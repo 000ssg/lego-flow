@@ -9,7 +9,7 @@ import ssg.legoflow.network.dns.server.ZoneFile;
 /**
  * Demonstrates zone management: creating zones, adding records, and zone file parsing.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ZoneManagementDemo {
 
@@ -18,7 +18,7 @@ public final class ZoneManagementDemo {
     /**
      * Runs the zone management demo.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void run() {
         // Parse a BIND-format zone file

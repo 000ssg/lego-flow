@@ -19,7 +19,7 @@ import java.util.*;
  * <p>Supports name compression (pointers with 0xC0 prefix) for both
  * encoding and decoding. All multi-byte integers are big-endian.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DnsCodec {
 
@@ -39,7 +39,7 @@ public final class DnsCodec {
      * @param data the raw DNS message bytes
      * @return the decoded message
      * @throws DnsFormatException if the message is malformed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static DnsMessage decode(byte[] data) {
         return decode(data, 0, data.length);
@@ -53,7 +53,7 @@ public final class DnsCodec {
      * @param length the number of bytes
      * @return the decoded message
      * @throws DnsFormatException if the message is malformed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static DnsMessage decode(byte[] data, int offset, int length) {
         if (length < DnsHeader.SIZE) {
@@ -306,7 +306,7 @@ public final class DnsCodec {
      * @param packet the full packet bytes (for pointer resolution)
      * @param buf    the current read position
      * @return the decoded domain name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static DnsName decodeName(byte[] packet, ByteBuffer buf) {
         List<String> labels = new ArrayList<>();
@@ -376,7 +376,7 @@ public final class DnsCodec {
      *
      * @param message the message to encode
      * @return the encoded bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static byte[] encode(DnsMessage message) {
         ByteArrayOutputStream out = new ByteArrayOutputStream(512);
@@ -576,7 +576,7 @@ public final class DnsCodec {
      * @param out            the output stream
      * @param name           the domain name
      * @param compressionMap map of previously-written names to offsets
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void encodeName(ByteArrayOutputStream out, DnsName name,
                                    Map<String, Integer> compressionMap) {

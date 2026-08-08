@@ -5,7 +5,7 @@ package ssg.legoflow.ftp.protocol;
  *
  * <p>The STRU command sets how the data is structured within a file.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum FtpStructure {
 

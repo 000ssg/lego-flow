@@ -18,7 +18,7 @@ import java.security.MessageDigest;
  * <p>Unlike standard AEAD ciphers, this cipher uses two separate 256-bit keys
  * (total 64 bytes of key material).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ChaCha20Poly1305 implements SshCipher {
 

@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.*;
 /**
  * Tests for TCP adapter: full client-server round-trip over real TCP sockets.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class TcpStompAdapterTest {
 

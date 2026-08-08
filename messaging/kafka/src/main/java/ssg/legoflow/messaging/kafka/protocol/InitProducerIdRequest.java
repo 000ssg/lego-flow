@@ -5,7 +5,7 @@ package ssg.legoflow.messaging.kafka.protocol;
  *
  * @param transactionalId    the transactional ID (nullable for idempotent-only)
  * @param transactionTimeoutMs the transaction timeout
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record InitProducerIdRequest(String transactionalId, int transactionTimeoutMs) {
 }

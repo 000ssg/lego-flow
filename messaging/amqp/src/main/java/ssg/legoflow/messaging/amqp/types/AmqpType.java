@@ -11,7 +11,7 @@ import java.util.UUID;
  * is preceded by a constructor byte (type code). This sealed hierarchy models
  * every primitive, composite, and described type defined in the specification.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface AmqpType
         permits AmqpType.Null, AmqpType.Bool, AmqpType.UByte, AmqpType.UShort,

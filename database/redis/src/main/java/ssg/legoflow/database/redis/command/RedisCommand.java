@@ -9,7 +9,7 @@ import java.util.Set;
  * negative means minimum. The count includes the command name itself.
  * For example, GET has arity 2 (GET key), SET has arity -3 (SET key value [options...]).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum RedisCommand {
 

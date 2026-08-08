@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Stores the last retained message for each topic. A retained message with
  * an empty payload removes the stored message.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RetainStore {
 

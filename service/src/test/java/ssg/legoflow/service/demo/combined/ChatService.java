@@ -16,7 +16,7 @@ import java.util.function.Consumer;
  * Manages rooms, sessions, and message distribution combining
  * procedural service lifecycle with functional subscriber callbacks.
  *
- * @since 1.0
+ * @since 0.1
  */
 public class ChatService extends AbstractService<String, String> {
 

@@ -13,7 +13,7 @@ import java.util.Map;
  * Simple pub/sub demo: creates a Publisher and Subscriber, wires them through a Broker
  * via InMemoryTransport, subscribes to a topic, and publishes an event.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SimplePubSubDemo {
 

@@ -6,7 +6,7 @@ import java.util.List;
  * DescribeConfigs response (API key 32).
  *
  * @param resources the described resource configurations
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record DescribeConfigsResponse(List<ResourceResponse> resources) {
 

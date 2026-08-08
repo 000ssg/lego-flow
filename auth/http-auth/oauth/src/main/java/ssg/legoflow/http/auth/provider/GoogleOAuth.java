@@ -5,7 +5,7 @@ import java.util.Set;
 /**
  * Google OAuth 2.0 + OpenID Connect provider configuration.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class GoogleOAuth extends OAuthProvider {
 
@@ -15,7 +15,7 @@ public class GoogleOAuth extends OAuthProvider {
     /**
      * Creates a Google OAuth provider.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public GoogleOAuth() {
         super("Google");

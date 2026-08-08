@@ -32,7 +32,7 @@ import java.util.Optional;
  *   <li>RTCP interval — bandwidth-based interval calculation</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DemoRtpAll {
 
@@ -55,7 +55,7 @@ public final class DemoRtpAll {
      * @param jitterBuffer     true if jitter buffer operations succeeded
      * @param rtpSession       true if session management succeeded
      * @param rtcpInterval     true if RTCP interval calculation is valid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record Results(
             boolean rtpCodec,
@@ -74,7 +74,7 @@ public final class DemoRtpAll {
      *
      * @return results from each feature section
      * @throws Exception if any operation fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Results runAll() throws Exception {
         boolean rtpCodec = demoRtpCodec();
@@ -98,7 +98,7 @@ public final class DemoRtpAll {
     /**
      * Demonstrates RTP packet creation, encoding, and decoding.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoRtpCodec() {
         LOG.info("=== 1. RTP Packet Encode/Decode ===");
@@ -132,7 +132,7 @@ public final class DemoRtpAll {
     /**
      * Demonstrates RTCP Sender Report encode/decode.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoSenderReport() {
         LOG.info("=== 2. RTCP Sender Report ===");
@@ -163,7 +163,7 @@ public final class DemoRtpAll {
     /**
      * Demonstrates RTCP Receiver Report encode/decode.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoReceiverReport() {
         LOG.info("=== 3. RTCP Receiver Report ===");
@@ -188,7 +188,7 @@ public final class DemoRtpAll {
     /**
      * Demonstrates RTCP Source Description encode/decode with CNAME.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoSourceDescription() {
         LOG.info("=== 4. RTCP Source Description ===");
@@ -225,7 +225,7 @@ public final class DemoRtpAll {
     /**
      * Demonstrates RTCP Goodbye encode/decode with reason.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoGoodbye() {
         LOG.info("=== 5. RTCP Goodbye ===");
@@ -254,7 +254,7 @@ public final class DemoRtpAll {
     /**
      * Demonstrates compound RTCP packet (SR + SDES) encode/decode.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoCompoundPacket() {
         LOG.info("=== 6. Compound RTCP Packet ===");
@@ -287,7 +287,7 @@ public final class DemoRtpAll {
      * Demonstrates jitter buffer operations: insert, poll, duplicate detection,
      * adaptive delay.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoJitterBuffer() {
         LOG.info("=== 7. Jitter Buffer ===");
@@ -337,7 +337,7 @@ public final class DemoRtpAll {
     /**
      * Demonstrates RTP session management: participants, SSRC collision.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoRtpSession() {
         LOG.info("=== 8. RTP Session ===");
@@ -389,7 +389,7 @@ public final class DemoRtpAll {
     /**
      * Demonstrates RTCP transmission interval calculation per RFC 3550.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean demoRtcpInterval() {
         LOG.info("=== 9. RTCP Interval Calculation ===");

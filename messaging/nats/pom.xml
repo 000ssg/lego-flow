@@ -5,7 +5,7 @@
     <parent>
         <groupId>ssg</groupId>
         <artifactId>lego-flow-messaging</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>0.1.0-SNAPSHOT</version>
     </parent>
     <artifactId>lego-flow-nats</artifactId>
     <name>Lego Flow NATS — Cloud-Native Messaging Protocol</name>

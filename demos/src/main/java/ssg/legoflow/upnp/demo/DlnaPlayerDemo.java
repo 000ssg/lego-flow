@@ -27,7 +27,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *   <li>Events — subscribe to real-time state/position updates</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class DlnaPlayerDemo {
 
@@ -39,7 +39,7 @@ public class DlnaPlayerDemo {
     /**
      * Creates the full DLNA player demo with server, renderer, and control point.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DlnaPlayerDemo() {
         this.serverDemo = new SimpleMediaServerDemo();
@@ -50,7 +50,7 @@ public class DlnaPlayerDemo {
     /**
      * Starts all components and registers them with the control point.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() {
         serverDemo.start();
@@ -64,7 +64,7 @@ public class DlnaPlayerDemo {
     /**
      * Stops all components.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         controlPoint.stop();
@@ -76,7 +76,7 @@ public class DlnaPlayerDemo {
      * Returns the control point.
      *
      * @return the control point
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ControlPoint getControlPoint() {
         return controlPoint;
@@ -86,7 +86,7 @@ public class DlnaPlayerDemo {
      * Returns the server demo.
      *
      * @return the server demo
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SimpleMediaServerDemo getServerDemo() {
         return serverDemo;
@@ -96,7 +96,7 @@ public class DlnaPlayerDemo {
      * Returns the renderer demo.
      *
      * @return the renderer demo
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SimpleMediaRendererDemo getRendererDemo() {
         return rendererDemo;
@@ -106,7 +106,7 @@ public class DlnaPlayerDemo {
      * Returns all received playback events.
      *
      * @return the list of events
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<PlaybackEvent> getReceivedEvents() {
         return receivedEvents;
@@ -115,7 +115,7 @@ public class DlnaPlayerDemo {
     /**
      * Subscribes to transport events on the renderer.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void subscribeToEvents() {
         List<MediaRendererProxy> renderers = controlPoint.discoverMediaRenderers();
@@ -127,7 +127,7 @@ public class DlnaPlayerDemo {
     /**
      * Runs the full demo lifecycle: discover, browse, select, play, control.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void runFullLifecycle() {
         // Subscribe to events
@@ -198,7 +198,7 @@ public class DlnaPlayerDemo {
      * Main entry point for running the demo standalone.
      *
      * @param args command-line arguments (unused)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void main(String[] args) {
         var demo = new DlnaPlayerDemo();

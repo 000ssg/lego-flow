@@ -6,6 +6,6 @@
  * client implementations with full support for subscriptions, transactions,
  * acknowledgment modes, heart-beats, and receipts.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 package ssg.legoflow.messaging.stomp;

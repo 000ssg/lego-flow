@@ -20,7 +20,7 @@ import java.util.Set;
  *   <li>Attributes spanning multiple lines</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class XmlSanitizer {
 
@@ -45,7 +45,7 @@ public final class XmlSanitizer {
      * @param xml the raw XML string, possibly containing HTML void elements
      * @return sanitized XML safe for DOM parsing, or the original if
      *         {@code null} or empty
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String sanitize(String xml) {
         if (xml == null || xml.isEmpty()) {

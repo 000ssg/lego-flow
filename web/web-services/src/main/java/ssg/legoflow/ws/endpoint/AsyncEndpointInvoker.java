@@ -23,7 +23,7 @@ import java.util.concurrent.Executors;
  * of larger async request-processing pipelines.</p>
  *
  * @see EndpointInvoker
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class AsyncEndpointInvoker {
 

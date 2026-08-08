@@ -6,7 +6,7 @@ package ssg.legoflow.xmpp.core;
  * <p>Extensions allow additional namespaced XML elements to be included within stanzas,
  * enabling protocol extensibility as per XMPP's design philosophy.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface XmppExtension {
 

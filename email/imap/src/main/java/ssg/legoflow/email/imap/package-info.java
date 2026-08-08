@@ -14,6 +14,6 @@
  *   <li>{@code demo} -- Demo applications showcasing client and server usage</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 package ssg.legoflow.email.imap;

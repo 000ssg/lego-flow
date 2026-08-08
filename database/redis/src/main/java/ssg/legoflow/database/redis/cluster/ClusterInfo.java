@@ -10,7 +10,7 @@ import java.util.Objects;
  * one node owns all 16384 slots. This class provides the data
  * structures needed for clients to handle MOVED/ASK redirects.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ClusterInfo {
 

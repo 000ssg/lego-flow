@@ -16,7 +16,7 @@ import java.util.Objects;
  * <p>The body may be a simple text/binary content ({@link MimePart}) or
  * a multipart structure ({@link MimeMultipart}).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MimeMessage {
 

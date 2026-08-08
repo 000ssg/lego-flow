@@ -4,6 +4,7 @@ import ssg.legoflow.messaging.kafka.common.ApiKey;
 import ssg.legoflow.messaging.kafka.protocol.*;
 
 import java.nio.ByteBuffer;
+import ssg.legoflow.service.util.BufferPool;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -14,7 +15,7 @@ import java.util.*;
  * The wire format uses: 4-byte length prefix, 2-byte API key, 2-byte API version,
  * 4-byte correlation ID, then the request/response body.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class KafkaCodec {
 
@@ -39,7 +40,7 @@ public final class KafkaCodec {
         int headerSize = 2 + 2 + 4 + 2 + clientIdLen;
         int totalSize = headerSize + payload.length;
 
-        ByteBuffer buf = ByteBuffer.allocate(4 + totalSize);
+        ByteBuffer buf = BufferPool.getBuffer(4 + totalSize);
         buf.putInt(totalSize);
         buf.putShort(header.apiKey());
         buf.putShort(header.apiVersion());
@@ -64,7 +65,7 @@ public final class KafkaCodec {
      */
     public static ByteBuffer encodeResponse(ResponseHeader header, byte[] payload) {
         int totalSize = 4 + payload.length; // correlationId(4) + payload
-        ByteBuffer buf = ByteBuffer.allocate(4 + totalSize);
+        ByteBuffer buf = BufferPool.getBuffer(4 + totalSize);
         buf.putInt(totalSize);
         buf.putInt(header.correlationId());
         buf.put(payload);
@@ -127,7 +128,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeApiVersionsResponse(ApiVersionsResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(2 + 4 + resp.apiKeys().size() * 6);
+        ByteBuffer buf = BufferPool.getBuffer(2 + 4 + resp.apiKeys().size() * 6);
         buf.putShort(resp.errorCode());
         buf.putInt(resp.apiKeys().size());
         for (var ak : resp.apiKeys()) {
@@ -161,7 +162,7 @@ public final class KafkaCodec {
 
     public static byte[] encodeMetadataRequest(MetadataRequest req) {
         if (req.topics() == null) {
-            ByteBuffer buf = ByteBuffer.allocate(4);
+            ByteBuffer buf = BufferPool.getBuffer(4);
             buf.putInt(-1); // null array = all topics
             buf.flip();
             return toBytes(buf);
@@ -173,7 +174,7 @@ public final class KafkaCodec {
             topicBytes.add(tb);
             size += 2 + tb.length;
         }
-        ByteBuffer buf = ByteBuffer.allocate(size);
+        ByteBuffer buf = BufferPool.getBuffer(size);
         buf.putInt(req.topics().size());
         for (byte[] tb : topicBytes) {
             buf.putShort((short) tb.length);
@@ -194,7 +195,7 @@ public final class KafkaCodec {
     }
 
     public static byte[] encodeMetadataResponse(MetadataResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(16384);
+        ByteBuffer buf = BufferPool.getBuffer(16384);
         // Brokers
         buf.putInt(resp.brokers().size());
         for (var b : resp.brokers()) {
@@ -260,7 +261,7 @@ public final class KafkaCodec {
     // ===== Produce (0) =====
 
     public static byte[] encodeProduceRequest(ProduceRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(65536);
+        ByteBuffer buf = BufferPool.getBuffer(65536);
         writeNullableString(buf, req.transactionalId());
         buf.putShort(req.acks());
         buf.putInt(req.timeoutMs());
@@ -304,7 +305,7 @@ public final class KafkaCodec {
     }
 
     public static byte[] encodeProduceResponse(ProduceResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(16384);
+        ByteBuffer buf = BufferPool.getBuffer(16384);
         buf.putInt(resp.responses().size());
         for (var tr : resp.responses()) {
             writeString(buf, tr.name());
@@ -341,7 +342,7 @@ public final class KafkaCodec {
     // ===== Fetch (1) =====
 
     public static byte[] encodeFetchRequest(FetchRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(65536);
+        ByteBuffer buf = BufferPool.getBuffer(65536);
         buf.putInt(req.maxWaitMs());
         buf.putInt(req.minBytes());
         buf.putInt(req.maxBytes());
@@ -378,7 +379,7 @@ public final class KafkaCodec {
     }
 
     public static byte[] encodeFetchResponse(FetchResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(65536);
+        ByteBuffer buf = BufferPool.getBuffer(65536);
         buf.putInt(resp.throttleTimeMs());
         buf.putInt(resp.topics().size());
         for (var tr : resp.topics()) {
@@ -424,7 +425,7 @@ public final class KafkaCodec {
     // ===== ListOffsets (2) =====
 
     public static byte[] encodeListOffsetsRequest(ListOffsetsRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putInt(req.topics().size());
         for (var t : req.topics()) {
             writeString(buf, t.name());
@@ -454,7 +455,7 @@ public final class KafkaCodec {
     }
 
     public static byte[] encodeListOffsetsResponse(ListOffsetsResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putInt(resp.topics().size());
         for (var t : resp.topics()) {
             writeString(buf, t.name());
@@ -489,7 +490,7 @@ public final class KafkaCodec {
     // ===== FindCoordinator (10) =====
 
     public static byte[] encodeFindCoordinatorRequest(FindCoordinatorRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(256);
+        ByteBuffer buf = BufferPool.getBuffer(256);
         writeString(buf, req.key());
         buf.put(req.keyType());
         buf.flip();
@@ -503,7 +504,7 @@ public final class KafkaCodec {
     }
 
     public static byte[] encodeFindCoordinatorResponse(FindCoordinatorResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(256);
+        ByteBuffer buf = BufferPool.getBuffer(256);
         buf.putShort(resp.errorCode());
         buf.putInt(resp.nodeId());
         writeString(buf, resp.host());
@@ -523,7 +524,7 @@ public final class KafkaCodec {
     // ===== JoinGroup (11) =====
 
     public static byte[] encodeJoinGroupRequest(JoinGroupRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         writeString(buf, req.groupId());
         buf.putInt(req.sessionTimeoutMs());
         buf.putInt(req.rebalanceTimeoutMs());
@@ -559,7 +560,7 @@ public final class KafkaCodec {
     }
 
     public static byte[] encodeJoinGroupResponse(JoinGroupResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putShort(resp.errorCode());
         buf.putInt(resp.generationId());
         writeString(buf, resp.protocolName());
@@ -596,7 +597,7 @@ public final class KafkaCodec {
     // ===== SyncGroup (14) =====
 
     public static byte[] encodeSyncGroupRequest(SyncGroupRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(8192);
+        ByteBuffer buf = BufferPool.getBuffer(8192);
         writeString(buf, req.groupId());
         buf.putInt(req.generationId());
         writeString(buf, req.memberId());
@@ -627,7 +628,7 @@ public final class KafkaCodec {
     }
 
     public static byte[] encodeSyncGroupResponse(SyncGroupResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putShort(resp.errorCode());
         buf.putInt(resp.assignment() != null ? resp.assignment().length : 0);
         if (resp.assignment() != null) buf.put(resp.assignment());
@@ -646,7 +647,7 @@ public final class KafkaCodec {
     // ===== Heartbeat (12) =====
 
     public static byte[] encodeHeartbeatRequest(HeartbeatRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(256);
+        ByteBuffer buf = BufferPool.getBuffer(256);
         writeString(buf, req.groupId());
         buf.putInt(req.generationId());
         writeString(buf, req.memberId());
@@ -659,7 +660,7 @@ public final class KafkaCodec {
     }
 
     public static byte[] encodeHeartbeatResponse(HeartbeatResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(2);
+        ByteBuffer buf = BufferPool.getBuffer(2);
         buf.putShort(resp.errorCode());
         buf.flip();
         return toBytes(buf);
@@ -672,7 +673,7 @@ public final class KafkaCodec {
     // ===== LeaveGroup (13) =====
 
     public static byte[] encodeLeaveGroupRequest(LeaveGroupRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(256);
+        ByteBuffer buf = BufferPool.getBuffer(256);
         writeString(buf, req.groupId());
         writeString(buf, req.memberId());
         buf.flip();
@@ -684,7 +685,7 @@ public final class KafkaCodec {
     }
 
     public static byte[] encodeLeaveGroupResponse(LeaveGroupResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(2);
+        ByteBuffer buf = BufferPool.getBuffer(2);
         buf.putShort(resp.errorCode());
         buf.flip();
         return toBytes(buf);
@@ -697,7 +698,7 @@ public final class KafkaCodec {
     // ===== OffsetCommit (8) =====
 
     public static byte[] encodeOffsetCommitRequest(OffsetCommitRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         writeString(buf, req.groupId());
         buf.putInt(req.generationId());
         writeString(buf, req.memberId());
@@ -735,7 +736,7 @@ public final class KafkaCodec {
     }
 
     public static byte[] encodeOffsetCommitResponse(OffsetCommitResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putInt(resp.topics().size());
         for (var t : resp.topics()) {
             writeString(buf, t.name());
@@ -767,7 +768,7 @@ public final class KafkaCodec {
     // ===== OffsetFetch (9) =====
 
     public static byte[] encodeOffsetFetchRequest(OffsetFetchRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         writeString(buf, req.groupId());
         buf.putInt(req.topics().size());
         for (var t : req.topics()) {
@@ -796,7 +797,7 @@ public final class KafkaCodec {
     }
 
     public static byte[] encodeOffsetFetchResponse(OffsetFetchResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putInt(resp.topics().size());
         for (var t : resp.topics()) {
             writeString(buf, t.name());
@@ -831,7 +832,7 @@ public final class KafkaCodec {
     // ===== CreateTopics (19) =====
 
     public static byte[] encodeCreateTopicsRequest(CreateTopicsRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putInt(req.topics().size());
         for (var t : req.topics()) {
             writeString(buf, t.name());
@@ -870,7 +871,7 @@ public final class KafkaCodec {
     }
 
     public static byte[] encodeCreateTopicsResponse(CreateTopicsResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putInt(resp.topics().size());
         for (var t : resp.topics()) {
             writeString(buf, t.name());
@@ -892,7 +893,7 @@ public final class KafkaCodec {
     // ===== DeleteTopics (20) =====
 
     public static byte[] encodeDeleteTopicsRequest(DeleteTopicsRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putInt(req.topicNames().size());
         for (String name : req.topicNames()) {
             writeString(buf, name);
@@ -911,7 +912,7 @@ public final class KafkaCodec {
     }
 
     public static byte[] encodeDeleteTopicsResponse(DeleteTopicsResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putInt(resp.responses().size());
         for (var t : resp.responses()) {
             writeString(buf, t.name());
@@ -933,7 +934,7 @@ public final class KafkaCodec {
     // ===== DescribeGroups (15) =====
 
     public static byte[] encodeDescribeGroupsRequest(DescribeGroupsRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putInt(req.groups().size());
         for (String g : req.groups()) writeString(buf, g);
         buf.flip();
@@ -948,7 +949,7 @@ public final class KafkaCodec {
     }
 
     public static byte[] encodeDescribeGroupsResponse(DescribeGroupsResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(16384);
+        ByteBuffer buf = BufferPool.getBuffer(16384);
         buf.putInt(resp.groups().size());
         for (var g : resp.groups()) {
             buf.putShort(g.errorCode());
@@ -1003,7 +1004,7 @@ public final class KafkaCodec {
     // ===== InitProducerId (22) =====
 
     public static byte[] encodeInitProducerIdRequest(InitProducerIdRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(256);
+        ByteBuffer buf = BufferPool.getBuffer(256);
         writeNullableString(buf, req.transactionalId());
         buf.putInt(req.transactionTimeoutMs());
         buf.flip();
@@ -1015,7 +1016,7 @@ public final class KafkaCodec {
     }
 
     public static byte[] encodeInitProducerIdResponse(InitProducerIdResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(12);
+        ByteBuffer buf = BufferPool.getBuffer(12);
         buf.putShort(resp.errorCode());
         buf.putLong(resp.producerId());
         buf.putShort(resp.producerEpoch());
@@ -1030,7 +1031,7 @@ public final class KafkaCodec {
     // ===== AddPartitionsToTxn (24) =====
 
     public static byte[] encodeAddPartitionsToTxnRequest(AddPartitionsToTxnRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         writeString(buf, req.transactionalId());
         buf.putLong(req.producerId());
         buf.putShort(req.producerEpoch());
@@ -1061,7 +1062,7 @@ public final class KafkaCodec {
     }
 
     public static byte[] encodeAddPartitionsToTxnResponse(AddPartitionsToTxnResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putInt(resp.topics().size());
         for (var t : resp.topics()) {
             writeString(buf, t.name());
@@ -1119,7 +1120,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeListGroupsResponse(ListGroupsResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putShort(resp.errorCode());
         buf.putInt(resp.groups().size());
         for (var g : resp.groups()) {
@@ -1156,7 +1157,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeDeleteRecordsRequest(DeleteRecordsRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putInt(req.topics().size());
         for (var t : req.topics()) {
             writeString(buf, t.name());
@@ -1200,7 +1201,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeDeleteRecordsResponse(DeleteRecordsResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putInt(resp.topics().size());
         for (var t : resp.topics()) {
             writeString(buf, t.name());
@@ -1245,7 +1246,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeCreatePartitionsRequest(CreatePartitionsRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putInt(req.topics().size());
         for (var t : req.topics()) {
             writeString(buf, t.name());
@@ -1279,7 +1280,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeCreatePartitionsResponse(CreatePartitionsResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putInt(resp.results().size());
         for (var t : resp.results()) {
             writeString(buf, t.name());
@@ -1313,7 +1314,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeDeleteGroupsRequest(DeleteGroupsRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putInt(req.groups().size());
         for (String g : req.groups()) writeString(buf, g);
         buf.flip();
@@ -1340,7 +1341,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeDeleteGroupsResponse(DeleteGroupsResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putInt(resp.results().size());
         for (var r : resp.results()) {
             writeString(buf, r.groupId());
@@ -1374,7 +1375,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeOffsetDeleteRequest(OffsetDeleteRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         writeString(buf, req.groupId());
         buf.putInt(req.topics().size());
         for (var t : req.topics()) {
@@ -1417,7 +1418,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeOffsetDeleteResponse(OffsetDeleteResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putShort(resp.errorCode());
         buf.putInt(resp.topics().size());
         for (var t : resp.topics()) {
@@ -1463,7 +1464,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeDescribeConfigsRequest(DescribeConfigsRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(8192);
+        ByteBuffer buf = BufferPool.getBuffer(8192);
         buf.putInt(req.resources().size());
         for (var r : req.resources()) {
             buf.put(r.resourceType());
@@ -1513,7 +1514,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeDescribeConfigsResponse(DescribeConfigsResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(16384);
+        ByteBuffer buf = BufferPool.getBuffer(16384);
         buf.putInt(resp.resources().size());
         for (var r : resp.resources()) {
             buf.putShort(r.errorCode());
@@ -1565,7 +1566,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeAlterConfigsRequest(AlterConfigsRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(8192);
+        ByteBuffer buf = BufferPool.getBuffer(8192);
         buf.putInt(req.resources().size());
         for (var r : req.resources()) {
             buf.put(r.resourceType());
@@ -1611,7 +1612,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeAlterConfigsResponse(AlterConfigsResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putInt(resp.resources().size());
         for (var r : resp.resources()) {
             buf.putShort(r.errorCode());
@@ -1645,7 +1646,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeAddOffsetsToTxnRequest(AddOffsetsToTxnRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(256);
+        ByteBuffer buf = BufferPool.getBuffer(256);
         writeString(buf, req.transactionalId());
         buf.putLong(req.producerId());
         buf.putShort(req.producerEpoch());
@@ -1675,7 +1676,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeAddOffsetsToTxnResponse(AddOffsetsToTxnResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(2);
+        ByteBuffer buf = BufferPool.getBuffer(2);
         buf.putShort(resp.errorCode());
         buf.flip();
         return toBytes(buf);
@@ -1700,7 +1701,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeTxnOffsetCommitRequest(TxnOffsetCommitRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         writeString(buf, req.transactionalId());
         writeString(buf, req.groupId());
         buf.putLong(req.producerId());
@@ -1752,7 +1753,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeTxnOffsetCommitResponse(TxnOffsetCommitResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putInt(resp.topics().size());
         for (var t : resp.topics()) {
             writeString(buf, t.name());
@@ -1790,7 +1791,7 @@ public final class KafkaCodec {
     // ===== EndTxn (26) =====
 
     public static byte[] encodeEndTxnRequest(EndTxnRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(256);
+        ByteBuffer buf = BufferPool.getBuffer(256);
         writeString(buf, req.transactionalId());
         buf.putLong(req.producerId());
         buf.putShort(req.producerEpoch());
@@ -1804,7 +1805,7 @@ public final class KafkaCodec {
     }
 
     public static byte[] encodeEndTxnResponse(EndTxnResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(2);
+        ByteBuffer buf = BufferPool.getBuffer(2);
         buf.putShort(resp.errorCode());
         buf.flip();
         return toBytes(buf);
@@ -1823,7 +1824,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeSaslHandshakeRequest(SaslHandshakeRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(256);
+        ByteBuffer buf = BufferPool.getBuffer(256);
         writeString(buf, req.mechanism());
         buf.flip();
         return toBytes(buf);
@@ -1846,7 +1847,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeSaslHandshakeResponse(SaslHandshakeResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putShort(resp.errorCode());
         buf.putInt(resp.mechanisms().size());
         for (String m : resp.mechanisms()) {
@@ -1882,7 +1883,7 @@ public final class KafkaCodec {
      */
     public static byte[] encodeSaslAuthenticateRequest(SaslAuthenticateRequest req) {
         byte[] authBytes = req.authBytes() != null ? req.authBytes() : new byte[0];
-        ByteBuffer buf = ByteBuffer.allocate(4 + authBytes.length);
+        ByteBuffer buf = BufferPool.getBuffer(4 + authBytes.length);
         buf.putInt(authBytes.length);
         buf.put(authBytes);
         buf.flip();
@@ -1910,7 +1911,7 @@ public final class KafkaCodec {
      */
     public static byte[] encodeSaslAuthenticateResponse(SaslAuthenticateResponse resp) {
         byte[] authBytes = resp.authBytes() != null ? resp.authBytes() : new byte[0];
-        ByteBuffer buf = ByteBuffer.allocate(2 + 4 + authBytes.length + 8);
+        ByteBuffer buf = BufferPool.getBuffer(2 + 4 + authBytes.length + 8);
         buf.putShort(resp.errorCode());
         buf.putInt(authBytes.length);
         buf.put(authBytes);
@@ -1943,7 +1944,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeLeaderAndIsrRequest(LeaderAndIsrRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(16384);
+        ByteBuffer buf = BufferPool.getBuffer(16384);
         buf.putInt(req.controllerId());
         buf.putInt(req.controllerEpoch());
         buf.putInt(req.partitionStates().size());
@@ -1990,7 +1991,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeLeaderAndIsrResponse(LeaderAndIsrResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putShort(resp.errorCode());
         buf.putInt(resp.partitions().size());
         for (var pr : resp.partitions()) {
@@ -2027,7 +2028,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeStopReplicaRequest(StopReplicaRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putInt(req.controllerId());
         buf.putInt(req.controllerEpoch());
         buf.put((byte) (req.deletePartitions() ? 1 : 0));
@@ -2065,7 +2066,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeStopReplicaResponse(StopReplicaResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putShort(resp.errorCode());
         buf.putInt(resp.partitions().size());
         for (var pr : resp.partitions()) {
@@ -2102,7 +2103,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeUpdateMetadataRequest(UpdateMetadataRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(16384);
+        ByteBuffer buf = BufferPool.getBuffer(16384);
         buf.putInt(req.controllerId());
         buf.putInt(req.controllerEpoch());
         buf.putInt(req.liveBrokers().size());
@@ -2165,7 +2166,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeUpdateMetadataResponse(UpdateMetadataResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(2);
+        ByteBuffer buf = BufferPool.getBuffer(2);
         buf.putShort(resp.errorCode());
         buf.flip();
         return toBytes(buf);
@@ -2190,7 +2191,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeControlledShutdownRequest(ControlledShutdownRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(4);
+        ByteBuffer buf = BufferPool.getBuffer(4);
         buf.putInt(req.brokerId());
         buf.flip();
         return toBytes(buf);
@@ -2213,7 +2214,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeControlledShutdownResponse(ControlledShutdownResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putShort(resp.errorCode());
         buf.putInt(resp.partitionsRemaining().size());
         for (var p : resp.partitionsRemaining()) {
@@ -2249,7 +2250,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeOffsetForLeaderEpochRequest(OffsetForLeaderEpochRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putInt(req.topics().size());
         for (var t : req.topics()) {
             writeString(buf, t.topic());
@@ -2291,7 +2292,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeOffsetForLeaderEpochResponse(OffsetForLeaderEpochResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putInt(resp.topics().size());
         for (var t : resp.topics()) {
             writeString(buf, t.topic());
@@ -2338,7 +2339,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeWriteTxnMarkersRequest(WriteTxnMarkersRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(8192);
+        ByteBuffer buf = BufferPool.getBuffer(8192);
         buf.putInt(req.markers().size());
         for (var m : req.markers()) {
             buf.putLong(m.producerId());
@@ -2386,7 +2387,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeWriteTxnMarkersResponse(WriteTxnMarkersResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(8192);
+        ByteBuffer buf = BufferPool.getBuffer(8192);
         buf.putInt(resp.markers().size());
         for (var m : resp.markers()) {
             buf.putLong(m.producerId());
@@ -2440,7 +2441,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeAlterPartitionReassignmentsRequest(AlterPartitionReassignmentsRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(8192);
+        ByteBuffer buf = BufferPool.getBuffer(8192);
         buf.putInt(req.timeoutMs());
         buf.putInt(req.topics().size());
         for (var t : req.topics()) {
@@ -2496,7 +2497,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeAlterPartitionReassignmentsResponse(AlterPartitionReassignmentsResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putShort(resp.errorCode());
         buf.putInt(resp.topics().size());
         for (var t : resp.topics()) {
@@ -2542,7 +2543,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeListPartitionReassignmentsRequest(ListPartitionReassignmentsRequest req) {
-        ByteBuffer buf = ByteBuffer.allocate(4096);
+        ByteBuffer buf = BufferPool.getBuffer(4096);
         buf.putInt(req.timeoutMs());
         if (req.topics() == null) {
             buf.putInt(-1);
@@ -2586,7 +2587,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeListPartitionReassignmentsResponse(ListPartitionReassignmentsResponse resp) {
-        ByteBuffer buf = ByteBuffer.allocate(8192);
+        ByteBuffer buf = BufferPool.getBuffer(8192);
         buf.putShort(resp.errorCode());
         buf.putInt(resp.topics().size());
         for (var t : resp.topics()) {

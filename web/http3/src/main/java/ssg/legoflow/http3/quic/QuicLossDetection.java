@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>Probe Timeout (PTO) computation per packet number space</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class QuicLossDetection {
 
@@ -53,7 +53,7 @@ public final class QuicLossDetection {
     /**
      * Packet number spaces per RFC 9002 Section 4.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum PacketNumberSpace {
         /** Initial packets (client/server Initial). */
@@ -71,7 +71,7 @@ public final class QuicLossDetection {
      * @param ackEliciting whether this packet elicits an ACK
      * @param sentBytes    the number of bytes in the packet
      * @param timeSent     the time the packet was sent (System.nanoTime())
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record SentPacketInfo(long packetNumber, boolean ackEliciting,
                                   int sentBytes, long timeSent) {
@@ -80,7 +80,7 @@ public final class QuicLossDetection {
     /**
      * Creates a new loss detection instance.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicLossDetection() {
         for (var space : PacketNumberSpace.values()) {
@@ -97,7 +97,7 @@ public final class QuicLossDetection {
      * @param packetNumber the packet number
      * @param ackEliciting whether this packet elicits an ACK
      * @param sentBytes    the number of bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void onPacketSent(PacketNumberSpace space, long packetNumber,
                              boolean ackEliciting, int sentBytes) {
@@ -115,7 +115,7 @@ public final class QuicLossDetection {
      * @param ackedPackets  the set of acknowledged packet numbers
      * @param ackDelay      the ACK delay reported by the peer (microseconds)
      * @return the list of packet numbers detected as lost
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<Long> onAckReceived(PacketNumberSpace space, long largestAcked,
                                      Set<Long> ackedPackets, long ackDelay) {
@@ -159,7 +159,7 @@ public final class QuicLossDetection {
      *
      * @param space the packet number space
      * @return the list of lost packet numbers
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<Long> detectLostPackets(PacketNumberSpace space) {
         long largest = largestAckedPacket.get(space);
@@ -220,7 +220,7 @@ public final class QuicLossDetection {
      *
      * @param maxAckDelayMs the peer's maximum ACK delay in milliseconds
      * @return the PTO in milliseconds
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long computePto(long maxAckDelayMs) {
         long pto = smoothedRtt + Math.max(4 * rttVariance, K_GRANULARITY_MS) + maxAckDelayMs;
@@ -232,7 +232,7 @@ public final class QuicLossDetection {
     /**
      * Increments the PTO count (used for exponential backoff).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void onPtoExpired() {
         ptoCount++;

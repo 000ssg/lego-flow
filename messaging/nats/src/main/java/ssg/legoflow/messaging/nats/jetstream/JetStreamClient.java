@@ -16,7 +16,7 @@ import java.util.Objects;
  * <p>Provides JetStream publish (with acknowledgement) and consume
  * operations via the {@code $JS.API} subjects.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class JetStreamClient {
 

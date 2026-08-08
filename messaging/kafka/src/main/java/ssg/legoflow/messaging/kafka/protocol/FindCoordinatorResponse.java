@@ -7,7 +7,7 @@ package ssg.legoflow.messaging.kafka.protocol;
  * @param nodeId    the coordinator broker ID
  * @param host      the coordinator hostname
  * @param port      the coordinator port
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record FindCoordinatorResponse(short errorCode, int nodeId, String host, int port) {
 }

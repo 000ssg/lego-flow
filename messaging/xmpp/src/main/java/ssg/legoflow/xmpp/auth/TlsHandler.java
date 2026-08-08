@@ -29,7 +29,7 @@ import java.util.Objects;
  *   <li>Use {@link #wrap(ByteBuffer)} and {@link #unwrap(ByteBuffer)} for data</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class TlsHandler {
 
@@ -41,7 +41,7 @@ public class TlsHandler {
     /**
      * TLS handshake state.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum TlsState {
         /** TLS has not been initiated. */

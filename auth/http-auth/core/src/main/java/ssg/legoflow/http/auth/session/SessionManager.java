@@ -16,7 +16,7 @@ import java.util.Optional;
  * Uses cookie-based session tracking with configurable session cookies.
  * Implements {@link AutoCloseable} for proper resource cleanup.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SessionManager implements AutoCloseable {
 
@@ -35,7 +35,7 @@ public class SessionManager implements AutoCloseable {
      * @param store                the session store
      * @param cookieConfig         the session cookie configuration
      * @param sessionTimeoutSeconds the session timeout in seconds
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SessionManager(SessionStore store, SessionCookie cookieConfig, long sessionTimeoutSeconds) {
         this.store = Objects.requireNonNull(store, "store must not be null");
@@ -47,7 +47,7 @@ public class SessionManager implements AutoCloseable {
      * Creates a session manager with default cookie configuration and 30-minute timeout.
      *
      * @param store the session store
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SessionManager(SessionStore store) {
         this(store, SessionCookie.defaults(), 1800);
@@ -58,7 +58,7 @@ public class SessionManager implements AutoCloseable {
      *
      * @param response the HTTP response
      * @return the created session
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpSession createSession(HttpResponse response) {
         String sessionId = generateSessionId();
@@ -73,7 +73,7 @@ public class SessionManager implements AutoCloseable {
      *
      * @param request the HTTP request
      * @return the session, or empty if not found or expired
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<HttpSession> getSession(HttpRequest request) {
         String cookieHeader = request.getHeaders().get(COOKIE_HEADER);
@@ -100,7 +100,7 @@ public class SessionManager implements AutoCloseable {
      * @param request  the HTTP request
      * @param response the HTTP response
      * @return the existing or new session
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpSession getOrCreateSession(HttpRequest request, HttpResponse response) {
         return getSession(request).orElseGet(() -> createSession(response));
@@ -111,7 +111,7 @@ public class SessionManager implements AutoCloseable {
      *
      * @param request  the HTTP request
      * @param response the HTTP response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void destroySession(HttpRequest request, HttpResponse response) {
         String cookieHeader = request.getHeaders().get(COOKIE_HEADER);
@@ -126,7 +126,7 @@ public class SessionManager implements AutoCloseable {
     /**
      * Removes expired sessions from the store.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void cleanExpiredSessions() {
         store.removeExpired(sessionTimeoutSeconds);
@@ -136,7 +136,7 @@ public class SessionManager implements AutoCloseable {
      * Returns the number of active sessions.
      *
      * @return the session count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getActiveSessionCount() {
         return store.size();
@@ -146,7 +146,7 @@ public class SessionManager implements AutoCloseable {
      * Returns the session timeout in seconds.
      *
      * @return the timeout
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long getSessionTimeoutSeconds() {
         return sessionTimeoutSeconds;
@@ -156,7 +156,7 @@ public class SessionManager implements AutoCloseable {
      * Returns the session cookie configuration.
      *
      * @return the cookie config
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SessionCookie getCookieConfig() {
         return cookieConfig;

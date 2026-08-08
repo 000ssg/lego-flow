@@ -7,7 +7,7 @@ import ssg.legoflow.wamp.core.WampMessage;
  * Implementations provide the actual mechanism for sending and receiving WAMP messages
  * (e.g. WebSocket, in-memory queues, raw TCP).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface WampTransport {
 

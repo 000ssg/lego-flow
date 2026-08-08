@@ -13,7 +13,7 @@ import ssg.legoflow.http.transfer.ByteRangeHandler;
  * <p>Creates requests with Range headers for fetching specific byte ranges
  * from a resource, using {@link ByteRangeHandler} for range formatting.
  *
- * @since 1.0
+ * @since 0.1
  */
 public class RangeClient {
 

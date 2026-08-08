@@ -12,7 +12,7 @@ import java.util.Objects;
  * Injects authentication headers into HTTP requests for backend services.
  * Used by reverse proxy SSO to propagate authentication information.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class AuthHeaderInjector {
 
@@ -24,7 +24,7 @@ public class AuthHeaderInjector {
      * Creates an auth header injector.
      *
      * @param config the reverse proxy SSO configuration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AuthHeaderInjector(ReverseProxySsoConfig config) {
         this.config = Objects.requireNonNull(config);
@@ -35,7 +35,7 @@ public class AuthHeaderInjector {
      *
      * @param request   the HTTP request to modify
      * @param principal the authenticated principal
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void injectHeaders(HttpRequest request, AuthPrincipal principal) {
         Objects.requireNonNull(request);
@@ -66,7 +66,7 @@ public class AuthHeaderInjector {
      * Should be called on incoming requests before processing.
      *
      * @param request the HTTP request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stripHeaders(HttpRequest request) {
         request.getHeaders().remove(config.getUserHeader());
@@ -79,7 +79,7 @@ public class AuthHeaderInjector {
      * Returns the configuration.
      *
      * @return the config
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ReverseProxySsoConfig getConfig() {
         return config;

@@ -7,7 +7,7 @@ package ssg.legoflow.network.common.asn1;
  * a defined set of named values.
  *
  * @param value the enumerated integer value
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Asn1Enumerated(int value) implements Asn1Type {
 

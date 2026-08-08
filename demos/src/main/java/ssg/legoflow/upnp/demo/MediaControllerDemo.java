@@ -17,7 +17,7 @@ import java.util.List;
  * library, selects a track, and sends it to a renderer for playback.
  * Demonstrates the full control point workflow.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MediaControllerDemo {
 
@@ -26,7 +26,7 @@ public class MediaControllerDemo {
     /**
      * Creates a new media controller demo.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MediaControllerDemo() {
         this.controlPoint = new ControlPoint();
@@ -36,7 +36,7 @@ public class MediaControllerDemo {
      * Returns the control point.
      *
      * @return the control point
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ControlPoint getControlPoint() {
         return controlPoint;
@@ -46,7 +46,7 @@ public class MediaControllerDemo {
      * Registers a local media server for in-process discovery.
      *
      * @param server the server device
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void registerServer(MediaServerDevice server) {
         controlPoint.registerLocalServer(server);
@@ -56,7 +56,7 @@ public class MediaControllerDemo {
      * Registers a local media renderer for in-process discovery.
      *
      * @param renderer the renderer device
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void registerRenderer(MediaRendererDevice renderer) {
         controlPoint.registerLocalRenderer(renderer);
@@ -65,7 +65,7 @@ public class MediaControllerDemo {
     /**
      * Starts the control point and performs discovery.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() {
         controlPoint.start();
@@ -74,7 +74,7 @@ public class MediaControllerDemo {
     /**
      * Stops the control point.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         controlPoint.stop();
@@ -84,7 +84,7 @@ public class MediaControllerDemo {
      * Browses the root container of the first discovered server.
      *
      * @return the list of root items
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<ContentItem> browseServerLibrary() {
         List<MediaServerProxy> servers = controlPoint.discoverMediaServers();
@@ -99,7 +99,7 @@ public class MediaControllerDemo {
      *
      * @param containerId the container ID to browse
      * @return the list of child items
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<ContentItem> browseContainer(String containerId) {
         List<MediaServerProxy> servers = controlPoint.discoverMediaServers();
@@ -113,7 +113,7 @@ public class MediaControllerDemo {
      * Plays a content item on the first discovered renderer.
      *
      * @param item the content item to play
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void playOnRenderer(ContentItem item) {
         List<MediaRendererProxy> renderers = controlPoint.discoverMediaRenderers();
@@ -126,7 +126,7 @@ public class MediaControllerDemo {
     /**
      * Pauses playback on the first discovered renderer.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void pause() {
         List<MediaRendererProxy> renderers = controlPoint.discoverMediaRenderers();
@@ -138,7 +138,7 @@ public class MediaControllerDemo {
     /**
      * Stops playback on the first discovered renderer.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stopPlayback() {
         List<MediaRendererProxy> renderers = controlPoint.discoverMediaRenderers();
@@ -151,7 +151,7 @@ public class MediaControllerDemo {
      * Seeks to a position on the first discovered renderer.
      *
      * @param position the seek position
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void seek(Duration position) {
         List<MediaRendererProxy> renderers = controlPoint.discoverMediaRenderers();
@@ -164,7 +164,7 @@ public class MediaControllerDemo {
      * Sets the volume on the first discovered renderer.
      *
      * @param volume the desired volume (0-100)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setVolume(int volume) {
         List<MediaRendererProxy> renderers = controlPoint.discoverMediaRenderers();
@@ -177,7 +177,7 @@ public class MediaControllerDemo {
      * Returns the volume of the first discovered renderer.
      *
      * @return the volume level (0-100)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getVolume() {
         List<MediaRendererProxy> renderers = controlPoint.discoverMediaRenderers();
@@ -191,7 +191,7 @@ public class MediaControllerDemo {
      * Main entry point for running the demo standalone.
      *
      * @param args command-line arguments (unused)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void main(String[] args) {
         var demo = new MediaControllerDemo();

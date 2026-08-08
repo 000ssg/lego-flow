@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Backend weights are respected: a backend with weight N is selected N times
  * per cycle.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class RoundRobinBalancer implements LoadBalancer {
 
@@ -19,7 +19,7 @@ public class RoundRobinBalancer implements LoadBalancer {
     /**
      * Creates a new round-robin balancer.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public RoundRobinBalancer() {
     }
@@ -58,7 +58,7 @@ public class RoundRobinBalancer implements LoadBalancer {
     /**
      * Resets the internal counter.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void reset() {
         counter.set(0);
@@ -68,7 +68,7 @@ public class RoundRobinBalancer implements LoadBalancer {
      * Returns the current counter value (for testing).
      *
      * @return the counter
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getCounter() {
         return counter.get();

@@ -9,7 +9,7 @@ import java.util.Optional;
  * Entries are keyed by a cache key (typically method + URI) and store
  * serialized response data with metadata.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface ProxyCacheStore {
 
@@ -18,7 +18,7 @@ public interface ProxyCacheStore {
      *
      * @param key the cache key
      * @return the cached entry, or empty if not found or expired
-     * @since 1.0.0
+     * @since 0.1.0
      */
     Optional<CacheEntry> get(String key);
 
@@ -27,7 +27,7 @@ public interface ProxyCacheStore {
      *
      * @param key the cache key
      * @param entry the cache entry
-     * @since 1.0.0
+     * @since 0.1.0
      */
     void put(String key, CacheEntry entry);
 
@@ -35,14 +35,14 @@ public interface ProxyCacheStore {
      * Removes an entry from the cache.
      *
      * @param key the cache key
-     * @since 1.0.0
+     * @since 0.1.0
      */
     void remove(String key);
 
     /**
      * Removes all entries from the cache.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     void clear();
 
@@ -50,7 +50,7 @@ public interface ProxyCacheStore {
      * Returns the number of entries in the cache.
      *
      * @return the entry count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     int size();
 
@@ -58,7 +58,7 @@ public interface ProxyCacheStore {
      * Returns the total size in bytes of all cached entries.
      *
      * @return the total size in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     long sizeInBytes();
 
@@ -72,7 +72,7 @@ public interface ProxyCacheStore {
      * @param lastModified the Last-Modified header value, or null
      * @param createdAt the creation timestamp in milliseconds
      * @param expiresAt the expiration timestamp in milliseconds
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record CacheEntry(int statusCode, java.util.Map<String, String> headers, byte[] body,
                       String etag, String lastModified, long createdAt, long expiresAt) {
@@ -81,7 +81,7 @@ public interface ProxyCacheStore {
          * Returns whether this entry has expired.
          *
          * @return true if expired
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public boolean isExpired() {
             return System.currentTimeMillis() > expiresAt;
@@ -91,7 +91,7 @@ public interface ProxyCacheStore {
          * Returns the body size in bytes.
          *
          * @return the size
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public int bodySize() {
             return body != null ? body.length : 0;

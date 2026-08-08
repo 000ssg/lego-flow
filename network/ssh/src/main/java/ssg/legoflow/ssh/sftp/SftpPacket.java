@@ -3,7 +3,7 @@ package ssg.legoflow.ssh.sftp;
 /**
  * Base sealed interface for all SFTP packets.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface SftpPacket permits
         SftpPacket.Init, SftpPacket.Version,

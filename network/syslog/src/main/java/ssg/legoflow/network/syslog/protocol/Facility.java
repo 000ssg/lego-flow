@@ -6,7 +6,7 @@ package ssg.legoflow.network.syslog.protocol;
  * <p>The facility value indicates the subsystem that generated the message.
  * Facility codes 0-15 are well-known; 16-23 are reserved for local use.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum Facility {
 

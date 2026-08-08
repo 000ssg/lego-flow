@@ -13,7 +13,7 @@ import java.util.List;
  * @param typeCondition the type condition name, or null if omitted
  * @param directives    the directives on this inline fragment
  * @param selectionSet  the selection set
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record InlineFragment(String typeCondition,
                              List<Directive.DirectiveUsage> directives,

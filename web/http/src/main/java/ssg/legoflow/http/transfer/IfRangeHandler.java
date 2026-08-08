@@ -18,7 +18,7 @@ import java.time.format.DateTimeParseException;
  *
  * <p>The If-Range value can be either an entity tag or an HTTP-date.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class IfRangeHandler {
 

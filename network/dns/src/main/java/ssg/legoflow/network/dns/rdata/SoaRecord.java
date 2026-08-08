@@ -15,7 +15,7 @@ import java.util.Objects;
  * @param retry   retry interval in seconds
  * @param expire  expiration limit in seconds
  * @param minimum minimum TTL in seconds
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SoaRecord(
         DnsName mname,
@@ -48,7 +48,7 @@ public record SoaRecord(
      * @param expire  expiration limit
      * @param minimum minimum TTL
      * @return the SOA record
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SoaRecord of(String mname, String rname, long serial,
                                 int refresh, int retry, int expire, int minimum) {

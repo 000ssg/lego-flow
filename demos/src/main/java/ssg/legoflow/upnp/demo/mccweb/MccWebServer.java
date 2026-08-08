@@ -35,7 +35,7 @@ import java.util.concurrent.Executors;
  *
  * <p>Default ports: 8080 (HTTP), 8443 (HTTPS).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MccWebServer {
 
@@ -57,7 +57,7 @@ public class MccWebServer {
      *
      * @param port         the HTTP port to listen on
      * @param controlPoint the UPnP control point
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MccWebServer(int port, ControlPoint controlPoint) {
         this(port, controlPoint, null);
@@ -69,7 +69,7 @@ public class MccWebServer {
      * @param port         the HTTP/HTTPS port to listen on
      * @param controlPoint the UPnP control point
      * @param sslConfig    the SSL configuration, or null for plain HTTP
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MccWebServer(int port, ControlPoint controlPoint, SslConfig sslConfig) {
         Objects.requireNonNull(controlPoint, "controlPoint must not be null");
@@ -98,7 +98,7 @@ public class MccWebServer {
      * Starts the web server, binding to the configured port and
      * accepting connections on virtual threads.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() {
         if (running) return;
@@ -136,7 +136,7 @@ public class MccWebServer {
     /**
      * Stops the web server and releases resources.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         running = false;
@@ -345,7 +345,7 @@ public class MccWebServer {
      * the actual assigned port after {@link #start()} has been called.
      *
      * @return the server port
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getPort() {
         if (serverSocket != null && serverSocket.isBound()) {
@@ -358,7 +358,7 @@ public class MccWebServer {
      * Returns whether the server is running.
      *
      * @return true if running
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isRunning() {
         return running;
@@ -368,7 +368,7 @@ public class MccWebServer {
      * Returns the underlying HTTP server instance.
      *
      * @return the HTTP server
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpServer getHttpServer() {
         return httpServer;
@@ -378,7 +378,7 @@ public class MccWebServer {
      * Returns the API router for accessing handlers.
      *
      * @return the API router
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MccApiRouter getApiRouter() {
         return apiRouter;
@@ -393,7 +393,7 @@ public class MccWebServer {
      *
      * @param request the HTTP request
      * @return the HTTP response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse handleRequest(HttpRequest request) {
         if (!running) {

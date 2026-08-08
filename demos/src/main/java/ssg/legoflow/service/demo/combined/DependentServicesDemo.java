@@ -12,7 +12,7 @@ import java.util.List;
  * Demonstrates dependency-aware service management: services that depend
  * on each other are started in correct order and stopped in reverse.
  *
- * @since 1.0
+ * @since 0.1
  */
 public class DependentServicesDemo {
 

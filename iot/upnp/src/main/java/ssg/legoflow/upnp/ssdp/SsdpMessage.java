@@ -19,7 +19,7 @@ import java.util.Optional;
  * @param type    the SSDP message type
  * @param headers the message headers (case-insensitive keys stored in upper case)
  * @param source  the source socket address for received messages; may be {@code null} for outgoing
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SsdpMessage(SsdpMessageType type, Map<String, String> headers, SocketAddress source) {
 
@@ -42,7 +42,7 @@ public record SsdpMessage(SsdpMessageType type, Map<String, String> headers, Soc
      *
      * @param name the header name (case-insensitive)
      * @return an {@link Optional} containing the header value, or empty if absent
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<String> header(String name) {
         return Optional.ofNullable(headers.get(name.toUpperCase()));
@@ -52,7 +52,7 @@ public record SsdpMessage(SsdpMessageType type, Map<String, String> headers, Soc
      * Returns the LOCATION header value.
      *
      * @return the location URL, or empty if absent
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<String> location() {
         return header(SsdpConstants.HEADER_LOCATION);
@@ -62,7 +62,7 @@ public record SsdpMessage(SsdpMessageType type, Map<String, String> headers, Soc
      * Returns the USN (Unique Service Name) header value.
      *
      * @return the USN, or empty if absent
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<String> usn() {
         return header(SsdpConstants.HEADER_USN);
@@ -72,7 +72,7 @@ public record SsdpMessage(SsdpMessageType type, Map<String, String> headers, Soc
      * Returns the NT (Notification Type) header value.
      *
      * @return the notification type, or empty if absent
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<String> notificationType() {
         return header(SsdpConstants.HEADER_NT);
@@ -82,7 +82,7 @@ public record SsdpMessage(SsdpMessageType type, Map<String, String> headers, Soc
      * Returns the ST (Search Target) header value.
      *
      * @return the search target, or empty if absent
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<String> searchTarget() {
         return header(SsdpConstants.HEADER_ST);
@@ -92,7 +92,7 @@ public record SsdpMessage(SsdpMessageType type, Map<String, String> headers, Soc
      * Returns the SERVER header value.
      *
      * @return the server string, or empty if absent
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<String> server() {
         return header(SsdpConstants.HEADER_SERVER);
@@ -102,7 +102,7 @@ public record SsdpMessage(SsdpMessageType type, Map<String, String> headers, Soc
      * Extracts the max-age value from the CACHE-CONTROL header.
      *
      * @return the max-age in seconds, or {@link SsdpConstants#DEFAULT_MAX_AGE} if not specified
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int maxAge() {
         return header(SsdpConstants.HEADER_CACHE_CONTROL)
@@ -120,7 +120,7 @@ public record SsdpMessage(SsdpMessageType type, Map<String, String> headers, Soc
      * @param maxAge      the cache max-age in seconds
      * @return a new SSDP alive message
      * @throws NullPointerException if any required parameter is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SsdpMessage alive(String location, String nt, String usn, String server, int maxAge) {
         Objects.requireNonNull(location, "location must not be null");
@@ -146,7 +146,7 @@ public record SsdpMessage(SsdpMessageType type, Map<String, String> headers, Soc
      * @param usn the unique service name
      * @return a new SSDP byebye message
      * @throws NullPointerException if any required parameter is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SsdpMessage byebye(String nt, String usn) {
         Objects.requireNonNull(nt, "nt must not be null");
@@ -168,7 +168,7 @@ public record SsdpMessage(SsdpMessageType type, Map<String, String> headers, Soc
      * @return a new M-SEARCH message
      * @throws NullPointerException     if {@code searchTarget} is {@code null}
      * @throws IllegalArgumentException if {@code mx} is not positive
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SsdpMessage search(String searchTarget, int mx) {
         Objects.requireNonNull(searchTarget, "searchTarget must not be null");
@@ -194,7 +194,7 @@ public record SsdpMessage(SsdpMessageType type, Map<String, String> headers, Soc
      * @param maxAge   the cache max-age in seconds
      * @return a new M-SEARCH response message
      * @throws NullPointerException if any required parameter is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SsdpMessage searchResponse(String location, String st, String usn, String server, int maxAge) {
         Objects.requireNonNull(location, "location must not be null");
@@ -224,7 +224,7 @@ public record SsdpMessage(SsdpMessageType type, Map<String, String> headers, Soc
      * @return the parsed SSDP message
      * @throws IllegalArgumentException if the text cannot be parsed as a valid SSDP message
      * @throws NullPointerException     if {@code text} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SsdpMessage parse(String text, SocketAddress source) {
         Objects.requireNonNull(text, "text must not be null");
@@ -270,7 +270,7 @@ public record SsdpMessage(SsdpMessageType type, Map<String, String> headers, Soc
      * Serializes this SSDP message to its wire format text representation.
      *
      * @return the SSDP message as a string with CRLF line endings
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String serialize() {
         var sb = new StringBuilder();

@@ -16,7 +16,7 @@ import java.util.function.Consumer;
  * re-issues IDLE after the configured timeout or when a notification
  * is received. Runs on a virtual thread.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class IdleManager implements AutoCloseable {
 

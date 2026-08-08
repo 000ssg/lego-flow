@@ -9,7 +9,7 @@ import java.util.Objects;
  * NS record RDATA: an authoritative name server (RFC 1035).
  *
  * @param nameServer the name server domain name
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record NsRecord(DnsName nameServer) implements RData {
 
@@ -27,7 +27,7 @@ public record NsRecord(DnsName nameServer) implements RData {
      *
      * @param ns the name server domain name
      * @return the NS record
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static NsRecord of(String ns) {
         return new NsRecord(DnsName.of(ns));

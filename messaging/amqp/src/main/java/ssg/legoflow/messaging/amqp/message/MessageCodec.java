@@ -17,7 +17,7 @@ import java.util.*;
  * delivery-annotations, message-annotations, properties, application-properties,
  * body (data/amqp-sequence/amqp-value), and footer.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MessageCodec {
 

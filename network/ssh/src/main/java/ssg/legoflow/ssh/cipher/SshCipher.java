@@ -6,7 +6,7 @@ package ssg.legoflow.ssh.cipher;
  * <p>Implementations wrap standard JCE cipher algorithms with SSH-specific
  * block and key size requirements.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface SshCipher {
 

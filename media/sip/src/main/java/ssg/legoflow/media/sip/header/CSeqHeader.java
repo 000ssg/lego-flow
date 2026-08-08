@@ -11,14 +11,14 @@ import java.util.Objects;
  *
  * @param sequence the sequence number
  * @param method   the request method
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record CSeqHeader(long sequence, SipMethod method) {
 
     /**
      * Creates a CSeq header.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CSeqHeader {
         Objects.requireNonNull(method, "method");
@@ -33,7 +33,7 @@ public record CSeqHeader(long sequence, SipMethod method) {
      * @param value the CSeq value (e.g., "1 INVITE")
      * @return the parsed CSeq header
      * @throws IllegalArgumentException if the format is invalid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CSeqHeader parse(String value) {
         Objects.requireNonNull(value, "value");
@@ -50,7 +50,7 @@ public record CSeqHeader(long sequence, SipMethod method) {
      * Formats this CSeq header as a string value.
      *
      * @return the formatted value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String format() {
         return sequence + " " + method.name();

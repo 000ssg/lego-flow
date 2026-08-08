@@ -18,7 +18,7 @@ import java.nio.charset.StandardCharsets;
  * which are wrapped into WebSocket text frames. In {@link Mode#DECODE} mode, input ByteBuffers
  * contain raw WebSocket frame bytes which are decoded to extract the JSON payload.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class WampWebSocketFilter extends AbstractDataFilter<ByteBuffer> {
 

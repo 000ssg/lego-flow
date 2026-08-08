@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
  * HTTP/2 frame. The server advertises {@code h3=":port"} and the client
  * parses this to learn about available HTTP/3 endpoints.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class Http3UpgradeHandler {
 
@@ -28,7 +28,7 @@ public class Http3UpgradeHandler {
      * @param host     the host (empty string means same host)
      * @param port     the port number
      * @param maxAge   the maximum age in seconds
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record AltSvcEntry(String protocol, String host, int port, long maxAge) {}
 
@@ -38,7 +38,7 @@ public class Http3UpgradeHandler {
      * @param host the host (use empty string for same-host)
      * @param port the UDP port number
      * @return the Alt-Svc header value, e.g. {@code h3=":443"}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String generateAltSvcHeader(String host, int port) {
         if (host == null || host.isEmpty()) {
@@ -52,7 +52,7 @@ public class Http3UpgradeHandler {
      *
      * @param header the Alt-Svc header value
      * @return an optional containing the parsed entry, or empty if not parseable
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<AltSvcEntry> parseAltSvc(String header) {
         if (header == null || header.isEmpty()) {
@@ -81,7 +81,7 @@ public class Http3UpgradeHandler {
      *
      * @param header the Alt-Svc header value
      * @return {@code true} if h3 is advertised
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isHttp3Available(String header) {
         return parseAltSvc(header)

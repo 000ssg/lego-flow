@@ -10,7 +10,7 @@ import java.util.Set;
  * {@link #CLOSING} → {@link #DRAINING} → {@link #CLOSED}.
  * Each state defines which transitions are valid.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum QuicConnectionState {
 
@@ -42,7 +42,7 @@ public enum QuicConnectionState {
      * Returns the set of states that this state can transition to.
      *
      * @return an unmodifiable set of valid target states
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Set<QuicConnectionState> validTransitions() {
         return switch (this) {
@@ -60,7 +60,7 @@ public enum QuicConnectionState {
      *
      * @param target the desired target state
      * @return {@code true} if the transition is permitted
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean canTransitionTo(QuicConnectionState target) {
         if (this == target) return false;

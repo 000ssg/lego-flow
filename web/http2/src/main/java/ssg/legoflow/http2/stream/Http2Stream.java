@@ -119,7 +119,7 @@ public class Http2Stream {
      * Returns the stream dependency (parent stream ID in the priority tree).
      *
      * @return the dependency stream ID, 0 for root
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int dependencyStreamId() {
         return dependencyStreamId;
@@ -129,7 +129,7 @@ public class Http2Stream {
      * Returns the priority weight (1-256).
      *
      * @return the weight
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int weight() {
         return weight;
@@ -139,7 +139,7 @@ public class Http2Stream {
      * Returns whether this stream has exclusive dependency.
      *
      * @return true if exclusive
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isExclusive() {
         return exclusive;
@@ -151,7 +151,7 @@ public class Http2Stream {
      * @param dependencyStreamId the parent stream ID (0 for root)
      * @param weight             the weight (1-256)
      * @param exclusive          whether this is an exclusive dependency
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setPriority(int dependencyStreamId, int weight, boolean exclusive) {
         this.dependencyStreamId = dependencyStreamId;

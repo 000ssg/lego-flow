@@ -13,7 +13,7 @@ import java.time.temporal.ChronoField;
  * DER requires UTC (trailing Z) and no trailing fractional zeros.
  *
  * @param value the string representation of the time
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Asn1GeneralizedTime(String value) implements Asn1Type {
 

@@ -7,7 +7,7 @@ package ssg.legoflow.upnp.dlna;
  * protocol info generation and content format negotiation between
  * DLNA devices.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum DlnaMediaFormat {
 
@@ -107,7 +107,7 @@ public enum DlnaMediaFormat {
      * Returns the MIME type for this format.
      *
      * @return the MIME type string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String mimeType() {
         return mimeType;
@@ -117,7 +117,7 @@ public enum DlnaMediaFormat {
      * Returns the DLNA profile name (DLNA.ORG_PN value) for this format.
      *
      * @return the DLNA profile name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String dlnaProfileName() {
         return dlnaProfileName;
@@ -127,7 +127,7 @@ public enum DlnaMediaFormat {
      * Creates a {@link DlnaProtocolInfo} for HTTP GET access to content in this format.
      *
      * @return the protocol info
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DlnaProtocolInfo toProtocolInfo() {
         return DlnaProtocolInfo.httpGet(mimeType, dlnaProfileName);
@@ -138,7 +138,7 @@ public enum DlnaMediaFormat {
      *
      * @param flags the DLNA.ORG_FLAGS hex string
      * @return the protocol info with flags
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DlnaProtocolInfo toProtocolInfo(String flags) {
         return DlnaProtocolInfo.httpGetWithFlags(mimeType, dlnaProfileName, flags);
@@ -150,7 +150,7 @@ public enum DlnaMediaFormat {
      * @param profileName the DLNA profile name (e.g. "MP3")
      * @return the matching format
      * @throws IllegalArgumentException if the profile name is unknown
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static DlnaMediaFormat fromProfileName(String profileName) {
         for (DlnaMediaFormat format : values()) {

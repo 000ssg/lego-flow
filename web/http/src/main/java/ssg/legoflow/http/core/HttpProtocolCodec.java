@@ -116,7 +116,7 @@ public class HttpProtocolCodec {
      *
      * @param data the next chunk of incoming bytes
      * @return the parsed request, or null if more data is needed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpRequest parseRequestStreaming(ByteBuffer data) {
         var combined = combineWithAccumulator(data);
@@ -187,7 +187,7 @@ public class HttpProtocolCodec {
      *
      * @param data the next chunk of incoming bytes
      * @return the parsed response, or null if more data is needed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse parseResponseStreaming(ByteBuffer data) {
         var combined = combineWithAccumulator(data);
@@ -270,7 +270,7 @@ public class HttpProtocolCodec {
      * Returns whether this codec has buffered partial data from a previous streaming parse call.
      *
      * @return true if there is buffered data awaiting more input
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean hasBufferedData() {
         return accumulator != null && accumulator.hasRemaining();

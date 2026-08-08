@@ -13,7 +13,7 @@ import java.util.Objects;
  * @param network        the network segment, typically "*"
  * @param contentFormat  the MIME type of the content
  * @param additionalInfo DLNA-specific info such as DLNA.ORG_PN, DLNA.ORG_FLAGS, DLNA.ORG_OP
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record DlnaProtocolInfo(
         String protocol,
@@ -29,7 +29,7 @@ public record DlnaProtocolInfo(
      * @param network        the network segment
      * @param contentFormat  the MIME content type
      * @param additionalInfo additional DLNA info
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DlnaProtocolInfo {
         Objects.requireNonNull(protocol, "protocol must not be null");
@@ -44,7 +44,7 @@ public record DlnaProtocolInfo(
      * @param protocolInfoString the protocol info string to parse
      * @return a new {@link DlnaProtocolInfo} instance
      * @throws IllegalArgumentException if the string does not contain exactly four colon-separated parts
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static DlnaProtocolInfo parse(String protocolInfoString) {
         Objects.requireNonNull(protocolInfoString, "protocolInfoString must not be null");
@@ -62,7 +62,7 @@ public record DlnaProtocolInfo(
      * @param mimeType    the MIME content type
      * @param dlnaProfile the DLNA.ORG_PN profile name (e.g. "MP3", "JPEG_SM")
      * @return a new {@link DlnaProtocolInfo} instance
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static DlnaProtocolInfo httpGet(String mimeType, String dlnaProfile) {
         return new DlnaProtocolInfo("http-get", "*", mimeType, "DLNA.ORG_PN=" + dlnaProfile);
@@ -75,7 +75,7 @@ public record DlnaProtocolInfo(
      * @param dlnaProfile the DLNA.ORG_PN profile name
      * @param flags       the DLNA.ORG_FLAGS value
      * @return a new {@link DlnaProtocolInfo} instance
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static DlnaProtocolInfo httpGetWithFlags(String mimeType, String dlnaProfile, String flags) {
         return new DlnaProtocolInfo("http-get", "*", mimeType,
@@ -91,7 +91,7 @@ public record DlnaProtocolInfo(
      * @param mimeType    the MIME content type
      * @param dlnaProfile the DLNA.ORG_PN profile name
      * @return a new {@link DlnaProtocolInfo} instance configured for streaming
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static DlnaProtocolInfo httpGetStreaming(String mimeType, String dlnaProfile) {
         return new DlnaProtocolInfo("http-get", "*", mimeType,
@@ -106,7 +106,7 @@ public record DlnaProtocolInfo(
      *
      * @param mimeType the MIME content type
      * @return a new {@link DlnaProtocolInfo} instance with wildcard additional info
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static DlnaProtocolInfo httpGetSimple(String mimeType) {
         return new DlnaProtocolInfo("http-get", "*", mimeType, "*");
@@ -118,7 +118,7 @@ public record DlnaProtocolInfo(
      * <p>Byte seek is indicated by {@code DLNA.ORG_OP=01} or {@code DLNA.ORG_OP=11}.
      *
      * @return {@code true} if byte seeking is supported
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean supportsByteSeek() {
         return additionalInfo.contains("DLNA.ORG_OP=01")
@@ -131,7 +131,7 @@ public record DlnaProtocolInfo(
      * <p>Time seek is indicated by {@code DLNA.ORG_OP=10} or {@code DLNA.ORG_OP=11}.
      *
      * @return {@code true} if time seeking is supported
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean supportsTimeSeek() {
         return additionalInfo.contains("DLNA.ORG_OP=10")
@@ -144,7 +144,7 @@ public record DlnaProtocolInfo(
      *
      * @param other the other protocol info to check
      * @return true if compatible
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isCompatibleWith(DlnaProtocolInfo other) {
         if (other == null) {
@@ -159,7 +159,7 @@ public record DlnaProtocolInfo(
      * Serializes this protocol info to the standard colon-separated string format.
      *
      * @return the protocol info string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public String toString() {

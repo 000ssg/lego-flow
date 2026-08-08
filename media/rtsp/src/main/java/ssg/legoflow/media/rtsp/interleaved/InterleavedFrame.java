@@ -12,7 +12,7 @@ import java.util.Objects;
  *
  * @param channel the channel number (0-255)
  * @param data    the frame payload (RTP or RTCP packet)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record InterleavedFrame(int channel, byte[] data) {
 

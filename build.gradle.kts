@@ -119,12 +119,18 @@ fun Project.setupBenchmarkModule() {
     dependencies {
         "implementation"("org.openjdk.jmh:jmh-core:$jmhVersion")
         "annotationProcessor"("org.openjdk.jmh:jmh-generator-annprocess:$jmhVersion")
+        // Core modules
+        "implementation"(project(":blocks"))
+        "implementation"(project(":service"))
         // Protocol modules under test (mirrors benchmarks/pom.xml dependencies)
         "implementation"(project(":lego-flow-http"))
         "implementation"(project(":lego-flow-mqtt"))
         "implementation"(project(":lego-flow-http-auth-core"))
         "implementation"(project(":lego-flow-http-auth-basic-digest"))
         "implementation"(project(":lego-flow-redis"))
+        "implementation"(project(":lego-flow-dns"))
+        "implementation"(project(":lego-flow-smtp"))
+        "implementation"(project(":lego-flow-coap"))
         "implementation"("org.slf4j:slf4j-simple:" + property("slf4jSimpleVersion"))
     }
 

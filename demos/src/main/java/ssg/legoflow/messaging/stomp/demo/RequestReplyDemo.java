@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
  * "reply" destination. A service subscribes to the "request" destination,
  * processes requests, and sends replies to the "reply" destination.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class RequestReplyDemo {
 

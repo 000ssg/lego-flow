@@ -16,7 +16,7 @@ import java.util.List;
  * <p>Supports COM_STMT_PREPARE, COM_STMT_EXECUTE with parameter binding,
  * COM_STMT_CLOSE, COM_STMT_RESET, and COM_STMT_SEND_LONG_DATA.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MysqlPreparedStatement implements AutoCloseable {
 

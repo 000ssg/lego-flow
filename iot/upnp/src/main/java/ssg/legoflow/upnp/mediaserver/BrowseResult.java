@@ -10,7 +10,7 @@ package ssg.legoflow.upnp.mediaserver;
  * @param numberReturned  the number of items returned in this response
  * @param totalMatches    the total number of items matching the query
  * @param updateId        the system update ID at the time of the response
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record BrowseResult(
         String didlXml,

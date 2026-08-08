@@ -8,7 +8,7 @@ import java.util.List;
  * <p>Provides mailbox management operations (create, delete, rename, list)
  * and authentication. Implementations must be thread-safe.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface MailStore {
 

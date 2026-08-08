@@ -19,7 +19,7 @@ import java.util.*;
  *   <li>Issuer</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SamlAssertionParser {
 
@@ -31,7 +31,7 @@ public class SamlAssertionParser {
      * Creates a SAML assertion parser.
      *
      * @param config the SAML IdP configuration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SamlAssertionParser(SamlConfig config) {
         this.config = Objects.requireNonNull(config);
@@ -45,7 +45,7 @@ public class SamlAssertionParser {
      * @param attributes the assertion attributes
      * @param notBefore  the NotBefore condition
      * @param notOnOrAfter the NotOnOrAfter condition
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record SamlAssertion(
             String nameId,
@@ -58,7 +58,7 @@ public class SamlAssertionParser {
          * Converts this assertion to an AuthPrincipal.
          *
          * @return the principal
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public AuthPrincipal toPrincipal() {
             Set<String> roles = Set.of();
@@ -79,7 +79,7 @@ public class SamlAssertionParser {
      *
      * @param samlResponseXml the SAML Response XML string
      * @return the parsed assertion, or empty if parsing fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<SamlAssertion> parseResponse(String samlResponseXml) {
         if (samlResponseXml == null || samlResponseXml.isBlank()) {
@@ -124,7 +124,7 @@ public class SamlAssertionParser {
      *
      * @param base64Response the Base64-encoded response
      * @return the parsed assertion
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<SamlAssertion> parseBase64Response(String base64Response) {
         try {
@@ -141,7 +141,7 @@ public class SamlAssertionParser {
      * Returns the SAML configuration.
      *
      * @return the config
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SamlConfig getConfig() {
         return config;
@@ -155,7 +155,7 @@ public class SamlAssertionParser {
      * @param xml         the XML string
      * @param elementName the local element name
      * @return the text content, or null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static String extractElementContent(String xml, String elementName) {
         // Try with common SAML namespace prefixes
@@ -185,7 +185,7 @@ public class SamlAssertionParser {
      * @param elementName   the element name
      * @param attributeName the attribute name
      * @return the attribute value, or null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static String extractAttribute(String xml, String elementName, String attributeName) {
         for (String prefix : new String[]{"saml:", "saml2:", ""}) {
@@ -214,7 +214,7 @@ public class SamlAssertionParser {
      *
      * @param xml the XML string
      * @return map of attribute names to values
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static Map<String, String> extractAttributes(String xml) {
         Map<String, String> attributes = new LinkedHashMap<>();

@@ -51,7 +51,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * the control point and releases all resources including the underlying
  * {@link SsdpService} and {@link HttpClient}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ControlPoint implements AutoCloseable {
 
@@ -85,7 +85,7 @@ public class ControlPoint implements AutoCloseable {
      * registration via {@link #registerLocalServer(MediaServerDevice)} and
      * {@link #registerLocalRenderer(MediaRendererDevice)} still works.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ControlPoint() {
         this.networkInterfaces = List.of();
@@ -103,7 +103,7 @@ public class ControlPoint implements AutoCloseable {
      *
      * @param networkInterface the network interface for SSDP multicast communication
      * @throws NullPointerException if {@code networkInterface} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ControlPoint(NetworkInterface networkInterface) {
         Objects.requireNonNull(networkInterface, "networkInterface must not be null");
@@ -124,7 +124,7 @@ public class ControlPoint implements AutoCloseable {
      *
      * @param networkInterfaces the network interfaces for SSDP multicast
      * @throws NullPointerException if {@code networkInterfaces} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ControlPoint(List<NetworkInterface> networkInterfaces) {
         Objects.requireNonNull(networkInterfaces, "networkInterfaces must not be null");
@@ -145,7 +145,7 @@ public class ControlPoint implements AutoCloseable {
      * If the SSDP service fails to start (e.g., due to network issues), the
      * error is logged and the control point continues in local-only mode.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() {
         if (running) {
@@ -210,7 +210,7 @@ public class ControlPoint implements AutoCloseable {
      * Registered {@link DeviceListener}s are retained and will receive events
      * if the control point is restarted.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         running = false;
@@ -228,7 +228,7 @@ public class ControlPoint implements AutoCloseable {
      *
      * <p>Equivalent to calling {@link #stop()}.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void close() {
@@ -239,7 +239,7 @@ public class ControlPoint implements AutoCloseable {
      * Returns whether the control point is currently running.
      *
      * @return {@code true} if the control point is running
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isRunning() {
         return running;
@@ -253,7 +253,7 @@ public class ControlPoint implements AutoCloseable {
      * If the SSDP service is not available (no network interface), this method
      * is a no-op.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void refresh() {
         // Clear failed and pending devices on refresh so they get retried
@@ -279,7 +279,7 @@ public class ControlPoint implements AutoCloseable {
      *
      * @param device the media server device to register
      * @throws NullPointerException if {@code device} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void registerLocalServer(MediaServerDevice device) {
         Objects.requireNonNull(device, "device must not be null");
@@ -298,7 +298,7 @@ public class ControlPoint implements AutoCloseable {
      *
      * @param device the media renderer device to register
      * @throws NullPointerException if {@code device} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void registerLocalRenderer(MediaRendererDevice device) {
         Objects.requireNonNull(device, "device must not be null");
@@ -314,7 +314,7 @@ public class ControlPoint implements AutoCloseable {
      * and locally registered devices.
      *
      * @return an unmodifiable list of media server proxies
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<MediaServerProxy> discoverMediaServers() {
         return Collections.unmodifiableList(new ArrayList<>(serverCache.values()));
@@ -325,7 +325,7 @@ public class ControlPoint implements AutoCloseable {
      * and locally registered devices.
      *
      * @return an unmodifiable list of media renderer proxies
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<MediaRendererProxy> discoverMediaRenderers() {
         return Collections.unmodifiableList(new ArrayList<>(rendererCache.values()));
@@ -336,7 +336,7 @@ public class ControlPoint implements AutoCloseable {
      * media renderers, and generic UPnP devices.
      *
      * @return an unmodifiable list of device proxies
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<DeviceProxy> getDevices() {
         // Deduplicate: the same proxy may be registered under multiple UDN variants
@@ -354,7 +354,7 @@ public class ControlPoint implements AutoCloseable {
      * available, the raw response text for diagnostic purposes.
      *
      * @return an unmodifiable list of failed device records
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<FailedDevice> getFailedDevices() {
         return Collections.unmodifiableList(new ArrayList<>(failedDeviceCache.values()));
@@ -367,7 +367,7 @@ public class ControlPoint implements AutoCloseable {
      * to start capturing SSDP, SOAP, and HTTP description messages.
      *
      * @return the message log
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public UpnpMessageLog getMessageLog() {
         return messageLog;
@@ -382,7 +382,7 @@ public class ControlPoint implements AutoCloseable {
      * @param responseText the raw HTTP response body (description XML), or {@code null}
      *                     if the HTTP fetch itself failed
      * @param timestamp    when the failure occurred (epoch millis)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record FailedDevice(String udn, String location, String errorMessage,
                                 String responseText, long timestamp) {
@@ -394,7 +394,7 @@ public class ControlPoint implements AutoCloseable {
      *
      * @param listener the listener to add
      * @throws NullPointerException if {@code listener} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addDeviceListener(DeviceListener listener) {
         Objects.requireNonNull(listener, "listener must not be null");
@@ -405,7 +405,7 @@ public class ControlPoint implements AutoCloseable {
      * Removes a previously added device discovery listener.
      *
      * @param listener the listener to remove
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void removeDeviceListener(DeviceListener listener) {
         listeners.remove(listener);
@@ -418,7 +418,7 @@ public class ControlPoint implements AutoCloseable {
      * entry expires. Can also be called externally to force-remove a device.
      *
      * @param udn the Unique Device Name of the device to remove
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void removeDevice(String udn) {
         var removed = deviceCache.remove(udn);
@@ -795,7 +795,7 @@ public class ControlPoint implements AutoCloseable {
      *
      * @param usn the USN string from the SSDP message
      * @return the extracted UDN, or {@code null} if the USN cannot be parsed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static String extractUdn(String usn) {
         if (usn == null || usn.isEmpty()) {

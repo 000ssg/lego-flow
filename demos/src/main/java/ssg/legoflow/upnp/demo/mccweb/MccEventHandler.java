@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
  * returns responses, this handler collects recent events and returns them
  * as an SSE-formatted response. Clients poll this endpoint for updates.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MccEventHandler implements DeviceListener, PlaybackListener, AutoCloseable {
 
@@ -47,7 +47,7 @@ public class MccEventHandler implements DeviceListener, PlaybackListener, AutoCl
      * Creates a new event handler and registers listeners.
      *
      * @param controlPoint the UPnP control point
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MccEventHandler(ControlPoint controlPoint) {
         this.controlPoint = Objects.requireNonNull(controlPoint, "controlPoint must not be null");
@@ -70,7 +70,7 @@ public class MccEventHandler implements DeviceListener, PlaybackListener, AutoCl
      * @param ctx     the HTTP context
      * @param request the HTTP request
      * @return the HTTP response with SSE-formatted event data
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse getEvents(HttpContext ctx, HttpRequest request) {
         var sb = new StringBuilder();
@@ -145,7 +145,7 @@ public class MccEventHandler implements DeviceListener, PlaybackListener, AutoCl
      * Subscribes this handler to playback events from a renderer.
      *
      * @param renderer the media renderer proxy
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void subscribeRenderer(MediaRendererProxy renderer) {
         renderer.subscribeTransportEvents(this);
@@ -155,7 +155,7 @@ public class MccEventHandler implements DeviceListener, PlaybackListener, AutoCl
      * Returns the number of buffered events.
      *
      * @return the event count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getBufferedEventCount() {
         return eventBuffer.size();

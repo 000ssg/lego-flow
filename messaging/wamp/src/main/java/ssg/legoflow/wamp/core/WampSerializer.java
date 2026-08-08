@@ -13,7 +13,7 @@ import java.util.Map;
  * <p>This implementation handles basic JSON types: strings, numbers, booleans,
  * null, arrays, and objects. It does not depend on external JSON libraries.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class WampSerializer {
 

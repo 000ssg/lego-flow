@@ -27,7 +27,7 @@ import java.util.Set;
  *   <li>{@code >} Push (RESP3)</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface RespType {
 

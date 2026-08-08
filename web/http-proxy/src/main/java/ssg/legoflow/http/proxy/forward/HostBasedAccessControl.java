@@ -9,7 +9,7 @@ import java.util.Set;
  *
  * <p>Supports allowlist and denylist modes for controlling access by hostname.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class HostBasedAccessControl implements ProxyAccessControl {
 
@@ -24,7 +24,7 @@ class HostBasedAccessControl implements ProxyAccessControl {
      * @param allowedHosts the set of allowed hosts (used in allowlist mode)
      * @param deniedHosts the set of denied hosts (used in denylist mode)
      * @param allowlistMode true for allowlist mode, false for denylist mode
-     * @since 1.0.0
+     * @since 0.1.0
      */
     HostBasedAccessControl(Set<String> allowedHosts, Set<String> deniedHosts, boolean allowlistMode) {
         this.allowedHosts = Set.copyOf(allowedHosts);
