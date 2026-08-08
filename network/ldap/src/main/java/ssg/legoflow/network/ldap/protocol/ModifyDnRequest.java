@@ -16,7 +16,7 @@ package ssg.legoflow.network.ldap.protocol;
  * @param newRdn       the new RDN
  * @param deleteOldRdn whether to delete the old RDN values
  * @param newSuperior  the optional new parent DN (null if not moving)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ModifyDnRequest(
         String entry,

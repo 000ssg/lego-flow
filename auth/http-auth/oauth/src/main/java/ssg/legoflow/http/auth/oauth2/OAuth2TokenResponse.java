@@ -11,7 +11,7 @@ import java.time.Instant;
  * @param refreshToken the refresh token (may be null)
  * @param scope        the granted scope
  * @param issuedAt     when the token was issued
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record OAuth2TokenResponse(
         String accessToken,
@@ -29,7 +29,7 @@ public record OAuth2TokenResponse(
      * @param expiresIn    the lifetime in seconds
      * @param refreshToken the refresh token
      * @param scope        the scope
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public OAuth2TokenResponse(String accessToken, String tokenType, long expiresIn,
                                String refreshToken, String scope) {
@@ -40,7 +40,7 @@ public record OAuth2TokenResponse(
      * Checks if the access token has expired.
      *
      * @return true if expired
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isExpired() {
         if (expiresIn <= 0) return false;
@@ -51,7 +51,7 @@ public record OAuth2TokenResponse(
      * Returns the expiration instant.
      *
      * @return the expiration time
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Instant expiresAt() {
         return issuedAt.plusSeconds(expiresIn);
@@ -61,7 +61,7 @@ public record OAuth2TokenResponse(
      * Serializes to a simple JSON string.
      *
      * @return the JSON representation
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toJson() {
         var sb = new StringBuilder("{");
@@ -83,7 +83,7 @@ public record OAuth2TokenResponse(
      *
      * @param json the JSON string
      * @return the token response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static OAuth2TokenResponse fromJson(String json) {
         String accessToken = extractJsonString(json, "access_token");

@@ -16,7 +16,7 @@ import java.net.ConnectException;
  * <p>Produces appropriate HTTP error responses for common proxy failure scenarios:
  * 502 Bad Gateway, 504 Gateway Timeout, 503 Service Unavailable.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ProxyErrorHandler {
 
@@ -26,7 +26,7 @@ public class ProxyErrorHandler {
      * Creates a new proxy error handler.
      *
      * @param proxyName the proxy name for error messages
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ProxyErrorHandler(String proxyName) {
         this.proxyName = proxyName;
@@ -37,7 +37,7 @@ public class ProxyErrorHandler {
      *
      * @param cause the exception that occurred
      * @return an appropriate HTTP error response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse handleError(Throwable cause) {
         if (cause instanceof SocketTimeoutException) {
@@ -54,7 +54,7 @@ public class ProxyErrorHandler {
      *
      * @param detail the error detail message
      * @return the error response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse badGateway(String detail) {
         return errorResponse(HttpStatus.BAD_GATEWAY, detail);
@@ -65,7 +65,7 @@ public class ProxyErrorHandler {
      *
      * @param detail the error detail message
      * @return the error response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse gatewayTimeout(String detail) {
         return errorResponse(HttpStatus.GATEWAY_TIMEOUT, detail);
@@ -76,7 +76,7 @@ public class ProxyErrorHandler {
      *
      * @param detail the error detail message
      * @return the error response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse serviceUnavailable(String detail) {
         return errorResponse(HttpStatus.SERVICE_UNAVAILABLE, detail);
@@ -88,7 +88,7 @@ public class ProxyErrorHandler {
      * @param status the HTTP status
      * @param detail the error detail
      * @return the error response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse errorResponse(HttpStatus status, String detail) {
         String body = status.code() + " " + status.reason() + "\n"
@@ -108,7 +108,7 @@ public class ProxyErrorHandler {
      * Returns the proxy name used in error messages.
      *
      * @return the proxy name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getProxyName() {
         return proxyName;

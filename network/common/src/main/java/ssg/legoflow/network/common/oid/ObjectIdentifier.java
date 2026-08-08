@@ -14,7 +14,7 @@ import java.util.stream.IntStream;
  * <p>The first arc must be 0, 1, or 2. If the first arc is 0 or 1, the second
  * arc must be less than 40. An OID must have at least 2 arcs.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ObjectIdentifier implements Comparable<ObjectIdentifier> {
 

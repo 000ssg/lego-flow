@@ -15,7 +15,7 @@ import java.util.OptionalInt;
  * @param address  the connection address
  * @param ttl      TTL for IPv4 multicast, empty for unicast
  * @param count    number of contiguous multicast addresses, empty if not specified
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ConnectionInfo(
         String netType,

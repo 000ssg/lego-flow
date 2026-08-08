@@ -3,7 +3,7 @@ package ssg.legoflow.ssh.mac;
 /**
  * Interface for SSH MAC (Message Authentication Code) computation.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface SshMac {
 

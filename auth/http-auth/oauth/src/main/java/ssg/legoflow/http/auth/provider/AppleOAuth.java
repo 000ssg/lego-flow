@@ -5,7 +5,7 @@ import java.util.Set;
 /**
  * Sign in with Apple OAuth 2.0 provider configuration.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class AppleOAuth extends OAuthProvider {
 

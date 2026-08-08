@@ -12,7 +12,7 @@ import java.util.List;
  * <p>This class is immutable and thread-safe.
  *
  * @param components the attribute type-value pairs
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Rdn(List<RdnComponent> components) {
 
@@ -90,7 +90,7 @@ public record Rdn(List<RdnComponent> components) {
      *
      * @param type  the attribute type (e.g. "cn", "dc")
      * @param value the attribute value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record RdnComponent(String type, String value) {
         /** Creates a component with validation. */

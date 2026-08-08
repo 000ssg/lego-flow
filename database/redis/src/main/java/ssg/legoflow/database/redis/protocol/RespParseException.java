@@ -5,7 +5,7 @@ import java.io.IOException;
 /**
  * Exception thrown when a RESP message cannot be parsed.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class RespParseException extends IOException {
 

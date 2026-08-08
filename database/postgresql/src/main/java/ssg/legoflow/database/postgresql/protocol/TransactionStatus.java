@@ -3,7 +3,7 @@ package ssg.legoflow.database.postgresql.protocol;
 /**
  * Transaction status indicators used in ReadyForQuery messages.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum TransactionStatus {
 

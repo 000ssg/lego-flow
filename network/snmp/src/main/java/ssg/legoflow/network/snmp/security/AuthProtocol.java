@@ -3,7 +3,7 @@ package ssg.legoflow.network.snmp.security;
 /**
  * Authentication protocol identifiers for USM (RFC 3414).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum AuthProtocol {
 

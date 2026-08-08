@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * in-flight message tracking. Persistent sessions survive client reconnection
  * when {@code cleanSession} is {@code false}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MqttSession {
 

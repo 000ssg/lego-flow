@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>Handles registration of controllable nodes and sending control commands.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ControlManager {
 

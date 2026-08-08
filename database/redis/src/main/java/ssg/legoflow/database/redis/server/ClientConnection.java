@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * <p>Tracks per-client state: selected database, RESP protocol version,
  * transaction state, pub/sub subscriptions, and client metadata.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ClientConnection {
 

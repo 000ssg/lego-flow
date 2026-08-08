@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * to allow message transfers. Messages are queued internally and can be
  * consumed via {@link #receive()} or {@link #receive(long, TimeUnit)}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ReceiverLink {
 

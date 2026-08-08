@@ -9,7 +9,7 @@ import java.util.List;
  *
  * @param name       the fragment name
  * @param directives the directives applied to this spread
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record FragmentSpread(String name,
                              List<Directive.DirectiveUsage> directives) implements Selection {

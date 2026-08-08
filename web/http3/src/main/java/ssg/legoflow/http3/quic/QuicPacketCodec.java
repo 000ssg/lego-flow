@@ -4,6 +4,7 @@ import ssg.legoflow.blocks.AbstractDataFilter;
 import ssg.legoflow.blocks.Context;
 
 import java.nio.ByteBuffer;
+import ssg.legoflow.service.util.BufferPool;
 import java.util.ArrayList;
 
 /**
@@ -18,7 +19,7 @@ import java.util.ArrayList;
  * values 0–63 use 1 byte, 64–16383 use 2 bytes,
  * 16384–1073741823 use 4 bytes, and larger values use 8 bytes.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class QuicPacketCodec extends AbstractDataFilter<ByteBuffer> {
 
@@ -38,7 +39,7 @@ public class QuicPacketCodec extends AbstractDataFilter<ByteBuffer> {
     /**
      * Codec operating mode.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum Mode {
         /** Encode QUIC packets into wire format. */
@@ -51,7 +52,7 @@ public class QuicPacketCodec extends AbstractDataFilter<ByteBuffer> {
      * Creates a new codec in the specified mode.
      *
      * @param mode the operating mode (encode or decode)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicPacketCodec(Mode mode) {
         super(ByteBuffer.class);
@@ -97,10 +98,10 @@ public class QuicPacketCodec extends AbstractDataFilter<ByteBuffer> {
      *
      * @param packet the packet to encode
      * @return a {@link ByteBuffer} containing the encoded packet
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ByteBuffer encodePacket(QuicPacket packet) {
-        var buf = ByteBuffer.allocate(4096);
+        var buf = BufferPool.getBuffer(4096);
         if (isLongHeader(packet.type())) {
             encodeLongHeader(buf, packet);
         } else {
@@ -119,7 +120,7 @@ public class QuicPacketCodec extends AbstractDataFilter<ByteBuffer> {
      *
      * @param data the wire-format data
      * @return the decoded {@code QuicPacket}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicPacket decodePacket(ByteBuffer data) {
         var buf = data.duplicate();
@@ -242,12 +243,12 @@ public class QuicPacketCodec extends AbstractDataFilter<ByteBuffer> {
             var frameType = QuicFrameType.fromCode((int) typeCode);
 
             if (frameType == QuicFrameType.PADDING) {
-                frames.add(new QuicFrame(frameType, 0, ByteBuffer.allocate(0), 0, false));
+                frames.add(new QuicFrame(frameType, 0, BufferPool.getBuffer(0), 0, false));
                 continue;
             }
 
             if (frameType == QuicFrameType.PING) {
-                frames.add(new QuicFrame(frameType, 0, ByteBuffer.allocate(0), 0, false));
+                frames.add(new QuicFrame(frameType, 0, BufferPool.getBuffer(0), 0, false));
                 continue;
             }
 
@@ -255,7 +256,7 @@ public class QuicPacketCodec extends AbstractDataFilter<ByteBuffer> {
                 long streamId = decodeVarInt(buf);
                 long offset = decodeVarInt(buf);
                 long length = decodeVarInt(buf);
-                var payload = ByteBuffer.allocate((int) length);
+                var payload = BufferPool.getBuffer((int) length);
                 for (int i = 0; i < length; i++) {
                     payload.put(buf.get());
                 }
@@ -265,14 +266,14 @@ public class QuicPacketCodec extends AbstractDataFilter<ByteBuffer> {
                 // Generic frame with payload length
                 if (buf.hasRemaining()) {
                     long length = decodeVarInt(buf);
-                    var payload = ByteBuffer.allocate((int) length);
+                    var payload = BufferPool.getBuffer((int) length);
                     for (int i = 0; i < length; i++) {
                         payload.put(buf.get());
                     }
                     payload.flip();
                     frames.add(new QuicFrame(frameType, 0, payload, 0, false));
                 } else {
-                    frames.add(new QuicFrame(frameType, 0, ByteBuffer.allocate(0), 0, false));
+                    frames.add(new QuicFrame(frameType, 0, BufferPool.getBuffer(0), 0, false));
                 }
             }
         }
@@ -290,7 +291,7 @@ public class QuicPacketCodec extends AbstractDataFilter<ByteBuffer> {
      * @param buf   the target buffer
      * @param value the value to encode (must be non-negative)
      * @throws IllegalArgumentException if the value is negative or exceeds 2^62 - 1
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void encodeVarInt(ByteBuffer buf, long value) {
         if (value < 0) {
@@ -314,7 +315,7 @@ public class QuicPacketCodec extends AbstractDataFilter<ByteBuffer> {
      *
      * @param buf the source buffer positioned at the start of the encoded integer
      * @return the decoded value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static long decodeVarInt(ByteBuffer buf) {
         int firstByte = buf.get() & 0xFF;

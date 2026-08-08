@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import ssg.legoflow.service.util.BufferPool;
 import java.util.Arrays;
 
 /**
@@ -12,7 +13,7 @@ import java.util.Arrays;
  * <p>Handles the MBAP header and PDU serialization/deserialization for
  * Modbus TCP communication.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ModbusCodec {
 

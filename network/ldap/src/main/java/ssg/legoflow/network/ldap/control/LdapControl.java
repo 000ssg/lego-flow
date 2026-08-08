@@ -17,7 +17,7 @@ package ssg.legoflow.network.ldap.control;
  * @param oid         the control type OID
  * @param criticality whether the control is critical
  * @param value       the optional control value (null if absent)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record LdapControl(String oid, boolean criticality, byte[] value) {
 

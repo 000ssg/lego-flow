@@ -11,7 +11,7 @@ import java.util.List;
  * <p>Holds the parsed SQL query, parameter metadata, and any long data
  * received via COM_STMT_SEND_LONG_DATA.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class PreparedStatement {
 

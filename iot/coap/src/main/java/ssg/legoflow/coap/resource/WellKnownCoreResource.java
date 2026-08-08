@@ -18,7 +18,7 @@ import java.util.function.Supplier;
  * <p>Returns a link-format listing of all registered resources, supporting
  * query filtering by resource type ({@code ?rt=}) and interface description ({@code ?if=}).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class WellKnownCoreResource extends CoapResource {
 
@@ -31,7 +31,7 @@ public final class WellKnownCoreResource extends CoapResource {
      * Creates the well-known/core resource with a supplier for registered resources.
      *
      * @param resourceProvider a supplier returning all registered resources
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public WellKnownCoreResource(Supplier<List<CoapResource>> resourceProvider) {
         super("core", PATH, false);
@@ -50,7 +50,7 @@ public final class WellKnownCoreResource extends CoapResource {
      * </ul>
      *
      * @param exchange the exchange context
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void handleGet(CoapExchange exchange) {

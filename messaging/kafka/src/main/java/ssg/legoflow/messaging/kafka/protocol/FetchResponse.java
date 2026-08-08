@@ -7,7 +7,7 @@ import java.util.List;
  *
  * @param throttleTimeMs the throttle time in milliseconds
  * @param topics         the per-topic responses
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record FetchResponse(int throttleTimeMs, List<TopicResponse> topics) {
 

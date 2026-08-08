@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>Implements SFTP version 3 protocol handling for file operations
  * on the server's local filesystem.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SftpServer {
 

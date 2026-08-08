@@ -11,7 +11,7 @@ import java.util.Objects;
  * A record RDATA: a 4-byte IPv4 address (RFC 1035).
  *
  * @param address the IPv4 address
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ARecord(Inet4Address address) implements RData {
 
@@ -30,7 +30,7 @@ public record ARecord(Inet4Address address) implements RData {
      * @param ip the IPv4 address string (e.g., "192.0.2.1")
      * @return the A record
      * @throws IllegalArgumentException if the address is invalid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static ARecord of(String ip) {
         try {
@@ -50,7 +50,7 @@ public record ARecord(Inet4Address address) implements RData {
      * @param bytes the 4-byte IPv4 address
      * @return the A record
      * @throws IllegalArgumentException if the byte array is not 4 bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static ARecord fromBytes(byte[] bytes) {
         if (bytes.length != 4) {

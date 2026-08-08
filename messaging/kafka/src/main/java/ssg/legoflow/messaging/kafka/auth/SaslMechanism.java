@@ -6,7 +6,7 @@ package ssg.legoflow.messaging.kafka.auth;
  * <p>Implementations handle one or more rounds of challenge-response exchange
  * between client and server during SASL authentication.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface SaslMechanism {
 

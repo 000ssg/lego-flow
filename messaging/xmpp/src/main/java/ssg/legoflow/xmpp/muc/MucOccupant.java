@@ -16,14 +16,14 @@ import java.util.Objects;
  * @param nick        the occupant's nickname in the room
  * @param role        the occupant's role (visitor, participant, moderator)
  * @param affiliation the occupant's affiliation (none, member, admin, owner, outcast)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record MucOccupant(JID roomJid, JID realJid, String nick, Role role, Affiliation affiliation) {
 
     /**
      * Roles define how an occupant can interact in the room.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum Role {
         /** Cannot send messages to the room. */
@@ -39,7 +39,7 @@ public record MucOccupant(JID roomJid, JID realJid, String nick, Role role, Affi
     /**
      * Affiliations define a user's long-term association with the room.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum Affiliation {
         /** Banned from the room. */

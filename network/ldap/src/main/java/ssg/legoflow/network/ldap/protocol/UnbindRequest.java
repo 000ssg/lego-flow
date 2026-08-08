@@ -10,7 +10,7 @@ package ssg.legoflow.network.ldap.protocol;
  * UnbindRequest ::= [APPLICATION 2] NULL
  * }</pre>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record UnbindRequest() implements LdapProtocolOp {
 

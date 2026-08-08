@@ -6,7 +6,7 @@ import java.util.List;
  * DescribeGroups response (API key 15).
  *
  * @param groups the described groups
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record DescribeGroupsResponse(List<GroupDescription> groups) {
 

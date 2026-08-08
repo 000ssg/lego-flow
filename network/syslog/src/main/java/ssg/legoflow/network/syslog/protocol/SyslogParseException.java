@@ -3,7 +3,7 @@ package ssg.legoflow.network.syslog.protocol;
 /**
  * Exception thrown when a syslog message cannot be parsed.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SyslogParseException extends RuntimeException {
 

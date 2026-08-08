@@ -20,7 +20,7 @@ import java.util.Objects;
  * @param keyTag        the key tag of the signing DNSKEY
  * @param signerName    the signer's domain name
  * @param signature     the cryptographic signature
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record RrsigRecord(
         RecordType typeCovered,
@@ -56,7 +56,7 @@ public record RrsigRecord(
      * Returns whether the signature is currently valid (not expired and past inception).
      *
      * @return {@code true} if the signature is temporally valid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isTemporallyValid() {
         Instant now = Instant.now();

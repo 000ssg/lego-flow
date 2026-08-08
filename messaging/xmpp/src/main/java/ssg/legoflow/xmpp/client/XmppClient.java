@@ -25,7 +25,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * <p>Provides high-level methods for connecting, authenticating, sending messages,
  * managing presence and roster, and interacting with IoT sensor/control/discovery.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class XmppClient implements AutoCloseable {
 

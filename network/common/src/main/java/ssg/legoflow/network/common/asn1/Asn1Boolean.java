@@ -6,7 +6,7 @@ package ssg.legoflow.network.common.asn1;
  * <p>In BER, any non-zero value means true. In DER, true must be encoded as 0xFF.
  *
  * @param value the boolean value
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Asn1Boolean(boolean value) implements Asn1Type {
 

@@ -17,7 +17,7 @@ import java.net.Socket;
  * Reads from the socket input stream byte by byte, accumulating until a NULL byte
  * is found, then decodes the complete frame.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class TcpStompTransport implements StompTransport {
 

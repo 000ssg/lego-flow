@@ -23,7 +23,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * <p>Tracks registrations from observers to resources and supports
  * notification delivery to all observers of a given resource path.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ObserveRegistry {
 
@@ -43,7 +43,7 @@ public final class ObserveRegistry {
      * @param observer the observer's socket address
      * @return the created {@link ObserveRelation}
      * @throws NullPointerException if any argument is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ObserveRelation register(byte[] token, String path, SocketAddress observer) {
         Objects.requireNonNull(token, "token must not be null");
@@ -69,7 +69,7 @@ public final class ObserveRegistry {
      * Deregisters the observe relation with the given token.
      *
      * @param token the observation token to deregister
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void deregister(byte[] token) {
         Objects.requireNonNull(token, "token must not be null");
@@ -87,7 +87,7 @@ public final class ObserveRegistry {
      *
      * @param path the resource path
      * @return an unmodifiable list of active observe relations
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<ObserveRelation> getObservers(String path) {
         Objects.requireNonNull(path, "path must not be null");
@@ -113,7 +113,7 @@ public final class ObserveRegistry {
      * @param path         the resource path
      * @param notification a template notification message (code, payload, options)
      * @return a list of (relation, message) pairs for each active observer
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<NotificationEntry> notifyObservers(String path, CoapMessage notification) {
         Objects.requireNonNull(path, "path must not be null");
@@ -157,7 +157,7 @@ public final class ObserveRegistry {
      * Returns the total number of registered (active or inactive) relations.
      *
      * @return the total registration count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int size() {
         return byToken.size();
@@ -166,7 +166,7 @@ public final class ObserveRegistry {
     /**
      * Removes all registrations.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void clear() {
         for (var relation : byToken.values()) {
@@ -191,7 +191,7 @@ public final class ObserveRegistry {
      *
      * @param relation     the observe relation
      * @param notification the notification message to send
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record NotificationEntry(ObserveRelation relation, CoapMessage notification) {
     }

@@ -15,7 +15,7 @@ import java.util.Objects;
  * @param fromTime   the start time for historical data (may be null)
  * @param toTime     the end time for historical data (may be null)
  * @param historical whether to request historical data
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SensorDataRequest(
         JID from,

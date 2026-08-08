@@ -9,7 +9,7 @@ import ssg.legoflow.messaging.nats.protocol.ConnectOptions;
  * configured credentials. The server calls {@link #authenticate}
  * during the CONNECT handshake.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface Authenticator {
 

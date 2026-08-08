@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * for sequence number to UID mapping, tracks permanent and session flags,
  * and supports CONDSTORE modification sequences.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class Mailbox {
 

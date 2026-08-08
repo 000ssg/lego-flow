@@ -9,7 +9,7 @@ import java.util.Optional;
 /**
  * OpenID Connect ID Token with standard claims.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class IdToken {
 
@@ -21,7 +21,7 @@ public class IdToken {
      *
      * @param rawToken the raw JWT token
      * @param claims   the parsed claims
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public IdToken(String rawToken, JwtClaims claims) {
         this.rawToken = rawToken;
@@ -33,7 +33,7 @@ public class IdToken {
      *
      * @param rawToken the raw JWT token
      * @return the ID token, or empty if malformed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Optional<IdToken> parse(String rawToken) {
         if (rawToken == null || rawToken.isBlank()) return Optional.empty();
@@ -53,7 +53,7 @@ public class IdToken {
      *
      * @param provider the JWT token provider
      * @return the validated claims, or empty if invalid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<Map<String, Object>> validate(JwtTokenProvider provider) {
         return provider.validateToken(rawToken);

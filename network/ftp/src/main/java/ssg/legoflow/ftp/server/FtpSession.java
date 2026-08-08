@@ -10,7 +10,7 @@ import java.net.InetAddress;
  * <p>Tracks the current directory, transfer type, authentication state,
  * rename state, and data connection mode for each connected client.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class FtpSession {
 

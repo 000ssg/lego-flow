@@ -6,7 +6,7 @@ package ssg.legoflow.http3.quic;
  * <p>These error codes are carried in CONNECTION_CLOSE frames to indicate
  * the reason for closing a connection.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum QuicErrorCode {
 
@@ -71,7 +71,7 @@ public enum QuicErrorCode {
      * Returns the wire-format error code.
      *
      * @return the error code per RFC 9000
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int code() {
         return code;
@@ -83,7 +83,7 @@ public enum QuicErrorCode {
      * @param code the error code from the wire format
      * @return the matching {@code QuicErrorCode}
      * @throws IllegalArgumentException if the code is not recognised
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static QuicErrorCode fromCode(int code) {
         for (var error : values()) {

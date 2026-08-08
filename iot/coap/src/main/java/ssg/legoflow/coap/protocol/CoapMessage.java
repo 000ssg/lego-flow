@@ -14,7 +14,7 @@ import java.util.Objects;
  * a list of options, and an optional payload. Instances are created via
  * the {@link Builder}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class CoapMessage {
 
@@ -40,7 +40,7 @@ public final class CoapMessage {
      * Returns the CoAP version.
      *
      * @return the version
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapVersion version() {
         return version;
@@ -50,7 +50,7 @@ public final class CoapMessage {
      * Returns the message type.
      *
      * @return the type
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapType type() {
         return type;
@@ -60,7 +60,7 @@ public final class CoapMessage {
      * Returns the request/response code.
      *
      * @return the code
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapCode code() {
         return code;
@@ -70,7 +70,7 @@ public final class CoapMessage {
      * Returns the message ID (16-bit unsigned).
      *
      * @return the message ID
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int messageId() {
         return messageId;
@@ -80,7 +80,7 @@ public final class CoapMessage {
      * Returns a copy of the token bytes.
      *
      * @return the token
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public byte[] token() {
         return token.clone();
@@ -90,7 +90,7 @@ public final class CoapMessage {
      * Returns the token length.
      *
      * @return the token length in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int tokenLength() {
         return token.length;
@@ -100,7 +100,7 @@ public final class CoapMessage {
      * Returns an unmodifiable list of options.
      *
      * @return the options
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<CoapOption> options() {
         return options;
@@ -110,7 +110,7 @@ public final class CoapMessage {
      * Returns a copy of the payload bytes.
      *
      * @return the payload
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public byte[] payload() {
         return payload.clone();
@@ -120,7 +120,7 @@ public final class CoapMessage {
      * Returns whether this message has a non-empty payload.
      *
      * @return {@code true} if the payload is non-empty
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean hasPayload() {
         return payload.length > 0;
@@ -131,7 +131,7 @@ public final class CoapMessage {
      *
      * @param number the option number
      * @return the first matching option, or {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapOption getOption(int number) {
         for (var option : options) {
@@ -147,7 +147,7 @@ public final class CoapMessage {
      *
      * @param number the option number
      * @return a list of matching options (possibly empty)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<CoapOption> getOptions(int number) {
         var result = new ArrayList<CoapOption>();
@@ -165,7 +165,7 @@ public final class CoapMessage {
      * Returns the full URI path assembled from Uri-Path options.
      *
      * @return the URI path (e.g. "/sensors/temperature"), or "/" if no Uri-Path options
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getUriPath() {
         var paths = getOptions(CoapOption.URI_PATH);
@@ -183,7 +183,7 @@ public final class CoapMessage {
      * Returns the URI query assembled from Uri-Query options.
      *
      * @return the query string (e.g. "key=value&other=123"), or an empty string if absent
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getUriQuery() {
         var queries = getOptions(CoapOption.URI_QUERY);
@@ -202,7 +202,7 @@ public final class CoapMessage {
      * Returns the Content-Format option value, or -1 if absent.
      *
      * @return the content format identifier, or -1
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getContentFormat() {
         var option = getOption(CoapOption.CONTENT_FORMAT);
@@ -213,7 +213,7 @@ public final class CoapMessage {
      * Returns the ETag option value, or {@code null} if absent.
      *
      * @return the entity tag bytes, or {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public byte[] getETag() {
         var option = getOption(CoapOption.ETAG);
@@ -224,7 +224,7 @@ public final class CoapMessage {
      * Returns the Location-Path assembled from Location-Path options.
      *
      * @return the location path, or an empty string if absent
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getLocationPath() {
         var paths = getOptions(CoapOption.LOCATION_PATH);
@@ -242,7 +242,7 @@ public final class CoapMessage {
      * Returns the payload as a UTF-8 string.
      *
      * @return the payload string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getPayloadString() {
         return new String(payload, StandardCharsets.UTF_8);
@@ -259,7 +259,7 @@ public final class CoapMessage {
      * Creates a new {@link Builder} for constructing CoAP messages.
      *
      * @return a new builder
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Builder builder() {
         return new Builder();
@@ -268,7 +268,7 @@ public final class CoapMessage {
     /**
      * Builder for constructing {@link CoapMessage} instances.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class Builder {
 
@@ -288,7 +288,7 @@ public final class CoapMessage {
          *
          * @param version the version
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder version(CoapVersion version) {
             this.version = Objects.requireNonNull(version, "version must not be null");
@@ -300,7 +300,7 @@ public final class CoapMessage {
          *
          * @param type the message type
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder type(CoapType type) {
             this.type = Objects.requireNonNull(type, "type must not be null");
@@ -312,7 +312,7 @@ public final class CoapMessage {
          *
          * @param code the code
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder code(CoapCode code) {
             this.code = Objects.requireNonNull(code, "code must not be null");
@@ -324,7 +324,7 @@ public final class CoapMessage {
          *
          * @param messageId the 16-bit message ID
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder messageId(int messageId) {
             this.messageId = messageId & 0xFFFF;
@@ -336,7 +336,7 @@ public final class CoapMessage {
          *
          * @param token the token (0-8 bytes)
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder token(byte[] token) {
             this.token = token;
@@ -348,7 +348,7 @@ public final class CoapMessage {
          *
          * @param option the option to add
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder option(CoapOption option) {
             this.options.add(Objects.requireNonNull(option, "option must not be null"));
@@ -360,7 +360,7 @@ public final class CoapMessage {
          *
          * @param path the URI path (e.g. "/sensors/temperature")
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder uriPath(String path) {
             Objects.requireNonNull(path, "path must not be null");
@@ -378,7 +378,7 @@ public final class CoapMessage {
          *
          * @param query the query parameter
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder uriQuery(String query) {
             options.add(CoapOption.uriQuery(query));
@@ -390,7 +390,7 @@ public final class CoapMessage {
          *
          * @param format the content format value
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder contentFormat(int format) {
             options.add(CoapOption.contentFormat(format));
@@ -402,7 +402,7 @@ public final class CoapMessage {
          *
          * @param payload the payload bytes
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder payload(byte[] payload) {
             this.payload = payload;
@@ -414,7 +414,7 @@ public final class CoapMessage {
          *
          * @param payload the payload string
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder payload(String payload) {
             this.payload = payload.getBytes(StandardCharsets.UTF_8);
@@ -425,7 +425,7 @@ public final class CoapMessage {
          * Builds the {@link CoapMessage}.
          *
          * @return the constructed message
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public CoapMessage build() {
             return new CoapMessage(this);

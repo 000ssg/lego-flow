@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * the delivery-id, delivery-tag, settlement state, and outcome until the
  * delivery is fully settled.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class Delivery {
 

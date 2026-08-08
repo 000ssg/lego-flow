@@ -21,7 +21,7 @@ import java.util.Map;
  *   <li>GET with query params: query, variables (JSON), operationName</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class GraphQLHttpHandler implements HttpRequestHandler {
 

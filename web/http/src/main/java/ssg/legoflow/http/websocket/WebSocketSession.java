@@ -11,14 +11,14 @@ import java.util.function.Consumer;
  * The initiator sends a close frame, the peer responds with a close frame,
  * then the connection is closed.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class WebSocketSession {
 
     /**
      * Represents the close handshake state per RFC 6455 §7.1.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum CloseState {
         /** Connection is open, no close initiated. */

@@ -9,7 +9,7 @@ import java.util.Optional;
  *
  * <p>Format: {@code METHOD rtsp://host/path RTSP/2.0\r\n headers\r\n\r\n [body]}
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RtspRequest {
 

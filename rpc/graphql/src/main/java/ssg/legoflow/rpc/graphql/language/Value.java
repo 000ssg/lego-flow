@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * Sealed interface representing literal values in GraphQL queries.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface Value {
 

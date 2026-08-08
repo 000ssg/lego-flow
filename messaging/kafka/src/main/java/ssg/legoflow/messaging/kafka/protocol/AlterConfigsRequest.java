@@ -7,7 +7,7 @@ import java.util.List;
  *
  * @param resources    the resources whose configurations to alter
  * @param validateOnly if true, validate the configuration without applying
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record AlterConfigsRequest(List<ResourceConfig> resources, boolean validateOnly) {
 

@@ -9,7 +9,7 @@ import java.util.List;
  * @param generationId the group generation ID
  * @param memberId     the member ID
  * @param topics       the topics with offsets to commit
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record OffsetCommitRequest(String groupId, int generationId, String memberId,
                                   List<TopicOffsets> topics) {

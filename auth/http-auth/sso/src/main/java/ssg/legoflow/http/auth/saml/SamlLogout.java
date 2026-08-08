@@ -14,7 +14,7 @@ import java.util.UUID;
  * SAML 2.0 Single Logout support: generates LogoutRequest XML and
  * parses LogoutResponse XML.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SamlLogout {
 
@@ -30,7 +30,7 @@ public class SamlLogout {
      * @param statusCode    the status code URI
      * @param issuer        the response issuer
      * @param success       whether the logout was successful
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record LogoutResult(
             String id,
@@ -48,7 +48,7 @@ public class SamlLogout {
      * @param nameId      the NameID of the user to log out
      * @param sessionIndex the session index from the original assertion (may be null)
      * @return the LogoutRequest XML string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String generateLogoutRequest(String issuer, String destination,
                                                 String nameId, String sessionIndex) {
@@ -87,7 +87,7 @@ public class SamlLogout {
      * @param nameId       the user's NameID
      * @param sessionIndex the session index (may be null)
      * @return the LogoutRequest XML
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String generateLogoutRequest(SamlConfig config, String spEntityId,
                                                 String nameId, String sessionIndex) {
@@ -99,7 +99,7 @@ public class SamlLogout {
      *
      * @param logoutResponseXml the LogoutResponse XML string
      * @return the parsed result, or empty if parsing fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Optional<LogoutResult> parseLogoutResponse(String logoutResponseXml) {
         if (logoutResponseXml == null || logoutResponseXml.isBlank()) {

@@ -17,7 +17,7 @@ import java.util.Objects;
  *   code SP last line CRLF
  * </pre>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class FtpReply {
 

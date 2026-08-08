@@ -11,7 +11,7 @@ package ssg.legoflow.messaging.amqp.message;
  * @param ttl            time to live in milliseconds (0 = no expiry)
  * @param firstAcquirer  whether this is the first acquirer of the message
  * @param deliveryCount  number of unsuccessful delivery attempts
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Header(
         boolean durable,

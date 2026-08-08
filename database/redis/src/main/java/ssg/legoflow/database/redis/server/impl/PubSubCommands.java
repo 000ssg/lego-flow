@@ -15,7 +15,7 @@ import java.util.Map;
  * Implements Redis pub/sub commands: SUBSCRIBE, UNSUBSCRIBE, PSUBSCRIBE,
  * PUNSUBSCRIBE, PUBLISH, PUBSUB.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class PubSubCommands {
 

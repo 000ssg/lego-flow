@@ -1,4 +1,9 @@
-# XMPP Module — Development Guide
+# messaging / xmpp — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -84,8 +89,3 @@ This pattern is common across Lego Flow protocol codecs that operate over TCP by
 - Stream management tests: ack counting, resume after disconnect
 - All tests use in-memory transport (no external XMPP server required)
 - Test count: 268
-
----
-
-**Last Updated**: 2026-07-06
-**For AI assistant versions**

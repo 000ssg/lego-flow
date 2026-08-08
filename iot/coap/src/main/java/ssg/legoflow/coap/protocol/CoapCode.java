@@ -9,7 +9,7 @@ import java.util.Objects;
  * The class (3 bits) and detail (5 bits) together form codes like 0.01 (GET),
  * 2.05 (Content), 4.04 (Not Found), etc.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class CoapCode {
 
@@ -22,7 +22,7 @@ public final class CoapCode {
      * @param codeClass  the code class (0-7)
      * @param codeDetail the code detail (0-31)
      * @throws IllegalArgumentException if class or detail is out of range
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapCode(int codeClass, int codeDetail) {
         if (codeClass < 0 || codeClass > 7) {
@@ -39,7 +39,7 @@ public final class CoapCode {
      * Returns the code class (0-7).
      *
      * @return the code class
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int codeClass() {
         return codeClass;
@@ -49,7 +49,7 @@ public final class CoapCode {
      * Returns the code detail (0-31).
      *
      * @return the code detail
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int codeDetail() {
         return codeDetail;
@@ -59,7 +59,7 @@ public final class CoapCode {
      * Encodes this code as a single byte: {@code (class << 5) | detail}.
      *
      * @return the encoded byte value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int encode() {
         return (codeClass << 5) | codeDetail;
@@ -70,7 +70,7 @@ public final class CoapCode {
      *
      * @param encoded the encoded code byte
      * @return the decoded {@code CoapCode}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapCode decode(int encoded) {
         int cls = (encoded >> 5) & 0x07;
@@ -82,7 +82,7 @@ public final class CoapCode {
      * Returns whether this code is a request method (class 0, detail 1-31).
      *
      * @return {@code true} if this is a method code
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isMethod() {
         return codeClass == 0 && codeDetail > 0;
@@ -92,7 +92,7 @@ public final class CoapCode {
      * Returns whether this code is a success response (class 2).
      *
      * @return {@code true} if this is a success code
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isSuccess() {
         return codeClass == 2;
@@ -102,7 +102,7 @@ public final class CoapCode {
      * Returns whether this code is a client error response (class 4).
      *
      * @return {@code true} if this is a client error code
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isClientError() {
         return codeClass == 4;
@@ -112,7 +112,7 @@ public final class CoapCode {
      * Returns whether this code is a server error response (class 5).
      *
      * @return {@code true} if this is a server error code
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isServerError() {
         return codeClass == 5;
@@ -122,7 +122,7 @@ public final class CoapCode {
      * Returns whether this is the empty code (0.00).
      *
      * @return {@code true} if class and detail are both zero
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isEmpty() {
         return codeClass == 0 && codeDetail == 0;

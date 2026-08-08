@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * messages matching stream subjects and handle JetStream API requests
  * on {@code $JS.API.*} subjects.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class JetStreamManager {
 

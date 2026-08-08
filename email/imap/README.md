@@ -5,7 +5,7 @@
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](../LICENSE)
 [![Tests](https://img.shields.io/badge/Tests-17-brightgreen.svg)]()
-[![Version](https://img.shields.io/badge/Version-1.0.0--SNAPSHOT-blue.svg)]()
+[![Version](https://img.shields.io/badge/Version-0.1.0-SNAPSHOT-blue.svg)]()
 
 IMAP protocol module for the Lego Flow framework, providing IMAP4rev2 (RFC 9051) server and client implementations for email mailbox access.
 

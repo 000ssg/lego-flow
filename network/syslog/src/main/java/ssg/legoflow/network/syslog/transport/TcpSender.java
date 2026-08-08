@@ -19,7 +19,7 @@ import java.nio.charset.StandardCharsets;
  *   <li><b>Non-transparent</b>: {@code message LF}</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class TcpSender implements AutoCloseable {
 

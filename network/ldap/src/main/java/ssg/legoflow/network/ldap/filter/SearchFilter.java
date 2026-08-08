@@ -23,7 +23,7 @@ import java.util.List;
  * }
  * }</pre>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface SearchFilter
         permits SearchFilter.And, SearchFilter.Or, SearchFilter.Not,
@@ -43,7 +43,7 @@ public sealed interface SearchFilter
      * AND filter (context tag 0): all sub-filters must match.
      *
      * @param filters the sub-filters
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record And(List<SearchFilter> filters) implements SearchFilter {
         /** Creates an AND filter with validation. */
@@ -70,7 +70,7 @@ public sealed interface SearchFilter
      * OR filter (context tag 1): at least one sub-filter must match.
      *
      * @param filters the sub-filters
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Or(List<SearchFilter> filters) implements SearchFilter {
         /** Creates an OR filter with validation. */
@@ -97,7 +97,7 @@ public sealed interface SearchFilter
      * NOT filter (context tag 2): negates the inner filter.
      *
      * @param filter the filter to negate
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Not(SearchFilter filter) implements SearchFilter {
         /** Creates a NOT filter with validation. */
@@ -119,7 +119,7 @@ public sealed interface SearchFilter
      *
      * @param attribute the attribute description
      * @param value     the assertion value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record EqualityMatch(String attribute, byte[] value) implements SearchFilter {
         /** Creates an equality match filter. */
@@ -147,7 +147,7 @@ public sealed interface SearchFilter
      * @param initial   the initial substring (null if none)
      * @param any       the list of 'any' substrings
      * @param finalStr  the final substring (null if none)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Substrings(String attribute, String initial, List<String> any, String finalStr)
             implements SearchFilter {
@@ -180,7 +180,7 @@ public sealed interface SearchFilter
      *
      * @param attribute the attribute description
      * @param value     the assertion value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record GreaterOrEqual(String attribute, byte[] value) implements SearchFilter {
         /** Creates a greater-or-equal filter. */
@@ -204,7 +204,7 @@ public sealed interface SearchFilter
      *
      * @param attribute the attribute description
      * @param value     the assertion value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record LessOrEqual(String attribute, byte[] value) implements SearchFilter {
         /** Creates a less-or-equal filter. */
@@ -227,7 +227,7 @@ public sealed interface SearchFilter
      * Presence filter (context tag 7): attribute exists.
      *
      * @param attribute the attribute description
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Present(String attribute) implements SearchFilter {
         /** Creates a presence filter. */
@@ -245,7 +245,7 @@ public sealed interface SearchFilter
      *
      * @param attribute the attribute description
      * @param value     the assertion value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record ApproxMatch(String attribute, byte[] value) implements SearchFilter {
         /** Creates an approximate match filter. */
@@ -271,7 +271,7 @@ public sealed interface SearchFilter
      * @param attribute    the optional attribute description
      * @param matchValue   the assertion value
      * @param dnAttributes whether to match DN attributes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record ExtensibleMatch(String matchingRule, String attribute, byte[] matchValue, boolean dnAttributes)
             implements SearchFilter {

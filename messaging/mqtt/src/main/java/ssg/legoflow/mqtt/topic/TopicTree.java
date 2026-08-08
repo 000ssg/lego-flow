@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * {@link ConcurrentHashMap}-based trie nodes.
  *
  * @param <T> the subscriber type
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class TopicTree<T> {
 

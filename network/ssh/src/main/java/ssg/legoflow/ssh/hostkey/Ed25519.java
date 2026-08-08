@@ -8,7 +8,7 @@ import java.security.*;
  *
  * <p>Uses the Ed25519 signature scheme from RFC 8032.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class Ed25519 implements HostKeyAlgorithm {
 

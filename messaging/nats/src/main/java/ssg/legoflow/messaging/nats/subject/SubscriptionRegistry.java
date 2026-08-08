@@ -12,7 +12,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * evaluated.
  *
  * @param <T> the subscription entry type
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SubscriptionRegistry<T> {
 

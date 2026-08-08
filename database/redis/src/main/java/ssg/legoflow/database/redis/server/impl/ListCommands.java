@@ -13,7 +13,7 @@ import java.util.*;
  * Implements Redis list commands: LPUSH, RPUSH, LPOP, RPOP, LLEN, LRANGE,
  * LINDEX, LSET, LREM, LINSERT, LTRIM, BLPOP, BRPOP, LMOVE, BLMOVE.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ListCommands {
 

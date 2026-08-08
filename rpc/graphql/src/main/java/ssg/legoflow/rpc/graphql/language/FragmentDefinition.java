@@ -14,7 +14,7 @@ import java.util.List;
  * @param typeCondition the type condition (type name)
  * @param directives    the directives on this fragment
  * @param selectionSet  the fragment's selection set
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record FragmentDefinition(String name, String typeCondition,
                                  List<Directive.DirectiveUsage> directives,

@@ -8,14 +8,14 @@ import java.util.Objects;
  * @param type      the error type category
  * @param condition the specific error condition
  * @param text      optional human-readable error text
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record StanzaError(ErrorType type, ErrorCondition condition, String text) {
 
     /**
      * Error type categories as defined in RFC 6120.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum ErrorType {
         /** Retry after providing credentials. */
@@ -33,7 +33,7 @@ public record StanzaError(ErrorType type, ErrorCondition condition, String text)
     /**
      * Defined error conditions as specified in RFC 6120.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum ErrorCondition {
         /** The sender has sent a stanza containing XML that does not conform to the schema. */

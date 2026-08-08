@@ -6,14 +6,14 @@ import java.util.Objects;
  * Configuration for session cookies including name, path, security attributes,
  * and SameSite policy.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SessionCookie {
 
     /**
      * SameSite cookie attribute values.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum SameSite {
         STRICT("Strict"),
@@ -30,7 +30,7 @@ public class SessionCookie {
          * Returns the cookie attribute value.
          *
          * @return the value string
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public String value() {
             return value;
@@ -55,7 +55,7 @@ public class SessionCookie {
      * @param httpOnly whether the cookie is HTTP-only (not accessible from JavaScript)
      * @param sameSite the SameSite policy
      * @param maxAge   the max age in seconds (-1 for session cookie)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SessionCookie(String name, String path, String domain, boolean secure,
                          boolean httpOnly, SameSite sameSite, int maxAge) {
@@ -72,7 +72,7 @@ public class SessionCookie {
      * Creates a default session cookie configuration with sensible defaults.
      *
      * @return the default session cookie config
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SessionCookie defaults() {
         return new SessionCookie("LFSESSION", "/", null, true, true, SameSite.LAX, -1);
@@ -83,7 +83,7 @@ public class SessionCookie {
      *
      * @param sessionId the session ID value
      * @return the Set-Cookie header value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String buildSetCookieHeader(String sessionId) {
         var sb = new StringBuilder();
@@ -109,7 +109,7 @@ public class SessionCookie {
      * Builds a Set-Cookie header that expires (deletes) this cookie.
      *
      * @return the Set-Cookie header value for deletion
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String buildDeleteCookieHeader() {
         return name + "=; Path=" + path + "; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT";
@@ -120,7 +120,7 @@ public class SessionCookie {
      *
      * @param cookieHeader the Cookie header value
      * @return the session ID, or null if not found
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String extractSessionId(String cookieHeader) {
         if (cookieHeader == null) return null;

@@ -9,7 +9,7 @@ import java.util.Objects;
  * BODY, BODYSTRUCTURE, and BODY[section] with optional partial ranges.
  * BODY.PEEK[...] fetches without setting the {@code \Seen} flag.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class FetchDataItem {
 

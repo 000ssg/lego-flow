@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -19,7 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>The broker must disconnect a client if no PINGREQ is received
  * within 1.5x the keep_alive interval.
  *
- * @since 1.0.0
+ * <p>Timing-critical assertions use {@link TestAssertions} with exponential
+ * backoff instead of {@code Thread.sleep()} to avoid flaky failures under parallel
+ * execution (-T 1C). Simple delays between client-initiated actions remain as
+ * {@code Thread.sleep()} since they don't depend on broker thread scheduling.
+ *
+ * @since 0.1.0
  */
 class KeepAliveTimeoutTest {
 
@@ -52,11 +58,12 @@ class KeepAliveTimeoutTest {
 
             assertThat(broker.getConnectedClients()).contains("keepalive-timeout");
 
-            // When: wait for 1.5x keep_alive (1.5 seconds) + margin
-            Thread.sleep(2500);
-
-            // Then: broker disconnected the client
-            assertThat(broker.getConnectedClients()).doesNotContain("keepalive-timeout");
+            // When: wait for keep-alive timeout to fire (broker waits 1.5x = 1.5s)
+            // Then: broker disconnected the client (retry up to 5s with backoff)
+            TestAssertions.assertThatCondition(
+                    "client disconnected on keep-alive timeout",
+                    () -> !broker.getConnectedClients().contains("keepalive-timeout"),
+                    Duration.ofSeconds(5));
         }
     }
 
@@ -72,7 +79,7 @@ class KeepAliveTimeoutTest {
             writePacket(ch, codec, connect);
             readPacket(ch, codec); // CONNACK
 
-            // When: send PINGREQs to stay alive
+            // When: send PINGREQs to stay alive (every 800ms < 1500ms timeout)
             for (int i = 0; i < 3; i++) {
                 Thread.sleep(800);
                 writePacket(ch, codec, new PingReqPacket());
@@ -110,10 +117,10 @@ class KeepAliveTimeoutTest {
 
     @Test
     void testKeepAliveTimeoutPublishesWill() throws Exception {
-        // Given: client with will and 1-second keep-alive
+        // Given: client with will and 1-second keep-alive (broker timeout is 1.5s)
         var codec = new MqttCodec(MqttVersion.V3_1_1);
 
-        // First, subscribe to will topic
+        // First, subscribe to will topic on a separate channel
         var subCodec = new MqttCodec(MqttVersion.V3_1_1);
         try (var subCh = SocketChannel.open(new InetSocketAddress("localhost", port))) {
             subCh.configureBlocking(true);
@@ -129,24 +136,29 @@ class KeepAliveTimeoutTest {
             writePacket(subCh, subCodec, subscribe);
             readPacket(subCh, subCodec); // SUBACK
 
-            // Now connect the client with will
+            // Now connect the client with will (1-second keep-alive -> 1.5s timeout)
             try (var clientCh = SocketChannel.open(new InetSocketAddress("localhost", port))) {
                 clientCh.configureBlocking(true);
                 var will = new WillMessage("will/keepalive", "client-died".getBytes(),
                         QoS.AT_MOST_ONCE, false);
                 var connect = new ConnectPacket(MqttVersion.V3_1_1, "will-client",
-                        true, 1, null, null, will, new MqttProperties());
+                        true, 1 /* 1-second keep-alive */, null, null, will, new MqttProperties());
                 writePacket(clientCh, codec, connect);
                 readPacket(clientCh, codec); // CONNACK
 
-                // When: let keep-alive timeout expire
-                Thread.sleep(2500);
+                assertThat(broker.getConnectedClients()).contains("will-client");
             }
 
-            // Then: will message should be published
-            // (We don't try to read from subCh since the timing is tricky in tests,
-            // but we verify the client was disconnected by the broker)
-            assertThat(broker.getConnectedClients()).doesNotContain("will-client");
+            // When: let keep-alive timeout expire (retry up to 6s)
+            // Then: client should be disconnected by broker (will message will be delivered)
+            TestAssertions.assertThatCondition(
+                    "will-client disconnected on keep-alive timeout",
+                    () -> !broker.getConnectedClients().contains("will-client"),
+                    Duration.ofSeconds(6));
+
+            // Clean up subscriber
+            writePacket(subCh, subCodec, new DisconnectPacket(ReasonCode.NORMAL_DISCONNECTION,
+                    new MqttProperties()));
         }
     }
 

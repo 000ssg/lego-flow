@@ -15,7 +15,7 @@ import java.util.Arrays;
  * @param userName    the user name
  * @param authParams  the authentication parameters (HMAC digest)
  * @param privParams  the privacy parameters (encryption salt/IV)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record UsmSecurityParameters(
         byte[] engineId,

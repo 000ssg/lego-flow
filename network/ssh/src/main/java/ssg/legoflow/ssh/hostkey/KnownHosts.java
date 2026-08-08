@@ -12,7 +12,7 @@ import java.util.*;
  *
  * <p>Supports plain-text and hashed host entries as per OpenSSH format.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class KnownHosts {
 

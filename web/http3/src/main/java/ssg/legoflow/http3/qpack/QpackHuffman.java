@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
  * bit length. An EOS symbol (code 256) signals end-of-string in the
  * padding bits.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class QpackHuffman {
 
@@ -92,7 +92,7 @@ public final class QpackHuffman {
      *
      * @param input the string to encode
      * @return the Huffman-encoded bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static byte[] encode(String input) {
         return encode(input.getBytes(StandardCharsets.UTF_8));
@@ -103,7 +103,7 @@ public final class QpackHuffman {
      *
      * @param data the bytes to encode
      * @return the Huffman-encoded bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static byte[] encode(byte[] data) {
         var out = new ByteArrayOutputStream();
@@ -140,7 +140,7 @@ public final class QpackHuffman {
      * @param length the number of bytes to decode
      * @return the decoded string
      * @throws IllegalStateException if the encoded data is invalid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String decode(byte[] data, int offset, int length) {
         var subset = new byte[length];
@@ -154,7 +154,7 @@ public final class QpackHuffman {
      * @param data the encoded data
      * @return the decoded string
      * @throws IllegalStateException if the encoded data is invalid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String decode(byte[] data) {
         return new String(decodeBytes(data), StandardCharsets.UTF_8);
@@ -165,7 +165,7 @@ public final class QpackHuffman {
      *
      * @param data the raw bytes
      * @return the encoded length in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static int encodedLength(byte[] data) {
         int bits = 0;

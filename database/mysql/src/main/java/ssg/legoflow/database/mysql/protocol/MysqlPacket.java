@@ -17,7 +17,7 @@ import java.util.List;
  *
  * @param sequenceId the packet sequence number (0-255, wraps)
  * @param payload the packet payload data
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record MysqlPacket(int sequenceId, byte[] payload) {
 

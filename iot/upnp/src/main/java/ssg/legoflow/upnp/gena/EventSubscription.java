@@ -14,7 +14,7 @@ import java.util.Objects;
  * @param serviceId   the service identifier this subscription is for
  * @param timeout     the subscription timeout duration
  * @param expiresAt   the instant when this subscription expires
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record EventSubscription(
         String sid,
@@ -43,7 +43,7 @@ public record EventSubscription(
      * Returns whether this subscription has expired.
      *
      * @return {@code true} if the subscription has expired
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isExpired() {
         return Instant.now().isAfter(expiresAt);
@@ -55,7 +55,7 @@ public record EventSubscription(
      * <p>Returns {@code true} if less than 20% of the timeout remains.
      *
      * @return {@code true} if renewal is recommended
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean shouldRenew() {
         var remaining = Duration.between(Instant.now(), expiresAt);
@@ -68,7 +68,7 @@ public record EventSubscription(
      *
      * @param newTimeout the new timeout duration
      * @return a new subscription with updated timeout and expiry
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public EventSubscription renewed(Duration newTimeout) {
         return new EventSubscription(sid, callbackUrl, eventSubUrl, serviceId,

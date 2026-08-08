@@ -6,7 +6,7 @@ package ssg.legoflow.database.postgresql.protocol;
  * <p>Messages are divided into {@link FrontendMessage} (client to server)
  * and {@link BackendMessage} (server to client).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface PgMessage permits FrontendMessage, BackendMessage {
 

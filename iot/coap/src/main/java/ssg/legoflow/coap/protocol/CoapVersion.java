@@ -5,7 +5,7 @@ package ssg.legoflow.coap.protocol;
  *
  * <p>Currently only version 1 is defined.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum CoapVersion {
 
@@ -22,7 +22,7 @@ public enum CoapVersion {
      * Returns the numeric version identifier used in the CoAP message header.
      *
      * @return the version number (1 for V1)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int versionNumber() {
         return versionNumber;
@@ -34,7 +34,7 @@ public enum CoapVersion {
      * @param number the version number from the message header
      * @return the matching version
      * @throws IllegalArgumentException if the version number is not recognized
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapVersion fromNumber(int number) {
         return switch (number) {

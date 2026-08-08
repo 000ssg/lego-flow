@@ -6,7 +6,7 @@ package ssg.legoflow.upnp.ssdp;
  * <p>Implementations receive notifications when UPnP devices are discovered,
  * lost, or respond to search requests on the local network.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 @FunctionalInterface
 public interface SsdpListener {
@@ -15,7 +15,7 @@ public interface SsdpListener {
      * Called when an SSDP event occurs.
      *
      * @param event the SSDP event containing discovery information
-     * @since 1.0.0
+     * @since 0.1.0
      */
     void onSsdpEvent(SsdpEvent event);
 }

@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * <p>Uses virtual threads for the two relay directions.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ConnectTunnel implements AutoCloseable {
 
@@ -48,7 +48,7 @@ public class ConnectTunnel implements AutoCloseable {
      * @param serverInput the input stream from the upstream server
      * @param serverOutput the output stream to the upstream server
      * @param idleTimeout the idle timeout duration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ConnectTunnel(String targetHost, int targetPort,
                          InputStream clientInput, OutputStream clientOutput,
@@ -67,7 +67,7 @@ public class ConnectTunnel implements AutoCloseable {
      * Starts the bidirectional byte relay. This method blocks until the tunnel
      * is closed or an error occurs.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() {
         active.set(true);
@@ -114,7 +114,7 @@ public class ConnectTunnel implements AutoCloseable {
      * Returns whether the tunnel is currently active.
      *
      * @return true if the tunnel is active
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isActive() {
         return active.get();
@@ -124,7 +124,7 @@ public class ConnectTunnel implements AutoCloseable {
      * Returns the number of bytes relayed from client to server.
      *
      * @return bytes relayed to server
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long getBytesRelayedToServer() {
         return bytesRelayedToServer.get();
@@ -134,7 +134,7 @@ public class ConnectTunnel implements AutoCloseable {
      * Returns the number of bytes relayed from server to client.
      *
      * @return bytes relayed to client
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long getBytesRelayedToClient() {
         return bytesRelayedToClient.get();
@@ -144,7 +144,7 @@ public class ConnectTunnel implements AutoCloseable {
      * Returns the target host.
      *
      * @return the target host
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getTargetHost() {
         return targetHost;
@@ -154,7 +154,7 @@ public class ConnectTunnel implements AutoCloseable {
      * Returns the target port.
      *
      * @return the target port
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getTargetPort() {
         return targetPort;
@@ -163,7 +163,7 @@ public class ConnectTunnel implements AutoCloseable {
     /**
      * Closes the tunnel, stopping all relay operations.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void close() {

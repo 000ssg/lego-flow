@@ -11,7 +11,7 @@ import java.util.Set;
  *
  * <p>Controls allowed methods, max connections, timeouts, and authentication requirements.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ForwardProxyConfig {
 
@@ -30,7 +30,7 @@ public class ForwardProxyConfig {
     /**
      * Creates a new forward proxy configuration with defaults.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ForwardProxyConfig() {
     }
@@ -39,7 +39,7 @@ public class ForwardProxyConfig {
      * Returns the set of allowed HTTP methods.
      *
      * @return the allowed methods
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Set<HttpMethod> getAllowedMethods() {
         return allowedMethods;
@@ -49,7 +49,7 @@ public class ForwardProxyConfig {
      * Sets the allowed HTTP methods.
      *
      * @param allowedMethods the allowed methods
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setAllowedMethods(Set<HttpMethod> allowedMethods) {
         this.allowedMethods = EnumSet.copyOf(allowedMethods);
@@ -59,7 +59,7 @@ public class ForwardProxyConfig {
      * Returns the maximum number of simultaneous connections.
      *
      * @return the max connections
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getMaxConnections() {
         return maxConnections;
@@ -69,7 +69,7 @@ public class ForwardProxyConfig {
      * Sets the maximum number of simultaneous connections.
      *
      * @param maxConnections the max connections
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setMaxConnections(int maxConnections) {
         this.maxConnections = maxConnections;
@@ -79,7 +79,7 @@ public class ForwardProxyConfig {
      * Returns the connection timeout.
      *
      * @return the connection timeout
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Duration getConnectionTimeout() {
         return connectionTimeout;
@@ -89,7 +89,7 @@ public class ForwardProxyConfig {
      * Sets the connection timeout.
      *
      * @param connectionTimeout the connection timeout
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setConnectionTimeout(Duration connectionTimeout) {
         this.connectionTimeout = connectionTimeout;
@@ -99,7 +99,7 @@ public class ForwardProxyConfig {
      * Returns the read timeout.
      *
      * @return the read timeout
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Duration getReadTimeout() {
         return readTimeout;
@@ -109,7 +109,7 @@ public class ForwardProxyConfig {
      * Sets the read timeout.
      *
      * @param readTimeout the read timeout
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setReadTimeout(Duration readTimeout) {
         this.readTimeout = readTimeout;
@@ -119,7 +119,7 @@ public class ForwardProxyConfig {
      * Returns whether proxy authentication is required.
      *
      * @return true if auth is required
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isAuthRequired() {
         return authRequired;
@@ -129,7 +129,7 @@ public class ForwardProxyConfig {
      * Sets whether proxy authentication is required.
      *
      * @param authRequired true if auth is required
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setAuthRequired(boolean authRequired) {
         this.authRequired = authRequired;
@@ -139,7 +139,7 @@ public class ForwardProxyConfig {
      * Returns the proxy name used in Via headers.
      *
      * @return the proxy name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getProxyName() {
         return proxyName;
@@ -149,7 +149,7 @@ public class ForwardProxyConfig {
      * Sets the proxy name used in Via headers.
      *
      * @param proxyName the proxy name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setProxyName(String proxyName) {
         this.proxyName = proxyName;
@@ -159,7 +159,7 @@ public class ForwardProxyConfig {
      * Returns whether Via headers should be added.
      *
      * @return true if Via header is added
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isAddViaHeader() {
         return addViaHeader;
@@ -169,7 +169,7 @@ public class ForwardProxyConfig {
      * Sets whether Via headers should be added.
      *
      * @param addViaHeader true to add Via header
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setAddViaHeader(boolean addViaHeader) {
         this.addViaHeader = addViaHeader;
@@ -179,7 +179,7 @@ public class ForwardProxyConfig {
      * Returns whether X-Forwarded-For headers should be added.
      *
      * @return true if forwarded headers are added
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isAddForwardedHeaders() {
         return addForwardedHeaders;
@@ -189,7 +189,7 @@ public class ForwardProxyConfig {
      * Sets whether X-Forwarded-For headers should be added.
      *
      * @param addForwardedHeaders true to add forwarded headers
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setAddForwardedHeaders(boolean addForwardedHeaders) {
         this.addForwardedHeaders = addForwardedHeaders;
@@ -199,7 +199,7 @@ public class ForwardProxyConfig {
      * Returns the maximum idle time in seconds for CONNECT tunnels.
      *
      * @return the max idle seconds
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getMaxTunnelIdleSeconds() {
         return maxTunnelIdleSeconds;
@@ -209,7 +209,7 @@ public class ForwardProxyConfig {
      * Sets the maximum idle time in seconds for CONNECT tunnels.
      *
      * @param maxTunnelIdleSeconds the max idle seconds
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setMaxTunnelIdleSeconds(int maxTunnelIdleSeconds) {
         this.maxTunnelIdleSeconds = maxTunnelIdleSeconds;

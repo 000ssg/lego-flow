@@ -18,7 +18,7 @@ import java.util.List;
  *   <li>Comma-separated lists</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class AddressParser {
 

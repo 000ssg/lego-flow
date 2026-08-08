@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>Uses virtual threads for connection handling, enabling high concurrency
  * without thread pool tuning.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class AmqpContainer implements AutoCloseable {
 

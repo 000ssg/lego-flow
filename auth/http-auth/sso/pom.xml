@@ -5,7 +5,7 @@
     <parent>
         <groupId>ssg</groupId>
         <artifactId>lego-flow-http-auth</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>0.1.0-SNAPSHOT</version>
     </parent>
     <artifactId>lego-flow-http-auth-sso</artifactId>
     <name>Lego Flow HTTP Auth SSO — Single Sign-On and SAML</name>

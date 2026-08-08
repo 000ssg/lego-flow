@@ -13,7 +13,7 @@ import java.util.Objects;
  *
  * @param number the option number
  * @param value  the raw option value bytes
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record CoapOption(int number, byte[] value) {
 
@@ -96,7 +96,7 @@ public record CoapOption(int number, byte[] value) {
      * Returns a defensive copy of the option value.
      *
      * @return a copy of the value bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public byte[] value() {
@@ -109,7 +109,7 @@ public record CoapOption(int number, byte[] value) {
      * Decodes the option value as a UTF-8 string.
      *
      * @return the string value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String asString() {
         return new String(value, StandardCharsets.UTF_8);
@@ -119,7 +119,7 @@ public record CoapOption(int number, byte[] value) {
      * Decodes the option value as an unsigned integer (0-4 bytes, big-endian).
      *
      * @return the integer value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int asInt() {
         int result = 0;
@@ -133,7 +133,7 @@ public record CoapOption(int number, byte[] value) {
      * Decodes the option value as an unsigned long (0-8 bytes, big-endian).
      *
      * @return the long value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long asLong() {
         long result = 0;
@@ -150,7 +150,7 @@ public record CoapOption(int number, byte[] value) {
      *
      * @param path the path segment (without leading slash)
      * @return the Uri-Path option
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapOption uriPath(String path) {
         Objects.requireNonNull(path, "path must not be null");
@@ -162,7 +162,7 @@ public record CoapOption(int number, byte[] value) {
      *
      * @param query the query parameter (e.g. "key=value")
      * @return the Uri-Query option
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapOption uriQuery(String query) {
         Objects.requireNonNull(query, "query must not be null");
@@ -174,7 +174,7 @@ public record CoapOption(int number, byte[] value) {
      *
      * @param host the hostname
      * @return the Uri-Host option
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapOption uriHost(String host) {
         Objects.requireNonNull(host, "host must not be null");
@@ -186,7 +186,7 @@ public record CoapOption(int number, byte[] value) {
      *
      * @param port the port number
      * @return the Uri-Port option
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapOption uriPort(int port) {
         return new CoapOption(URI_PORT, encodeUint(port));
@@ -197,7 +197,7 @@ public record CoapOption(int number, byte[] value) {
      *
      * @param format the content format numeric value
      * @return the Content-Format option
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapOption contentFormat(int format) {
         return new CoapOption(CONTENT_FORMAT, encodeUint(format));
@@ -208,7 +208,7 @@ public record CoapOption(int number, byte[] value) {
      *
      * @param etag the entity tag bytes
      * @return the ETag option
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapOption etag(byte[] etag) {
         Objects.requireNonNull(etag, "etag must not be null");
@@ -220,7 +220,7 @@ public record CoapOption(int number, byte[] value) {
      *
      * @param maxAge the max age value in seconds
      * @return the Max-Age option
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapOption maxAge(long maxAge) {
         return new CoapOption(MAX_AGE, encodeUint(maxAge));
@@ -231,7 +231,7 @@ public record CoapOption(int number, byte[] value) {
      *
      * @param format the accepted content format numeric value
      * @return the Accept option
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapOption accept(int format) {
         return new CoapOption(ACCEPT, encodeUint(format));
@@ -242,7 +242,7 @@ public record CoapOption(int number, byte[] value) {
      *
      * @param path the location path segment
      * @return the Location-Path option
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapOption locationPath(String path) {
         Objects.requireNonNull(path, "path must not be null");
@@ -254,7 +254,7 @@ public record CoapOption(int number, byte[] value) {
      *
      * @param query the location query parameter
      * @return the Location-Query option
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapOption locationQuery(String query) {
         Objects.requireNonNull(query, "query must not be null");
@@ -266,7 +266,7 @@ public record CoapOption(int number, byte[] value) {
      *
      * @param uri the proxy URI
      * @return the Proxy-Uri option
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapOption proxyUri(String uri) {
         Objects.requireNonNull(uri, "uri must not be null");
@@ -278,7 +278,7 @@ public record CoapOption(int number, byte[] value) {
      *
      * @param scheme the proxy scheme
      * @return the Proxy-Scheme option
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapOption proxyScheme(String scheme) {
         Objects.requireNonNull(scheme, "scheme must not be null");
@@ -290,7 +290,7 @@ public record CoapOption(int number, byte[] value) {
      *
      * @param etag the entity tag to match
      * @return the If-Match option
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapOption ifMatch(byte[] etag) {
         Objects.requireNonNull(etag, "etag must not be null");
@@ -301,7 +301,7 @@ public record CoapOption(int number, byte[] value) {
      * Creates an If-None-Match option (empty value).
      *
      * @return the If-None-Match option
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapOption ifNoneMatch() {
         return new CoapOption(IF_NONE_MATCH, new byte[0]);
@@ -312,7 +312,7 @@ public record CoapOption(int number, byte[] value) {
      *
      * @param sequenceNumber the observe sequence number (0 = register, 1 = deregister)
      * @return the Observe option
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapOption observe(int sequenceNumber) {
         return new CoapOption(OBSERVE, encodeUint(sequenceNumber));
@@ -323,7 +323,7 @@ public record CoapOption(int number, byte[] value) {
      *
      * @param size the request payload size
      * @return the Size1 option
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapOption size1(long size) {
         return new CoapOption(SIZE1, encodeUint(size));
@@ -334,7 +334,7 @@ public record CoapOption(int number, byte[] value) {
      *
      * @param size the response payload size
      * @return the Size2 option
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapOption size2(long size) {
         return new CoapOption(SIZE2, encodeUint(size));

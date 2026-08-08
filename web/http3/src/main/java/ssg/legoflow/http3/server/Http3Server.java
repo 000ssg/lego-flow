@@ -28,7 +28,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *
  * <p>This class is thread-safe.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class Http3Server {
 
@@ -43,7 +43,7 @@ public class Http3Server {
      * Creates a new HTTP/3 server with the given configuration.
      *
      * @param config the server configuration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Server(Http3Config config) {
         this.config = config;
@@ -57,7 +57,7 @@ public class Http3Server {
      *
      * @param router the HTTP router
      * @param config the server configuration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Server(HttpRouter router, Http3Config config) {
         this.config = config;
@@ -70,7 +70,7 @@ public class Http3Server {
      * Returns the HTTP router.
      *
      * @return the router
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpRouter router() {
         return router;
@@ -80,7 +80,7 @@ public class Http3Server {
      * Returns the server configuration.
      *
      * @return the configuration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Config config() {
         return config;
@@ -94,7 +94,7 @@ public class Http3Server {
      *
      * @param quicConnection the incoming QUIC connection
      * @return the established HTTP/3 connection
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Connection acceptConnection(QuicConnection quicConnection) {
         var settings = Http3Settings.builder()
@@ -120,7 +120,7 @@ public class Http3Server {
      * @param stream     the request stream
      * @param headers    the decoded request headers
      * @param body       the request body, or {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void handleRequest(Http3Connection connection, QuicStream stream,
                               List<Map.Entry<String, String>> headers, ByteBuffer body) {
@@ -140,7 +140,7 @@ public class Http3Server {
      * @param pushId          the push ID
      * @param promisedRequest the promised request
      * @param promisedResponse the response to push
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void handlePushPromise(Http3Connection connection, QuicStream parentStream,
                                   long pushId, HttpRequest promisedRequest, HttpResponse promisedResponse) {
@@ -167,7 +167,7 @@ public class Http3Server {
     /**
      * Starts the server (placeholder for real transport binding).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() {
         LOG.info("HTTP/3 server started on {}:{}", config.host(), config.port());
@@ -176,7 +176,7 @@ public class Http3Server {
     /**
      * Stops the server and closes all connections.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         for (var connection : connections) {
@@ -190,7 +190,7 @@ public class Http3Server {
      * Returns the list of active connections.
      *
      * @return an unmodifiable list of active connections
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<Http3Connection> getActiveConnections() {
         return List.copyOf(connections);
@@ -200,7 +200,7 @@ public class Http3Server {
      * Removes a connection from the active list.
      *
      * @param connection the connection to remove
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void removeConnection(Http3Connection connection) {
         connections.remove(connection);

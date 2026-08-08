@@ -16,7 +16,7 @@ import java.util.UUID;
  * @param idleTimeout   idle timeout in milliseconds (0 = disabled)
  * @param requireSasl   whether SASL authentication is required
  * @param authenticator the SASL authenticator (null for default)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ContainerConfig(
         String containerId,

@@ -8,7 +8,7 @@ package ssg.legoflow.network.modbus.data;
  *
  * @param address the discrete input address
  * @param value   the input state (true = ON, false = OFF)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record DiscreteInput(int address, boolean value) {
 

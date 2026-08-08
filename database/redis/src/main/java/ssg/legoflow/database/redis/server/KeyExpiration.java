@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Lazy expiration checks on access; active expiration runs periodically
  * to reclaim memory from expired but unaccessed keys.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class KeyExpiration {
 

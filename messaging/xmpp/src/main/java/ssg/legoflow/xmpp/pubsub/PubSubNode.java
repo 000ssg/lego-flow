@@ -11,14 +11,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * which items can be retrieved. Nodes can be either leaf nodes (contain items)
  * or collection nodes (contain other nodes).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class PubSubNode {
 
     /**
      * Node types.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum NodeType {
         /** Contains published items. */
@@ -30,7 +30,7 @@ public class PubSubNode {
     /**
      * Access models for node subscriptions.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum AccessModel {
         /** Anyone can subscribe. */

@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Storage for OAuth 2.0 authorization codes with expiry.
  * Authorization codes are single-use and expire after a configurable duration.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class AuthorizationCodeStore {
 
@@ -33,7 +33,7 @@ public class AuthorizationCodeStore {
      * @param codeChallenge   the PKCE code challenge (null if not using PKCE)
      * @param challengeMethod the PKCE challenge method
      * @param createdAt       when the code was created
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record AuthorizationCode(
             String code,
@@ -50,7 +50,7 @@ public class AuthorizationCodeStore {
          *
          * @param lifetime the code lifetime
          * @return true if expired
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public boolean isExpired(Duration lifetime) {
             return Instant.now().isAfter(createdAt.plus(lifetime));
@@ -60,7 +60,7 @@ public class AuthorizationCodeStore {
     /**
      * Creates an authorization code store with a 10-minute code lifetime.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AuthorizationCodeStore() {
         this(Duration.ofMinutes(10));
@@ -70,7 +70,7 @@ public class AuthorizationCodeStore {
      * Creates an authorization code store with the specified lifetime.
      *
      * @param codeLifetime the code lifetime
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AuthorizationCodeStore(Duration codeLifetime) {
         this.codeLifetime = codeLifetime;
@@ -86,7 +86,7 @@ public class AuthorizationCodeStore {
      * @param codeChallenge   the PKCE code challenge (null if not using PKCE)
      * @param challengeMethod the PKCE challenge method
      * @return the authorization code
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AuthorizationCode generate(String clientId, String redirectUri, Set<String> scopes,
                                        String subject, String codeChallenge, String challengeMethod) {
@@ -105,7 +105,7 @@ public class AuthorizationCodeStore {
      *
      * @param code the authorization code
      * @return the code if valid and not expired, empty otherwise
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<AuthorizationCode> consume(String code) {
         var authCode = codes.remove(code);
@@ -118,7 +118,7 @@ public class AuthorizationCodeStore {
      * Removes expired codes.
      *
      * @return the number of codes removed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int cleanExpired() {
         var expired = codes.entrySet().stream()
@@ -133,7 +133,7 @@ public class AuthorizationCodeStore {
      * Returns the number of stored codes.
      *
      * @return the code count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int size() {
         return codes.size();

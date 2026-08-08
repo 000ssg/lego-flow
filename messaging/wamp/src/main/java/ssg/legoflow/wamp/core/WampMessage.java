@@ -7,7 +7,7 @@ import java.util.Map;
  * Sealed interface representing all WAMP protocol messages.
  * Each message type is modeled as a record implementing this interface.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface WampMessage {
 
@@ -67,7 +67,7 @@ public sealed interface WampMessage {
      *
      * @param authMethod the authentication method (e.g. "wampcra", "ticket", "cryptosign")
      * @param extra      additional challenge data
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Challenge(String authMethod, Map<String, Object> extra) implements WampMessage {
         @Override public WampMessageType type() { return WampMessageType.CHALLENGE; }
@@ -78,7 +78,7 @@ public sealed interface WampMessage {
      *
      * @param signature the authentication signature/token
      * @param extra     additional authentication data
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Authenticate(String signature, Map<String, Object> extra) implements WampMessage {
         @Override public WampMessageType type() { return WampMessageType.AUTHENTICATE; }
@@ -169,7 +169,7 @@ public sealed interface WampMessage {
      * @param publicationId  the publication identifier
      * @param details        event details (may include publisher session ID)
      * @param args           positional event arguments
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Event(long subscriptionId, long publicationId, Map<String, Object> details, List<Object> args) implements WampMessage {
         @Override public WampMessageType type() { return WampMessageType.EVENT; }
@@ -194,7 +194,7 @@ public sealed interface WampMessage {
      *
      * @param requestId the request ID of the original CALL
      * @param options   cancel options (e.g. "mode": "skip"|"kill"|"killnowait")
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Cancel(long requestId, Map<String, Object> options) implements WampMessage {
         @Override public WampMessageType type() { return WampMessageType.CANCEL; }
@@ -268,7 +268,7 @@ public sealed interface WampMessage {
      *
      * @param requestId the invocation request ID to interrupt
      * @param options   interrupt options (e.g. "mode": "kill"|"killnowait")
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Interrupt(long requestId, Map<String, Object> options) implements WampMessage {
         @Override public WampMessageType type() { return WampMessageType.INTERRUPT; }

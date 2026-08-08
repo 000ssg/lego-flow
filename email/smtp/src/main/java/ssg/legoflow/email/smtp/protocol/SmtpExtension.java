@@ -8,7 +8,7 @@ import java.util.*;
  * <p>Each extension has a keyword and optional parameters. Extensions are
  * parsed from EHLO response lines and used to negotiate capabilities.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum SmtpExtension {
 

@@ -12,7 +12,7 @@ package ssg.legoflow.network.ldap.protocol;
  *
  * @param result          the LDAP result
  * @param serverSaslCreds optional server SASL credentials (null if none)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record BindResponse(
         LdapResult result,

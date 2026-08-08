@@ -12,7 +12,7 @@ import java.util.Objects;
  * @param recordClass the record class
  * @param ttl         the time to live in seconds
  * @param rdata       the record data
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record DnsRecord(
         DnsName name,
@@ -36,7 +36,7 @@ public record DnsRecord(
      * @param ttl   the TTL
      * @param rdata the record data
      * @return the resource record
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static DnsRecord of(DnsName name, long ttl, RData rdata) {
         return new DnsRecord(name, rdata.type(), RecordClass.IN, ttl, rdata);
@@ -49,7 +49,7 @@ public record DnsRecord(
      * @param ttl   the TTL
      * @param rdata the record data
      * @return the resource record
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static DnsRecord of(String name, long ttl, RData rdata) {
         return of(DnsName.of(name), ttl, rdata);
@@ -60,7 +60,7 @@ public record DnsRecord(
      *
      * @param newTtl the new TTL
      * @return the record with updated TTL
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DnsRecord withTtl(long newTtl) {
         return new DnsRecord(name, type, recordClass, newTtl, rdata);

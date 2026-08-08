@@ -18,7 +18,7 @@ import java.util.Set;
  * Extracts Bearer tokens from the Authorization header and validates them
  * either via JWT verification or token store introspection.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class BearerAuthScheme implements AuthenticationScheme {
 
@@ -32,7 +32,7 @@ public class BearerAuthScheme implements AuthenticationScheme {
      * Creates a Bearer auth scheme with JWT validation.
      *
      * @param jwtProvider the JWT provider for token validation
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public BearerAuthScheme(JwtTokenProvider jwtProvider) {
         this.jwtProvider = jwtProvider;
@@ -43,7 +43,7 @@ public class BearerAuthScheme implements AuthenticationScheme {
      * Creates a Bearer auth scheme with token store introspection.
      *
      * @param tokenStore the token store for validation
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public BearerAuthScheme(TokenStore tokenStore) {
         this.jwtProvider = null;
@@ -56,7 +56,7 @@ public class BearerAuthScheme implements AuthenticationScheme {
      *
      * @param jwtProvider the JWT provider
      * @param tokenStore  the token store
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public BearerAuthScheme(JwtTokenProvider jwtProvider, TokenStore tokenStore) {
         this.jwtProvider = jwtProvider;
@@ -131,7 +131,7 @@ public class BearerAuthScheme implements AuthenticationScheme {
      *
      * @param token the bearer token
      * @return the header value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String encodeToken(String token) {
         return SCHEME_NAME + " " + token;

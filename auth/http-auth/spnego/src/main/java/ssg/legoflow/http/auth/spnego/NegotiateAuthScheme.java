@@ -32,7 +32,7 @@ import java.util.Objects;
  *       with a response token</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class NegotiateAuthScheme implements AuthenticationScheme {
 
@@ -47,7 +47,7 @@ public final class NegotiateAuthScheme implements AuthenticationScheme {
      *
      * @param config the SPNEGO configuration
      * @throws NullPointerException if config is null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public NegotiateAuthScheme(SpnegoConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
@@ -69,7 +69,7 @@ public final class NegotiateAuthScheme implements AuthenticationScheme {
      * @param request the HTTP request containing the Authorization header
      * @param context the authentication context
      * @return Success if authenticated, Challenge if more tokens needed, Failure on error
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public AuthResult authenticate(HttpRequest request, AuthContext context) {
@@ -130,7 +130,7 @@ public final class NegotiateAuthScheme implements AuthenticationScheme {
      *
      * @param response the HTTP response to add the challenge to
      * @param context  the authentication context
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void challenge(HttpResponse response, AuthContext context) {
@@ -144,7 +144,7 @@ public final class NegotiateAuthScheme implements AuthenticationScheme {
      *
      * @param request the HTTP request
      * @return Bearer credentials with the token, or None
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public AuthCredentials extractCredentials(HttpRequest request) {

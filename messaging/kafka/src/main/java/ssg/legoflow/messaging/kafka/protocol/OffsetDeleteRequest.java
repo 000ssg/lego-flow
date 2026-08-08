@@ -7,7 +7,7 @@ import java.util.List;
  *
  * @param groupId the consumer group ID
  * @param topics  the topics with partitions whose offsets to delete
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record OffsetDeleteRequest(String groupId, List<TopicData> topics) {
 

@@ -15,7 +15,7 @@ import java.util.*;
  *
  * <p>Flow: Client -> Reverse Proxy (auth check) -> Backend (trusts proxy headers)</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ReverseProxySso {
 
@@ -30,7 +30,7 @@ public class ReverseProxySso {
      *
      * @param config         the configuration
      * @param sessionManager the session manager for proxy-level sessions
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ReverseProxySso(ReverseProxySsoConfig config, SessionManager sessionManager) {
         this.config = Objects.requireNonNull(config);
@@ -42,7 +42,7 @@ public class ReverseProxySso {
      * Creates a reverse proxy SSO handler without session management.
      *
      * @param config the configuration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ReverseProxySso(ReverseProxySsoConfig config) {
         this(config, null);
@@ -53,7 +53,7 @@ public class ReverseProxySso {
      *
      * @param request the incoming HTTP request
      * @return the principal, or empty if no auth headers present
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<AuthPrincipal> extractPrincipal(HttpRequest request) {
         String username = request.getHeaders().get(config.getUserHeader());
@@ -81,7 +81,7 @@ public class ReverseProxySso {
      *
      * @param request   the request to forward
      * @param principal the authenticated principal
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void prepareBackendRequest(HttpRequest request, AuthPrincipal principal) {
         // Strip any existing auth headers to prevent spoofing
@@ -97,7 +97,7 @@ public class ReverseProxySso {
      * @param request  the incoming request
      * @param response the response to populate if auth fails
      * @return the authenticated principal, or empty if not authenticated
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<AuthPrincipal> authenticate(HttpRequest request, HttpResponse response) {
         var principal = extractPrincipal(request);
@@ -111,7 +111,7 @@ public class ReverseProxySso {
      * Returns the header injector.
      *
      * @return the injector
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AuthHeaderInjector getHeaderInjector() {
         return headerInjector;
@@ -121,7 +121,7 @@ public class ReverseProxySso {
      * Returns the configuration.
      *
      * @return the config
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ReverseProxySsoConfig getConfig() {
         return config;

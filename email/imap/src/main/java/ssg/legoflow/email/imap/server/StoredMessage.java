@@ -9,7 +9,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  *
  * <p>Flags are mutable and thread-safe. The raw content is the full RFC 5322 message.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class StoredMessage {
 

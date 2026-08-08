@@ -35,7 +35,7 @@ import com.sun.net.httpserver.HttpServer;
  *
  * <p>This class is thread-safe.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class GenaSubscriber implements Closeable {
 
@@ -59,7 +59,7 @@ public class GenaSubscriber implements Closeable {
      * @param callbackPort the port for the callback HTTP server (0 for ephemeral)
      * @throws IOException          if the callback server cannot be started
      * @throws NullPointerException if {@code callbackHost} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public GenaSubscriber(String callbackHost, int callbackPort) throws IOException {
         this.callbackHost = Objects.requireNonNull(callbackHost, "callbackHost must not be null");
@@ -83,7 +83,7 @@ public class GenaSubscriber implements Closeable {
      * @param httpClient     the HTTP client for SUBSCRIBE/UNSUBSCRIBE requests
      * @param callbackServer the HTTP server for NOTIFY callbacks
      * @param callbackHost   the callback hostname
-     * @since 1.0.0
+     * @since 0.1.0
      */
     GenaSubscriber(HttpClient httpClient, HttpServer callbackServer, String callbackHost) {
         this.httpClient = Objects.requireNonNull(httpClient, "httpClient must not be null");
@@ -101,7 +101,7 @@ public class GenaSubscriber implements Closeable {
     /**
      * Starts the callback server and subscription renewal scheduler.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() {
         if (running.compareAndSet(false, true)) {
@@ -115,7 +115,7 @@ public class GenaSubscriber implements Closeable {
     /**
      * Stops the callback server and renewal scheduler.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         if (running.compareAndSet(true, false)) {
@@ -137,7 +137,7 @@ public class GenaSubscriber implements Closeable {
      * @throws IOException          if the subscription request fails
      * @throws InterruptedException if interrupted while waiting for response
      * @throws NullPointerException if any required parameter is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public EventSubscription subscribe(URI eventSubUrl, String serviceId, Duration timeout)
             throws IOException, InterruptedException {
@@ -188,7 +188,7 @@ public class GenaSubscriber implements Closeable {
      * @throws IOException          if the renewal request fails
      * @throws InterruptedException if interrupted while waiting for response
      * @throws NullPointerException if {@code subscription} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public EventSubscription renew(EventSubscription subscription)
             throws IOException, InterruptedException {
@@ -229,7 +229,7 @@ public class GenaSubscriber implements Closeable {
      * @throws IOException          if the unsubscribe request fails
      * @throws InterruptedException if interrupted while waiting for response
      * @throws NullPointerException if {@code subscription} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void unsubscribe(EventSubscription subscription)
             throws IOException, InterruptedException {
@@ -252,7 +252,7 @@ public class GenaSubscriber implements Closeable {
      *
      * @param listener the listener to add
      * @throws NullPointerException if {@code listener} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addListener(GenaListener listener) {
         Objects.requireNonNull(listener, "listener must not be null");
@@ -263,7 +263,7 @@ public class GenaSubscriber implements Closeable {
      * Removes a previously added GENA listener.
      *
      * @param listener the listener to remove
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void removeListener(GenaListener listener) {
         listeners.remove(listener);
@@ -273,7 +273,7 @@ public class GenaSubscriber implements Closeable {
      * Returns an unmodifiable snapshot of active subscriptions.
      *
      * @return a map of SID to subscription
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Map<String, EventSubscription> getSubscriptions() {
         return Map.copyOf(subscriptions);
@@ -283,7 +283,7 @@ public class GenaSubscriber implements Closeable {
      * Returns the callback port number.
      *
      * @return the callback server port
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getCallbackPort() {
         return callbackPort;
@@ -293,7 +293,7 @@ public class GenaSubscriber implements Closeable {
      * Returns whether the subscriber is running.
      *
      * @return {@code true} if the subscriber is active
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isRunning() {
         return running.get();

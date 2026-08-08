@@ -6,7 +6,7 @@ package ssg.legoflow.database.mysql.auth;
  * <p>Authentication plugins generate the auth response that the client sends
  * during the handshake, and verify that response on the server side.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface AuthPlugin {
 

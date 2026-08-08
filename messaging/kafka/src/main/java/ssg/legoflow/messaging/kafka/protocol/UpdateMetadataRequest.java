@@ -11,7 +11,7 @@ import java.util.List;
  * @param controllerEpoch the controller epoch
  * @param liveBrokers     the set of live brokers
  * @param partitionStates the current partition assignments
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record UpdateMetadataRequest(int controllerId, int controllerEpoch,
                                     List<BrokerState> liveBrokers,

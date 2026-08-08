@@ -17,7 +17,7 @@ import java.util.Objects;
  * @param subject     the optional message subject
  * @param thread      the optional conversation thread identifier
  * @param extensions  the list of stanza extensions
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record MessageStanza(
         String id,
@@ -33,7 +33,7 @@ public record MessageStanza(
     /**
      * Message types as defined in RFC 6121.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum MessageType {
         /** One-to-one chat session. */

@@ -9,7 +9,7 @@ import java.util.List;
  * @param producerId      the producer ID
  * @param producerEpoch   the producer epoch
  * @param topics          the topics and partitions to add to the transaction
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record AddPartitionsToTxnRequest(String transactionalId, long producerId, short producerEpoch,
                                         List<TopicPartitions> topics) {

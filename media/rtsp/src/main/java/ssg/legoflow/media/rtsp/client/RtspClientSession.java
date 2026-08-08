@@ -12,7 +12,7 @@ import java.util.Optional;
  * <p>Maintains the session ID, timeout, and transport parameters
  * assigned by the server.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RtspClientSession {
 

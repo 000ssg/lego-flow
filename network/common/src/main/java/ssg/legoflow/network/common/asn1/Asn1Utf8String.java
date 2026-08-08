@@ -6,7 +6,7 @@ package ssg.legoflow.network.common.asn1;
  * <p>A string encoded in UTF-8.
  *
  * @param value the string value
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Asn1Utf8String(String value) implements Asn1Type {
 

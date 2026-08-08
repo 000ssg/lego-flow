@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Stores all file data in memory using a flat path map. Directories are
  * represented as entries with no data.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class InMemoryFileSystem implements FtpFileSystem {
 

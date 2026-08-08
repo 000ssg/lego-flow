@@ -5,7 +5,7 @@ package ssg.legoflow.ftp.server;
  *
  * <p>Implementations validate user credentials and return whether access is granted.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 @FunctionalInterface
 public interface FtpAuthenticator {

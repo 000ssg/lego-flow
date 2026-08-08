@@ -12,7 +12,7 @@ import java.util.List;
  * @param variableDefinitions the variable definitions
  * @param directives        the directives on this operation
  * @param selectionSet      the operation's selection set
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record OperationDefinition(OperationType operationType,
                                   String name,

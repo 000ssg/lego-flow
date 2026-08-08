@@ -19,7 +19,7 @@ import java.util.function.Consumer;
  * <p>Thread-safe: messages can be logged from any thread (virtual threads
  * handling SSDP, SOAP responses, etc.) and read from the EDT.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class UpnpMessageLog {
 
@@ -40,7 +40,7 @@ public final class UpnpMessageLog {
      * @param protocol  the protocol layer (SSDP, SOAP, GENA, HTTP)
      * @param summary   a one-line summary (e.g. "M-SEARCH *", "Browse → 192.168.1.50")
      * @param body      the full message body (XML, HTTP headers, etc.), may be {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record LogEntry(Instant timestamp, String direction, String protocol,
                             String summary, String body) {
@@ -65,7 +65,7 @@ public final class UpnpMessageLog {
     /**
      * Creates a new message log (disabled by default).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public UpnpMessageLog() {
     }
@@ -74,7 +74,7 @@ public final class UpnpMessageLog {
      * Enables or disables message logging.
      *
      * @param enabled {@code true} to start capturing, {@code false} to stop
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setEnabled(boolean enabled) {
         this.enabled.set(enabled);
@@ -84,7 +84,7 @@ public final class UpnpMessageLog {
      * Returns whether logging is currently enabled.
      *
      * @return {@code true} if enabled
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isEnabled() {
         return enabled.get();
@@ -96,7 +96,7 @@ public final class UpnpMessageLog {
      * @param protocol the protocol layer
      * @param summary  one-line summary
      * @param body     the message body, or {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void logOutgoing(String protocol, String summary, String body) {
         log(">>>", protocol, summary, body);
@@ -108,7 +108,7 @@ public final class UpnpMessageLog {
      * @param protocol the protocol layer
      * @param summary  one-line summary
      * @param body     the message body, or {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void logIncoming(String protocol, String summary, String body) {
         log("<<<", protocol, summary, body);
@@ -139,7 +139,7 @@ public final class UpnpMessageLog {
      * Returns all captured log entries.
      *
      * @return an unmodifiable snapshot of log entries
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<LogEntry> getEntries() {
         return List.copyOf(entries);
@@ -148,7 +148,7 @@ public final class UpnpMessageLog {
     /**
      * Clears all captured log entries.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void clear() {
         entries.clear();
@@ -158,7 +158,7 @@ public final class UpnpMessageLog {
      * Adds a listener notified when a new log entry is captured.
      *
      * @param listener the listener
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addListener(Consumer<LogEntry> listener) {
         listeners.add(listener);
@@ -168,7 +168,7 @@ public final class UpnpMessageLog {
      * Removes a previously added listener.
      *
      * @param listener the listener to remove
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void removeListener(Consumer<LogEntry> listener) {
         listeners.remove(listener);
@@ -178,7 +178,7 @@ public final class UpnpMessageLog {
      * Formats all entries as a single string for export/display.
      *
      * @return all entries formatted, separated by blank lines
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String exportAll() {
         var sb = new StringBuilder();

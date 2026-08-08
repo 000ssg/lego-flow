@@ -9,7 +9,7 @@ import java.util.Objects;
  * CNAME record RDATA: a canonical name for an alias (RFC 1035).
  *
  * @param cname the canonical domain name
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record CnameRecord(DnsName cname) implements RData {
 
@@ -27,7 +27,7 @@ public record CnameRecord(DnsName cname) implements RData {
      *
      * @param cname the canonical name
      * @return the CNAME record
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CnameRecord of(String cname) {
         return new CnameRecord(DnsName.of(cname));

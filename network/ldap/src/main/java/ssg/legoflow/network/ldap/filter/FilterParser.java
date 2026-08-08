@@ -12,7 +12,7 @@ import java.util.List;
  *
  * <p>This parser is stateless and thread-safe.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class FilterParser {
 

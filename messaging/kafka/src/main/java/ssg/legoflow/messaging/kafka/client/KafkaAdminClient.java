@@ -13,7 +13,7 @@ import java.util.*;
 /**
  * Kafka admin client for topic management and group inspection.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class KafkaAdminClient implements AutoCloseable {
 

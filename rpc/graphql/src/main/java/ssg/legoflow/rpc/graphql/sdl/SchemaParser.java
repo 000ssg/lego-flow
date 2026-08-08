@@ -13,7 +13,7 @@ import java.util.*;
  * <p>Supports all SDL constructs: schema definition, scalar, type, interface,
  * union, enum, input, and directive definitions.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SchemaParser {
 

@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *   <li>outgoing-window: how many more transfers we can send</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class AmqpSession {
 

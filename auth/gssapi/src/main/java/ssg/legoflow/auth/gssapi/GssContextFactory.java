@@ -17,7 +17,7 @@ import java.util.Objects;
  * <p>Uses the standard {@link GSSManager} to create contexts with the Kerberos V5
  * or SPNEGO mechanism.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class GssContextFactory {
 
@@ -34,7 +34,7 @@ public final class GssContextFactory {
      * @param targetPrincipal the target service principal name
      * @return a wrapper around the client GSS context
      * @throws GssException if context creation fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static GssContextWrapper createClientContext(GssConfig config, String targetPrincipal)
             throws GssException {
@@ -69,7 +69,7 @@ public final class GssContextFactory {
      * @param config the GSS configuration
      * @return a wrapper around the server GSS context
      * @throws GssException if context creation fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static GssContextWrapper createServerContext(GssConfig config) throws GssException {
         Objects.requireNonNull(config, "config must not be null");
@@ -101,7 +101,7 @@ public final class GssContextFactory {
      * @param targetPrincipal the target service principal name
      * @return a wrapper around the SPNEGO client GSS context
      * @throws GssException if context creation fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static GssContextWrapper createSpnegoClientContext(GssConfig config, String targetPrincipal)
             throws GssException {

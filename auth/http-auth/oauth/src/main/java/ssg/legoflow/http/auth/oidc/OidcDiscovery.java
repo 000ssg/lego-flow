@@ -6,7 +6,7 @@ import java.util.Objects;
 /**
  * OpenID Provider metadata from .well-known/openid-configuration.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class OidcDiscovery {
 
@@ -30,7 +30,7 @@ public class OidcDiscovery {
      * @param responseTypesSupported          supported response types
      * @param scopesSupported                 supported scopes
      * @param idTokenSigningAlgValuesSupported supported ID token signing algorithms
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public OidcDiscovery(String issuer, String authorizationEndpoint, String tokenEndpoint,
                          String userInfoEndpoint, String jwksUri,
@@ -52,7 +52,7 @@ public class OidcDiscovery {
      *
      * @param issuer the issuer URL
      * @return the discovery URL
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String discoveryUrl(String issuer) {
         String base = issuer.endsWith("/") ? issuer.substring(0, issuer.length() - 1) : issuer;
@@ -63,7 +63,7 @@ public class OidcDiscovery {
      * Serializes to JSON.
      *
      * @return the JSON string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toJson() {
         var sb = new StringBuilder("{");

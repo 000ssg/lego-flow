@@ -21,7 +21,7 @@ import java.util.Objects;
  * @param version        the EDNS version (should be 0)
  * @param dnssecOk       the DNSSEC OK (DO) flag
  * @param options        the EDNS options
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record OptRecord(
         int udpPayloadSize,
@@ -47,7 +47,7 @@ public record OptRecord(
      * @param udpPayloadSize the UDP payload size
      * @param dnssecOk       the DO flag
      * @return the OPT record
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static OptRecord of(int udpPayloadSize, boolean dnssecOk) {
         return new OptRecord(udpPayloadSize, 0, 0, dnssecOk, List.of());
@@ -57,7 +57,7 @@ public record OptRecord(
      * Returns the TTL-encoded flags for wire format.
      *
      * @return the 32-bit TTL field value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int ttlField() {
         int ttl = (extendedRcode & 0xFF) << 24;
@@ -73,7 +73,7 @@ public record OptRecord(
      *
      * @param ttl the 32-bit TTL value
      * @return the extended rcode, version, and DO flag
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static OptFlags parseTtlField(int ttl) {
         int extRcode = (ttl >> 24) & 0xFF;
@@ -88,7 +88,7 @@ public record OptRecord(
      * @param extendedRcode the extended RCODE
      * @param version       the EDNS version
      * @param dnssecOk      the DO flag
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record OptFlags(int extendedRcode, int version, boolean dnssecOk) {}
 
@@ -97,7 +97,7 @@ public record OptRecord(
      *
      * @param code the option code
      * @param data the option data
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record EdnsOption(int code, byte[] data) {
 

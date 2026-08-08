@@ -1,4 +1,9 @@
-# SSH Module -- Development Guide
+# network / ssh — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -77,8 +82,3 @@ The `ssh` module implements the SSH-2 protocol (RFC 4251-4256) for secure remote
 - SCP server tests: sink/source with actual file I/O via @TempDir
 - All tests use loopback or in-memory constructs (no external SSH server required)
 - Test count: 430
-
----
-
-**Last Updated**: 2026-06-26
-**For AI assistant versions**

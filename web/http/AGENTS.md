@@ -1,4 +1,9 @@
-# HTTP Module — Development Guide
+# web / http — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Overview
 
@@ -104,10 +109,3 @@ ssg.legoflow.http/
 - **No Mockito**: use `DefaultContext` from blocks for test contexts
 - **542 tests passing**
 - Test demos progress from simplest to complex, covering common and specific usage variants
-
-## Commit Rules
-
-- Update doc/REQUIREMENTS.md with commit section
-- Update doc/ARCHITECTURE.md if architecture changed
-- Update README.md for API changes
-- Include `Co-Authored-By: AI assistant` in commit messages

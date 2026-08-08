@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * <p>Manages flow control for SSH channels using sliding windows.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class WindowManager {
 

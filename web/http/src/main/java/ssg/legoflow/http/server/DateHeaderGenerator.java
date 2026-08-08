@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter;
  * <p>Per the RFC, an origin server MUST send a Date header field in all
  * response messages, except for certain cases (1xx, 5xx when clock unavailable).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class DateHeaderGenerator {
 

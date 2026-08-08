@@ -5,7 +5,7 @@
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](../LICENSE)
 [![Tests](https://img.shields.io/badge/Tests-268-brightgreen.svg)]()
-[![Version](https://img.shields.io/badge/Version-1.0.0-blue.svg)]()
+[![Version](https://img.shields.io/badge/Version-0.1.0-blue.svg)]()
 
 XMPP protocol module for the Lego Flow framework, providing presence, messaging, roster management, and IoT extensions.
 

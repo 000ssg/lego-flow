@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * <p>This class is thread-safe. All counters use {@link AtomicLong}.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class QuicFlowControl {
 
@@ -31,7 +31,7 @@ public class QuicFlowControl {
      * Creates flow control with the given connection-level limits.
      *
      * @param initialMaxData the initial connection-level data limit
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicFlowControl(long initialMaxData) {
         this.connectionSendLimit = new AtomicLong(initialMaxData);
@@ -46,7 +46,7 @@ public class QuicFlowControl {
      * @param streamId     the stream identifier
      * @param sendLimit    the initial send limit for the stream
      * @param receiveLimit the initial receive limit for the stream
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void registerStream(long streamId, long sendLimit, long receiveLimit) {
         streamSendLimits.put(streamId, new AtomicLong(sendLimit));
@@ -61,7 +61,7 @@ public class QuicFlowControl {
      * @param streamId the stream identifier
      * @param amount   the number of bytes to consume
      * @return {@code true} if both windows had sufficient capacity
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean consumeSendWindow(long streamId, long amount) {
         // Check connection-level
@@ -92,7 +92,7 @@ public class QuicFlowControl {
      * @param streamId the stream identifier
      * @param amount   the number of bytes to consume
      * @return {@code true} if both windows had sufficient capacity
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean consumeReceiveWindow(long streamId, long amount) {
         long connAvailable = connectionReceiveLimit.get() - connectionReceiveUsed.get();
@@ -119,7 +119,7 @@ public class QuicFlowControl {
      * Updates the connection-level maximum data (MAX_DATA frame received).
      *
      * @param newLimit the new connection data limit
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void updateMaxData(long newLimit) {
         connectionSendLimit.updateAndGet(current -> Math.max(current, newLimit));
@@ -130,7 +130,7 @@ public class QuicFlowControl {
      *
      * @param streamId the stream identifier
      * @param newLimit the new stream data limit
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void updateMaxStreamData(long streamId, long newLimit) {
         var limit = streamSendLimits.get(streamId);
@@ -147,7 +147,7 @@ public class QuicFlowControl {
      * has been consumed.</p>
      *
      * @return {@code true} if MAX_DATA should be sent
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean shouldSendMaxData() {
         long limit = connectionReceiveLimit.get();
@@ -160,7 +160,7 @@ public class QuicFlowControl {
      *
      * @param streamId the stream identifier
      * @return {@code true} if MAX_STREAM_DATA should be sent
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean shouldSendMaxStreamData(long streamId) {
         var limit = streamReceiveLimits.get(streamId);
@@ -175,7 +175,7 @@ public class QuicFlowControl {
      *
      * @param streamId the stream identifier
      * @return the available send window in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long getAvailableSendWindow(long streamId) {
         long connAvailable = connectionSendLimit.get() - connectionSendUsed.get();
@@ -192,7 +192,7 @@ public class QuicFlowControl {
      *
      * @param streamId the stream identifier
      * @return the available receive window in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long getAvailableReceiveWindow(long streamId) {
         long connAvailable = connectionReceiveLimit.get() - connectionReceiveUsed.get();
@@ -207,7 +207,7 @@ public class QuicFlowControl {
      * Returns the connection-level send limit.
      *
      * @return the send limit in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long connectionSendLimit() {
         return connectionSendLimit.get();
@@ -217,7 +217,7 @@ public class QuicFlowControl {
      * Returns the connection-level receive limit.
      *
      * @return the receive limit in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long connectionReceiveLimit() {
         return connectionReceiveLimit.get();
@@ -227,7 +227,7 @@ public class QuicFlowControl {
      * Returns the amount of connection-level send data consumed.
      *
      * @return the consumed bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long connectionSendUsed() {
         return connectionSendUsed.get();
@@ -237,7 +237,7 @@ public class QuicFlowControl {
      * Returns the amount of connection-level receive data consumed.
      *
      * @return the consumed bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long connectionReceiveUsed() {
         return connectionReceiveUsed.get();

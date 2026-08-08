@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *   <li>QUIT -- session ending</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SmtpSession implements AutoCloseable {
 

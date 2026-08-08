@@ -3,13 +3,13 @@ package ssg.legoflow.mqtt.broker;
 import ssg.legoflow.mqtt.client.MqttClient;
 import ssg.legoflow.mqtt.client.MqttClientConfig;
 import ssg.legoflow.mqtt.protocol.ConnAckPacket;
-import ssg.legoflow.mqtt.protocol.PublishPacket;
 import ssg.legoflow.mqtt.protocol.QoS;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -19,7 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for MQTT v5.0 Clean Start flag (Section 3.1.2.4).
  *
- * @since 1.0.0
+ * <p>Timing-critical assertions use {@link TestAssertions} with exponential
+ * backoff instead of {@code Thread.sleep()} to avoid flaky failures under parallel
+ * execution (-T 1C).
+ *
+ * @since 0.1.0
  */
 class CleanStartTest {
 
@@ -50,7 +54,12 @@ class CleanStartTest {
             client.disconnect().get(5, TimeUnit.SECONDS);
         }
 
-        Thread.sleep(200);
+        // Allow async disconnect processing to complete
+        TestAssertions.assertThatCondition(
+                "clean-test session exists after disconnect",
+                () -> broker.getSessions().containsKey("clean-test"),
+                Duration.ofSeconds(3));
+
         assertThat(broker.getSessions()).containsKey("clean-test");
 
         // When: reconnect with cleanSession=true
@@ -76,7 +85,11 @@ class CleanStartTest {
             client.disconnect().get(5, TimeUnit.SECONDS);
         }
 
-        Thread.sleep(200);
+        // Allow async disconnect processing to complete
+        TestAssertions.assertThatCondition(
+                "resume-test session exists after disconnect",
+                () -> broker.getSessions().containsKey("resume-test"),
+                Duration.ofSeconds(3));
 
         // When: reconnect with cleanSession=false
         try (var client = new MqttClient(MqttClientConfig.defaults()
@@ -127,7 +140,13 @@ class CleanStartTest {
             sub.disconnect().get(5, TimeUnit.SECONDS);
         }
 
-        Thread.sleep(200);
+        // Allow async disconnect processing to complete
+        TestAssertions.assertThatCondition(
+                "resume-subs session exists with subscriptions",
+                () -> broker.getSessions().containsKey("resume-subs")
+                        && broker.getSessions().get("resume-subs").getSubscriptions()
+                                .containsKey("resume/sub/topic"),
+                Duration.ofSeconds(3));
 
         // Then: session still has subscriptions
         MqttSession session = broker.getSessions().get("resume-subs");
@@ -173,7 +192,11 @@ class CleanStartTest {
             client.disconnect().get(5, TimeUnit.SECONDS);
         }
 
-        Thread.sleep(200);
+        // Allow async disconnect processing to complete (retry-based)
+        TestAssertions.assertThatCondition(
+                "clean-remove session removed after disconnect",
+                () -> !broker.getSessions().containsKey("clean-remove"),
+                Duration.ofSeconds(3));
 
         // Then: session removed after clean session disconnect
         assertThat(broker.getSessions()).doesNotContainKey("clean-remove");
@@ -191,7 +214,11 @@ class CleanStartTest {
             client.disconnect().get(5, TimeUnit.SECONDS);
         }
 
-        Thread.sleep(200);
+        // Allow async disconnect processing to complete
+        TestAssertions.assertThatCondition(
+                "persist-survive session exists after disconnect",
+                () -> broker.getSessions().containsKey("persist-survive"),
+                Duration.ofSeconds(3));
 
         // Then: session still exists
         assertThat(broker.getSessions()).containsKey("persist-survive");

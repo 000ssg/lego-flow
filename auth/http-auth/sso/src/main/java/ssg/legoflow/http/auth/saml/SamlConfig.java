@@ -9,7 +9,7 @@ import java.util.Objects;
  * @param ssoUrl        the IdP SSO URL (where to redirect for authentication)
  * @param certificate   the IdP X.509 certificate (PEM-encoded, for signature validation)
  * @param nameIdFormat  the expected NameID format
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SamlConfig(
         String entityId,
@@ -24,7 +24,7 @@ public record SamlConfig(
      * @param ssoUrl      the IdP SSO URL
      * @param certificate the IdP certificate (PEM-encoded)
      * @param nameIdFormat the NameID format
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SamlConfig {
         Objects.requireNonNull(entityId, "entityId must not be null");
@@ -40,7 +40,7 @@ public record SamlConfig(
      * @param entityId the entity ID
      * @param ssoUrl   the SSO URL
      * @return the config
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SamlConfig of(String entityId, String ssoUrl) {
         return new SamlConfig(entityId, ssoUrl, null, null);

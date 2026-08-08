@@ -11,7 +11,7 @@ import java.util.Map;
  * Unlike HPACK, QPACK indices start at 0 and the table includes
  * commonly used header name-value pairs for HTTP/3.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class QpackStaticTable {
 
@@ -20,7 +20,7 @@ public final class QpackStaticTable {
      *
      * @param name  the header field name
      * @param value the header field value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record Entry(String name, String value) {}
 
@@ -149,7 +149,7 @@ public final class QpackStaticTable {
      * @param index the zero-based index (0-98)
      * @return the static table entry
      * @throws IllegalArgumentException if the index is out of range
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Entry getEntry(int index) {
         if (index < 0 || index >= TABLE.length) {
@@ -162,7 +162,7 @@ public final class QpackStaticTable {
      * Returns the number of entries in the static table.
      *
      * @return 99
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static int getSize() {
         return SIZE;
@@ -174,7 +174,7 @@ public final class QpackStaticTable {
      * @param name  the header field name
      * @param value the header field value
      * @return the index (0-98), or {@code -1} if not found
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static int findEntry(String name, String value) {
         var key = name + "\0" + value;
@@ -186,7 +186,7 @@ public final class QpackStaticTable {
      *
      * @param name the header field name
      * @return the index (0-98), or {@code -1} if not found
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static int findNameIndex(String name) {
         return NAME_INDEX.getOrDefault(name, -1);

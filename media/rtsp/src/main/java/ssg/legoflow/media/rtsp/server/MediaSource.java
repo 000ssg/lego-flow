@@ -10,7 +10,7 @@ import java.util.Optional;
  * <p>Implementations provide SDP descriptions and control access to
  * the underlying media data for playback and recording.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface MediaSource {
 

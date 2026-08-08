@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
  * @param entry     the DN of the entry to compare
  * @param attribute the attribute description
  * @param value     the assertion value
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record CompareRequest(
         String entry,

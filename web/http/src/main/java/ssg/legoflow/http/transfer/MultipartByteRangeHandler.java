@@ -16,7 +16,7 @@ import java.util.UUID;
  * <p>When multiple ranges are requested, the server responds with a
  * multipart/byteranges content type containing each range as a separate part.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MultipartByteRangeHandler {
 

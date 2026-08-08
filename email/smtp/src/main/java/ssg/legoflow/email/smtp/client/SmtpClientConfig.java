@@ -10,7 +10,7 @@ import java.util.Objects;
  * <p>Encapsulates connection parameters including host, port, TLS mode,
  * authentication credentials, and timeouts.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SmtpClientConfig {
 

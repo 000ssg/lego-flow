@@ -11,7 +11,7 @@ import java.util.Objects;
  * <p>Handles conversion between SSH wire format (binary blob) and OpenSSH
  * authorized_keys format (type base64-key comment).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SshPublicKey {
 

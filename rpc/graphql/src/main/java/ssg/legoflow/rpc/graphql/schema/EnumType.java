@@ -8,7 +8,7 @@ import java.util.*;
  * <p>Enum types describe a set of possible values. Like scalars, enum types
  * represent leaf values in a GraphQL type system.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class EnumType implements GraphQLType {
 
@@ -100,7 +100,7 @@ public final class EnumType implements GraphQLType {
      * @param description       the value description
      * @param deprecated        whether the value is deprecated
      * @param deprecationReason the deprecation reason
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record EnumValue(String name, String description,
                             boolean deprecated, String deprecationReason) {

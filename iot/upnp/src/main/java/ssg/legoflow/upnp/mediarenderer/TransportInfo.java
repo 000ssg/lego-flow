@@ -6,7 +6,7 @@ package ssg.legoflow.upnp.mediarenderer;
  * @param currentTransportState  the current transport state
  * @param currentTransportStatus the current transport status
  * @param currentSpeed           the current playback speed (e.g. "1" for normal)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record TransportInfo(
         TransportState currentTransportState,
@@ -19,7 +19,7 @@ public record TransportInfo(
      *
      * @param state the transport state
      * @return the transport info
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static TransportInfo of(TransportState state) {
         return new TransportInfo(state, TransportStatus.OK, "1");

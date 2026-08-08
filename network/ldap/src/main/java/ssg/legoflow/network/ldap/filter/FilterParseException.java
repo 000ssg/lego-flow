@@ -3,7 +3,7 @@ package ssg.legoflow.network.ldap.filter;
 /**
  * Exception thrown when parsing an LDAP filter string fails.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class FilterParseException extends RuntimeException {
 

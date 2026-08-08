@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * OAuth 2.0 authorization server implementing /authorize, /token, and /revoke endpoints.
  * Supports authorization code, client credentials, password, and refresh token grants.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class OAuth2AuthorizationServer {
 
@@ -35,7 +35,7 @@ public class OAuth2AuthorizationServer {
      * @param codeStore      the authorization code store
      * @param tokenStore     the token store
      * @param issuer         the issuer identifier
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public OAuth2AuthorizationServer(OAuth2ClientRegistry clientRegistry,
                                      AuthorizationCodeStore codeStore,
@@ -53,7 +53,7 @@ public class OAuth2AuthorizationServer {
      * @param request   the HTTP request
      * @param principal the authenticated user (must be authenticated before calling this)
      * @return the HTTP response (redirect with authorization code)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse handleAuthorize(HttpRequest request, AuthPrincipal principal) {
         var params = request.getQueryParams();
@@ -107,7 +107,7 @@ public class OAuth2AuthorizationServer {
      *
      * @param request the HTTP request with form-encoded body
      * @return the HTTP response with token or error
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse handleToken(HttpRequest request) {
         Map<String, String> params = parseFormBody(request.getBodyAsString());
@@ -132,7 +132,7 @@ public class OAuth2AuthorizationServer {
      *
      * @param request the HTTP request
      * @return the HTTP response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse handleRevoke(HttpRequest request) {
         Map<String, String> params = parseFormBody(request.getBodyAsString());
@@ -352,7 +352,7 @@ public class OAuth2AuthorizationServer {
      *
      * @param request the HTTP request with form-encoded body containing "token" parameter
      * @return the HTTP response with introspection result
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse handleIntrospect(HttpRequest request) {
         Map<String, String> params = parseFormBody(request.getBodyAsString());
@@ -420,7 +420,7 @@ public class OAuth2AuthorizationServer {
      * @param request   the HTTP request
      * @param principal the authenticated user
      * @return the HTTP response (redirect with code/token in query or fragment)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse handleAuthorizeExtended(HttpRequest request, AuthPrincipal principal) {
         var params = request.getQueryParams();
@@ -531,7 +531,7 @@ public class OAuth2AuthorizationServer {
      *
      * @param request the HTTP request with JSON body
      * @return the HTTP response with client_id, client_secret, and metadata
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse handleRegister(HttpRequest request) {
         String body = request.getBodyAsString();

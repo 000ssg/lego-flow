@@ -5,7 +5,7 @@ package ssg.legoflow.mqtt.protocol;
  *
  * <p>Supports MQTT v3.1.1 (protocol level 4) and MQTT v5.0 (protocol level 5).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum MqttVersion {
 

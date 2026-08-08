@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Query result accessor for PostgreSQL query results.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class PgResult {
 

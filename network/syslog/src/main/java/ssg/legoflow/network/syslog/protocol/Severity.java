@@ -6,7 +6,7 @@ package ssg.legoflow.network.syslog.protocol;
  * <p>Severity values range from 0 (Emergency) to 7 (Debug), with
  * lower values indicating higher severity.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum Severity {
 

@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
  * @param sid              the subscription ID
  * @param seq              the event sequence number (0 for initial event, then incrementing)
  * @param changedVariables the map of changed state variable names to their new values
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record EventMessage(String sid, long seq, Map<String, String> changedVariables) {
 
@@ -42,7 +42,7 @@ public record EventMessage(String sid, long seq, Map<String, String> changedVari
      * Returns whether this is the initial event (sequence number 0).
      *
      * @return {@code true} if this is the initial state notification
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isInitialEvent() {
         return seq == 0;
@@ -63,7 +63,7 @@ public record EventMessage(String sid, long seq, Map<String, String> changedVari
      * @param xml the event XML body
      * @return the parsed event message
      * @throws NullPointerException if any parameter is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static EventMessage parseXml(String sid, long seq, String xml) {
         Objects.requireNonNull(sid, "sid must not be null");
@@ -86,7 +86,7 @@ public record EventMessage(String sid, long seq, Map<String, String> changedVari
      * Serializes this event message to UPnP event XML format.
      *
      * @return the XML representation of the event
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toXml() {
         var sb = new StringBuilder();

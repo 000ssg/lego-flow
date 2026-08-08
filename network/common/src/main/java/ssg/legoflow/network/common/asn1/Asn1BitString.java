@@ -10,7 +10,7 @@ import java.util.Arrays;
  *
  * @param unusedBits the number of unused bits in the last byte (0-7)
  * @param data       the bit string data bytes
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Asn1BitString(int unusedBits, byte[] data) implements Asn1Type {
 

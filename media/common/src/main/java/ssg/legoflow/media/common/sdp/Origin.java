@@ -13,7 +13,7 @@ import java.util.Objects;
  * @param netType    network type, typically "IN" (Internet)
  * @param addrType   address type, "IP4" or "IP6"
  * @param address    the originator's unicast address
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Origin(
         String username,

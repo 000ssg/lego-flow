@@ -7,7 +7,7 @@ package ssg.legoflow.media.rtp.rtcp;
  * Packet types include Sender Reports, Receiver Reports, Source Descriptions,
  * Goodbye, and Application-Defined packets.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface RtcpPacket
         permits SenderReport, ReceiverReport, SourceDescription, Goodbye, ApplicationDefined {

@@ -7,7 +7,7 @@ package ssg.legoflow.http3.quic;
  * The {@link #fromCode(int)} method resolves a type code back to
  * the corresponding enum constant.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum QuicFrameType {
 
@@ -87,7 +87,7 @@ public enum QuicFrameType {
      * Returns the wire-format type code for this frame type.
      *
      * @return the type code per RFC 9000
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int code() {
         return code;
@@ -99,7 +99,7 @@ public enum QuicFrameType {
      * @param code the type code from the wire format
      * @return the matching {@code QuicFrameType}
      * @throws IllegalArgumentException if the code is not recognised
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static QuicFrameType fromCode(int code) {
         for (var type : values()) {

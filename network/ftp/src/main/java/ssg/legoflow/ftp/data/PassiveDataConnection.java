@@ -21,7 +21,7 @@ import java.util.Objects;
  * <p>On the server side, this class listens for an incoming client connection.
  * On the client side, this class connects to the server's specified address/port.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class PassiveDataConnection implements DataConnection {
 

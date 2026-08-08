@@ -12,7 +12,7 @@ import java.util.Set;
  * to the wrapped handler. Supports path exclusions (e.g., for health checks)
  * and role-based access control.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class AuthMiddleware implements HttpRequestHandler {
 
@@ -30,7 +30,7 @@ public class AuthMiddleware implements HttpRequestHandler {
      * @param authFilter    the auth filter to use
      * @param excludedPaths paths that bypass authentication
      * @param requiredRoles roles required for access (empty means any authenticated user)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AuthMiddleware(HttpRequestHandler delegate, AuthFilter authFilter,
                           Set<String> excludedPaths, Set<String> requiredRoles) {
@@ -45,7 +45,7 @@ public class AuthMiddleware implements HttpRequestHandler {
      *
      * @param delegate   the handler to delegate to
      * @param authFilter the auth filter
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AuthMiddleware(HttpRequestHandler delegate, AuthFilter authFilter) {
         this(delegate, authFilter, Set.of(), Set.of());
@@ -96,7 +96,7 @@ public class AuthMiddleware implements HttpRequestHandler {
      * Returns the delegate handler.
      *
      * @return the delegate
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpRequestHandler getDelegate() {
         return delegate;
@@ -106,7 +106,7 @@ public class AuthMiddleware implements HttpRequestHandler {
      * Returns the excluded paths.
      *
      * @return the excluded paths
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Set<String> getExcludedPaths() {
         return excludedPaths;
@@ -116,7 +116,7 @@ public class AuthMiddleware implements HttpRequestHandler {
      * Returns the required roles.
      *
      * @return the required roles
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Set<String> getRequiredRoles() {
         return requiredRoles;

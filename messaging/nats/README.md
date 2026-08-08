@@ -5,7 +5,7 @@
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](../LICENSE)
 [![Tests](https://img.shields.io/badge/Tests-271-brightgreen.svg)]()
-[![Version](https://img.shields.io/badge/Version-1.0.0--SNAPSHOT-blue.svg)]()
+[![Version](https://img.shields.io/badge/Version-0.1.0-SNAPSHOT-blue.svg)]()
 
 NATS protocol module for the Lego Flow framework, providing cloud-native messaging with core pub/sub and JetStream persistent streaming.
 

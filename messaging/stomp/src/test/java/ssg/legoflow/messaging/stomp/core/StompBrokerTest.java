@@ -3,7 +3,7 @@ package ssg.legoflow.messaging.stomp.core;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ssg.legoflow.messaging.stomp.demo.InMemoryStompTransport;
+import ssg.legoflow.messaging.stomp.core.transport.InMemoryStompTransport;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.*;
  * Tests for {@link StompBroker} — connection, subscription, delivery, ack modes,
  * transactions, receipts, error handling.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class StompBrokerTest {
 

@@ -8,7 +8,7 @@ package ssg.legoflow.network.modbus.data;
  *
  * @param address the coil address
  * @param value   the coil state (true = ON, false = OFF)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Coil(int address, boolean value) {
 

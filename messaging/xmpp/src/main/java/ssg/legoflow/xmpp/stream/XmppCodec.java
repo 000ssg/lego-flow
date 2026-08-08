@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
+import ssg.legoflow.service.util.BufferPool;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,7 @@ import java.util.regex.Pattern;
  * <p>Extends {@link AbstractDataFilter} to participate in the data processing pipeline.
  * Supports incremental XML parsing for handling partial data.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class XmppCodec extends AbstractDataFilter<ByteBuffer> {
 

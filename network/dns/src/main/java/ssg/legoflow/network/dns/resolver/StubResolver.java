@@ -20,7 +20,7 @@ import java.util.Objects;
  * <p>Caches responses based on TTL values. This is the simplest resolver
  * implementation, equivalent to a forwarding/caching resolver.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class StubResolver implements DnsResolver, AutoCloseable {
 
@@ -34,7 +34,7 @@ public final class StubResolver implements DnsResolver, AutoCloseable {
      *
      * @param upstream the upstream DNS server address
      * @param timeout  the query timeout
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public StubResolver(InetSocketAddress upstream, Duration timeout) {
         this.client = new DnsClient(upstream, timeout);
@@ -47,7 +47,7 @@ public final class StubResolver implements DnsResolver, AutoCloseable {
      * @param upstream the upstream DNS server address
      * @param timeout  the query timeout
      * @param cache    the cache to use
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public StubResolver(InetSocketAddress upstream, Duration timeout, DnsCache cache) {
         this.client = new DnsClient(upstream, timeout);
@@ -77,7 +77,7 @@ public final class StubResolver implements DnsResolver, AutoCloseable {
      * Returns the cache used by this resolver.
      *
      * @return the cache
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DnsCache cache() {
         return cache;

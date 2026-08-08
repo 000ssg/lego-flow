@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * Host-based authentication method per RFC 4252 section 9.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class HostBasedAuth implements AuthMethod {
 

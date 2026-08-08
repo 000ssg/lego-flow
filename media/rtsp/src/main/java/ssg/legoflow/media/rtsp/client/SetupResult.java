@@ -11,7 +11,7 @@ import java.util.Objects;
  * @param sessionId the server-assigned session identifier
  * @param timeout   the session timeout in seconds
  * @param transport the negotiated transport parameters
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SetupResult(String sessionId, int timeout, TransportHeader transport) {
 

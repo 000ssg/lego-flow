@@ -5,7 +5,7 @@ package ssg.legoflow.mqtt.protocol;
  *
  * <p>Indicates the result of a connection attempt.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum ConnectReturnCode {
 

@@ -7,7 +7,7 @@ import java.net.SocketAddress;
 /**
  * Handler interface for processing DNS queries on the server.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 @FunctionalInterface
 public interface DnsHandler {
@@ -18,7 +18,7 @@ public interface DnsHandler {
      * @param query  the incoming DNS query
      * @param sender the address of the sender
      * @return the response message
-     * @since 1.0.0
+     * @since 0.1.0
      */
     DnsMessage handle(DnsMessage query, SocketAddress sender);
 }

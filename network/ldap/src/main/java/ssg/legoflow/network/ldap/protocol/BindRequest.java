@@ -16,7 +16,7 @@ package ssg.legoflow.network.ldap.protocol;
  * @param version        the LDAP protocol version (3 for LDAPv3)
  * @param name           the DN to bind as (empty string for anonymous)
  * @param authentication the authentication choice
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record BindRequest(
         int version,
@@ -67,7 +67,7 @@ public record BindRequest(
     /**
      * Authentication choice for bind requests.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public sealed interface AuthenticationChoice {
 

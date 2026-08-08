@@ -16,7 +16,7 @@ import java.util.List;
  * Handles the MQTT fixed header (packet type + flags + remaining length) and delegates
  * variable header / payload encoding/decoding to {@link MqttEncoder} and {@link MqttDecoder}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MqttCodec extends AbstractDataFilter<ByteBuffer> {
 

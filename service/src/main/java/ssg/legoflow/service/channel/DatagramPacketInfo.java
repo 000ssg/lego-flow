@@ -13,7 +13,7 @@ import java.util.Objects;
  * @param sender    the socket address of the datagram sender
  * @param data      a read-only {@link ByteBuffer} containing the datagram payload
  * @param timestamp the receive timestamp in nanoseconds (from {@link System#nanoTime()})
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record DatagramPacketInfo(SocketAddress sender, ByteBuffer data, long timestamp) {
 

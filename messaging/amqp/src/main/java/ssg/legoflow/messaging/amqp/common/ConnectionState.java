@@ -7,7 +7,7 @@ package ssg.legoflow.messaging.amqp.common;
  * {@code START -> HDR_SENT/HDR_RCVD -> HDR_EXCH -> OPEN_PIPE/OPEN_SENT/OPEN_RCVD -> OPENED
  * -> CLOSE_PIPE/CLOSE_SENT/CLOSE_RCVD -> END}
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum ConnectionState {
 

@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
  *   <li>Enhanced: {@code code SP X.Y.Z text CRLF}</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SmtpCodec {
 

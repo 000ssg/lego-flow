@@ -37,7 +37,7 @@ import java.util.List;
  * {@link #combineWithAccumulator(ByteBuffer)} merges new input, and a parse loop extracts
  * complete protocol units while saving the remainder.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class LdapCodec {
 

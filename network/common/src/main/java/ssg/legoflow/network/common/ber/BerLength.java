@@ -12,7 +12,7 @@ import java.nio.ByteBuffer;
  *   <li><b>Indefinite form</b>: single byte 0x80, content terminated by 0x00 0x00</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class BerLength {
 

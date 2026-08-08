@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
  *
  * <p>Supports pty-req, shell, exec, subsystem, env, signal, exit-status, and exit-signal.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SessionChannel extends SshChannel {
 

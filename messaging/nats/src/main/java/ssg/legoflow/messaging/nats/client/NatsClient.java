@@ -25,7 +25,7 @@ import java.util.function.Consumer;
  *
  * <p>Uses virtual threads for the reader loop and request timeouts.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class NatsClient implements AutoCloseable {
 

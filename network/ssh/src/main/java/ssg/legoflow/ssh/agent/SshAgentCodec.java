@@ -12,7 +12,7 @@ import java.util.List;
  * <p>Agent messages use a 4-byte length prefix followed by a message type byte and payload,
  * as defined in draft-miller-ssh-agent.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SshAgentCodec {
 

@@ -13,7 +13,7 @@ import java.util.*;
  * extensions such as {@code permessage-deflate}. Each extension can have
  * parameters (e.g., {@code server_no_context_takeover}).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class WebSocketExtension {
 
@@ -25,7 +25,7 @@ public class WebSocketExtension {
      *
      * @param name       the extension name
      * @param parameters the extension parameters (name-value pairs)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record ExtensionOffer(String name, Map<String, String> parameters) {
         public ExtensionOffer {

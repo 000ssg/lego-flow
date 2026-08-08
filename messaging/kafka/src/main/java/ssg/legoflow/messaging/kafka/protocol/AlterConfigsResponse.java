@@ -6,7 +6,7 @@ import java.util.List;
  * AlterConfigs response (API key 33).
  *
  * @param resources the results of each resource configuration alteration
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record AlterConfigsResponse(List<ResourceResponse> resources) {
 

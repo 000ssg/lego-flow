@@ -7,7 +7,7 @@ package ssg.legoflow.email.smtp.server;
  * accepted or rejected. This allows implementing relay restrictions, spam
  * filtering, address validation, and other policies.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface SmtpHandler {
 

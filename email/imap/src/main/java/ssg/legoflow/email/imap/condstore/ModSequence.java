@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Every flag change or message addition increments the counter, and the new
  * value is associated with the affected message.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ModSequence {
 

@@ -15,7 +15,7 @@ import java.util.TreeMap;
  * <p>Supports RFC 2231 parameter value continuations and charset/language
  * encoding for non-ASCII filenames and other values.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ParameterParser {
 

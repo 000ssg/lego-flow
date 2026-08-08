@@ -8,7 +8,7 @@ import java.util.Objects;
 /**
  * Configuration for an XMPP client connection.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class XmppClientConfig {
 
@@ -83,7 +83,7 @@ public class XmppClientConfig {
     /**
      * Builder for XmppClientConfig.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static class Builder {
         private final String host;

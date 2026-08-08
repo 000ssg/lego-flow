@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * <p>Encodes and sends RTP and RTCP packets to a remote destination.
  * Tracks sending statistics in the associated {@link RtpSession}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RtpSender {
 

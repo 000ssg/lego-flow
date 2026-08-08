@@ -13,7 +13,7 @@ import java.util.Objects;
  * @param scpdUrl     the relative URL to the SCPD XML document
  * @param controlUrl  the relative URL for SOAP action invocation
  * @param eventSubUrl the relative URL for GENA event subscription
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ServiceDescription(
         String serviceType,
@@ -23,16 +23,16 @@ public record ServiceDescription(
         String eventSubUrl
 ) {
 
-    /** Standard ContentDirectory service type. @since 1.0.0 */
+    /** Standard ContentDirectory service type. @since 0.1.0 */
     public static final String TYPE_CONTENT_DIRECTORY = "urn:schemas-upnp-org:service:ContentDirectory:1";
 
-    /** Standard ConnectionManager service type. @since 1.0.0 */
+    /** Standard ConnectionManager service type. @since 0.1.0 */
     public static final String TYPE_CONNECTION_MANAGER = "urn:schemas-upnp-org:service:ConnectionManager:1";
 
-    /** Standard AVTransport service type. @since 1.0.0 */
+    /** Standard AVTransport service type. @since 0.1.0 */
     public static final String TYPE_AV_TRANSPORT = "urn:schemas-upnp-org:service:AVTransport:1";
 
-    /** Standard RenderingControl service type. @since 1.0.0 */
+    /** Standard RenderingControl service type. @since 0.1.0 */
     public static final String TYPE_RENDERING_CONTROL = "urn:schemas-upnp-org:service:RenderingControl:1";
 
     /**
@@ -52,7 +52,7 @@ public record ServiceDescription(
      * Serializes this service description to UPnP device description XML fragment.
      *
      * @return the XML representation
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toXml() {
         return "<service>" +

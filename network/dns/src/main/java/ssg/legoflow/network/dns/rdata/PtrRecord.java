@@ -9,7 +9,7 @@ import java.util.Objects;
  * PTR record RDATA: a domain name pointer (RFC 1035).
  *
  * @param domainName the pointed-to domain name
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record PtrRecord(DnsName domainName) implements RData {
 
@@ -27,7 +27,7 @@ public record PtrRecord(DnsName domainName) implements RData {
      *
      * @param name the domain name
      * @return the PTR record
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static PtrRecord of(String name) {
         return new PtrRecord(DnsName.of(name));

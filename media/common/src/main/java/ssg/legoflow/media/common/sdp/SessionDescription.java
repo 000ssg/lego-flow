@@ -9,7 +9,7 @@ import java.util.Optional;
  *
  * <p>Represents the full SDP document with all session-level and media-level fields.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SessionDescription {
 

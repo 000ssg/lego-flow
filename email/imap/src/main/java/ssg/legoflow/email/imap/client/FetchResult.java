@@ -8,7 +8,7 @@ import java.util.*;
  * <p>Contains the data items returned by the server, such as FLAGS,
  * ENVELOPE, BODY sections, UID, INTERNALDATE, and RFC822.SIZE.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class FetchResult {
 

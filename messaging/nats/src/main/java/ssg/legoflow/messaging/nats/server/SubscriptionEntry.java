@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @param sid              the subscription ID
  * @param subject          the subscribed subject
  * @param queueGroup       the queue group, or null
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SubscriptionEntry(
         ClientConnection clientConnection,

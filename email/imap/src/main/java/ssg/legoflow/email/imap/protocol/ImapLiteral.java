@@ -11,7 +11,7 @@ import java.util.Objects;
  * Non-synchronizing literals use {@code {N+}\r\n} and do not require
  * server confirmation before sending data.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ImapLiteral {
 

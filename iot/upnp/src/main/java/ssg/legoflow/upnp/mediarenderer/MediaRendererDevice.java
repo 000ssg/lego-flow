@@ -18,7 +18,7 @@ import java.util.UUID;
  *
  * <p>State machine: NO_MEDIA -> STOPPED -> PLAYING <-> PAUSED
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MediaRendererDevice {
 
@@ -43,7 +43,7 @@ public class MediaRendererDevice {
      * Creates a new media renderer device.
      *
      * @param friendlyName the human-readable device name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MediaRendererDevice(String friendlyName) {
         this.friendlyName = Objects.requireNonNull(friendlyName, "friendlyName must not be null");
@@ -61,7 +61,7 @@ public class MediaRendererDevice {
     /**
      * Starts the media renderer: registers with SSDP and begins accepting commands.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() {
         running = true;
@@ -70,7 +70,7 @@ public class MediaRendererDevice {
     /**
      * Stops the media renderer.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         if (avTransport.getTransportState() == TransportState.PLAYING
@@ -84,7 +84,7 @@ public class MediaRendererDevice {
      * Returns whether the renderer is running.
      *
      * @return true if running
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isRunning() {
         return running;
@@ -94,7 +94,7 @@ public class MediaRendererDevice {
      * Returns the AVTransport service.
      *
      * @return the AVTransport service
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AvTransport getAvTransport() {
         return avTransport;
@@ -104,7 +104,7 @@ public class MediaRendererDevice {
      * Returns the RenderingControl service.
      *
      * @return the RenderingControl service
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public RenderingControl getRenderingControl() {
         return renderingControl;
@@ -114,7 +114,7 @@ public class MediaRendererDevice {
      * Returns the ConnectionManager service.
      *
      * @return the ConnectionManager service
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ConnectionManagerService getConnectionManager() {
         return connectionManager;
@@ -124,7 +124,7 @@ public class MediaRendererDevice {
      * Returns the UPnP Unique Device Name.
      *
      * @return the UDN
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getUdn() {
         return udn;
@@ -134,7 +134,7 @@ public class MediaRendererDevice {
      * Returns the friendly name.
      *
      * @return the friendly name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getFriendlyName() {
         return friendlyName;
@@ -144,7 +144,7 @@ public class MediaRendererDevice {
      * Returns the DLNA profile.
      *
      * @return the profile
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DlnaProfile getProfile() {
         return profile;
@@ -155,7 +155,7 @@ public class MediaRendererDevice {
      *
      * @param port the HTTP port
      * @return this device for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MediaRendererDevice setHttpPort(int port) {
         this.httpPort = port;
@@ -166,7 +166,7 @@ public class MediaRendererDevice {
      * Returns the HTTP port.
      *
      * @return the port number
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getHttpPort() {
         return httpPort;
@@ -177,7 +177,7 @@ public class MediaRendererDevice {
      *
      * @param hostAddress the host address
      * @return this device for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MediaRendererDevice setHostAddress(String hostAddress) {
         this.hostAddress = hostAddress;
@@ -188,7 +188,7 @@ public class MediaRendererDevice {
      * Returns the base URL for this device.
      *
      * @return the base URL string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getBaseUrl() {
         return "http://" + hostAddress + ":" + httpPort;
@@ -198,7 +198,7 @@ public class MediaRendererDevice {
      * Returns the device description URL.
      *
      * @return the description URL
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getDescriptionUrl() {
         return getBaseUrl() + "/description.xml";
@@ -208,7 +208,7 @@ public class MediaRendererDevice {
      * Adds a playback listener that receives events from both AVTransport and RenderingControl.
      *
      * @param listener the listener to add
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addPlaybackListener(PlaybackListener listener) {
         avTransport.addPlaybackListener(listener);
@@ -219,7 +219,7 @@ public class MediaRendererDevice {
      * Removes a playback listener.
      *
      * @param listener the listener to remove
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void removePlaybackListener(PlaybackListener listener) {
         avTransport.removePlaybackListener(listener);
@@ -230,7 +230,7 @@ public class MediaRendererDevice {
      * Generates the UPnP device description XML.
      *
      * @return the device description XML string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String generateDeviceDescription() {
         return """
@@ -286,7 +286,7 @@ public class MediaRendererDevice {
      * @param actionName the action to invoke
      * @param args       the action arguments
      * @return the result arguments
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Map<String, String> handleAction(String serviceId, String actionName,
                                             Map<String, String> args) {

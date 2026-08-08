@@ -8,7 +8,7 @@ import java.util.*;
  * <p>Object types have a collection of fields, each of which has its own type.
  * Object types can implement one or more interfaces.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ObjectType implements GraphQLType {
 

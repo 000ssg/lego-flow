@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
  * <p>Handles the {@code <set>} and {@code <setResponse>} elements within
  * the {@code urn:xmpp:iot:control} namespace.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ControlExtension implements XmppExtension {
 

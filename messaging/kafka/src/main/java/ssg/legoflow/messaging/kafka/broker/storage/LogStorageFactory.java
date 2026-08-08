@@ -14,7 +14,7 @@ import java.nio.file.Path;
  *
  * <p>Custom implementations can be provided as a lambda or method reference.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 @FunctionalInterface
 public interface LogStorageFactory {

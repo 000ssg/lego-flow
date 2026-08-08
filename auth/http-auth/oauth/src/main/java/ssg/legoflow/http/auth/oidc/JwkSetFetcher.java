@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * provider (e.g., a lambda wrapping an HTTP client call) to decouple from
  * specific HTTP implementations.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class JwkSetFetcher {
 
@@ -31,7 +31,7 @@ public class JwkSetFetcher {
     /**
      * A functional interface for fetching JSON content from a URL.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @FunctionalInterface
     public interface JsonFetcher {
@@ -41,7 +41,7 @@ public class JwkSetFetcher {
          * @param url the URL to fetch
          * @return the JSON string
          * @throws Exception if fetching fails
-         * @since 1.0.0
+         * @since 0.1.0
          */
         String fetch(String url) throws Exception;
     }
@@ -57,7 +57,7 @@ public class JwkSetFetcher {
      *
      * @param jwksUri       the JWKS endpoint URI
      * @param cacheDuration how long to cache the fetched key set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public JwkSetFetcher(String jwksUri, Duration cacheDuration) {
         this.jwksUri = Objects.requireNonNull(jwksUri, "jwksUri must not be null");
@@ -68,7 +68,7 @@ public class JwkSetFetcher {
      * Creates a JWK Set fetcher with 1-hour cache.
      *
      * @param jwksUri the JWKS endpoint URI
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public JwkSetFetcher(String jwksUri) {
         this(jwksUri, Duration.ofHours(1));
@@ -79,7 +79,7 @@ public class JwkSetFetcher {
      *
      * @param fetcher the JSON fetcher to use if cache is expired or empty
      * @return the JWK Set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public JwkSet getJwkSet(JsonFetcher fetcher) {
         var current = cached.get();
@@ -109,7 +109,7 @@ public class JwkSetFetcher {
      *
      * @param json the JWK Set JSON
      * @return the parsed JWK Set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public JwkSet loadFromJson(String json) {
         var jwkSet = JwkSet.fromJson(json);
@@ -123,7 +123,7 @@ public class JwkSetFetcher {
      * @param kid     the key ID
      * @param fetcher the JSON fetcher
      * @return the public key, or empty
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<PublicKey> getKey(String kid, JsonFetcher fetcher) {
         var jwkSet = getJwkSet(fetcher);
@@ -140,7 +140,7 @@ public class JwkSetFetcher {
     /**
      * Invalidates the cached JWK Set.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void invalidateCache() {
         cached.set(null);
@@ -150,7 +150,7 @@ public class JwkSetFetcher {
      * Returns the JWKS URI.
      *
      * @return the URI
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getJwksUri() {
         return jwksUri;
@@ -160,7 +160,7 @@ public class JwkSetFetcher {
      * Returns the cache duration.
      *
      * @return the duration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Duration getCacheDuration() {
         return cacheDuration;

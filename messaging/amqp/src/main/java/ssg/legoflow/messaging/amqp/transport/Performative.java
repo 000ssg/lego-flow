@@ -11,7 +11,7 @@ import java.util.Map;
  * <p>Each performative corresponds to a described list sent in an AMQP frame body.
  * The nine performatives control connection, session, and link lifecycle.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface Performative
         permits Performative.Open, Performative.Begin, Performative.Attach,

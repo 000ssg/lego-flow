@@ -40,7 +40,7 @@ import java.util.Objects;
  *   <li>Missing optional metadata elements</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class DidlLiteParser {
 
@@ -72,7 +72,7 @@ public class DidlLiteParser {
      * @param xml the DIDL-Lite XML string
      * @return the list of parsed content items
      * @throws IllegalArgumentException if the XML is null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<ContentItem> parse(String xml) {
         Objects.requireNonNull(xml, "xml must not be null");
@@ -123,7 +123,7 @@ public class DidlLiteParser {
      *
      * @param items the content items to serialize
      * @return the DIDL-Lite XML string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String serialize(List<ContentItem> items) {
         Objects.requireNonNull(items, "items must not be null");
@@ -144,7 +144,7 @@ public class DidlLiteParser {
      *
      * @param item the content item
      * @return the XML fragment
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String serializeItem(ContentItem item) {
         var sb = new StringBuilder();

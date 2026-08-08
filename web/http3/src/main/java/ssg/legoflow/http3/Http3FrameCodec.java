@@ -5,6 +5,7 @@ import ssg.legoflow.blocks.Context;
 import ssg.legoflow.http3.quic.QuicPacketCodec;
 
 import java.nio.ByteBuffer;
+import ssg.legoflow.service.util.BufferPool;
 import java.util.ArrayList;
 
 /**
@@ -14,7 +15,7 @@ import java.util.ArrayList;
  * processing pipeline. HTTP/3 frames use variable-length integers for
  * both the frame type and the payload length, following RFC 9114.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class Http3FrameCodec extends AbstractDataFilter<ByteBuffer> {
 
@@ -24,7 +25,7 @@ public class Http3FrameCodec extends AbstractDataFilter<ByteBuffer> {
     /**
      * Codec operating mode.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum Mode {
         /** Encode HTTP/3 frames into wire format. */
@@ -37,7 +38,7 @@ public class Http3FrameCodec extends AbstractDataFilter<ByteBuffer> {
      * Creates a new codec in the specified mode.
      *
      * @param mode the operating mode
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3FrameCodec(Mode mode) {
         super(ByteBuffer.class);
@@ -77,7 +78,7 @@ public class Http3FrameCodec extends AbstractDataFilter<ByteBuffer> {
         }
 
         if (combined.hasRemaining()) {
-            accumulator = ByteBuffer.allocate(combined.remaining());
+            accumulator = BufferPool.getBuffer(combined.remaining());
             accumulator.put(combined);
             accumulator.flip();
         } else {
@@ -95,13 +96,13 @@ public class Http3FrameCodec extends AbstractDataFilter<ByteBuffer> {
      *
      * @param frame the frame to encode
      * @return a {@link ByteBuffer} containing the encoded frame
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ByteBuffer encodeFrame(Http3Frame frame) {
         var payload = frame.payload().duplicate();
         int payloadLen = payload.remaining();
 
-        var buf = ByteBuffer.allocate(16 + payloadLen);
+        var buf = BufferPool.getBuffer(16 + payloadLen);
         encodeVarInt(buf, frame.type().code());
         encodeVarInt(buf, payloadLen);
         buf.put(payload);
@@ -115,7 +116,7 @@ public class Http3FrameCodec extends AbstractDataFilter<ByteBuffer> {
      * @param data the wire-format data
      * @return the decoded frame
      * @throws IllegalArgumentException if the data is insufficient
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Frame decodeFrame(ByteBuffer data) {
         long typeCode = decodeVarInt(data);
@@ -125,7 +126,7 @@ public class Http3FrameCodec extends AbstractDataFilter<ByteBuffer> {
             throw new IllegalArgumentException("Insufficient data for frame payload");
         }
 
-        var payload = ByteBuffer.allocate((int) length);
+        var payload = BufferPool.getBuffer((int) length);
         for (int i = 0; i < length; i++) {
             payload.put(data.get());
         }
@@ -140,7 +141,7 @@ public class Http3FrameCodec extends AbstractDataFilter<ByteBuffer> {
      *
      * @param buf   the target buffer
      * @param value the value to encode
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static void encodeVarInt(ByteBuffer buf, long value) {
         QuicPacketCodec.encodeVarInt(buf, value);
@@ -151,7 +152,7 @@ public class Http3FrameCodec extends AbstractDataFilter<ByteBuffer> {
      *
      * @param buf the source buffer
      * @return the decoded value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static long decodeVarInt(ByteBuffer buf) {
         return QuicPacketCodec.decodeVarInt(buf);
@@ -161,7 +162,7 @@ public class Http3FrameCodec extends AbstractDataFilter<ByteBuffer> {
      * Returns whether there is buffered data awaiting more input.
      *
      * @return {@code true} if partial data is buffered
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean hasBufferedData() {
         return accumulator != null && accumulator.hasRemaining();
@@ -172,7 +173,7 @@ public class Http3FrameCodec extends AbstractDataFilter<ByteBuffer> {
         for (var buf : data) {
             totalSize += buf.remaining();
         }
-        var combined = ByteBuffer.allocate(totalSize);
+        var combined = BufferPool.getBuffer(totalSize);
         if (accumulator != null) {
             combined.put(accumulator.duplicate());
             accumulator = null;

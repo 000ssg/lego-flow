@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Registry of available authentication schemes. Thread-safe — schemes can be registered
  * and looked up concurrently.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class AuthSchemeRegistry {
 
@@ -21,7 +21,7 @@ public class AuthSchemeRegistry {
     /**
      * Creates an empty registry.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AuthSchemeRegistry() {
     }
@@ -31,7 +31,7 @@ public class AuthSchemeRegistry {
      *
      * @param scheme the authentication scheme to register
      * @return this registry for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AuthSchemeRegistry register(AuthenticationScheme scheme) {
         Objects.requireNonNull(scheme, "scheme must not be null");
@@ -46,7 +46,7 @@ public class AuthSchemeRegistry {
      *
      * @param schemeName the scheme name (e.g., "Basic", "Bearer", "Digest")
      * @return the scheme, or empty if not registered
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<AuthenticationScheme> get(String schemeName) {
         if (schemeName == null) return Optional.empty();
@@ -57,7 +57,7 @@ public class AuthSchemeRegistry {
      * Returns all registered scheme names.
      *
      * @return unmodifiable set of scheme names
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Set<String> schemeNames() {
         return Collections.unmodifiableSet(schemes.keySet());
@@ -67,7 +67,7 @@ public class AuthSchemeRegistry {
      * Returns all registered schemes.
      *
      * @return unmodifiable collection of schemes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Collection<AuthenticationScheme> schemes() {
         return Collections.unmodifiableCollection(schemes.values());
@@ -78,7 +78,7 @@ public class AuthSchemeRegistry {
      *
      * @param schemeName the scheme name to remove
      * @return true if the scheme was removed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean remove(String schemeName) {
         if (schemeName == null) return false;
@@ -89,7 +89,7 @@ public class AuthSchemeRegistry {
      * Returns the number of registered schemes.
      *
      * @return the scheme count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int size() {
         return schemes.size();

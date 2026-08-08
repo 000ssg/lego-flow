@@ -6,7 +6,7 @@ import java.util.List;
  * Represents a set of selections (fields, fragment spreads, inline fragments).
  *
  * @param selections the selections in this set
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SelectionSet(List<Selection> selections) {
 

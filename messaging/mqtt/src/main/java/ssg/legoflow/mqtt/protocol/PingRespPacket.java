@@ -3,7 +3,7 @@ package ssg.legoflow.mqtt.protocol;
 /**
  * MQTT PINGRESP packet sent by the server in response to a PINGREQ.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record PingRespPacket() implements MqttPacket {
 

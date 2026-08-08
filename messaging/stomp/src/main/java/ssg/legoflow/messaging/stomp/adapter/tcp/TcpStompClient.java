@@ -13,7 +13,7 @@ import java.net.Socket;
  * {@link TcpStompTransport}, and provides a {@link StompClient} for
  * protocol operations.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class TcpStompClient implements AutoCloseable {
 

@@ -26,7 +26,7 @@ import java.util.Map;
  *   <li>Router verifies the signature with the client's public key</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class CryptosignAuth {
 

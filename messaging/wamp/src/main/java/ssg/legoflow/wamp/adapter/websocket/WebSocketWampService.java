@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>The service manages the full HELLO/WELCOME/GOODBYE lifecycle per session
  * and delegates SUBSCRIBE/PUBLISH/REGISTER/CALL/YIELD to the realm router.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class WebSocketWampService {
 

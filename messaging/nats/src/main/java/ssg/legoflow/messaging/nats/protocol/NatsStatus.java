@@ -6,7 +6,7 @@ package ssg.legoflow.messaging.nats.protocol;
  * <p>These status codes are used in JetStream and other NATS features
  * to communicate request outcomes via the NATS/1.0 header status line.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum NatsStatus {
 

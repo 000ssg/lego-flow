@@ -15,7 +15,7 @@ import java.util.Set;
  * an answer's supported capabilities. For each media description in the offer,
  * the negotiator finds compatible formats from the answerer's capabilities.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SdpNegotiator {
 

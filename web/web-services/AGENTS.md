@@ -1,4 +1,9 @@
-# Web Services Module — Development Guide
+# web / web-services — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Overview
 
@@ -58,9 +63,3 @@ Async wrapper for `EndpointInvoker` returning `CompletableFuture<HttpResponse>`.
 - **JUnit 5**: test framework
 - **AssertJ**: fluent assertions
 - **81 tests passing**
-
-## Commit Rules
-- Update doc/REQUIREMENTS.md with commit section
-- Update doc/ARCHITECTURE.md if architecture changed
-- Update README.md for API changes
-- Include `Co-Authored-By: AI assistant` in all commits

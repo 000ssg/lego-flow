@@ -6,7 +6,7 @@ package ssg.legoflow.network.modbus.protocol;
  * <p>Each function code identifies a specific Modbus operation. Exception
  * responses use the function code with bit 7 set (function code + 0x80).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum FunctionCode {
 

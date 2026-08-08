@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * <p>Maintains the contact list and handles roster push notifications
  * from the server for real-time updates.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class Roster {
 

@@ -7,7 +7,7 @@ import ssg.legoflow.http3.quic.QuicStream;
 /**
  * Functional interface for handling HTTP/3 requests.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 @FunctionalInterface
 public interface Http3ServerHandler {
@@ -18,7 +18,7 @@ public interface Http3ServerHandler {
      * @param connection the HTTP/3 connection
      * @param stream     the QUIC stream carrying the request
      * @param request    the adapted HTTP request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     void handle(Http3Connection connection, QuicStream stream, HttpRequest request);
 }

@@ -13,7 +13,7 @@ import java.util.List;
  * @param producerId      the producer ID
  * @param producerEpoch   the producer epoch
  * @param topics          the topics and partitions with offsets to commit
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record TxnOffsetCommitRequest(String transactionalId, String groupId,
                                      long producerId, short producerEpoch,

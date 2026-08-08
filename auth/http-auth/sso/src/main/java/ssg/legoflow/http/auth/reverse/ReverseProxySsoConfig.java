@@ -6,7 +6,7 @@ import java.util.Set;
 /**
  * Configuration for reverse proxy SSO.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ReverseProxySsoConfig {
 
@@ -26,7 +26,7 @@ public class ReverseProxySsoConfig {
      * @param nameHeader    the header containing user display name
      * @param trustedProxies the set of trusted proxy IP addresses
      * @param requireProxy  whether requests must come from a trusted proxy
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ReverseProxySsoConfig(String userHeader, String rolesHeader, String emailHeader,
                                   String nameHeader, Set<String> trustedProxies, boolean requireProxy) {
@@ -42,7 +42,7 @@ public class ReverseProxySsoConfig {
      * Creates a default configuration.
      *
      * @return the default config
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static ReverseProxySsoConfig defaults() {
         return new ReverseProxySsoConfig(null, null, null, null, Set.of(), false);

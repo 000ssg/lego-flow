@@ -1,32 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    
     <parent>
         <groupId>ssg</groupId>
         <artifactId>lego-flow-network</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>0.1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>lego-flow-dns</artifactId>
-    <name>Lego Flow DNS — Domain Name System (RFC 1034/1035)</name>
+    
+    <artifactId>network-dns</artifactId>
+    <name>DNS Network</name>
+    <description>DNS (Domain Name System) protocol implementation</description>
+    
     <dependencies>
         <dependency>
             <groupId>ssg</groupId>
-            <artifactId>lego-flow-blocks</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ssg</groupId>
             <artifactId>lego-flow-service</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>ssg</groupId>
-            <artifactId>lego-flow-http</artifactId>
+            <artifactId>lego-flow-network-common</artifactId>
+            <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
+            <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <scope>test</scope>
@@ -41,5 +42,5 @@
             <artifactId>assertj-core</artifactId>
             <scope>test</scope>
         </dependency>
-    </dependencies>
+</dependencies>
 </project>

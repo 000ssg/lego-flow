@@ -11,7 +11,7 @@ import java.util.Objects;
  * additional RTCP packets (typically SDES with at least a CNAME item).
  *
  * @param packets the list of RTCP packets in this compound packet
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record CompoundPacket(List<RtcpPacket> packets) {
 

@@ -11,7 +11,7 @@ import java.util.List;
  * @param leader       the leader member ID
  * @param memberId     the assigned member ID
  * @param members      the group members (only sent to leader)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record JoinGroupResponse(short errorCode, int generationId, String protocolName,
                                 String leader, String memberId,

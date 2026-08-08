@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
  * <p>The NATS protocol is line-oriented with CRLF terminators. Operations
  * with payloads include a size field followed by the payload data and another CRLF.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class NatsCodec {
 
@@ -231,7 +231,7 @@ public final class NatsCodec {
     /**
      * Parsed protocol operation, which is a sealed hierarchy of message types.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public sealed interface ParsedOp {
         /** INFO operation with server info. */

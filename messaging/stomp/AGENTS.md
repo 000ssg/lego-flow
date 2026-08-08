@@ -1,4 +1,9 @@
-# STOMP Module -- Development Guide
+# messaging / stomp — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -94,8 +99,3 @@ Three transport implementations exist:
 - Demo tests: pub/sub, request-reply, transactional messaging
 - All non-TCP tests use InMemoryStompTransport (no network I/O)
 - Test count: 157
-
----
-
-**Last Updated**: 2026-07-06
-**For AI assistant versions**

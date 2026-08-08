@@ -19,7 +19,7 @@ import java.time.Duration;
  * indicating the message size. This allows messages larger than the
  * 512-byte UDP limit.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class TcpTransport implements AutoCloseable {
 
@@ -32,7 +32,7 @@ public final class TcpTransport implements AutoCloseable {
      * Creates a TCP transport.
      *
      * @param timeout the connection and read timeout
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public TcpTransport(Duration timeout) {
         this.timeout = timeout;
@@ -45,7 +45,7 @@ public final class TcpTransport implements AutoCloseable {
      * @param address the server address
      * @return the response message
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DnsMessage send(DnsMessage query, InetSocketAddress address) throws IOException {
         byte[] data = DnsCodec.encode(query);
@@ -60,7 +60,7 @@ public final class TcpTransport implements AutoCloseable {
      * @param address the server address
      * @return the raw response bytes (without the length prefix)
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public byte[] sendRaw(byte[] data, InetSocketAddress address) throws IOException {
         try (Socket sock = new Socket()) {

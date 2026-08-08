@@ -14,7 +14,7 @@ import java.util.Objects;
  * @param payloadType the format (payload type number)
  * @param parameters  the parsed parameters as key-value pairs
  * @param rawValue    the raw parameter string (preserved for unknown formats)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record FormatParameters(int payloadType, Map<String, String> parameters, String rawValue) {
 

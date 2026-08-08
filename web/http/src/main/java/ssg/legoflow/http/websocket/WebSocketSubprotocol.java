@@ -16,7 +16,7 @@ import java.util.Set;
  * {@code Sec-WebSocket-Protocol} header. The server selects one (or none)
  * and returns it in the response.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class WebSocketSubprotocol {
 

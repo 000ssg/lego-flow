@@ -12,7 +12,7 @@ import java.nio.ByteBuffer;
  *
  * @param type    the frame type
  * @param payload the frame payload data
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Http3Frame(Http3FrameType type, ByteBuffer payload) {
 
@@ -21,7 +21,7 @@ public record Http3Frame(Http3FrameType type, ByteBuffer payload) {
      *
      * @param type    the frame type
      * @param payload the frame payload (will be made read-only)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Http3Frame {
         payload = payload != null ? payload.asReadOnlyBuffer() : ByteBuffer.allocate(0).asReadOnlyBuffer();
@@ -31,7 +31,7 @@ public record Http3Frame(Http3FrameType type, ByteBuffer payload) {
      * Returns the payload length in bytes.
      *
      * @return the number of remaining bytes in the payload
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int payloadLength() {
         return payload.remaining();
@@ -42,7 +42,7 @@ public record Http3Frame(Http3FrameType type, ByteBuffer payload) {
      *
      * @param data the body data
      * @return a new DATA frame
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Http3Frame data(ByteBuffer data) {
         return new Http3Frame(Http3FrameType.DATA, data);
@@ -53,7 +53,7 @@ public record Http3Frame(Http3FrameType type, ByteBuffer payload) {
      *
      * @param headerBlock the encoded header block
      * @return a new HEADERS frame
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Http3Frame headers(ByteBuffer headerBlock) {
         return new Http3Frame(Http3FrameType.HEADERS, headerBlock);
@@ -64,7 +64,7 @@ public record Http3Frame(Http3FrameType type, ByteBuffer payload) {
      *
      * @param settingsPayload the encoded settings
      * @return a new SETTINGS frame
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Http3Frame settings(ByteBuffer settingsPayload) {
         return new Http3Frame(Http3FrameType.SETTINGS, settingsPayload);
@@ -75,7 +75,7 @@ public record Http3Frame(Http3FrameType type, ByteBuffer payload) {
      *
      * @param streamId the last stream ID as a variable-length integer payload
      * @return a new GOAWAY frame
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Http3Frame goaway(ByteBuffer streamId) {
         return new Http3Frame(Http3FrameType.GOAWAY, streamId);
@@ -86,7 +86,7 @@ public record Http3Frame(Http3FrameType type, ByteBuffer payload) {
      *
      * @param pushId the push ID payload
      * @return a new CANCEL_PUSH frame
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Http3Frame cancelPush(ByteBuffer pushId) {
         return new Http3Frame(Http3FrameType.CANCEL_PUSH, pushId);
@@ -97,7 +97,7 @@ public record Http3Frame(Http3FrameType type, ByteBuffer payload) {
      *
      * @param payload the push ID + encoded header block
      * @return a new PUSH_PROMISE frame
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Http3Frame pushPromise(ByteBuffer payload) {
         return new Http3Frame(Http3FrameType.PUSH_PROMISE, payload);
@@ -108,7 +108,7 @@ public record Http3Frame(Http3FrameType type, ByteBuffer payload) {
      *
      * @param pushIdPayload the maximum push ID payload
      * @return a new MAX_PUSH_ID frame
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Http3Frame maxPushId(ByteBuffer pushIdPayload) {
         return new Http3Frame(Http3FrameType.MAX_PUSH_ID, pushIdPayload);

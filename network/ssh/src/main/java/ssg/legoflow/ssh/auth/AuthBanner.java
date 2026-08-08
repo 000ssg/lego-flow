@@ -11,7 +11,7 @@ import java.util.Objects;
  *
  * @param message  the banner message text
  * @param language the language tag (RFC 3066)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record AuthBanner(String message, String language) {
 

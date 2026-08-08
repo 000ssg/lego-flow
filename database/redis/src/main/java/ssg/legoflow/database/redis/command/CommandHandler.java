@@ -9,7 +9,7 @@ import ssg.legoflow.database.redis.server.ClientConnection;
  * <p>Implementations receive parsed command arguments and the client
  * connection context, and return a RESP response.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 @FunctionalInterface
 public interface CommandHandler {

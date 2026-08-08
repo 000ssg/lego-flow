@@ -3,7 +3,7 @@ package ssg.legoflow.network.dns.protocol;
 /**
  * DNS record classes as defined in RFC 1035.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum RecordClass {
 
@@ -26,7 +26,7 @@ public enum RecordClass {
      * Returns the 16-bit numeric value for this class.
      *
      * @return the class value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int value() {
         return value;
@@ -38,7 +38,7 @@ public enum RecordClass {
      * @param value the 16-bit class value
      * @return the matching record class
      * @throws IllegalArgumentException if the value is unknown
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static RecordClass fromValue(int value) {
         for (RecordClass rc : values()) {

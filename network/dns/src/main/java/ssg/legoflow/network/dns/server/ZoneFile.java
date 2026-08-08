@@ -17,7 +17,7 @@ import java.util.Objects;
  *   <li>{@code @} as shorthand for the current origin</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ZoneFile {
 
@@ -29,7 +29,7 @@ public final class ZoneFile {
      * @param content the zone file content
      * @return the parsed zone
      * @throws DnsFormatException if the zone file is malformed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static AuthoritativeZone parse(String content) {
         return parse(new BufferedReader(new StringReader(content)));
@@ -41,7 +41,7 @@ public final class ZoneFile {
      * @param reader the input reader
      * @return the parsed zone
      * @throws DnsFormatException if the zone file is malformed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static AuthoritativeZone parse(BufferedReader reader) {
         DnsName origin = DnsName.ROOT;

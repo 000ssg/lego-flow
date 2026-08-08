@@ -3,7 +3,7 @@
 ![Java 25+](https://img.shields.io/badge/Java-25%2B-blue)
 ![Maven 3.9+](https://img.shields.io/badge/Maven-3.9%2B-orange)
 ![Tests 230](https://img.shields.io/badge/tests-230-brightgreen)
-![Version 1.0.0-SNAPSHOT](https://img.shields.io/badge/version-1.0.0--SNAPSHOT-yellow)
+![Version 0.1.0-SNAPSHOT](https://img.shields.io/badge/version-0.1.0-SNAPSHOT-yellow)
 
 Service-oriented framework building on the blocks module. Provides service lifecycle management, scoped contexts, user/role-based access control, dual APIs (sync/async + procedural/functional), NIO channel management with a virtual-thread event loop, UDP transport with multicast support, and context propagation across service boundaries.
 

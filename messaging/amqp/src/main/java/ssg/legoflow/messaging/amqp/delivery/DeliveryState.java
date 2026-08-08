@@ -15,7 +15,7 @@ import java.util.Map;
  * {@link Modified}) are also outcomes that determine the final disposition
  * of a message.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface DeliveryState
         permits DeliveryState.Received, DeliveryState.Accepted, DeliveryState.Rejected,

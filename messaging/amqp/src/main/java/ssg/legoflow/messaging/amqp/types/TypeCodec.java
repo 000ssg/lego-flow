@@ -4,6 +4,7 @@ import ssg.legoflow.messaging.amqp.common.AmqpError;
 import ssg.legoflow.messaging.amqp.common.AmqpException;
 
 import java.nio.ByteBuffer;
+import ssg.legoflow.service.util.BufferPool;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -17,7 +18,7 @@ import java.util.*;
  * <p>Encoding uses the most compact representation available. For example,
  * a uint value of 0 is encoded as {@code 0x43} (uint0) rather than the 4-byte form.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class TypeCodec {
 
@@ -78,7 +79,7 @@ public final class TypeCodec {
      * @return a ByteBuffer positioned at 0, with limit set to the encoded size
      */
     public static ByteBuffer encode(AmqpType value) {
-        var buf = ByteBuffer.allocate(estimateSize(value));
+        var buf = BufferPool.getBuffer(estimateSize(value));
         encodeInto(value, buf);
         buf.flip();
         return buf;
@@ -246,7 +247,7 @@ public final class TypeCodec {
             return;
         }
         // Encode elements into a temporary buffer to measure size
-        var tmp = ByteBuffer.allocate(estimateListBodySize(elements));
+        var tmp = BufferPool.getBuffer(estimateListBodySize(elements));
         for (var elem : elements) {
             encodeInto(elem, tmp);
         }
@@ -274,7 +275,7 @@ public final class TypeCodec {
             return;
         }
         // Encode all key-value pairs
-        var tmp = ByteBuffer.allocate(estimateMapBodySize(entries));
+        var tmp = BufferPool.getBuffer(estimateMapBodySize(entries));
         for (var entry : entries.entrySet()) {
             encodeInto(entry.getKey(), tmp);
             encodeInto(entry.getValue(), tmp);
@@ -304,7 +305,7 @@ public final class TypeCodec {
         }
         // Encode elements without their own constructors (array elements share a constructor)
         // For simplicity, we encode elements with constructors and include the shared constructor
-        var tmp = ByteBuffer.allocate(estimateListBodySize(elements));
+        var tmp = BufferPool.getBuffer(estimateListBodySize(elements));
         // Write the shared constructor byte (type of first element)
         byte sharedConstructor = constructorByteFor(elements.getFirst());
         tmp.put(sharedConstructor);

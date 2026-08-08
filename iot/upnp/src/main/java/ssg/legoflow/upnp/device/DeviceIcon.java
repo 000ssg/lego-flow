@@ -10,7 +10,7 @@ import java.util.Objects;
  * @param height   the icon height in pixels
  * @param depth    the colour depth in bits
  * @param url      the relative or absolute URL to the icon resource
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record DeviceIcon(String mimetype, int width, int height, int depth, String url) {
 
@@ -38,7 +38,7 @@ public record DeviceIcon(String mimetype, int width, int height, int depth, Stri
      * Serializes this icon to UPnP device description XML fragment.
      *
      * @return the XML representation of this icon
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toXml() {
         return "<icon>" +

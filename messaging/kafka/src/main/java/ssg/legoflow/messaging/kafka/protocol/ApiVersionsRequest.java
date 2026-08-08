@@ -5,7 +5,7 @@ package ssg.legoflow.messaging.kafka.protocol;
  *
  * @param clientSoftwareName    the client software name (nullable)
  * @param clientSoftwareVersion the client software version (nullable)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ApiVersionsRequest(String clientSoftwareName, String clientSoftwareVersion) {
 

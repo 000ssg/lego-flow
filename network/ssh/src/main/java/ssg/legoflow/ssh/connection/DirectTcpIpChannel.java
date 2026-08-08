@@ -5,7 +5,7 @@ import ssg.legoflow.ssh.transport.SshTransport;
 /**
  * Direct TCP/IP channel for local port forwarding per RFC 4254 section 7.2.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DirectTcpIpChannel extends SshChannel {
 

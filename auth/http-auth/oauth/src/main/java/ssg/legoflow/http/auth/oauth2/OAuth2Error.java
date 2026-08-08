@@ -6,7 +6,7 @@ package ssg.legoflow.http.auth.oauth2;
  * @param error            the error code
  * @param errorDescription human-readable description
  * @param errorUri         URI for more information
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record OAuth2Error(String error, String errorDescription, String errorUri) {
 
@@ -35,7 +35,7 @@ public record OAuth2Error(String error, String errorDescription, String errorUri
      * Creates an error with just the code.
      *
      * @param error the error code
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public OAuth2Error(String error) {
         this(error, null, null);
@@ -46,7 +46,7 @@ public record OAuth2Error(String error, String errorDescription, String errorUri
      *
      * @param error       the error code
      * @param description the description
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public OAuth2Error(String error, String description) {
         this(error, description, null);
@@ -56,7 +56,7 @@ public record OAuth2Error(String error, String errorDescription, String errorUri
      * Serializes to JSON.
      *
      * @return the JSON string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toJson() {
         var sb = new StringBuilder("{\"error\":\"").append(error).append("\"");
@@ -75,7 +75,7 @@ public record OAuth2Error(String error, String errorDescription, String errorUri
      *
      * @param json the JSON string
      * @return the error
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static OAuth2Error fromJson(String json) {
         String error = extractJsonString(json, "error");

@@ -8,7 +8,7 @@ import java.util.Objects;
  *
  * <p>Contains file metadata extracted from LIST or MLSD output.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class FtpFileEntry {
 

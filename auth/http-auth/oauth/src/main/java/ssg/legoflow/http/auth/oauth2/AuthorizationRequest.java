@@ -10,7 +10,7 @@ import java.util.Objects;
  * OAuth 2.0 authorization request builder. Constructs the URL for the authorization
  * endpoint with all required and optional parameters.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class AuthorizationRequest {
 
@@ -26,7 +26,7 @@ public class AuthorizationRequest {
      *
      * @param config       the OAuth2 configuration
      * @param responseType the response type (e.g., "code")
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AuthorizationRequest(OAuth2Config config, String responseType) {
         this.config = Objects.requireNonNull(config);
@@ -39,7 +39,7 @@ public class AuthorizationRequest {
      *
      * @param config the OAuth2 configuration
      * @return the authorization request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static AuthorizationRequest authorizationCode(OAuth2Config config) {
         return new AuthorizationRequest(config, "code");
@@ -50,7 +50,7 @@ public class AuthorizationRequest {
      *
      * @param challenge the PKCE challenge
      * @return this request for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AuthorizationRequest withPkce(PkceChallenge challenge) {
         this.pkceChallenge = challenge;
@@ -62,7 +62,7 @@ public class AuthorizationRequest {
      *
      * @param nonce the nonce
      * @return this request for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AuthorizationRequest withNonce(String nonce) {
         this.nonce = nonce;
@@ -74,7 +74,7 @@ public class AuthorizationRequest {
      *
      * @param scopes space-separated additional scopes
      * @return this request for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AuthorizationRequest withAdditionalScopes(String scopes) {
         this.additionalScopes = scopes;
@@ -85,7 +85,7 @@ public class AuthorizationRequest {
      * Builds the authorization URL.
      *
      * @return the full authorization URL
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String buildUrl() {
         var sb = new StringBuilder(config.getAuthorizationEndpoint());

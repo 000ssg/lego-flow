@@ -12,7 +12,7 @@ import javax.crypto.KeyAgreement;
 /**
  * ECDH key exchange using nistp256 curve with SHA-256 (RFC 5656).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class EcdhSha2Nistp256 implements KexAlgorithm {
 

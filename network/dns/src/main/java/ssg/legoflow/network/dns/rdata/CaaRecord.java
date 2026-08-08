@@ -10,7 +10,7 @@ import java.util.Objects;
  * @param flags the flags byte (bit 0 = issuer critical)
  * @param tag   the property tag (e.g., "issue", "issuewild", "iodef")
  * @param value the property value
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record CaaRecord(int flags, String tag, String value) implements RData {
 
@@ -31,7 +31,7 @@ public record CaaRecord(int flags, String tag, String value) implements RData {
      * Returns whether the issuer-critical flag is set.
      *
      * @return {@code true} if issuer-critical
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean issuerCritical() {
         return (flags & 0x80) != 0;
@@ -44,7 +44,7 @@ public record CaaRecord(int flags, String tag, String value) implements RData {
      * @param tag   the tag
      * @param value the value
      * @return the CAA record
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CaaRecord of(int flags, String tag, String value) {
         return new CaaRecord(flags, tag, value);

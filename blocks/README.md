@@ -2,7 +2,7 @@
 # Lego Flow Blocks — Core Data Processing Framework
 
 [![Java](https://img.shields.io/badge/Java-25+-orange.svg)](https://www.oracle.com/java/)
-[![Version](https://img.shields.io/badge/Version-1.0.0-blue.svg)]()
+[![Version](https://img.shields.io/badge/Version-0.1.0-blue.svg)]()
 
 Core data processing framework providing composable DP/DF building blocks with context, state management, and statistics tracking.
 

@@ -3,7 +3,7 @@ package ssg.legoflow.xmpp.core;
 /**
  * XMPP stanza types as defined in RFC 6120.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum StanzaType {
 

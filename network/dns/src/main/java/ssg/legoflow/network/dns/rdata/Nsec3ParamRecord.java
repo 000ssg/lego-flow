@@ -13,7 +13,7 @@ import java.util.Objects;
  * @param flags         flags (must be 0)
  * @param iterations    additional hash iterations
  * @param salt          the salt bytes
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Nsec3ParamRecord(int hashAlgorithm, int flags, int iterations, byte[] salt)
         implements RData {

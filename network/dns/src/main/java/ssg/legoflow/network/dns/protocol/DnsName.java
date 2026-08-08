@@ -18,7 +18,7 @@ import java.util.Objects;
  * <p>The root domain is represented by an empty label list and the
  * string {@code "."}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DnsName implements Comparable<DnsName> {
 
@@ -39,7 +39,7 @@ public final class DnsName implements Comparable<DnsName> {
      * @param name the domain name string (e.g., "www.example.com" or "www.example.com.")
      * @return the parsed domain name
      * @throws IllegalArgumentException if the name is invalid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static DnsName of(String name) {
         Objects.requireNonNull(name, "name must not be null");
@@ -72,7 +72,7 @@ public final class DnsName implements Comparable<DnsName> {
      *
      * @param labels the labels (top-level last)
      * @return the domain name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static DnsName fromLabels(List<String> labels) {
         Objects.requireNonNull(labels, "labels must not be null");
@@ -86,7 +86,7 @@ public final class DnsName implements Comparable<DnsName> {
      * Returns the labels of this domain name.
      *
      * @return unmodifiable list of labels (leftmost first)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<String> labels() {
         return labels;
@@ -96,7 +96,7 @@ public final class DnsName implements Comparable<DnsName> {
      * Returns the number of labels.
      *
      * @return the label count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int labelCount() {
         return labels.size();
@@ -106,7 +106,7 @@ public final class DnsName implements Comparable<DnsName> {
      * Returns whether this is the root domain.
      *
      * @return {@code true} if this is the root
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isRoot() {
         return labels.isEmpty();
@@ -116,7 +116,7 @@ public final class DnsName implements Comparable<DnsName> {
      * Returns the parent domain (removes the leftmost label).
      *
      * @return the parent domain, or {@link #ROOT} if already root
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DnsName parent() {
         if (labels.size() <= 1) {
@@ -130,7 +130,7 @@ public final class DnsName implements Comparable<DnsName> {
      *
      * @param other the potential parent domain
      * @return {@code true} if this is a subdomain of {@code other}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isSubdomainOf(DnsName other) {
         if (other.isRoot()) {
@@ -154,7 +154,7 @@ public final class DnsName implements Comparable<DnsName> {
      *
      * @param wildcard the wildcard domain name
      * @return {@code true} if this name matches the wildcard
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean matchesWildcard(DnsName wildcard) {
         if (wildcard.labels.isEmpty() || !"*".equals(wildcard.labels.get(0))) {
@@ -177,7 +177,7 @@ public final class DnsName implements Comparable<DnsName> {
      *
      * @param label the label to prepend
      * @return a new domain name with the label prepended
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DnsName prepend(String label) {
         Objects.requireNonNull(label, "label must not be null");
@@ -192,7 +192,7 @@ public final class DnsName implements Comparable<DnsName> {
      * terminating zero byte), without compression.
      *
      * @return the wire length in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int wireLength() {
         int len = 1; // terminating zero
@@ -207,7 +207,7 @@ public final class DnsName implements Comparable<DnsName> {
      * DNSSEC canonical ordering.
      *
      * @return the canonical lowercase name string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toCanonical() {
         return canonical;
@@ -217,7 +217,7 @@ public final class DnsName implements Comparable<DnsName> {
      * Returns the fully-qualified domain name string with a trailing dot.
      *
      * @return the FQDN string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toFqdn() {
         if (labels.isEmpty()) {

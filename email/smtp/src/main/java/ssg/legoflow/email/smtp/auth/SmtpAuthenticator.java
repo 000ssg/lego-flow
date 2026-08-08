@@ -13,7 +13,7 @@ package ssg.legoflow.email.smtp.auth;
  *   <li>Server sends {@code 235 Authentication successful} or {@code 535 Authentication failed}</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface SmtpAuthenticator {
 

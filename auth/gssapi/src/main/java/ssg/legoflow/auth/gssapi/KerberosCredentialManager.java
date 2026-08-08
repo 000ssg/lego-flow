@@ -24,7 +24,7 @@ import java.util.Objects;
  * Manages Kerberos credential lifecycle — login, credential acquisition, validation,
  * and renewal using JAAS {@link LoginContext} with the Krb5LoginModule.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class KerberosCredentialManager {
 
@@ -42,7 +42,7 @@ public final class KerberosCredentialManager {
      * @param keytabPath the path to the keytab file
      * @return the authenticated Subject
      * @throws GssException if login fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Subject loginWithKeytab(String principal, String keytabPath) throws GssException {
         Objects.requireNonNull(principal, "principal must not be null");
@@ -66,7 +66,7 @@ public final class KerberosCredentialManager {
      * @param password  the password
      * @return the authenticated Subject
      * @throws GssException if login fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Subject loginWithPassword(String principal, char[] password) throws GssException {
         Objects.requireNonNull(principal, "principal must not be null");
@@ -98,7 +98,7 @@ public final class KerberosCredentialManager {
      * @param config  the GSS configuration containing the service principal
      * @return the GSS credential for the service
      * @throws GssException if credential acquisition fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static GSSCredential getServiceCredential(Subject subject, GssConfig config) throws GssException {
         Objects.requireNonNull(subject, "subject must not be null");
@@ -124,7 +124,7 @@ public final class KerberosCredentialManager {
      *
      * @param cred the credential to check
      * @return true if the credential is valid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static boolean isCredentialValid(GSSCredential cred) {
         if (cred == null) {
@@ -148,7 +148,7 @@ public final class KerberosCredentialManager {
      * @param cred the credential to renew
      * @return the renewed credential
      * @throws GssException if renewal fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static GSSCredential renewCredential(GSSCredential cred) throws GssException {
         Objects.requireNonNull(cred, "cred must not be null");

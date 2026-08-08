@@ -9,14 +9,14 @@ import java.util.List;
  * When multiple backends have the same connection count, the first one
  * encountered is selected.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class LeastConnectionsBalancer implements LoadBalancer {
 
     /**
      * Creates a new least-connections balancer.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public LeastConnectionsBalancer() {
     }

@@ -14,7 +14,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * <p>Tracks the room's occupants, messages, and configuration. A room is identified
  * by its bare JID (room@conference.example.com).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MucRoom {
 

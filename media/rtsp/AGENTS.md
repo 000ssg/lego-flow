@@ -1,4 +1,9 @@
-# RTSP Module — Development Guide
+# media / rtsp — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -45,13 +50,3 @@ This follows the same accumulator pattern as `Http2FrameCodec`, `SipCodec`, and 
 ## Dependencies
 - media-common (shared SDP parser)
 - slf4j-api (logging)
-
-## Commit Rules
-- Update doc/REQUIREMENTS.md with commit section
-- Update doc/ARCHITECTURE.md if architecture changed
-- Update README.md for API changes
-
----
-
-**Last Updated**: 2026-07-06
-**For AI assistant versions**

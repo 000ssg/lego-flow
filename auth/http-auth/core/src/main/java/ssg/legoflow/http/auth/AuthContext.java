@@ -9,7 +9,7 @@ import java.util.Optional;
  * Authentication context providing the realm, user store lookup, and session management
  * needed by authentication schemes during request processing.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class AuthContext {
 
@@ -24,7 +24,7 @@ public class AuthContext {
      * @param realm          the authentication realm displayed in challenges
      * @param userStore      the user store for credential validation
      * @param sessionManager optional session manager for session-based auth
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AuthContext(String realm, UserStore userStore, SessionManager sessionManager) {
         this.realm = Objects.requireNonNull(realm, "realm must not be null");
@@ -37,7 +37,7 @@ public class AuthContext {
      *
      * @param realm the authentication realm
      * @return the auth context
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static AuthContext ofRealm(String realm) {
         return new AuthContext(realm, null, null);
@@ -47,7 +47,7 @@ public class AuthContext {
      * Returns the authentication realm.
      *
      * @return the realm
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getRealm() {
         return realm;
@@ -57,7 +57,7 @@ public class AuthContext {
      * Returns the user store, if available.
      *
      * @return optional user store
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<UserStore> getUserStore() {
         return Optional.ofNullable(userStore);
@@ -67,7 +67,7 @@ public class AuthContext {
      * Returns the session manager, if available.
      *
      * @return optional session manager
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<SessionManager> getSessionManager() {
         return Optional.ofNullable(sessionManager);
@@ -77,7 +77,7 @@ public class AuthContext {
      * Sets the authenticated principal after successful authentication.
      *
      * @param principal the authenticated principal
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setAuthenticatedPrincipal(AuthPrincipal principal) {
         this.authenticatedPrincipal = principal;
@@ -87,7 +87,7 @@ public class AuthContext {
      * Returns the authenticated principal, if authentication succeeded.
      *
      * @return optional authenticated principal
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<AuthPrincipal> getAuthenticatedPrincipal() {
         return Optional.ofNullable(authenticatedPrincipal);
@@ -96,7 +96,7 @@ public class AuthContext {
     /**
      * Interface for user credential stores used by authentication schemes.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public interface UserStore {
 
@@ -106,7 +106,7 @@ public class AuthContext {
          * @param username the username
          * @param password the password
          * @return the principal if credentials are valid, empty otherwise
-         * @since 1.0.0
+         * @since 0.1.0
          */
         Optional<AuthPrincipal> authenticate(String username, String password);
 
@@ -116,7 +116,7 @@ public class AuthContext {
          *
          * @param username the username
          * @return the principal if found, empty otherwise
-         * @since 1.0.0
+         * @since 0.1.0
          */
         Optional<AuthPrincipal> findByUsername(String username);
 
@@ -126,7 +126,7 @@ public class AuthContext {
          *
          * @param username the username
          * @return the password if found, empty otherwise
-         * @since 1.0.0
+         * @since 0.1.0
          */
         Optional<String> getPassword(String username);
     }

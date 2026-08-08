@@ -15,7 +15,7 @@ import java.util.Map;
  * {@code List<Object>}, {@code Map<String, Object>}.</p>
  *
  * @see <a href="https://www.rfc-editor.org/rfc/rfc8949">RFC 8949 — CBOR</a>
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class CborDecoder {
 

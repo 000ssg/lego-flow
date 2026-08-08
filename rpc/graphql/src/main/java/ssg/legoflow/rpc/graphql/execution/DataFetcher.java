@@ -7,7 +7,7 @@ package ssg.legoflow.rpc.graphql.execution;
  * The environment provides access to the source object, arguments, and context.
  *
  * @param <T> the return type
- * @since 1.0.0
+ * @since 0.1.0
  */
 @FunctionalInterface
 public interface DataFetcher<T> {

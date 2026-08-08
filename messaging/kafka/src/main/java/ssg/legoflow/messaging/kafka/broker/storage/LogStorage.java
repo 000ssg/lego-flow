@@ -15,7 +15,7 @@ import java.util.List;
  *   <li>{@link MappedFileLogStorage} — memory-mapped file-backed (durable, segment-based)</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface LogStorage extends AutoCloseable {
 

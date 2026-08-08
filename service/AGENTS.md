@@ -1,4 +1,9 @@
-# Service Module — Development Guide
+# service — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Overview
 
@@ -41,8 +46,3 @@ This contract is documented in the Javadoc of `ProcessingThread` (class-level) a
 ## Dependencies
 - blocks (core DP/DF framework)
 - slf4j-api (logging)
-
-## Commit Rules
-- Update doc/REQUIREMENTS.md with commit section
-- Update doc/ARCHITECTURE.md if architecture changed
-- Update README.md for API changes

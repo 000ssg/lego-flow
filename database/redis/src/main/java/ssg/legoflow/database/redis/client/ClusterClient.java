@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Automatically follows MOVED and ASK redirects, caching slot-to-node
  * mappings for efficiency.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ClusterClient implements AutoCloseable {
 

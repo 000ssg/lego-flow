@@ -1,4 +1,9 @@
-# MySQL Module — Development Guide
+# database / mysql — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -82,8 +87,3 @@ The `mysql` module implements the MySQL client/server wire protocol. It provides
 - Auth plugin tests: mysql_native_password and caching_sha2_password generate/verify/storedHash
 - All tests use in-process byte arrays (no external MySQL server required)
 - Test count: 204
-
----
-
-**Last Updated**: 2026-07-06
-**For AI assistant versions**

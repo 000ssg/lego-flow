@@ -5,7 +5,7 @@ package ssg.legoflow.mqtt.protocol;
  *
  * @param reasonCode the authentication reason code
  * @param properties MQTT 5.0 properties
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record AuthPacket(
         ReasonCode reasonCode,

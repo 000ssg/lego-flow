@@ -214,17 +214,13 @@ class SipCodecTest {
     }
 
     @Test
-    void testDecodeRequestEmptyThrows() {
-        assertThatThrownBy(() -> SipCodec.decodeRequest("\r\n".getBytes()))
-                .isInstanceOf(IOException.class);
+    void testDecodeRequestEmptyReturnsNull() {
+        assertThat(SipCodec.decodeRequest("\r\n".getBytes())).isNull();
     }
-
     @Test
-    void testDecodeResponseEmptyThrows() {
-        assertThatThrownBy(() -> SipCodec.decodeResponse("\r\n".getBytes()))
-                .isInstanceOf(IOException.class);
+    void testDecodeResponseEmptyReturnsNull() {
+        assertThat(SipCodec.decodeResponse("\r\n".getBytes())).isNull();
     }
-
     @Test
     void testHeaderFolding() throws IOException {
         String raw = "INVITE sip:bob@biloxi.com SIP/2.0\r\n"

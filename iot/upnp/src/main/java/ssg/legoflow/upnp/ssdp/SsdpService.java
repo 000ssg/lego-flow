@@ -43,7 +43,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>This class is thread-safe. All internal state is managed through concurrent
  * data structures, and I/O operations use virtual threads.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SsdpService implements Closeable {
 
@@ -67,7 +67,7 @@ public class SsdpService implements Closeable {
      * @param message   the last SSDP message from this device
      * @param location  the device description URL
      * @param expiresAt when this cache entry expires
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record CachedDevice(SsdpMessage message, String location, Instant expiresAt) {
 
@@ -75,14 +75,14 @@ public class SsdpService implements Closeable {
          * Returns whether this cache entry has expired.
          *
          * @return {@code true} if the entry has expired
-         * @since 1.0.0
+         * @since 0.1.0
          */
         boolean isExpired() {
             return Instant.now().isAfter(expiresAt);
         }
     }
 
-    /** Default multicast TTL as recommended by UDA. @since 1.0.0 */
+    /** Default multicast TTL as recommended by UDA. @since 0.1.0 */
     public static final int DEFAULT_MULTICAST_TTL = 4;
 
     /**
@@ -92,7 +92,7 @@ public class SsdpService implements Closeable {
      * @param networkInterface the network interface for multicast communication
      * @throws IOException          if the multicast channel cannot be opened or configured
      * @throws NullPointerException if {@code networkInterface} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SsdpService(NetworkInterface networkInterface) throws IOException {
         this(networkInterface, DEFAULT_MULTICAST_TTL);
@@ -107,7 +107,7 @@ public class SsdpService implements Closeable {
      * @throws IOException              if the multicast channel cannot be opened or configured
      * @throws NullPointerException     if {@code networkInterface} is {@code null}
      * @throws IllegalArgumentException if {@code multicastTtl} is out of the valid range
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SsdpService(NetworkInterface networkInterface, int multicastTtl) throws IOException {
         this.networkInterface = Objects.requireNonNull(networkInterface, "networkInterface must not be null");
@@ -141,7 +141,7 @@ public class SsdpService implements Closeable {
      *
      * @param multicastChannel the datagram channel to use for SSDP communication
      * @param networkInterface the network interface for multicast
-     * @since 1.0.0
+     * @since 0.1.0
      */
     SsdpService(DatagramChannel multicastChannel, NetworkInterface networkInterface) {
         this.multicastChannel = Objects.requireNonNull(multicastChannel, "multicastChannel must not be null");
@@ -172,7 +172,7 @@ public class SsdpService implements Closeable {
      * @param serviceGroup     the service group to use for I/O dispatch
      * @throws IOException          if the multicast channel cannot be opened or configured
      * @throws NullPointerException if any argument is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SsdpService(NetworkInterface networkInterface, ServiceGroup serviceGroup) throws IOException {
         this(networkInterface, DEFAULT_MULTICAST_TTL, serviceGroup);
@@ -188,7 +188,7 @@ public class SsdpService implements Closeable {
      * @throws IOException              if the multicast channel cannot be opened or configured
      * @throws NullPointerException     if any argument is {@code null}
      * @throws IllegalArgumentException if {@code multicastTtl} is out of range
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SsdpService(NetworkInterface networkInterface, int multicastTtl, ServiceGroup serviceGroup)
             throws IOException {
@@ -219,7 +219,7 @@ public class SsdpService implements Closeable {
      * Returns the configured multicast TTL.
      *
      * @return the multicast Time-To-Live value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getMulticastTtl() {
         return multicastTtl;
@@ -229,7 +229,7 @@ public class SsdpService implements Closeable {
      * Returns the network interface this service is bound to.
      *
      * @return the network interface
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public NetworkInterface getNetworkInterface() {
         return networkInterface;
@@ -239,7 +239,7 @@ public class SsdpService implements Closeable {
      * Starts the SSDP service, beginning to listen for multicast messages
      * and scheduling cache expiry checks.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() {
         if (running.compareAndSet(false, true)) {
@@ -270,7 +270,7 @@ public class SsdpService implements Closeable {
     /**
      * Stops the SSDP service, halting message reception and cache maintenance.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         if (running.compareAndSet(true, false)) {
@@ -289,7 +289,7 @@ public class SsdpService implements Closeable {
      *
      * @param listener the listener to add; must not be {@code null}
      * @throws NullPointerException if {@code listener} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addListener(SsdpListener listener) {
         Objects.requireNonNull(listener, "listener must not be null");
@@ -300,7 +300,7 @@ public class SsdpService implements Closeable {
      * Removes a previously added SSDP listener.
      *
      * @param listener the listener to remove
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void removeListener(SsdpListener listener) {
         listeners.remove(listener);
@@ -314,7 +314,7 @@ public class SsdpService implements Closeable {
      * @return a future that completes with the list of search responses collected
      *         within the MX wait period
      * @throws NullPointerException if {@code searchTarget} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CompletableFuture<List<SsdpMessage>> search(String searchTarget) {
         return search(searchTarget, SsdpConstants.DEFAULT_MX);
@@ -328,7 +328,7 @@ public class SsdpService implements Closeable {
      * @return a future that completes with the collected search responses
      * @throws NullPointerException     if {@code searchTarget} is {@code null}
      * @throws IllegalArgumentException if {@code mx} is not positive
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CompletableFuture<List<SsdpMessage>> search(String searchTarget, int mx) {
         var message = SsdpMessage.search(searchTarget, mx);
@@ -364,7 +364,7 @@ public class SsdpService implements Closeable {
      * Sends an M-SEARCH request for all devices and services ({@code ssdp:all}).
      *
      * @return a future that completes with the collected search responses
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CompletableFuture<List<SsdpMessage>> searchAll() {
         return search(SsdpConstants.ST_ALL);
@@ -374,7 +374,7 @@ public class SsdpService implements Closeable {
      * Sends an M-SEARCH request for root devices only ({@code upnp:rootdevice}).
      *
      * @return a future that completes with the collected search responses
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CompletableFuture<List<SsdpMessage>> searchRootDevices() {
         return search(SsdpConstants.ST_ROOT_DEVICE);
@@ -387,7 +387,7 @@ public class SsdpService implements Closeable {
      *                   (e.g., "urn:schemas-upnp-org:device:MediaServer:1")
      * @return a future that completes with the collected search responses
      * @throws NullPointerException if {@code deviceType} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CompletableFuture<List<SsdpMessage>> searchByType(String deviceType) {
         return search(deviceType);
@@ -402,7 +402,7 @@ public class SsdpService implements Closeable {
      * @param server   the server identification string
      * @param maxAge   the cache max-age in seconds
      * @throws IOException if sending fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void advertise(String location, String nt, String usn, String server, int maxAge) throws IOException {
         var message = SsdpMessage.alive(location, nt, usn, server, maxAge);
@@ -416,7 +416,7 @@ public class SsdpService implements Closeable {
      * @param nt  the notification type
      * @param usn the unique service name
      * @throws IOException if sending fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void sendByebye(String nt, String usn) throws IOException {
         var message = SsdpMessage.byebye(nt, usn);
@@ -428,7 +428,7 @@ public class SsdpService implements Closeable {
      * Returns an unmodifiable snapshot of the current device cache.
      *
      * @return a map of USN to cached device entries
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Map<String, CachedDevice> getDeviceCache() {
         return Map.copyOf(deviceCache);
@@ -438,7 +438,7 @@ public class SsdpService implements Closeable {
      * Returns whether the service is currently running.
      *
      * @return {@code true} if the service is active
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isRunning() {
         return running.get();
@@ -449,7 +449,7 @@ public class SsdpService implements Closeable {
      * if operating in standalone mode with a blocking receive loop.
      *
      * @return the service group, or {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ServiceGroup getServiceGroup() {
         return serviceGroup;

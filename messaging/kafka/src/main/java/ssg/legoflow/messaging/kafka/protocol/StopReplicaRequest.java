@@ -11,7 +11,7 @@ import java.util.List;
  * @param controllerEpoch the controller epoch
  * @param deletePartitions whether to delete the partition data
  * @param partitions       the partitions to stop replicating
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record StopReplicaRequest(int controllerId, int controllerEpoch,
                                  boolean deletePartitions, List<TopicPartitionData> partitions) {

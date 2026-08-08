@@ -46,3 +46,9 @@ Thumbs.db
 
 # Agent worktrees
 .claude/
+
+# Cost tracking artifacts
+costs/
+*-guessed-vs-actual-estimates*
+buildSrc/.gradle/
+buildSrc/build/

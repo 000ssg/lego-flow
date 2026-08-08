@@ -5,7 +5,7 @@ import java.net.InetAddress;
 /**
  * Factory for creating FTP data connections in active or passive mode.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DataConnectionFactory {
 

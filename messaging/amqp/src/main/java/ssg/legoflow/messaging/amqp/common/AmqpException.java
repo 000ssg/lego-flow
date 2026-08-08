@@ -3,7 +3,7 @@ package ssg.legoflow.messaging.amqp.common;
 /**
  * Exception thrown when an AMQP protocol error occurs.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class AmqpException extends RuntimeException {
 

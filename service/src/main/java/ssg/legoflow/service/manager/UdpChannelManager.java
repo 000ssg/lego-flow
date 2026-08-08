@@ -31,7 +31,7 @@ import java.util.concurrent.Executors;
  *
  * <p>Datagram processing is dispatched to virtual threads for non-blocking operation.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class UdpChannelManager extends SelectableChannelManager {
 
@@ -44,7 +44,7 @@ public class UdpChannelManager extends SelectableChannelManager {
      *
      * @param context the service context for the manager
      * @throws NullPointerException if {@code context} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public UdpChannelManager(ServiceContext context) {
         super(context);
@@ -58,7 +58,7 @@ public class UdpChannelManager extends SelectableChannelManager {
      * @param bufferSize     the buffer size for read operations
      * @param selectTimeoutMs the selector timeout in milliseconds
      * @throws NullPointerException if {@code context} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public UdpChannelManager(ServiceContext context, int bufferSize, long selectTimeoutMs) {
         super(context, bufferSize, selectTimeoutMs);
@@ -74,7 +74,7 @@ public class UdpChannelManager extends SelectableChannelManager {
      * @param service the service to associate the channel with
      * @param channel the UDP data channel to register
      * @throws NullPointerException if {@code service} or {@code channel} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void registerUdpChannel(Service<?, ?> service, UdpDataChannel channel) {
         Objects.requireNonNull(service, "service must not be null");
@@ -100,7 +100,7 @@ public class UdpChannelManager extends SelectableChannelManager {
      * @return the created and registered {@link UdpDataChannel}
      * @throws IOException          if channel creation, binding, or registration fails
      * @throws NullPointerException if {@code service} or {@code address} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public UdpDataChannel bindAndRegister(Service<?, ?> service, SocketAddress address) throws IOException {
         Objects.requireNonNull(service, "service must not be null");
@@ -128,7 +128,7 @@ public class UdpChannelManager extends SelectableChannelManager {
      * @param channel  the UDP channel that received the datagram
      * @param pipeline the pipeline to dispatch through
      * @param packet   the received datagram packet info
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void dispatchDatagram(UdpDataChannel channel, ChannelPipeline pipeline, DatagramPacketInfo packet) {
         datagramPool.submit(() -> {
@@ -156,7 +156,7 @@ public class UdpChannelManager extends SelectableChannelManager {
      *
      * @param channel  the UDP channel to process
      * @param pipeline the associated pipeline
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void processUdpReadable(UdpDataChannel channel, ChannelPipeline pipeline) {
         datagramPool.submit(() -> {
@@ -175,7 +175,7 @@ public class UdpChannelManager extends SelectableChannelManager {
     /**
      * Closes this manager, shutting down the datagram processing pool.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void close() {

@@ -20,7 +20,7 @@ import java.util.Objects;
  * requiring a full XML DOM parser. It extracts signature components from the
  * XML string and verifies the digest and signature values.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SamlSignatureValidator {
 
@@ -32,7 +32,7 @@ public class SamlSignatureValidator {
      * Creates a signature validator with the given public key.
      *
      * @param publicKey the IdP's public key for signature verification
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SamlSignatureValidator(PublicKey publicKey) {
         this.publicKey = Objects.requireNonNull(publicKey, "publicKey must not be null");
@@ -44,7 +44,7 @@ public class SamlSignatureValidator {
      * @param pemCertificate the PEM-encoded certificate
      * @return the validator
      * @throws IllegalArgumentException if the certificate cannot be parsed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SamlSignatureValidator fromPemCertificate(String pemCertificate) {
         PublicKey key = parseX509Certificate(pemCertificate).getPublicKey();
@@ -58,7 +58,7 @@ public class SamlSignatureValidator {
      * @param base64Certificate the Base64-encoded certificate (raw, no headers)
      * @return the validator
      * @throws IllegalArgumentException if the certificate cannot be parsed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SamlSignatureValidator fromBase64Certificate(String base64Certificate) {
         String pem = "-----BEGIN CERTIFICATE-----\n" + base64Certificate + "\n-----END CERTIFICATE-----";
@@ -70,7 +70,7 @@ public class SamlSignatureValidator {
      *
      * @param samlXml the SAML XML containing a {@code <ds:Signature>} element
      * @return true if the signature is valid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean validate(String samlXml) {
         if (samlXml == null || samlXml.isBlank()) return false;
@@ -120,7 +120,7 @@ public class SamlSignatureValidator {
      *
      * @param samlXml the SAML XML
      * @return true if a signature is present and structurally valid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean hasValidSignature(String samlXml) {
         if (samlXml == null) return false;
@@ -133,7 +133,7 @@ public class SamlSignatureValidator {
      * Returns the public key used for validation.
      *
      * @return the public key
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public PublicKey getPublicKey() {
         return publicKey;
@@ -203,7 +203,7 @@ public class SamlSignatureValidator {
      *
      * @param pem the PEM string
      * @return the certificate
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static X509Certificate parseX509Certificate(String pem) {
         try {

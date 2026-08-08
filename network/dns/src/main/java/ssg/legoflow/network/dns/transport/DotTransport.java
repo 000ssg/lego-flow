@@ -20,7 +20,7 @@ import java.time.Duration;
  * <p>Connects to a DNS server on port 853 using TLS. Messages use the
  * same 2-byte length prefix format as TCP DNS.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DotTransport implements AutoCloseable {
 
@@ -37,7 +37,7 @@ public final class DotTransport implements AutoCloseable {
      * Creates a DoT transport with the default SSL context.
      *
      * @param timeout the connection and read timeout
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DotTransport(Duration timeout) {
         this.timeout = timeout;
@@ -54,7 +54,7 @@ public final class DotTransport implements AutoCloseable {
      *
      * @param timeout    the connection and read timeout
      * @param sslContext the SSL context to use
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DotTransport(Duration timeout, SSLContext sslContext) {
         this.timeout = timeout;
@@ -68,7 +68,7 @@ public final class DotTransport implements AutoCloseable {
      * @param address the server address (port defaults to 853)
      * @return the response message
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DnsMessage send(DnsMessage query, InetSocketAddress address) throws IOException {
         int port = address.getPort() == 0 ? DEFAULT_PORT : address.getPort();

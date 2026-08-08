@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.*;
  * Integration tests for {@link MediaServerDevice} action dispatch,
  * verifying that all new actions are correctly wired through handleAction.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class MediaServerActionDispatchTest {
 

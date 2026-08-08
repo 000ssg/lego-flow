@@ -3,7 +3,7 @@ package ssg.legoflow.media.rtsp.client;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ssg.legoflow.media.rtsp.demo.StreamingServerDemo;
+import ssg.legoflow.media.rtsp.fixture.StreamingServerDemo;
 import ssg.legoflow.media.rtsp.protocol.RtspStatus;
 import ssg.legoflow.media.rtsp.server.RtspServer;
 

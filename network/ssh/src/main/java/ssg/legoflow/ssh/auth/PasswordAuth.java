@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * Password authentication method per RFC 4252 section 8.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class PasswordAuth implements AuthMethod {
 

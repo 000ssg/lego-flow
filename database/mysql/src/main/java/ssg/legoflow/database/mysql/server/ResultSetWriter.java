@@ -15,7 +15,7 @@ import java.util.Map;
  * <p>Handles the full result set packet sequence: column count, column
  * definitions, EOF (or OK with DEPRECATE_EOF), row data, and final EOF.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ResultSetWriter {
 

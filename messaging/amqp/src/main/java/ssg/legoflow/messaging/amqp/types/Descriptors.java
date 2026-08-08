@@ -7,7 +7,7 @@ package ssg.legoflow.messaging.amqp.types;
  * identifies it on the wire. The descriptor is encoded as a ulong following
  * the described-type constructor byte ({@code 0x00}).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class Descriptors {
 

@@ -10,7 +10,7 @@ import java.util.List;
  * @param controllerId     the controller's broker ID
  * @param controllerEpoch  the controller epoch
  * @param partitionStates  per-partition leadership state
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record LeaderAndIsrRequest(int controllerId, int controllerEpoch,
                                   List<PartitionState> partitionStates) {

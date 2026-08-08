@@ -12,7 +12,7 @@ package ssg.legoflow.messaging.kafka.broker.storage;
  * @param recordCount  the number of records in the batch
  * @param data         the raw Kafka v2 encoded batch bytes
  * @param timestamp    the wall-clock time when the batch was stored (milliseconds since epoch)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record StoredBatch(long baseOffset, int recordCount, byte[] data, long timestamp) {
 }

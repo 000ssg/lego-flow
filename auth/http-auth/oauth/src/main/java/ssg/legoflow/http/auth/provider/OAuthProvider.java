@@ -9,7 +9,7 @@ import java.util.Set;
  * its authorization, token, and userinfo endpoint URLs so that consumers only need
  * to provide their client credentials.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public abstract class OAuthProvider {
 
@@ -19,7 +19,7 @@ public abstract class OAuthProvider {
      * Creates a provider.
      *
      * @param name the provider name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     protected OAuthProvider(String name) {
         this.name = name;
@@ -29,7 +29,7 @@ public abstract class OAuthProvider {
      * Returns the provider name.
      *
      * @return the name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getName() { return name; }
 
@@ -37,7 +37,7 @@ public abstract class OAuthProvider {
      * Returns the authorization endpoint URL.
      *
      * @return the URL
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public abstract String authorizationEndpoint();
 
@@ -45,7 +45,7 @@ public abstract class OAuthProvider {
      * Returns the token endpoint URL.
      *
      * @return the URL
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public abstract String tokenEndpoint();
 
@@ -53,7 +53,7 @@ public abstract class OAuthProvider {
      * Returns the user info endpoint URL.
      *
      * @return the URL, or null if not supported
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public abstract String userInfoEndpoint();
 
@@ -61,7 +61,7 @@ public abstract class OAuthProvider {
      * Returns the revocation endpoint URL.
      *
      * @return the URL, or null if not supported
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String revocationEndpoint() { return null; }
 
@@ -69,7 +69,7 @@ public abstract class OAuthProvider {
      * Returns the default scopes for this provider.
      *
      * @return the default scopes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public abstract Set<String> defaultScopes();
 
@@ -80,7 +80,7 @@ public abstract class OAuthProvider {
      * @param clientSecret the client secret
      * @param redirectUri  the redirect URI
      * @return the configuration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public OAuth2Config buildConfig(String clientId, String clientSecret, String redirectUri) {
         var builder = OAuth2Config.builder()
@@ -103,7 +103,7 @@ public abstract class OAuthProvider {
      * @param redirectUri  the redirect URI
      * @param scopes       the scopes (overrides defaults)
      * @return the configuration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public OAuth2Config buildConfig(String clientId, String clientSecret, String redirectUri,
                                      Set<String> scopes) {

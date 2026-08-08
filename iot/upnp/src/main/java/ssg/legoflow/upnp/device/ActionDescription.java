@@ -11,7 +11,7 @@ import java.util.Objects;
  *
  * @param name      the action name
  * @param arguments the list of argument descriptions
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ActionDescription(String name, List<ArgumentDescription> arguments) {
 
@@ -30,7 +30,7 @@ public record ActionDescription(String name, List<ArgumentDescription> arguments
      * Returns only the input arguments of this action.
      *
      * @return an unmodifiable list of input arguments
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<ArgumentDescription> inputArguments() {
         return arguments.stream().filter(ArgumentDescription::isInput).toList();
@@ -40,7 +40,7 @@ public record ActionDescription(String name, List<ArgumentDescription> arguments
      * Returns only the output arguments of this action.
      *
      * @return an unmodifiable list of output arguments
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<ArgumentDescription> outputArguments() {
         return arguments.stream().filter(ArgumentDescription::isOutput).toList();
@@ -50,7 +50,7 @@ public record ActionDescription(String name, List<ArgumentDescription> arguments
      * Serializes this action to SCPD XML fragment.
      *
      * @return the XML representation
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toXml() {
         var sb = new StringBuilder();

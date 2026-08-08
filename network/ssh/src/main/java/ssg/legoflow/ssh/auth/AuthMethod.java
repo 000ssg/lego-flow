@@ -3,7 +3,7 @@ package ssg.legoflow.ssh.auth;
 /**
  * Interface for SSH authentication methods per RFC 4252.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface AuthMethod {
 

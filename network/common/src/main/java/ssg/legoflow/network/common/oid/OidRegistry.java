@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Pre-populated with well-known OIDs from X.500, SNMP MIB-2, LDAP,
  * and X.509. Additional OIDs can be registered at runtime.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class OidRegistry {
 

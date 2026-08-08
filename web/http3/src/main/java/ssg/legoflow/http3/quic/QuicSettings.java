@@ -10,7 +10,7 @@ package ssg.legoflow.http3.quic;
  * <p>Use the {@link Builder} to construct instances with custom values.
  * Default values follow the recommendations in RFC 9000.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record QuicSettings(
         long maxIdleTimeout,
@@ -66,7 +66,7 @@ public record QuicSettings(
     /**
      * Creates settings with all default values.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicSettings() {
         this(
@@ -89,7 +89,7 @@ public record QuicSettings(
      * Validates the transport parameters.
      *
      * @throws IllegalArgumentException if any parameter is out of range
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicSettings {
         if (maxIdleTimeout < 0) {
@@ -138,7 +138,7 @@ public record QuicSettings(
      * Returns a new {@link Builder} initialised with all default values.
      *
      * @return a new builder
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Builder builder() {
         return new Builder();
@@ -147,7 +147,7 @@ public record QuicSettings(
     /**
      * Builder for {@link QuicSettings} with fluent setter methods.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static class Builder {
 
@@ -169,7 +169,7 @@ public record QuicSettings(
          *
          * @param maxIdleTimeout the timeout value
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder maxIdleTimeout(long maxIdleTimeout) {
             this.maxIdleTimeout = maxIdleTimeout;
@@ -181,7 +181,7 @@ public record QuicSettings(
          *
          * @param maxUdpPayloadSize the payload size (1200 to 65527)
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder maxUdpPayloadSize(int maxUdpPayloadSize) {
             this.maxUdpPayloadSize = maxUdpPayloadSize;
@@ -193,7 +193,7 @@ public record QuicSettings(
          *
          * @param initialMaxData the data limit in bytes
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder initialMaxData(long initialMaxData) {
             this.initialMaxData = initialMaxData;
@@ -205,7 +205,7 @@ public record QuicSettings(
          *
          * @param initialMaxStreamDataBidiLocal the data limit in bytes
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder initialMaxStreamDataBidiLocal(long initialMaxStreamDataBidiLocal) {
             this.initialMaxStreamDataBidiLocal = initialMaxStreamDataBidiLocal;
@@ -217,7 +217,7 @@ public record QuicSettings(
          *
          * @param initialMaxStreamDataBidiRemote the data limit in bytes
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder initialMaxStreamDataBidiRemote(long initialMaxStreamDataBidiRemote) {
             this.initialMaxStreamDataBidiRemote = initialMaxStreamDataBidiRemote;
@@ -229,7 +229,7 @@ public record QuicSettings(
          *
          * @param initialMaxStreamDataUni the data limit in bytes
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder initialMaxStreamDataUni(long initialMaxStreamDataUni) {
             this.initialMaxStreamDataUni = initialMaxStreamDataUni;
@@ -241,7 +241,7 @@ public record QuicSettings(
          *
          * @param initialMaxStreamsBidi the stream limit
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder initialMaxStreamsBidi(long initialMaxStreamsBidi) {
             this.initialMaxStreamsBidi = initialMaxStreamsBidi;
@@ -253,7 +253,7 @@ public record QuicSettings(
          *
          * @param initialMaxStreamsUni the stream limit
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder initialMaxStreamsUni(long initialMaxStreamsUni) {
             this.initialMaxStreamsUni = initialMaxStreamsUni;
@@ -265,7 +265,7 @@ public record QuicSettings(
          *
          * @param ackDelayExponent the exponent (0-20)
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder ackDelayExponent(int ackDelayExponent) {
             this.ackDelayExponent = ackDelayExponent;
@@ -277,7 +277,7 @@ public record QuicSettings(
          *
          * @param maxAckDelay the delay (0-16383)
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder maxAckDelay(int maxAckDelay) {
             this.maxAckDelay = maxAckDelay;
@@ -289,7 +289,7 @@ public record QuicSettings(
          *
          * @param disableActiveMigration {@code true} to disable migration
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder disableActiveMigration(boolean disableActiveMigration) {
             this.disableActiveMigration = disableActiveMigration;
@@ -301,7 +301,7 @@ public record QuicSettings(
          *
          * @param activeConnectionIdLimit the limit (minimum 2)
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder activeConnectionIdLimit(int activeConnectionIdLimit) {
             this.activeConnectionIdLimit = activeConnectionIdLimit;
@@ -313,7 +313,7 @@ public record QuicSettings(
          *
          * @return a new validated {@code QuicSettings}
          * @throws IllegalArgumentException if any parameter is out of range
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public QuicSettings build() {
             return new QuicSettings(

@@ -3,7 +3,7 @@ package ssg.legoflow.database.redis.server;
 /**
  * Internal Redis data types.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum DataType {
 

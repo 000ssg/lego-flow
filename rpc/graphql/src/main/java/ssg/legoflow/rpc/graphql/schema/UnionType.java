@@ -9,7 +9,7 @@ import java.util.Objects;
  * <p>A union type indicates that a field can return one of several object types,
  * but does not define any fields of its own. Union members must all be object types.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class UnionType implements GraphQLType {
 

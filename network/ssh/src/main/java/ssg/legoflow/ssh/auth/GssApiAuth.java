@@ -25,7 +25,7 @@ import java.util.Objects;
  *   <li>Client sends SSH_MSG_USERAUTH_GSSAPI_MIC to prove possession of session key</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class GssApiAuth implements AuthMethod {
 
@@ -43,7 +43,7 @@ public final class GssApiAuth implements AuthMethod {
      *
      * @param context the GSS context wrapper for token exchange
      * @throws NullPointerException if context is null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public GssApiAuth(GssContextWrapper context) {
         this.context = Objects.requireNonNull(context, "context must not be null");
@@ -76,7 +76,7 @@ public final class GssApiAuth implements AuthMethod {
      * @param username    the user name
      * @param serviceName the service name
      * @return the encoded authentication request payload
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public byte[] encodeRequest(String username, String serviceName) {
@@ -107,7 +107,7 @@ public final class GssApiAuth implements AuthMethod {
      * @param responseData the token data received from the server
      * @return the next token message to send, or empty array if context is established
      * @throws GssException if token processing fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public byte[] handleResponse(byte[] responseData) throws GssException {
         Objects.requireNonNull(responseData, "responseData must not be null");
@@ -143,7 +143,7 @@ public final class GssApiAuth implements AuthMethod {
      * @param serviceName the service name (e.g., "ssh-connection")
      * @return the encoded MIC message
      * @throws GssException if MIC computation fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public byte[] createMIC(byte[] sessionId, String username, String serviceName) throws GssException {
         Objects.requireNonNull(sessionId, "sessionId must not be null");
@@ -177,7 +177,7 @@ public final class GssApiAuth implements AuthMethod {
      * Returns whether the GSSAPI context establishment is complete.
      *
      * @return true if the GSS context is fully established
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isComplete() {
         return complete;

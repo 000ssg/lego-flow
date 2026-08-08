@@ -16,7 +16,7 @@ import java.nio.ByteBuffer;
  * agent forwarding has been requested. It receives agent protocol messages, dispatches
  * them to the local {@link SshAgent}, and sends responses back.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class AgentForwardingChannel extends SshChannel {
 

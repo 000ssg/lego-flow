@@ -3,7 +3,7 @@ package ssg.legoflow.media.common.sdp;
 /**
  * SDP media types as defined in RFC 4566 section 8.2.1.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum MediaType {
 

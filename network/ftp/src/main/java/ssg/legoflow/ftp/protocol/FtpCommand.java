@@ -12,7 +12,7 @@ package ssg.legoflow.ftp.protocol;
  *   <li>RFC 4217 — Securing FTP with TLS (AUTH, PBSZ, PROT, CCC)</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum FtpCommand {
 

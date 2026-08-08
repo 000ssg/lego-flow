@@ -19,7 +19,7 @@ import java.util.function.BiConsumer;
  * <p>Provides operations for creating/deleting nodes, publishing items,
  * subscribing/unsubscribing, and delivering notifications.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class PubSubManager {
 

@@ -18,7 +18,7 @@ import java.util.*;
  * the resolver follows NS referrals down the delegation chain until
  * it receives an authoritative answer.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RecursiveResolver implements DnsResolver, AutoCloseable {
 
@@ -35,7 +35,7 @@ public final class RecursiveResolver implements DnsResolver, AutoCloseable {
      * Creates a recursive resolver with default root servers.
      *
      * @param timeout the query timeout per hop
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public RecursiveResolver(Duration timeout) {
         this(defaultRootServers(), timeout);
@@ -46,7 +46,7 @@ public final class RecursiveResolver implements DnsResolver, AutoCloseable {
      *
      * @param rootServers the root server addresses
      * @param timeout     the query timeout per hop
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public RecursiveResolver(List<InetSocketAddress> rootServers, Duration timeout) {
         this.rootServers = new ArrayList<>(rootServers);
@@ -60,7 +60,7 @@ public final class RecursiveResolver implements DnsResolver, AutoCloseable {
      * @param rootServers the root server addresses
      * @param timeout     the query timeout per hop
      * @param cache       the cache to use
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public RecursiveResolver(List<InetSocketAddress> rootServers, Duration timeout,
                               DnsCache cache) {
@@ -191,7 +191,7 @@ public final class RecursiveResolver implements DnsResolver, AutoCloseable {
      * Returns the cache used by this resolver.
      *
      * @return the cache
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DnsCache cache() {
         return cache;
@@ -206,7 +206,7 @@ public final class RecursiveResolver implements DnsResolver, AutoCloseable {
      * Returns the default root server addresses.
      *
      * @return list of root server addresses
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static List<InetSocketAddress> defaultRootServers() {
         return List.of(

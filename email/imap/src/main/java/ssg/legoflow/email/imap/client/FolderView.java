@@ -9,7 +9,7 @@ import java.util.Objects;
  * <p>Contains mailbox metadata received from the server's SELECT/EXAMINE response:
  * message count, recent count, flags, UID validity, UID next, and access mode.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class FolderView {
 

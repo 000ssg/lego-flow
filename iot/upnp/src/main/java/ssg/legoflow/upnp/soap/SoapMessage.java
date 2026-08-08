@@ -24,7 +24,7 @@ import java.util.Objects;
  * which may use varying namespace prefixes, CDATA sections, and XML-escaped
  * content in output arguments like {@code Result}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SoapMessage {
 
@@ -41,7 +41,7 @@ public final class SoapMessage {
      * @param arguments       the input arguments
      * @param outputArguments the output arguments (for responses)
      * @throws NullPointerException if any required parameter is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SoapMessage(String serviceType, String actionName,
                        Map<String, String> arguments, Map<String, String> outputArguments) {
@@ -59,7 +59,7 @@ public final class SoapMessage {
      * @param actionName  the action name
      * @param arguments   the input arguments
      * @return a new SOAP request message
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SoapMessage request(String serviceType, String actionName, Map<String, String> arguments) {
         return new SoapMessage(serviceType, actionName, arguments, Map.of());
@@ -72,7 +72,7 @@ public final class SoapMessage {
      * @param actionName      the action name
      * @param outputArguments the output arguments
      * @return a new SOAP response message
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SoapMessage response(String serviceType, String actionName,
                                        Map<String, String> outputArguments) {
@@ -83,7 +83,7 @@ public final class SoapMessage {
      * Returns the service type URN.
      *
      * @return the service type
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String serviceType() {
         return serviceType;
@@ -93,7 +93,7 @@ public final class SoapMessage {
      * Returns the action name.
      *
      * @return the action name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String actionName() {
         return actionName;
@@ -103,7 +103,7 @@ public final class SoapMessage {
      * Returns the input arguments.
      *
      * @return an unmodifiable map of input argument names to values
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Map<String, String> arguments() {
         return arguments;
@@ -113,7 +113,7 @@ public final class SoapMessage {
      * Returns the output arguments.
      *
      * @return an unmodifiable map of output argument names to values
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Map<String, String> outputArguments() {
         return outputArguments;
@@ -123,7 +123,7 @@ public final class SoapMessage {
      * Serializes this message as a SOAP request envelope.
      *
      * @return the SOAP XML request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String serializeRequest() {
         var sb = new StringBuilder();
@@ -147,7 +147,7 @@ public final class SoapMessage {
      * Serializes this message as a SOAP response envelope.
      *
      * @return the SOAP XML response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String serializeResponse() {
         var sb = new StringBuilder();
@@ -172,7 +172,7 @@ public final class SoapMessage {
      *
      * @param fault the SOAP fault
      * @return the SOAP XML fault response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String serializeFault(SoapFault fault) {
         Objects.requireNonNull(fault, "fault must not be null");
@@ -207,7 +207,7 @@ public final class SoapMessage {
      * @param xml the SOAP XML request
      * @return the parsed SOAP message
      * @throws IllegalArgumentException if the XML cannot be parsed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SoapMessage parseRequest(String xml) {
         Objects.requireNonNull(xml, "xml must not be null");
@@ -251,7 +251,7 @@ public final class SoapMessage {
      * @param xml the SOAP XML response
      * @return the SOAP response with output arguments or fault
      * @throws IllegalArgumentException if the XML cannot be parsed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SoapResponse parseResponse(String xml) {
         Objects.requireNonNull(xml, "xml must not be null");
@@ -286,7 +286,7 @@ public final class SoapMessage {
      *
      * @param xml the SOAP XML containing a fault
      * @return a failed SOAP response with fault details
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SoapResponse parseFault(String xml) {
         Objects.requireNonNull(xml, "xml must not be null");

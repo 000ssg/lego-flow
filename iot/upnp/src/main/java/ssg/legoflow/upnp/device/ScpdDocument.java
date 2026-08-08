@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
  *
  * @param actions        the list of actions defined by the service
  * @param stateVariables the list of state variables defined by the service
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ScpdDocument(List<ActionDescription> actions, List<StateVariableDescription> stateVariables) {
 
@@ -50,7 +50,7 @@ public record ScpdDocument(List<ActionDescription> actions, List<StateVariableDe
      *
      * @param name the action name
      * @return the action description, or empty if not found
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<ActionDescription> findAction(String name) {
         return actions.stream().filter(a -> a.name().equals(name)).findFirst();
@@ -61,7 +61,7 @@ public record ScpdDocument(List<ActionDescription> actions, List<StateVariableDe
      *
      * @param name the state variable name
      * @return the state variable description, or empty if not found
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<StateVariableDescription> findStateVariable(String name) {
         return stateVariables.stream().filter(v -> v.name().equals(name)).findFirst();
@@ -74,7 +74,7 @@ public record ScpdDocument(List<ActionDescription> actions, List<StateVariableDe
      * @return the parsed SCPD document
      * @throws NullPointerException     if {@code xml} is {@code null}
      * @throws IllegalArgumentException if the XML cannot be parsed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static ScpdDocument parseXml(String xml) {
         Objects.requireNonNull(xml, "xml must not be null");
@@ -88,7 +88,7 @@ public record ScpdDocument(List<ActionDescription> actions, List<StateVariableDe
      * Serializes this SCPD document to its XML representation.
      *
      * @return the SCPD XML string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toXml() {
         var sb = new StringBuilder();

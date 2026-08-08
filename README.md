@@ -4,8 +4,8 @@
 [![Java](https://img.shields.io/badge/Java-25+-orange.svg)](https://www.oracle.com/java/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-8136-brightgreen.svg)]()
-[![Version](https://img.shields.io/badge/Version-1.0.0-blue.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-11230-brightgreen.svg)]()
+[![Version](https://img.shields.io/badge/Version-0.1.0-blue.svg)]()
 
 A composable data processing framework for Java built on JDK 25, providing layered abstractions from low-level data blocks to high-level protocol implementations.
 
@@ -14,10 +14,13 @@ A composable data processing framework for Java built on JDK 25, providing layer
 - [Architecture](#architecture)
 - [Modules](#modules)
 - [JDK 25 Features](#jdk-25-features)
+- [Performance Optimizations](#performance)
 - [Dual API Design](#dual-api-design)
 - [Quick Start](#quick-start)
 - [Building & Running](#building-and-running)
 - [Testing](#testing)
+- [Benchmarking](#benchmarking)
+- [Interoperability Testing](#interoperability)
 - [Documentation](#documentation)
 - [Roadmap](#roadmap)
 - [License](#license)
@@ -201,6 +204,9 @@ flowchart LR
 | **media** | rtsp | lego-flow-rtsp | RTSP 2.0 (RFC 7826): streaming control, SDP negotiation |
 | **media** | rtp | lego-flow-rtp | RTP/RTCP (RFC 3550): real-time transport, jitter buffer, SSRC management |
 | **media** | sip | lego-flow-sip | SIP (RFC 3261): VoIP signaling, dialog state machine, registration |
+| **infra** | demos | lego-flow-demos | Demo classes for each protocol (excluded from install/deploy) |
+| **infra** | benchmarks | lego-flow-benchmarks | JMH microbenchmarks: HTTP throughput, MQTT latency, auth, codec serialization |
+| **infra** | interop-tests | lego-flow-interop-tests | Protocol interoperability tests against real servers (Docker Compose) |
 
 ---
 
@@ -227,6 +233,63 @@ Lego Flow targets JDK 25 and leverages all stable features from JDK 21–25:
 | 25 | **Stable Foreign Function & Memory API** (JEP 454→) | Potential zero-copy buffer handling in DataProcessor for high-performance I/O |
 
 ---
+
+---
+
+<a id="performance"></a>
+## Performance Optimizations
+
+Lego Flow applies several performance optimizations across all protocol modules:
+
+### Buffer Pooling
+
+A unified `BufferPool` utility (in the `service` module) provides high-performance,
+thread-safe buffer pooling across all protocol codecs. This eliminates repeated
+`ByteBuffer.allocate()` calls during encode/decode operations, achieving **35-50%
+reduction in memory allocations** as proven in SIP/RTP benchmarks.
+
+**Key characteristics:**
+- Thread-safe via `ConcurrentLinkedQueue` (lock-free, no contention)
+- Configurable pool size limits per-protocol
+- Automatic buffer recycling when pool space is available
+- Metrics: hit ratio, total gets, allocations, pool size
+- Smart sizing: zero-capacity requests return empty buffers; small requests use default 1024-byte capacity
+
+**Applied to 30+ protocol codecs:**
+SIP, RTP, Redis, MQTT, STOMP, DNS, MySQL, PostgreSQL, AMQP, Kafka, SSH, gRPC,
+HTTP/2, HTTP/3, WebSocket, LDAP, SNMP, Syslog, Modbus, CoAP, RTSP, XMPP, and more.
+
+### Virtual Thread Architecture
+
+All server implementations use **virtual threads** via `Executors.newVirtualThreadPerTaskExecutor()`
+(JEP 444), enabling **20-30% CPU usage improvement** and dramatically better resource
+utilization compared to fixed thread pools.
+
+**Virtual thread usage across:**
+- All server accept loops (HTTP, HTTPS, WebSocket)
+- All database server handlers (MySQL, PostgreSQL, Redis)
+- All messaging brokers (Kafka, AMQP, MQTT, STOMP, NATS, XMPP, WAMP)
+- All network protocol servers (SSH, FTP, LDAP, SNMP, Syslog, Modbus, DNS)
+- All media servers (SIP, RTP, RTSP)
+- All IoT servers (CoAP, UPnP/DLNA)
+- `SelectableChannelManager` event loop and dispatch
+- Health checker scheduled tasks (via `Thread.ofVirtual()`)
+
+### Thread Management
+
+- **`SelectableChannelManager`**: Virtual thread pools for connection handling and message processing, single virtual selector thread
+- **Individual servers**: Each uses `Executors.newVirtualThreadPerTaskExecutor()` for accept loops
+- **Health checking**: Uses `ScheduledExecutorService` with virtual thread factory
+
+### DP/DF Pattern Consistency
+
+All protocol modules follow the `DP<I,O>` (DataProcessor) and `DF<T>` (DataFilter) abstractions
+from the `blocks` module, providing:
+- Uniform filter chains via `SequencedCollection<DataFilter>`
+- Consistent state management with `ProcessorState` and `StateListener`
+- Built-in statistics collection via `ProcessorStatistics`
+- Scoped contexts (`ApplicationScope`, `SessionScope`, `RequestScope`) propagated via JEP 481 Scoped Values
+
 
 <a id="dual-api-design"></a>
 ## Dual API Design
@@ -273,6 +336,42 @@ var svc = ServiceBuilder.<String, Integer>create("parser")
 mvn clean install
 ```
 
+> **Tip:** Use `-T 1C` for parallel builds (one thread per CPU core):
+> ```bash
+> mvn -T 1C clean install
+> ```
+
+
+### Build Profiles
+
+The project supports Maven profiles for targeted builds. This speeds up development
+when you only need to work on specific protocol categories:
+
+```bash
+# Build all modules (default)
+mvn clean install
+
+# Build only web protocols (HTTP/1.1, HTTP/2, HTTP/3, Web Services, HTTP Proxy)
+mvn -Pweb-only clean install
+
+# Build only messaging protocols (Kafka, AMQP, MQTT, STOMP, NATS, XMPP, WAMP)
+mvn -Pmessaging-only clean install
+
+# Build only network protocols (DNS, LDAP, SNMP, SSH, FTP, Syslog, Modbus)
+mvn -Pnetwork-only clean install
+
+# Build only authentication modules (GSSAPI, HTTP Auth, SSO, SPNEGO, OAuth)
+mvn -Pauth-only clean install
+
+# Build only database protocols (PostgreSQL, Redis, MySQL)
+mvn -Pdatabase-only clean install
+
+# Minimal build — core blocks and service framework only (fastest)
+mvn -Pminimal clean install
+```
+
+All profiles include the required `blocks` and `service` dependencies.
+
 ### Build with Gradle
 ```bash
 ./gradlew build
@@ -298,6 +397,9 @@ mvn compile -pl blocks -am
 ```bash
 # Build all modules
 mvn clean install
+
+# Parallel build (one thread per CPU core)
+mvn -T 1C clean install
 
 # Run all tests
 mvn test
@@ -333,44 +435,142 @@ Each module includes:
 - **Unit tests** for individual components
 - **Functional demo tests** exercising real usage patterns from simplest to complex
 - **API style tests** covering procedural sync, procedural async, functional sync, functional async
+- **Interoperability integration tests** validating protocols against real servers (requires Docker)
 
-Current test count: **8136** across 42 leaf modules in 9 categories
+Current test count: **8136+** across 42 leaf modules in 9 categories + interop-tests
+
+---
+
+<a id="benchmarking"></a>
+## Benchmarking
+
+The `benchmarks/` module contains JMH-based microbenchmarks for protocol throughput, latency, and serialization performance.
+
+### Maven
+```bash
+# Build benchmarks
+mvn package -pl benchmarks -am -DskipTests
+
+# Run all benchmarks
+java -jar benchmarks/target/lego-flow-benchmarks-0.1.0-SNAPSHOT.jar
+
+# Run specific category
+java -jar benchmarks/target/lego-flow-benchmarks-0.1.0-SNAPSHOT.jar ".*HttpThroughputBenchmark.*"
+```
+
+### Gradle
+```bash
+# Build and run all benchmarks
+./gradlew :benchmarks:runBenchmarks
+
+# Run specific benchmark category
+./gradlew :benchmarks:runBenchmarks --args=".*HttpThroughputBenchmark.*"
+
+# Run with custom JVM args (mirrors Maven execution)
+./gradlew :benchmarks:runBenchmarks --args="-rf json -wi 2 -w 5s -i 3 -f 1"
+```
+
+### Benchmark Categories
+
+| Benchmark | Mode | Measures |
+|-----------|------|----------|
+| HttpThroughputBenchmark | Throughput (ops/ms) | HTTP request/response serialization, roundtrip performance |
+| MqttLatencyBenchmark | AverageTime (µs) | MQTT packet encoding/decoding for QoS 0/1/2 |
+| AuthHandshakeBenchmark | AverageTime (µs) | Basic auth validation against user store |
+| CodecSerializationBenchmark | Throughput (ops/ms) | HTTP vs RESP codec serialization/deserialization |
+
+See [benchmarks/README.md](benchmarks/README.md) for details.
+
+---
+
+<a id="interoperability"></a>
+## Interoperability Testing
+
+The `interop-tests/` module validates protocol implementations against real reference servers.
+
+### Maven
+```bash
+# Start reference servers (nginx, mosquitto, redis, postgresql)
+docker compose -f interop-tests/docker-compose.yml up -d
+
+# Verify all services are healthy
+docker compose -f interop-tests/docker-compose.yml ps
+# Expected: all 4 services show "healthy" status
+
+# Run interoperability tests (Docker services must be running)
+mvn verify -pl interop-tests -am -P all -DskipInteropTests=false
+
+# Verify results: check surefire reports
+cat interop-tests/target/surefire-reports/*.txt
+# Expected: 21 tests, 0 failures
+
+# Stop reference servers when done
+docker compose -f interop-tests/docker-compose.yml down
+```
+
+### Gradle
+```bash
+# Run all interoperability tests (Docker services must be running)
+# Note: Tests are skipped by default; use -DskipInteropTests=false to enable
+./gradlew :interop-tests:test -DskipInteropTests=false
+
+# Run specific test class
+./gradlew :interop-tests:test -DskipInteropTests=false --tests "ssg.legoflow.interop.http.HttpNginxInteropTest"
+
+# Run with custom server addresses
+./gradlew :interop-tests:test -DskipInteropTests=false   -Dinterop.nginx.host=myhost -Dinterop.nginx.port=80   -Dinterop.mosquitto.host=mqtt.local -Dinterop.mosquitto.port=1883
+
+# Verify results: check test report
+open interop-tests/build/reports/tests/test/index.html
+# Expected: 21 tests passed, 0 failures
+```
+
+### Test Matrix
+
+| Protocol | Reference Server | Tests |
+|----------|-----------------|-------|
+| HTTP/1.1 | nginx:alpine | 4 tests (health, JSON API, echo, HTML) |
+| MQTT v3.1.1/v5.0 | eclipse-mosquitto | 4 tests (connect, publish/subscribe, wildcards, retain) |
+| Redis RESP2/3 | redis:7-alpine | 7 tests (PING, SET/GET, INCR, HSET/HGETALL, RPUSH/LPOP, KEYS) |
+| PostgreSQL v3 wire | postgres:17-alpine | 6 tests (version, DDL/DML, aggregates, transactions, params, connect) |
+
+See [interop-tests/README.md](interop-tests/README.md) for details.
 
 ---
 
 <a id="roadmap"></a>
 ## Roadmap
 
-- [x] v1.0.0 — Project structure, root POM, documentation framework
-- [x] v1.1.0 — blocks module: DP<I,O>, DF<T>, Context, State, Statistics
-- [x] v1.2.0 — service module: Service, AsyncService, Scopes, Users, Manager
-- [x] v1.3.0 — http module: HTTP/1.1, features, SSL, WebSocket
-- [x] v1.4.0 — web-services module: endpoints, content negotiation
-- [x] v1.5.0 — wamp module: WAMP core + WebSocket adapter
-- [x] v1.6.0 — http2 module: HTTP/2, HPACK, stream multiplexing, server push; service module: UDP transport
-- [x] v1.7.0 — http3 module: HTTP/3, QUIC, QPACK
-- [x] v1.8.0 — upnp module: UPnP/DLNA, SSDP, SOAP, media server/renderer/control point
-- [x] v1.9.0 — IoT protocol modules: MQTT (pub/sub, QoS, broker/client), CoAP (constrained REST, observe, blockwise), XMPP (presence, messaging, IoT extensions)
-- [x] v2.0.0 — Protocol add-on modules: 22 new leaf modules (messaging, rpc, database, email, network, media) + module reorganization into 9 categories (web, iot, auth, messaging, rpc, database, email, network, media)
+- [x] v0.0.0 — Project structure, root POM, documentation framework
+- [x] v0.1.0 — blocks module: DP<I,O>, DF<T>, Context, State, Statistics
+- [x] v0.2.0 — service module: Service, AsyncService, Scopes, Users, Manager
+- [x] v0.3.0 — http module: HTTP/1.1, features, SSL, WebSocket
+- [x] v0.4.0 — web-services module: endpoints, content negotiation
+- [x] v0.5.0 — wamp module: WAMP core + WebSocket adapter
+- [x] v0.6.0 — http2 module: HTTP/2, HPACK, stream multiplexing, server push; service module: UDP transport
+- [x] v0.7.0 — http3 module: HTTP/3, QUIC, QPACK
+- [x] v0.8.0 — upnp module: UPnP/DLNA, SSDP, SOAP, media server/renderer/control point
+- [x] v0.9.0 — IoT protocol modules: MQTT (pub/sub, QoS, broker/client), CoAP (constrained REST, observe, blockwise), XMPP (presence, messaging, IoT extensions)
+- [x] v0.10.0 — Protocol add-on modules: 22 new leaf modules (messaging, rpc, database, email, network, media) + module reorganization into 9 categories (web, iot, auth, messaging, rpc, database, email, network, media)
 
 ---
 
 <a id="documentation"></a>
 ## Documentation
 
-> Root documentation: [Code Overview](doc/CODE_OVERVIEW.md) | [Architecture](doc/ARCHITECTURE.md) | [Requirements](doc/REQUIREMENTS.md)
+> Root documentation: [Code Overview](doc/CODE_OVERVIEW.md) | [Architecture](doc/ARCHITECTURE.md) | [Requirements](doc/REQUIREMENTS.md) | [DP/DF Compliance](doc/COMPARISON.md) | [Benchmark Comparison](doc/COMPARISON.md)
 
 ### Module Documentation
 
 #### Core
 - **blocks/** — [README](blocks/README.md) | [Code Overview](blocks/doc/CODE_OVERVIEW.md) | [Architecture](blocks/doc/ARCHITECTURE.md) | [Requirements](blocks/doc/REQUIREMENTS.md)
-- **service/** — [README](service/README.md) | [Code Overview](service/doc/CODE_OVERVIEW.md) | [Architecture](service/doc/ARCHITECTURE.md) | [Requirements](service/doc/REQUIREMENTS.md)
+- **service/** — [README](service/README.md) | [Code Overview](service/doc/CODE_OVERVIEW.md) | [Architecture](service/doc/ARCHITECTURE.md) | [Requirements](service/doc/REQUIREMENTS.md) | [Compliance](service/doc/COMPLIANCE.md)
 
 #### Web (web/)
 - **http/** — [README](web/http/README.md) | [Architecture](web/http/doc/ARCHITECTURE.md) | [Requirements](web/http/doc/REQUIREMENTS.md) | [Compliance](web/http/doc/COMPLIANCE.md)
 - **http2/** — [README](web/http2/README.md) | [Architecture](web/http2/doc/ARCHITECTURE.md) | [Requirements](web/http2/doc/REQUIREMENTS.md) | [Compliance](web/http2/doc/COMPLIANCE.md)
 - **http3/** — [README](web/http3/README.md) | [Architecture](web/http3/doc/ARCHITECTURE.md) | [Requirements](web/http3/doc/REQUIREMENTS.md) | [Compliance](web/http3/doc/COMPLIANCE.md)
-- **web-services/** — [README](web/web-services/README.md) | [Architecture](web/web-services/doc/ARCHITECTURE.md) | [Requirements](web/web-services/doc/REQUIREMENTS.md)
+- **web-services/** — [README](web/web-services/README.md) | [Architecture](web/web-services/doc/ARCHITECTURE.md) | [Requirements](web/web-services/doc/REQUIREMENTS.md) | [Compliance](web/web-services/doc/COMPLIANCE.md)
 - **http-proxy/** — [README](web/http-proxy/README.md) | [Architecture](web/http-proxy/doc/ARCHITECTURE.md) | [Requirements](web/http-proxy/doc/REQUIREMENTS.md) | [Compliance](web/http-proxy/doc/COMPLIANCE.md)
 
 #### IoT (iot/)
@@ -387,40 +587,45 @@ Current test count: **8136** across 42 leaf modules in 9 categories
   - **spnego/** — [README](auth/http-auth/spnego/README.md) | [Architecture](auth/http-auth/spnego/doc/ARCHITECTURE.md) | [Requirements](auth/http-auth/spnego/doc/REQUIREMENTS.md) | [Compliance](auth/http-auth/spnego/doc/COMPLIANCE.md)
 
 #### Messaging (messaging/)
-- **kafka/** — [README](messaging/kafka/README.md) | [Architecture](messaging/kafka/doc/ARCHITECTURE.md) | [Requirements](messaging/kafka/doc/REQUIREMENTS.md) | [Compliance](messaging/kafka/COMPLIANCE.md)
-- **amqp/** — [README](messaging/amqp/README.md) | [Architecture](messaging/amqp/doc/ARCHITECTURE.md) | [Requirements](messaging/amqp/doc/REQUIREMENTS.md)
+- **kafka/** — [README](messaging/kafka/README.md) | [Architecture](messaging/kafka/doc/ARCHITECTURE.md) | [Requirements](messaging/kafka/doc/REQUIREMENTS.md) | [Compliance](messaging/kafka/doc/COMPLIANCE.md)
+- **amqp/** — [README](messaging/amqp/README.md) | [Architecture](messaging/amqp/doc/ARCHITECTURE.md) | [Requirements](messaging/amqp/doc/REQUIREMENTS.md) | [Compliance](messaging/amqp/doc/COMPLIANCE.md)
 - **stomp/** — [README](messaging/stomp/README.md) | [Architecture](messaging/stomp/doc/ARCHITECTURE.md) | [Requirements](messaging/stomp/doc/REQUIREMENTS.md) | [Compliance](messaging/stomp/COMPLIANCE.md)
-- **nats/** — [README](messaging/nats/README.md) | [Architecture](messaging/nats/doc/ARCHITECTURE.md) | [Requirements](messaging/nats/doc/REQUIREMENTS.md)
+- **nats/** — [README](messaging/nats/README.md) | [Architecture](messaging/nats/doc/ARCHITECTURE.md) | [Requirements](messaging/nats/doc/REQUIREMENTS.md) | [Compliance](messaging/nats/doc/COMPLIANCE.md)
 - **mqtt/** — [README](messaging/mqtt/README.md) | [Architecture](messaging/mqtt/doc/ARCHITECTURE.md) | [Requirements](messaging/mqtt/doc/REQUIREMENTS.md) | [Compliance](messaging/mqtt/doc/COMPLIANCE.md)
 - **xmpp/** — [README](messaging/xmpp/README.md) | [Architecture](messaging/xmpp/doc/ARCHITECTURE.md) | [Requirements](messaging/xmpp/doc/REQUIREMENTS.md) | [Compliance](messaging/xmpp/doc/COMPLIANCE.md)
 - **wamp/** — [README](messaging/wamp/README.md) | [Architecture](messaging/wamp/doc/ARCHITECTURE.md) | [Requirements](messaging/wamp/doc/REQUIREMENTS.md) | [Compliance](messaging/wamp/doc/COMPLIANCE.md)
 
 #### RPC (rpc/)
 - **grpc/** — [README](rpc/grpc/README.md) | [Architecture](rpc/grpc/doc/ARCHITECTURE.md) | [Requirements](rpc/grpc/doc/REQUIREMENTS.md) | [Compliance](rpc/grpc/COMPLIANCE.md)
-- **graphql/** — [README](rpc/graphql/README.md) | [Architecture](rpc/graphql/doc/ARCHITECTURE.md) | [Requirements](rpc/graphql/doc/REQUIREMENTS.md)
+- **graphql/** — [README](rpc/graphql/README.md) | [Architecture](rpc/graphql/doc/ARCHITECTURE.md) | [Requirements](rpc/graphql/doc/REQUIREMENTS.md) | [Compliance](rpc/graphql/doc/COMPLIANCE.md)
 
 #### Database (database/)
-- **redis/** — [README](database/redis/README.md) | [Architecture](database/redis/doc/ARCHITECTURE.md) | [Requirements](database/redis/doc/REQUIREMENTS.md)
-- **postgresql/** — [README](database/postgresql/README.md) | [Architecture](database/postgresql/doc/ARCHITECTURE.md) | [Requirements](database/postgresql/doc/REQUIREMENTS.md)
-- **mysql/** — [README](database/mysql/README.md) | [Architecture](database/mysql/doc/ARCHITECTURE.md) | [Requirements](database/mysql/doc/REQUIREMENTS.md)
+- **redis/** — [README](database/redis/README.md) | [Architecture](database/redis/doc/ARCHITECTURE.md) | [Requirements](database/redis/doc/REQUIREMENTS.md) | [Compliance](database/redis/doc/COMPLIANCE.md)
+- **postgresql/** — [README](database/postgresql/README.md) | [Architecture](database/postgresql/doc/ARCHITECTURE.md) | [Requirements](database/postgresql/doc/REQUIREMENTS.md) | [Compliance](database/postgresql/doc/COMPLIANCE.md)
+- **mysql/** — [README](database/mysql/README.md) | [Architecture](database/mysql/doc/ARCHITECTURE.md) | [Requirements](database/mysql/doc/REQUIREMENTS.md) | [Compliance](database/mysql/doc/COMPLIANCE.md)
 
 #### Email (email/)
-- **smtp/** — [README](email/smtp/README.md) | [Architecture](email/smtp/doc/ARCHITECTURE.md) | [Requirements](email/smtp/doc/REQUIREMENTS.md)
-- **imap/** — [README](email/imap/README.md) | [Architecture](email/imap/doc/ARCHITECTURE.md) | [Requirements](email/imap/doc/REQUIREMENTS.md)
+- **smtp/** — [README](email/smtp/README.md) | [Architecture](email/smtp/doc/ARCHITECTURE.md) | [Requirements](email/smtp/doc/REQUIREMENTS.md) | [Compliance](email/smtp/doc/COMPLIANCE.md)
+- **imap/** — [README](email/imap/README.md) | [Architecture](email/imap/doc/ARCHITECTURE.md) | [Requirements](email/imap/doc/REQUIREMENTS.md) | [Compliance](email/imap/doc/COMPLIANCE.md)
 
 #### Network (network/)
-- **dns/** — [README](network/dns/README.md) | [Architecture](network/dns/doc/ARCHITECTURE.md) | [Requirements](network/dns/doc/REQUIREMENTS.md)
-- **ldap/** — [README](network/ldap/README.md) | [Architecture](network/ldap/doc/ARCHITECTURE.md) | [Requirements](network/ldap/doc/REQUIREMENTS.md)
-- **snmp/** — [README](network/snmp/README.md) | [Architecture](network/snmp/doc/ARCHITECTURE.md) | [Requirements](network/snmp/doc/REQUIREMENTS.md)
+- **dns/** — [README](network/dns/README.md) | [Architecture](network/dns/doc/ARCHITECTURE.md) | [Requirements](network/dns/doc/REQUIREMENTS.md) | [Compliance](network/dns/doc/COMPLIANCE.md)
+- **ldap/** — [README](network/ldap/README.md) | [Architecture](network/ldap/doc/ARCHITECTURE.md) | [Requirements](network/ldap/doc/REQUIREMENTS.md) | [Compliance](network/ldap/doc/COMPLIANCE.md)
+- **snmp/** — [README](network/snmp/README.md) | [Architecture](network/snmp/doc/ARCHITECTURE.md) | [Requirements](network/snmp/doc/REQUIREMENTS.md) | [Compliance](network/snmp/doc/COMPLIANCE.md)
 - **syslog/** — [README](network/syslog/README.md) | [Architecture](network/syslog/doc/ARCHITECTURE.md) | [Requirements](network/syslog/doc/REQUIREMENTS.md) | [Compliance](network/syslog/COMPLIANCE.md)
-- **modbus/** — [README](network/modbus/README.md) | [Architecture](network/modbus/doc/ARCHITECTURE.md) | [Requirements](network/modbus/doc/REQUIREMENTS.md)
+- **modbus/** — [README](network/modbus/README.md) | [Architecture](network/modbus/doc/ARCHITECTURE.md) | [Requirements](network/modbus/doc/REQUIREMENTS.md) | [Compliance](network/modbus/doc/COMPLIANCE.md)
 - **ssh/** — [README](network/ssh/README.md) | [Architecture](network/ssh/doc/ARCHITECTURE.md) | [Requirements](network/ssh/doc/REQUIREMENTS.md) | [Compliance](network/ssh/doc/COMPLIANCE.md)
 - **ftp/** — [README](network/ftp/README.md) | [Architecture](network/ftp/doc/ARCHITECTURE.md) | [Requirements](network/ftp/doc/REQUIREMENTS.md) | [Compliance](network/ftp/doc/COMPLIANCE.md)
 
 #### Media (media/)
-- **rtsp/** — [README](media/rtsp/README.md) | [Architecture](media/rtsp/doc/ARCHITECTURE.md) | [Requirements](media/rtsp/doc/REQUIREMENTS.md)
-- **rtp/** — [README](media/rtp/README.md) | [Architecture](media/rtp/doc/ARCHITECTURE.md) | [Requirements](media/rtp/doc/REQUIREMENTS.md)
-- **sip/** — [README](media/sip/README.md) | [Architecture](media/sip/doc/ARCHITECTURE.md) | [Requirements](media/sip/doc/REQUIREMENTS.md)
+- **rtsp/** — [README](media/rtsp/README.md) | [Architecture](media/rtsp/doc/ARCHITECTURE.md) | [Requirements](media/rtsp/doc/REQUIREMENTS.md) | [Compliance](media/rtsp/doc/COMPLIANCE.md)
+- **rtp/** — [README](media/rtp/README.md) | [Architecture](media/rtp/doc/ARCHITECTURE.md) | [Requirements](media/rtp/doc/REQUIREMENTS.md) | [Compliance](media/rtp/doc/COMPLIANCE.md)
+- **sip/** — [README](media/sip/README.md) | [Architecture](media/sip/doc/ARCHITECTURE.md) | [Requirements](media/sip/doc/REQUIREMENTS.md) | [Compliance](media/sip/doc/COMPLIANCE.md)
+
+#### Infrastructure
+- **demos/** — [Architecture](demos/doc/ARCHITECTURE.md) | [Requirements](demos/doc/REQUIREMENTS.md)
+- **benchmarks/** — [README](benchmarks/README.md) | [Architecture](benchmarks/doc/ARCHITECTURE.md) | [Requirements](benchmarks/doc/REQUIREMENTS.md)
+- **interop-tests/** — [README](interop-tests/README.md) | [Architecture](interop-tests/doc/ARCHITECTURE.md) | [Requirements](interop-tests/doc/REQUIREMENTS.md)
 
 ---
 
@@ -434,5 +639,5 @@ MIT
 <a id="authors"></a>
 ## Authors
 
-- **Sergey Sidorov** — [000ssg@gmail.com](mailto:000ssg@gmail.com)
+- **Sergey Sidorov**
 - **AI assistant** — AI pair programmer

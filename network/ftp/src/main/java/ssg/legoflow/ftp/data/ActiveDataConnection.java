@@ -22,7 +22,7 @@ import java.util.Objects;
  * <p>On the server side, this class connects to the client's specified address/port.
  * On the client side, this class listens and accepts an incoming connection.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ActiveDataConnection implements DataConnection {
 

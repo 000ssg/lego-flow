@@ -6,7 +6,7 @@ import java.util.List;
  * WriteTxnMarkers response (API key 27).
  *
  * @param markers per-marker results
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record WriteTxnMarkersResponse(List<MarkerResult> markers) {
 

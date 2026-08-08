@@ -12,7 +12,7 @@ import java.util.concurrent.ThreadLocalRandom;
  *
  * <p>Instances are created via the {@link Builder}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DnsMessage {
 
@@ -54,7 +54,7 @@ public final class DnsMessage {
      * Returns the message header.
      *
      * @return the header
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DnsHeader header() {
         return header;
@@ -64,7 +64,7 @@ public final class DnsMessage {
      * Returns the question section.
      *
      * @return unmodifiable list of questions
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<DnsQuestion> questions() {
         return questions;
@@ -74,7 +74,7 @@ public final class DnsMessage {
      * Returns the answer section.
      *
      * @return unmodifiable list of answer records
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<DnsRecord> answers() {
         return answers;
@@ -84,7 +84,7 @@ public final class DnsMessage {
      * Returns the authority section.
      *
      * @return unmodifiable list of authority records
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<DnsRecord> authority() {
         return authority;
@@ -94,7 +94,7 @@ public final class DnsMessage {
      * Returns the additional section.
      *
      * @return unmodifiable list of additional records
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<DnsRecord> additional() {
         return additional;
@@ -104,7 +104,7 @@ public final class DnsMessage {
      * Returns whether this is a response message.
      *
      * @return {@code true} if QR=1
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isResponse() {
         return header.qr();
@@ -114,7 +114,7 @@ public final class DnsMessage {
      * Returns whether this is an authoritative answer.
      *
      * @return {@code true} if AA=1
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isAuthoritative() {
         return header.aa();
@@ -124,7 +124,7 @@ public final class DnsMessage {
      * Returns whether this message was truncated.
      *
      * @return {@code true} if TC=1
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isTruncated() {
         return header.tc();
@@ -135,7 +135,7 @@ public final class DnsMessage {
      *
      * @param question the question
      * @return the query message
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static DnsMessage query(DnsQuestion question) {
         return new Builder()
@@ -151,7 +151,7 @@ public final class DnsMessage {
      * @param name the domain name
      * @param type the record type
      * @return the query message
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static DnsMessage query(String name, RecordType type) {
         return query(DnsQuestion.of(name, type));
@@ -163,7 +163,7 @@ public final class DnsMessage {
      * @param query the query message
      * @param rCode the response code
      * @return a builder pre-populated with response fields
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Builder responseFor(DnsMessage query, ResponseCode rCode) {
         return new Builder()
@@ -180,7 +180,7 @@ public final class DnsMessage {
      * Returns a new builder.
      *
      * @return the builder
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Builder builder() {
         return new Builder();
@@ -201,7 +201,7 @@ public final class DnsMessage {
     /**
      * Builder for {@link DnsMessage}.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class Builder {
         private DnsHeader header;
@@ -245,7 +245,7 @@ public final class DnsMessage {
          * Builds the DNS message.
          *
          * @return the constructed message
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public DnsMessage build() {
             return new DnsMessage(this);

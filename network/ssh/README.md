@@ -4,7 +4,7 @@
 ![Maven](https://img.shields.io/badge/Maven-3.9%2B-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Tests](https://img.shields.io/badge/Tests-430-brightgreen)
-![Version](https://img.shields.io/badge/Version-1.0.0--SNAPSHOT-orange)
+![Version](https://img.shields.io/badge/Version-0.1.0-SNAPSHOT-orange)
 
 SSH-2 protocol implementation (RFC 4251-4256) for the Lego Flow framework. Provides complete client and server APIs with support for modern cryptographic algorithms, channel multiplexing, port forwarding, SFTP, and SCP.
 

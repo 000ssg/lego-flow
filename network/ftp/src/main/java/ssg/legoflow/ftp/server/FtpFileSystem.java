@@ -14,7 +14,7 @@ import java.util.List;
  * <p>Provides an abstraction over file operations, allowing implementations
  * backed by real filesystems, in-memory storage, or cloud storage.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface FtpFileSystem {
 

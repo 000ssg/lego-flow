@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Each session has a unique identifier, a timeout value, and manages
  * one or more stream controllers for the media streams within the session.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RtspSession {
 

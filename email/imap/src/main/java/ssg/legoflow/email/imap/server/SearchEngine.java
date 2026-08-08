@@ -16,7 +16,7 @@ import java.util.List;
  * header matching, date comparisons, size checks, body text search,
  * and composite AND/OR/NOT operations.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SearchEngine {
 

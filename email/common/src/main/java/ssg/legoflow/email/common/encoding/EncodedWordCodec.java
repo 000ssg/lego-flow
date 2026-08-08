@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
  * <p>Format: {@code =?charset?encoding?encoded-text?=}
  * where encoding is {@code B} (Base64) or {@code Q} (Q-encoding, a variant of QP).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class EncodedWordCodec {
 

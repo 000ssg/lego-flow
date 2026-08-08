@@ -8,7 +8,7 @@ import java.util.List;
  * <p>Finds the log offset for a given leader epoch.
  *
  * @param topics the topics and partitions to query
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record OffsetForLeaderEpochRequest(List<TopicData> topics) {
 

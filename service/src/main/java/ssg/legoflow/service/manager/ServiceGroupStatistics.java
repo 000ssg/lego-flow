@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicLongArray;
  * so that subsequent recording calls auto-route to the correct per-selector
  * bucket.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ServiceGroupStatistics {
 
@@ -54,7 +54,7 @@ public class ServiceGroupStatistics {
      *
      * @param selectorCount total number of selectors (including connector selector at index 0)
      * @throws IllegalArgumentException if {@code selectorCount} is not positive
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ServiceGroupStatistics(int selectorCount) {
         if (selectorCount <= 0) {
@@ -73,7 +73,7 @@ public class ServiceGroupStatistics {
      * Sets the selector index for the current thread.
      *
      * @param index the selector index (0 = connector, 1..N = data selectors)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setSelectorIndex(int index) {
         selectorIndex.set(index);
@@ -83,7 +83,7 @@ public class ServiceGroupStatistics {
      * Returns the selector index for the current thread.
      *
      * @return the selector index, or {@code null} if not set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Integer getSelectorIndex() {
         return selectorIndex.get();
@@ -92,7 +92,7 @@ public class ServiceGroupStatistics {
     /**
      * Records a new connection.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addConnection() {
         connections.incrementAndGet();
@@ -103,7 +103,7 @@ public class ServiceGroupStatistics {
      *
      * @param bytes         number of bytes read
      * @param durationNanos duration in nanoseconds
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addTcpRead(long bytes, long durationNanos) {
         tcpBytes[0].addAndGet(bytes);
@@ -119,7 +119,7 @@ public class ServiceGroupStatistics {
      *
      * @param bytes         number of bytes written
      * @param durationNanos duration in nanoseconds
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addTcpWrite(long bytes, long durationNanos) {
         tcpBytes[1].addAndGet(bytes);
@@ -135,7 +135,7 @@ public class ServiceGroupStatistics {
      *
      * @param bytes         number of bytes read
      * @param durationNanos duration in nanoseconds
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addUdpRead(long bytes, long durationNanos) {
         udpPackets[0].incrementAndGet();
@@ -152,7 +152,7 @@ public class ServiceGroupStatistics {
      *
      * @param bytes         number of bytes written
      * @param durationNanos duration in nanoseconds
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addUdpWrite(long bytes, long durationNanos) {
         udpPackets[1].incrementAndGet();
@@ -169,7 +169,7 @@ public class ServiceGroupStatistics {
      *
      * @param keyType       the key type index ({@link #ACCEPT}, {@link #CONNECT}, {@link #READ}, {@link #WRITE})
      * @param durationNanos duration in nanoseconds
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addKeyProcessed(int keyType, long durationNanos) {
         keyCounts.incrementAndGet(keyType);
@@ -185,7 +185,7 @@ public class ServiceGroupStatistics {
      *
      * @param selectorIdx   the selector index
      * @param durationNanos duration in nanoseconds
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addSelectorDuration(int selectorIdx, long durationNanos) {
         selectorDurations.addAndGet(selectorIdx, durationNanos);
@@ -195,7 +195,7 @@ public class ServiceGroupStatistics {
      * Returns the total number of selectors being tracked.
      *
      * @return the selector count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getSelectorCount() {
         return selectorCount;
@@ -205,7 +205,7 @@ public class ServiceGroupStatistics {
      * Returns the total connection count.
      *
      * @return connections recorded
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long getConnections() {
         return connections.get();
@@ -215,7 +215,7 @@ public class ServiceGroupStatistics {
      * Returns the global TCP bytes array (index 0=read, 1=written).
      *
      * @return array of two values
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long[] getTcpBytes() {
         return new long[]{tcpBytes[0].get(), tcpBytes[1].get()};
@@ -225,7 +225,7 @@ public class ServiceGroupStatistics {
      * Returns the global UDP packet counts (index 0=read, 1=written).
      *
      * @return array of two values
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long[] getUdpPackets() {
         return new long[]{udpPackets[0].get(), udpPackets[1].get()};
@@ -235,7 +235,7 @@ public class ServiceGroupStatistics {
      * Returns the global UDP byte counts (index 0=read, 1=written).
      *
      * @return array of two values
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long[] getUdpBytes() {
         return new long[]{udpBytes[0].get(), udpBytes[1].get()};
@@ -245,7 +245,7 @@ public class ServiceGroupStatistics {
      * Returns the key type counts (ACCEPT, CONNECT, READ, WRITE).
      *
      * @return a copy of the key counts array
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long[] getKeyCounts() {
         var result = new long[4];
@@ -257,7 +257,7 @@ public class ServiceGroupStatistics {
      * Returns the key type durations (ACCEPT, CONNECT, READ, WRITE).
      *
      * @return a copy of the key durations array
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long[] getKeyDurations() {
         var result = new long[4];
@@ -269,7 +269,7 @@ public class ServiceGroupStatistics {
      * Returns the per-selector read bytes.
      *
      * @return a copy of the per-selector read bytes array
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long[] getSelectorReadBytes() {
         var result = new long[selectorCount];
@@ -281,7 +281,7 @@ public class ServiceGroupStatistics {
      * Returns the per-selector write bytes.
      *
      * @return a copy of the per-selector write bytes array
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long[] getSelectorWriteBytes() {
         var result = new long[selectorCount];
@@ -293,7 +293,7 @@ public class ServiceGroupStatistics {
      * Returns the per-selector key counts.
      *
      * @return a copy of the per-selector key counts array
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long[] getSelectorKeyCounts() {
         var result = new long[selectorCount];
@@ -305,7 +305,7 @@ public class ServiceGroupStatistics {
      * Returns the per-selector durations.
      *
      * @return a copy of the per-selector durations array
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long[] getSelectorDurations() {
         var result = new long[selectorCount];
@@ -317,7 +317,7 @@ public class ServiceGroupStatistics {
      * Creates an immutable point-in-time snapshot of all statistics.
      *
      * @return a new {@link Snapshot} with all current counter values
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Snapshot snapshot() {
         var selectorReadBytesArr = new long[selectorCount];
@@ -362,7 +362,7 @@ public class ServiceGroupStatistics {
     /**
      * Resets all counters to zero.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void reset() {
         connections.set(0);
@@ -466,7 +466,7 @@ public class ServiceGroupStatistics {
      * @param selectorReadDurations  per-selector read durations
      * @param selectorWriteDurations per-selector write durations
      * @param selectorKeyCounts    per-selector key counts
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record Snapshot(
             long connections,

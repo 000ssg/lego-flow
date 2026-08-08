@@ -7,7 +7,7 @@ import java.util.List;
  *
  * @param topics    the topics with partition offsets before which to delete
  * @param timeoutMs the timeout in milliseconds
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record DeleteRecordsRequest(List<TopicData> topics, int timeoutMs) {
 

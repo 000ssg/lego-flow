@@ -5,7 +5,7 @@ package ssg.legoflow.messaging.kafka.record;
  *
  * @param key   the header key
  * @param value the header value (may be null)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Header(String key, byte[] value) {
 

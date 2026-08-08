@@ -12,7 +12,7 @@ import java.util.List;
  *
  * <p>Handles the variable header and payload decoding for each packet type.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MqttDecoder {
 

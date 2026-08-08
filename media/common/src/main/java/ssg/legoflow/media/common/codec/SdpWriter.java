@@ -8,7 +8,7 @@ import ssg.legoflow.media.common.sdp.*;
  * <p>Produces output conforming to RFC 4566 with {@code \r\n} line endings.
  * Lines are written in the prescribed order: v, o, s, i, u, e, p, c, b, t, r, z, k, a, m.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SdpWriter {
 

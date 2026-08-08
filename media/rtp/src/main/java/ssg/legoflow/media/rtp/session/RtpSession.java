@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * detection, and tracks session-level statistics. Thread-safe for
  * concurrent access from sender and receiver threads.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RtpSession {
 

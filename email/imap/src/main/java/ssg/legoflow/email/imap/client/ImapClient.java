@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  * search, sort, copy, move, and IDLE push notifications. Built on
  * {@link ImapConnection} for low-level protocol I/O.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ImapClient implements AutoCloseable {
 

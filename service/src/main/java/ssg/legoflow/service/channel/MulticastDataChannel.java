@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>This class is thread-safe. Group membership operations are synchronized
  * via a concurrent map.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MulticastDataChannel extends UdpDataChannel {
 
@@ -40,7 +40,7 @@ public class MulticastDataChannel extends UdpDataChannel {
      * @param selector        the NIO selector for event registration
      * @throws IOException          if registration with the selector fails
      * @throws NullPointerException if {@code datagramChannel} or {@code selector} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     /**
      * Creates a new {@code MulticastDataChannel} with deferred selector registration.
@@ -51,7 +51,7 @@ public class MulticastDataChannel extends UdpDataChannel {
      * @param datagramChannel the underlying NIO datagram channel; must support multicast
      * @throws IOException          if configuring non-blocking mode fails
      * @throws NullPointerException if {@code datagramChannel} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MulticastDataChannel(DatagramChannel datagramChannel) throws IOException {
         super(datagramChannel);
@@ -68,7 +68,7 @@ public class MulticastDataChannel extends UdpDataChannel {
      *               {@link StandardProtocolFamily#INET6})
      * @return a new datagram channel configured for multicast
      * @throws IOException if the channel cannot be opened
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static DatagramChannel openMulticastChannel(StandardProtocolFamily family) throws IOException {
         var channel = DatagramChannel.open(family);
@@ -87,7 +87,7 @@ public class MulticastDataChannel extends UdpDataChannel {
      * @throws IOException              if joining the group fails
      * @throws NullPointerException     if {@code config} is {@code null}
      * @throws IllegalStateException    if already a member of the specified group/interface
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MembershipKey joinGroup(MulticastConfig config) throws IOException {
         Objects.requireNonNull(config, "config must not be null");
@@ -112,7 +112,7 @@ public class MulticastDataChannel extends UdpDataChannel {
      * @param config the multicast configuration identifying the group membership to leave
      * @throws NullPointerException  if {@code config} is {@code null}
      * @throws IllegalStateException if not a member of the specified group/interface
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void leaveGroup(MulticastConfig config) {
         Objects.requireNonNull(config, "config must not be null");
@@ -129,7 +129,7 @@ public class MulticastDataChannel extends UdpDataChannel {
      * Returns the set of multicast configurations for all currently joined groups.
      *
      * @return an unmodifiable set of active multicast configurations
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Set<MulticastConfig> getGroups() {
         return Set.copyOf(memberships.keySet());
@@ -139,7 +139,7 @@ public class MulticastDataChannel extends UdpDataChannel {
      * Closes this channel, dropping all multicast group memberships first.
      *
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void close() throws IOException {

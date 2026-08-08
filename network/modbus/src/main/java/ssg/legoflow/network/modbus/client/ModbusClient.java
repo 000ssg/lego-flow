@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
  * <p>Provides typed methods for all supported Modbus operations.
  * Handles frame construction, communication, and response parsing.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ModbusClient implements AutoCloseable {
 

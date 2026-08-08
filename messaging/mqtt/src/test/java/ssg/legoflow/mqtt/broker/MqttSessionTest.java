@@ -8,7 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for {@link MqttSession}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class MqttSessionTest {
 

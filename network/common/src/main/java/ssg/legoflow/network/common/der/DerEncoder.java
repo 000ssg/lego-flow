@@ -25,7 +25,7 @@ import java.util.List;
  * <p>For most types, DER encoding is identical to BER with definite length.
  * The main difference is SET element ordering.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DerEncoder {
 

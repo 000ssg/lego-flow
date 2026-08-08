@@ -6,7 +6,7 @@ package ssg.legoflow.database.mysql.protocol;
  * <p>These type codes are used in ColumnDefinition packets and in the binary
  * protocol to identify how column values are encoded.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum ColumnType {
 

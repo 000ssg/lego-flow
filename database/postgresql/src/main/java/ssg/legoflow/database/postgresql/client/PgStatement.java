@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * Client-side prepared statement for the extended query protocol.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class PgStatement implements AutoCloseable {
 

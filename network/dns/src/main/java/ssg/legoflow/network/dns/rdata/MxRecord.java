@@ -10,7 +10,7 @@ import java.util.Objects;
  *
  * @param preference the preference value (lower is higher priority)
  * @param exchange   the mail exchange domain name
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record MxRecord(int preference, DnsName exchange) implements RData, Comparable<MxRecord> {
 
@@ -37,7 +37,7 @@ public record MxRecord(int preference, DnsName exchange) implements RData, Compa
      * @param preference the preference value
      * @param exchange   the mail exchange domain name
      * @return the MX record
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static MxRecord of(int preference, String exchange) {
         return new MxRecord(preference, DnsName.of(exchange));

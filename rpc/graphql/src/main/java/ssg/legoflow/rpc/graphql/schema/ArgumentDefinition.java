@@ -8,7 +8,7 @@ import java.util.Objects;
  * <p>An argument has a name, a type (must be an input type), an optional
  * description, and an optional default value.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ArgumentDefinition {
 

@@ -13,7 +13,7 @@ import java.util.Objects;
  * <p>Supports ASCII mode (with CRLF line-ending conversion) and binary
  * (IMAGE) mode (byte-for-byte transfer).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DataTransfer {
 

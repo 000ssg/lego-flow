@@ -11,7 +11,7 @@ import java.util.UUID;
 /**
  * Configuration for {@link MqttClient} with a fluent builder API.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MqttClientConfig {
 
@@ -121,7 +121,7 @@ public final class MqttClientConfig {
     /**
      * Fluent builder for {@link MqttClientConfig}.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class Builder {
 

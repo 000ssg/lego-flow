@@ -8,7 +8,7 @@ import java.util.List;
  * @param packetId      the packet identifier
  * @param subscriptions the list of topic subscriptions
  * @param properties    MQTT 5.0 properties
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SubscribePacket(
         int packetId,

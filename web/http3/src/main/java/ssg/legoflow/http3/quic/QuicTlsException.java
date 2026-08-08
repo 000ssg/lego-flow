@@ -3,7 +3,7 @@ package ssg.legoflow.http3.quic;
 /**
  * Exception thrown when a QUIC TLS operation fails.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class QuicTlsException extends RuntimeException {
 

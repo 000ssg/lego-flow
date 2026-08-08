@@ -7,6 +7,9 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * Processes I/O events for a single channel by dispatching reads, writes, and
@@ -25,11 +28,14 @@ import java.nio.channels.SelectionKey;
 public class ProcessingThread {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProcessingThread.class);
+    private static final ThreadFactory THREAD_FACTORY = 
+        Thread.ofVirtual().name("processing-thread-").factory();
+    private static final ExecutorService PROCESSING_POOL = 
+        Executors.newThreadPerTaskExecutor(THREAD_FACTORY);
 
     private final DataChannel channel;
     private final ChannelPipeline pipeline;
     private final ByteBuffer readBuffer;
-    private volatile Thread thread;
 
     public ProcessingThread(DataChannel channel, ChannelPipeline pipeline, int bufferSize) {
         this.channel = channel;
@@ -38,53 +44,42 @@ public class ProcessingThread {
     }
 
     public void processReadable() {
-        thread = Thread.ofVirtual()
-                .name("processing-read-" + Thread.currentThread().threadId())
-                .start(() -> {
-                    try {
-                        readBuffer.clear();
-                        int bytesRead = channel.read(readBuffer);
-                        if (bytesRead > 0) {
-                            readBuffer.flip();
-                            pipeline.fireRead(channel, readBuffer);
-                        } else if (bytesRead < 0) {
-                            pipeline.fireDisconnect(channel);
-                        }
-                    } catch (Exception e) {
-                        LOG.error("Error processing read", e);
-                        pipeline.fireError(channel, e);
-                    }
-                });
+        PROCESSING_POOL.submit(() -> {
+            try {
+                readBuffer.clear();
+                int bytesRead = channel.read(readBuffer);
+                if (bytesRead > 0) {
+                    readBuffer.flip();
+                    pipeline.fireRead(channel, readBuffer);
+                } else if (bytesRead < 0) {
+                    pipeline.fireDisconnect(channel);
+                }
+            } catch (Exception e) {
+                LOG.error("Error processing read", e);
+                pipeline.fireError(channel, e);
+            }
+        });
     }
 
     public void processWritable() {
-        thread = Thread.ofVirtual()
-                .name("processing-write-" + Thread.currentThread().threadId())
-                .start(() -> {
-                    try {
-                        pipeline.fireWrite(channel);
-                    } catch (Exception e) {
-                        LOG.error("Error processing write", e);
-                        pipeline.fireError(channel, e);
-                    }
-                });
+        PROCESSING_POOL.submit(() -> {
+            try {
+                pipeline.fireWrite(channel);
+            } catch (Exception e) {
+                LOG.error("Error processing write", e);
+                pipeline.fireError(channel, e);
+            }
+        });
     }
 
     public void processConnectable() {
-        thread = Thread.ofVirtual()
-                .name("processing-connect-" + Thread.currentThread().threadId())
-                .start(() -> {
-                    try {
-                        pipeline.fireConnect(channel);
-                    } catch (Exception e) {
-                        LOG.error("Error processing connect", e);
-                        pipeline.fireError(channel, e);
-                    }
-                });
-    }
-
-    public boolean isAlive() {
-        var t = thread;
-        return t != null && t.isAlive();
+        PROCESSING_POOL.submit(() -> {
+            try {
+                pipeline.fireConnect(channel);
+            } catch (Exception e) {
+                LOG.error("Error processing connect", e);
+                pipeline.fireError(channel, e);
+            }
+        });
     }
 }

@@ -17,7 +17,7 @@ import java.util.Objects;
  * <p>Implements {@link AutoCloseable} to ensure proper disposal of the underlying
  * GSS context.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class GssContextWrapper implements AutoCloseable {
 
@@ -30,7 +30,7 @@ public class GssContextWrapper implements AutoCloseable {
      * Creates a wrapper around the given GSS context.
      *
      * @param context the GSS context to wrap
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public GssContextWrapper(GSSContext context) {
         this.context = Objects.requireNonNull(context, "context must not be null");
@@ -42,7 +42,7 @@ public class GssContextWrapper implements AutoCloseable {
      * @param inputToken the token received from the server (empty for first call)
      * @return the output token to send to the server
      * @throws GssException if context initiation fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public byte[] initSecContext(byte[] inputToken) throws GssException {
         Objects.requireNonNull(inputToken, "inputToken must not be null");
@@ -60,7 +60,7 @@ public class GssContextWrapper implements AutoCloseable {
      * @param inputToken the token received from the client
      * @return the output token to send back to the client
      * @throws GssException if context acceptance fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public byte[] acceptSecContext(byte[] inputToken) throws GssException {
         Objects.requireNonNull(inputToken, "inputToken must not be null");
@@ -76,7 +76,7 @@ public class GssContextWrapper implements AutoCloseable {
      * Returns whether the security context has been fully established.
      *
      * @return true if the context is established
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isEstablished() {
         return context.isEstablished();
@@ -87,7 +87,7 @@ public class GssContextWrapper implements AutoCloseable {
      *
      * @return true if mutual authentication is enabled
      * @throws GssException if the state cannot be queried
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean getMutualAuth() {
         return context.getMutualAuthState();
@@ -97,7 +97,7 @@ public class GssContextWrapper implements AutoCloseable {
      * Returns whether per-message integrity is available.
      *
      * @return true if integrity protection is available
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean getIntegrity() {
         return context.getIntegState();
@@ -107,7 +107,7 @@ public class GssContextWrapper implements AutoCloseable {
      * Returns whether per-message confidentiality is available.
      *
      * @return true if confidentiality protection is available
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean getConfidentiality() {
         return context.getConfState();
@@ -118,7 +118,7 @@ public class GssContextWrapper implements AutoCloseable {
      *
      * @return the source (initiator) principal name
      * @throws GssException if the name cannot be retrieved
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getSrcName() throws GssException {
         try {
@@ -133,7 +133,7 @@ public class GssContextWrapper implements AutoCloseable {
      *
      * @return the target (acceptor) principal name
      * @throws GssException if the name cannot be retrieved
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getTargName() throws GssException {
         try {
@@ -149,7 +149,7 @@ public class GssContextWrapper implements AutoCloseable {
      * @param data the data to wrap
      * @return the wrapped data
      * @throws GssException if wrapping fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public byte[] wrap(byte[] data) throws GssException {
         Objects.requireNonNull(data, "data must not be null");
@@ -167,7 +167,7 @@ public class GssContextWrapper implements AutoCloseable {
      * @param data the wrapped data to unwrap
      * @return the unwrapped data
      * @throws GssException if unwrapping fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public byte[] unwrap(byte[] data) throws GssException {
         Objects.requireNonNull(data, "data must not be null");
@@ -185,7 +185,7 @@ public class GssContextWrapper implements AutoCloseable {
      * @param data the data to generate a MIC for
      * @return the MIC bytes
      * @throws GssException if MIC generation fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public byte[] getMIC(byte[] data) throws GssException {
         Objects.requireNonNull(data, "data must not be null");
@@ -203,7 +203,7 @@ public class GssContextWrapper implements AutoCloseable {
      * @param data the data that was protected
      * @param mic  the MIC to verify
      * @return true if the MIC is valid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean verifyMIC(byte[] data, byte[] mic) {
         Objects.requireNonNull(data, "data must not be null");
@@ -221,7 +221,7 @@ public class GssContextWrapper implements AutoCloseable {
     /**
      * Disposes of the underlying GSS context and releases resources.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void dispose() {
         try {
@@ -235,7 +235,7 @@ public class GssContextWrapper implements AutoCloseable {
      * Returns the underlying GSS context for advanced usage.
      *
      * @return the wrapped GSSContext
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public GSSContext getContext() {
         return context;

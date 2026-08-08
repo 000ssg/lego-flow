@@ -5,7 +5,7 @@ import java.util.Set;
 /**
  * Facebook Login OAuth 2.0 provider configuration.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class FacebookOAuth extends OAuthProvider {
 

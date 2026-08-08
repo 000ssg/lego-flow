@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 /**
  * WAMP Subscriber role — subscribes to topics and receives events.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class Subscriber {
 
@@ -92,7 +92,7 @@ public class Subscriber {
      * and delegating to the registered handler.
      *
      * @param event the Event message from the router
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void handleEvent(WampMessage.Event event) {
         var handler = this.eventHandler;
@@ -105,7 +105,7 @@ public class Subscriber {
      * Handles an incoming WAMP message that may be either a Publish or Event.
      *
      * @param msg the received message
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void handleEventMessage(WampMessage msg) {
         switch (msg) {

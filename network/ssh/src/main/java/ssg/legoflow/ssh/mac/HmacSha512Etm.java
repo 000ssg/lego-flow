@@ -8,7 +8,7 @@ import java.security.GeneralSecurityException;
 /**
  * HMAC-SHA2-512 with encrypt-then-MAC for SSH (hmac-sha2-512-etm@openssh.com).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class HmacSha512Etm implements SshMac {
 

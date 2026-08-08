@@ -11,7 +11,7 @@ import java.util.List;
  * @param memberId         the member ID (empty string on first join)
  * @param protocolType     the protocol type (e.g., "consumer")
  * @param protocols        the supported assignment protocols
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record JoinGroupRequest(String groupId, int sessionTimeoutMs, int rebalanceTimeoutMs,
                                String memberId, String protocolType,

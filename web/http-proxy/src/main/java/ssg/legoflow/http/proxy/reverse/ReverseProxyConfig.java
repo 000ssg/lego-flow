@@ -5,7 +5,7 @@ import java.time.Duration;
 /**
  * Configuration for the reverse proxy.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ReverseProxyConfig {
 
@@ -21,7 +21,7 @@ public class ReverseProxyConfig {
     /**
      * Creates a new reverse proxy configuration with defaults.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ReverseProxyConfig() {
     }
@@ -30,7 +30,7 @@ public class ReverseProxyConfig {
      * Returns the proxy name used in Via headers.
      *
      * @return the proxy name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getProxyName() {
         return proxyName;
@@ -40,7 +40,7 @@ public class ReverseProxyConfig {
      * Sets the proxy name.
      *
      * @param proxyName the proxy name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setProxyName(String proxyName) {
         this.proxyName = proxyName;
@@ -50,7 +50,7 @@ public class ReverseProxyConfig {
      * Returns the connection timeout.
      *
      * @return the connection timeout
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Duration getConnectionTimeout() {
         return connectionTimeout;
@@ -60,7 +60,7 @@ public class ReverseProxyConfig {
      * Sets the connection timeout.
      *
      * @param connectionTimeout the connection timeout
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setConnectionTimeout(Duration connectionTimeout) {
         this.connectionTimeout = connectionTimeout;
@@ -70,7 +70,7 @@ public class ReverseProxyConfig {
      * Returns the read timeout.
      *
      * @return the read timeout
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Duration getReadTimeout() {
         return readTimeout;
@@ -80,7 +80,7 @@ public class ReverseProxyConfig {
      * Sets the read timeout.
      *
      * @param readTimeout the read timeout
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setReadTimeout(Duration readTimeout) {
         this.readTimeout = readTimeout;
@@ -90,7 +90,7 @@ public class ReverseProxyConfig {
      * Returns whether X-Forwarded-* headers are added.
      *
      * @return true if forwarded headers are added
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isAddForwardedHeaders() {
         return addForwardedHeaders;
@@ -100,7 +100,7 @@ public class ReverseProxyConfig {
      * Sets whether X-Forwarded-* headers are added.
      *
      * @param addForwardedHeaders true to add
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setAddForwardedHeaders(boolean addForwardedHeaders) {
         this.addForwardedHeaders = addForwardedHeaders;
@@ -110,7 +110,7 @@ public class ReverseProxyConfig {
      * Returns whether Via headers are added.
      *
      * @return true if Via is added
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isAddViaHeader() {
         return addViaHeader;
@@ -120,7 +120,7 @@ public class ReverseProxyConfig {
      * Sets whether Via headers are added.
      *
      * @param addViaHeader true to add
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setAddViaHeader(boolean addViaHeader) {
         this.addViaHeader = addViaHeader;
@@ -130,7 +130,7 @@ public class ReverseProxyConfig {
      * Returns whether the original Host header is preserved.
      *
      * @return true if preserved
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isPreserveHostHeader() {
         return preserveHostHeader;
@@ -140,7 +140,7 @@ public class ReverseProxyConfig {
      * Sets whether the original Host header is preserved.
      *
      * @param preserveHostHeader true to preserve
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setPreserveHostHeader(boolean preserveHostHeader) {
         this.preserveHostHeader = preserveHostHeader;
@@ -150,7 +150,7 @@ public class ReverseProxyConfig {
      * Returns whether WebSocket proxy support is enabled.
      *
      * @return true if WebSocket support is enabled
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isWebSocketSupport() {
         return webSocketSupport;
@@ -160,7 +160,7 @@ public class ReverseProxyConfig {
      * Sets whether WebSocket proxy support is enabled.
      *
      * @param webSocketSupport true to enable
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setWebSocketSupport(boolean webSocketSupport) {
         this.webSocketSupport = webSocketSupport;
@@ -170,7 +170,7 @@ public class ReverseProxyConfig {
      * Returns the maximum number of retries on failure.
      *
      * @return the max retries
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getMaxRetries() {
         return maxRetries;
@@ -180,7 +180,7 @@ public class ReverseProxyConfig {
      * Sets the maximum number of retries on failure.
      *
      * @param maxRetries the max retries
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setMaxRetries(int maxRetries) {
         this.maxRetries = maxRetries;

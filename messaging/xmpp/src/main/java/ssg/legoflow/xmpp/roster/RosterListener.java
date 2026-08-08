@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Listener for roster change events.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface RosterListener {
 

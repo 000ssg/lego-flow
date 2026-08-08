@@ -44,7 +44,7 @@ import java.util.List;
  * <h2>Thread Safety</h2>
  * <p>Not thread-safe. Thread safety is provided by the calling {@code PartitionLog}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MappedFileLogStorage implements LogStorage {
 

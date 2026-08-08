@@ -1,4 +1,9 @@
-# Auth Module -- Development Guide
+# auth — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Overview
 
@@ -51,8 +56,3 @@ mvn test -pl auth/gssapi,auth/http-auth/core,auth/http-auth/basic-digest,auth/ht
 # Build single module
 mvn test -pl auth/gssapi -am
 ```
-
----
-
-**Last Updated**: 2026-06-26
-**For AI assistant versions**

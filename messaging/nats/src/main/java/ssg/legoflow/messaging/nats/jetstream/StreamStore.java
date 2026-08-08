@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * <p>Stores messages with sequence numbers and timestamps. Supports
  * retention enforcement based on message count, byte size, and age.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class StreamStore {
 

@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Round-robin partitioner that cycles through partitions.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 final class RoundRobinPartitioner implements Partitioner {
 

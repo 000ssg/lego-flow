@@ -1,4 +1,9 @@
-# Email Common Module — Development Guide
+# email / common — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -76,8 +81,3 @@ The `email/common` module provides shared MIME parsing and construction faciliti
 - Parameter parser tests: RFC 2231 continuations and charset encoding
 - All tests use JUnit 5 + AssertJ
 - Test count: 260
-
----
-
-**Last Updated**: 2026-07-06
-**For AI assistant versions**

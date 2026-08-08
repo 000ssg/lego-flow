@@ -13,7 +13,7 @@ import java.util.Objects;
  * There are four transaction types: INVITE client, INVITE server,
  * non-INVITE client, and non-INVITE server.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public abstract sealed class SipTransaction
         permits ClientTransaction, ServerTransaction {
@@ -29,7 +29,7 @@ public abstract sealed class SipTransaction
      * @param branchId        the branch ID (transaction identifier)
      * @param method          the request method
      * @param originalRequest the original request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     protected SipTransaction(String branchId, SipMethod method, SipRequest originalRequest) {
         this.branchId = Objects.requireNonNull(branchId, "branchId");
@@ -42,7 +42,7 @@ public abstract sealed class SipTransaction
      * Returns the branch ID.
      *
      * @return the branch ID
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String branchId() {
         return branchId;
@@ -52,7 +52,7 @@ public abstract sealed class SipTransaction
      * Returns the request method.
      *
      * @return the method
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipMethod method() {
         return method;
@@ -62,7 +62,7 @@ public abstract sealed class SipTransaction
      * Returns the original request.
      *
      * @return the request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipRequest originalRequest() {
         return originalRequest;
@@ -72,7 +72,7 @@ public abstract sealed class SipTransaction
      * Returns the current transaction state.
      *
      * @return the state
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public TransactionState state() {
         return state;
@@ -82,7 +82,7 @@ public abstract sealed class SipTransaction
      * Returns true if this is an INVITE transaction.
      *
      * @return true for INVITE transactions
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isInvite() {
         return method == SipMethod.INVITE;
@@ -92,7 +92,7 @@ public abstract sealed class SipTransaction
      * Returns true if the transaction is terminated.
      *
      * @return true if terminated
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isTerminated() {
         return state == TransactionState.TERMINATED;
@@ -102,7 +102,7 @@ public abstract sealed class SipTransaction
      * Transitions to a new state.
      *
      * @param newState the new state
-     * @since 1.0.0
+     * @since 0.1.0
      */
     protected void transitionTo(TransactionState newState) {
         this.state = newState;
@@ -112,14 +112,14 @@ public abstract sealed class SipTransaction
      * Processes a response for this transaction.
      *
      * @param response the received response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public abstract void processResponse(SipResponse response);
 
     /**
      * Terminates this transaction.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void terminate() {
         transitionTo(TransactionState.TERMINATED);

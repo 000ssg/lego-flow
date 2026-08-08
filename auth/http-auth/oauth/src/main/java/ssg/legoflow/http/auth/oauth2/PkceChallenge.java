@@ -10,7 +10,7 @@ import java.util.Base64;
  * PKCE (Proof Key for Code Exchange, RFC 7636) code_verifier and code_challenge generation.
  * Supports S256 (recommended) and plain challenge methods.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class PkceChallenge {
 
@@ -37,7 +37,7 @@ public class PkceChallenge {
      * Generates a PKCE challenge using S256 method.
      *
      * @return the PKCE challenge
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static PkceChallenge generateS256() {
         String verifier = generateCodeVerifier(43);
@@ -50,7 +50,7 @@ public class PkceChallenge {
      *
      * @param verifierLength the length of the code verifier (43-128)
      * @return the PKCE challenge
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static PkceChallenge generateS256(int verifierLength) {
         if (verifierLength < 43 || verifierLength > 128) {
@@ -65,7 +65,7 @@ public class PkceChallenge {
      * Generates a PKCE challenge using plain method.
      *
      * @return the PKCE challenge
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static PkceChallenge generatePlain() {
         String verifier = generateCodeVerifier(43);
@@ -79,7 +79,7 @@ public class PkceChallenge {
      * @param challenge       the code challenge
      * @param challengeMethod the challenge method (S256 or plain)
      * @return true if the verifier matches the challenge
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static boolean verify(String verifier, String challenge, String challengeMethod) {
         if (verifier == null || challenge == null) return false;
@@ -95,7 +95,7 @@ public class PkceChallenge {
      *
      * @param verifier the code verifier
      * @return the S256 challenge
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String computeS256Challenge(String verifier) {
         try {
@@ -112,7 +112,7 @@ public class PkceChallenge {
      *
      * @param length the length (43-128)
      * @return the code verifier
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String generateCodeVerifier(int length) {
         var sb = new StringBuilder(length);

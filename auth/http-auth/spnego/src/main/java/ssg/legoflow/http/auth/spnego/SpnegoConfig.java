@@ -10,7 +10,7 @@ import java.util.Objects;
  * <p>Combines a {@link GssConfig} for the underlying Kerberos/GSSAPI settings
  * with SPNEGO-specific options like realm stripping from principal names.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SpnegoConfig {
 
@@ -26,7 +26,7 @@ public final class SpnegoConfig {
      * Returns the underlying GSS-API / Kerberos configuration.
      *
      * @return the GSS configuration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public GssConfig gssConfig() {
         return gssConfig;
@@ -37,7 +37,7 @@ public final class SpnegoConfig {
      * principal name (e.g., "user@EXAMPLE.COM" becomes "user").
      *
      * @return true if realm stripping is enabled (default: true)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean stripRealmFromPrincipal() {
         return stripRealmFromPrincipal;
@@ -47,7 +47,7 @@ public final class SpnegoConfig {
      * Creates a new builder for SpnegoConfig.
      *
      * @return the builder
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Builder builder() {
         return new Builder();
@@ -58,7 +58,7 @@ public final class SpnegoConfig {
      *
      * @param gssConfig the GSS configuration
      * @return the SPNEGO configuration with defaults
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SpnegoConfig of(GssConfig gssConfig) {
         return builder().gssConfig(gssConfig).build();
@@ -73,7 +73,7 @@ public final class SpnegoConfig {
     /**
      * Builder for {@link SpnegoConfig}.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class Builder {
 
@@ -88,7 +88,7 @@ public final class SpnegoConfig {
          *
          * @param gssConfig the GSS configuration
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder gssConfig(GssConfig gssConfig) {
             this.gssConfig = gssConfig;
@@ -100,7 +100,7 @@ public final class SpnegoConfig {
          *
          * @param strip true to strip realm (default: true)
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder stripRealmFromPrincipal(boolean strip) {
             this.stripRealmFromPrincipal = strip;
@@ -112,7 +112,7 @@ public final class SpnegoConfig {
          *
          * @return the configuration
          * @throws NullPointerException if gssConfig is null
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public SpnegoConfig build() {
             return new SpnegoConfig(this);

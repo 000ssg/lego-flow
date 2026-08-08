@@ -12,7 +12,7 @@ import java.util.Objects;
  * @param weight   the weight for load balancing among same-priority targets
  * @param port     the TCP/UDP port
  * @param target   the target host
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SrvRecord(int priority, int weight, int port, DnsName target)
         implements RData, Comparable<SrvRecord> {
@@ -51,7 +51,7 @@ public record SrvRecord(int priority, int weight, int port, DnsName target)
      * @param port     the port
      * @param target   the target host name
      * @return the SRV record
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SrvRecord of(int priority, int weight, int port, String target) {
         return new SrvRecord(priority, weight, port, DnsName.of(target));

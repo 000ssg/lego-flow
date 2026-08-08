@@ -20,7 +20,7 @@ import java.util.Objects;
  * @param numReplicas     number of replicas
  * @param discardPolicy   discard policy when limits reached (old or new)
  * @param duplicateWindow window for duplicate message detection
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record StreamConfig(
         String name,

@@ -7,7 +7,7 @@ import java.util.Collection;
 /**
  * Callback interface for consumer group rebalance events.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface RebalanceListener {
 
@@ -34,7 +34,7 @@ public interface RebalanceListener {
      * partition-lost semantics.
      *
      * @param partitions the lost partitions
-     * @since 1.0.0
+     * @since 0.1.0
      */
     default void onPartitionsLost(Collection<TopicPartition> partitions) {
         onPartitionsRevoked(partitions);

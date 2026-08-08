@@ -14,7 +14,7 @@ import java.util.List;
  *
  * @param entry      the DN of the entry to add
  * @param attributes the entry's attributes
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record AddRequest(
         String entry,

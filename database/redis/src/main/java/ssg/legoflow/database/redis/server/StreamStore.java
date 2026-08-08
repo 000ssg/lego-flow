@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * (millisecond timestamp + sequence number). Consumer groups track
  * delivered and acknowledged entries.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class StreamStore {
 

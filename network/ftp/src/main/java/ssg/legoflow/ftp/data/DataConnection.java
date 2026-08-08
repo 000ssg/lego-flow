@@ -12,7 +12,7 @@ import java.net.Socket;
  * can be established in active mode (server connects to client) or passive mode
  * (client connects to server).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface DataConnection extends AutoCloseable {
 

@@ -1,4 +1,9 @@
-# GraphQL Module — Development Guide
+# rpc / graphql — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -84,8 +89,3 @@ The `graphql` module implements a GraphQL query language engine for the Lego Flo
 - DemoGraphqlAll test: comprehensive 13-section demo covering all major GraphQL features with `Results` record for programmatic verification
 - All tests use in-memory schemas (no external services required)
 - Test count: 135
-
----
-
-**Last Updated**: 2026-07-07
-**For AI assistant versions**

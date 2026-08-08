@@ -13,7 +13,7 @@ import java.util.Objects;
  * <p>Content is stored in its raw (encoded) form. Methods are provided
  * to decode the content based on the Content-Transfer-Encoding.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MimePart {
 

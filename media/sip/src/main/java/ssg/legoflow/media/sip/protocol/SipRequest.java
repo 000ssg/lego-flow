@@ -14,7 +14,7 @@ import java.util.Objects;
  * @param version    the SIP version (always "SIP/2.0")
  * @param headers    the request headers
  * @param body       the request body, or empty array
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SipRequest(
         SipMethod method,
@@ -27,7 +27,7 @@ public record SipRequest(
     /**
      * Creates a SIP request.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipRequest {
         Objects.requireNonNull(method, "method");
@@ -43,7 +43,7 @@ public record SipRequest(
      * @param method     the request method
      * @param requestUri the request URI
      * @param headers    the request headers
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipRequest(SipMethod method, String requestUri, SipHeaders headers) {
         this(method, requestUri, SipMessage.VERSION, headers, new byte[0]);
@@ -53,7 +53,7 @@ public record SipRequest(
      * Returns a defensive copy of the body.
      *
      * @return the body bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public byte[] body() {
@@ -64,7 +64,7 @@ public record SipRequest(
      * Formats the request line.
      *
      * @return the formatted request line
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String requestLine() {
         return method.name() + " " + requestUri + " " + version;
@@ -76,7 +76,7 @@ public record SipRequest(
      * @param method     the request method
      * @param requestUri the request URI
      * @return a new builder
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Builder builder(SipMethod method, String requestUri) {
         return new Builder(method, requestUri);
@@ -90,7 +90,7 @@ public record SipRequest(
     /**
      * Builder for SIP requests.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class Builder {
         private final SipMethod method;
@@ -109,7 +109,7 @@ public record SipRequest(
          * @param name  the header name
          * @param value the header value
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder header(String name, String value) {
             headers.set(name, value);
@@ -122,7 +122,7 @@ public record SipRequest(
          * @param name  the header name
          * @param value the header value
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder addHeader(String name, String value) {
             headers.add(name, value);
@@ -134,7 +134,7 @@ public record SipRequest(
          *
          * @param via the Via header value
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder via(String via) {
             headers.add(SipHeaders.VIA, via);
@@ -146,7 +146,7 @@ public record SipRequest(
          *
          * @param from the From header value
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder from(String from) {
             headers.set(SipHeaders.FROM, from);
@@ -158,7 +158,7 @@ public record SipRequest(
          *
          * @param to the To header value
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder to(String to) {
             headers.set(SipHeaders.TO, to);
@@ -170,7 +170,7 @@ public record SipRequest(
          *
          * @param callId the Call-ID value
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder callId(String callId) {
             headers.set(SipHeaders.CALL_ID, callId);
@@ -183,7 +183,7 @@ public record SipRequest(
          * @param seq    the sequence number
          * @param method the method name
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder cseq(long seq, SipMethod method) {
             headers.set(SipHeaders.CSEQ, seq + " " + method.name());
@@ -195,7 +195,7 @@ public record SipRequest(
          *
          * @param maxForwards the max forwards value
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder maxForwards(int maxForwards) {
             headers.set(SipHeaders.MAX_FORWARDS, String.valueOf(maxForwards));
@@ -207,7 +207,7 @@ public record SipRequest(
          *
          * @param contact the Contact value
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder contact(String contact) {
             headers.set(SipHeaders.CONTACT, contact);
@@ -219,7 +219,7 @@ public record SipRequest(
          *
          * @param userAgent the User-Agent value
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder userAgent(String userAgent) {
             headers.set(SipHeaders.USER_AGENT, userAgent);
@@ -231,7 +231,7 @@ public record SipRequest(
          *
          * @param seconds the expiration in seconds
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder expires(int seconds) {
             headers.set(SipHeaders.EXPIRES, String.valueOf(seconds));
@@ -243,7 +243,7 @@ public record SipRequest(
          *
          * @param body the body bytes
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder body(byte[] body) {
             this.body = body != null ? body.clone() : new byte[0];
@@ -256,7 +256,7 @@ public record SipRequest(
          * @param body        the body string
          * @param contentType the content type
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder body(String body, String contentType) {
             this.body = body != null ? body.getBytes() : new byte[0];
@@ -270,7 +270,7 @@ public record SipRequest(
          * Builds the request.
          *
          * @return the built SIP request
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public SipRequest build() {
             if (body.length > 0) {

@@ -27,7 +27,7 @@ import java.util.Objects;
  * <p>Before encryption, packet_length is cleartext. After encryption,
  * everything is encrypted (unless using AEAD ciphers like GCM).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SshTransportCodec {
 

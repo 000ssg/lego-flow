@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * operations. Supports automatic reconnect with configurable backoff, keep-alive
  * ping management, and QoS 1/2 message flow state tracking.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MqttClient implements AutoCloseable {
 

@@ -14,7 +14,7 @@ import java.util.Optional;
  * specific types where possible (rtpmap, fmtp, candidate, fingerprint, direction)
  * and preserved as generic {@link Attribute} instances.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SdpParser {
 

@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 /**
  * An IoT sensor node that provides sensor data (XEP-0323).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SensorNode {
 

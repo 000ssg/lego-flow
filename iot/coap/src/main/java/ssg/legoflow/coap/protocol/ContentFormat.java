@@ -6,7 +6,7 @@ package ssg.legoflow.coap.protocol;
  * <p>Content formats are used in the Content-Format and Accept options
  * to indicate the representation format of the message payload.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum ContentFormat {
 
@@ -47,7 +47,7 @@ public enum ContentFormat {
      * Returns the numeric content format identifier.
      *
      * @return the content format value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int value() {
         return value;
@@ -59,7 +59,7 @@ public enum ContentFormat {
      * @param value the content format identifier
      * @return the matching content format
      * @throws IllegalArgumentException if the value is not recognized
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static ContentFormat fromValue(int value) {
         for (var format : values()) {

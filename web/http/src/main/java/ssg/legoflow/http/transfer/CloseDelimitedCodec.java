@@ -13,7 +13,7 @@ import java.nio.ByteBuffer;
  * the message body is delimited by the connection close. This codec accumulates
  * all data until the connection is closed, then produces the complete body.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class CloseDelimitedCodec extends AbstractDataFilter<ByteBuffer> {
 
@@ -94,7 +94,7 @@ public class CloseDelimitedCodec extends AbstractDataFilter<ByteBuffer> {
     /**
      * Body framing strategies per RFC 7230 §3.3.3.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum BodyFraming {
         /** Body length determined by Transfer-Encoding: chunked. */

@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * implement a custom {@link MqttAuthenticator} backed by an external
  * credential store.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class InMemoryAuthenticator implements MqttAuthenticator {
 

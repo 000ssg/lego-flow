@@ -19,7 +19,7 @@ import java.util.Objects;
  * through a ServiceGroup's NIO selector infrastructure instead of its own
  * blocking receive loop.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SsdpChannelHandler implements DatagramHandler {
 
@@ -32,7 +32,7 @@ public class SsdpChannelHandler implements DatagramHandler {
      *
      * @param ssdpService the SSDP service to forward messages to
      * @throws NullPointerException if {@code ssdpService} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SsdpChannelHandler(SsdpService ssdpService) {
         this.ssdpService = Objects.requireNonNull(ssdpService, "ssdpService must not be null");
@@ -44,7 +44,7 @@ public class SsdpChannelHandler implements DatagramHandler {
      *
      * @param channel the data channel that received the datagram
      * @param packet  the datagram packet with sender address and payload
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public void onDatagram(DataChannel channel, DatagramPacketInfo packet) {

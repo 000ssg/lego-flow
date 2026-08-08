@@ -10,14 +10,14 @@ import java.util.Objects;
  * @param type     the field data type
  * @param unit     the unit of measurement (may be null)
  * @param writable whether this field can be written to
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SensorField(String name, String value, SensorFieldType type, String unit, boolean writable) {
 
     /**
      * Sensor field data types.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum SensorFieldType {
         /** Numeric value (integer or floating point). */

@@ -19,7 +19,7 @@ import java.util.Optional;
  * @param relAddr     the related address (for reflexive/relay candidates)
  * @param relPort     the related port (for reflexive/relay candidates)
  * @param rawLine     the full raw candidate line for preservation
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record IceCandidate(
         String foundation,

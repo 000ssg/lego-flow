@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Fluent builder for creating {@link MimeMultipart} containers.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MultipartBuilder {
 

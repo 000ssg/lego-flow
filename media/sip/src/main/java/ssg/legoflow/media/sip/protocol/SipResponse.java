@@ -14,7 +14,7 @@ import java.util.Objects;
  * @param reasonPhrase the reason phrase
  * @param headers      the response headers
  * @param body         the response body, or empty array
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SipResponse(
         String version,
@@ -27,7 +27,7 @@ public record SipResponse(
     /**
      * Creates a SIP response.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipResponse {
         Objects.requireNonNull(version, "version");
@@ -40,7 +40,7 @@ public record SipResponse(
      * Returns a defensive copy of the body.
      *
      * @return the body bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     public byte[] body() {
@@ -51,7 +51,7 @@ public record SipResponse(
      * Returns the SIP status enum for this response.
      *
      * @return the SIP status
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipStatus status() {
         return SipStatus.fromCode(statusCode);
@@ -61,7 +61,7 @@ public record SipResponse(
      * Returns true if this is a provisional response (1xx).
      *
      * @return true for provisional responses
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isProvisional() {
         return statusCode >= 100 && statusCode < 200;
@@ -71,7 +71,7 @@ public record SipResponse(
      * Returns true if this is a success response (2xx).
      *
      * @return true for success responses
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isSuccess() {
         return statusCode >= 200 && statusCode < 300;
@@ -81,7 +81,7 @@ public record SipResponse(
      * Returns true if this is a final response (>= 200).
      *
      * @return true for final responses
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isFinal() {
         return statusCode >= 200;
@@ -91,7 +91,7 @@ public record SipResponse(
      * Formats the status line.
      *
      * @return the formatted status line
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String statusLine() {
         return version + " " + statusCode + " " + reasonPhrase;
@@ -102,7 +102,7 @@ public record SipResponse(
      *
      * @param status the response status
      * @return a new builder
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Builder builder(SipStatus status) {
         return new Builder(status);
@@ -114,7 +114,7 @@ public record SipResponse(
      * @param statusCode   the status code
      * @param reasonPhrase the reason phrase
      * @return a new builder
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Builder builder(int statusCode, String reasonPhrase) {
         return new Builder(statusCode, reasonPhrase);
@@ -128,7 +128,7 @@ public record SipResponse(
     /**
      * Builder for SIP responses.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static final class Builder {
         private final int statusCode;
@@ -152,7 +152,7 @@ public record SipResponse(
          * @param name  the header name
          * @param value the header value
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder header(String name, String value) {
             headers.set(name, value);
@@ -165,7 +165,7 @@ public record SipResponse(
          * @param name  the header name
          * @param value the header value
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder addHeader(String name, String value) {
             headers.add(name, value);
@@ -177,7 +177,7 @@ public record SipResponse(
          *
          * @param via the Via header value
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder via(String via) {
             headers.add(SipHeaders.VIA, via);
@@ -189,7 +189,7 @@ public record SipResponse(
          *
          * @param from the From header value
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder from(String from) {
             headers.set(SipHeaders.FROM, from);
@@ -201,7 +201,7 @@ public record SipResponse(
          *
          * @param to the To header value
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder to(String to) {
             headers.set(SipHeaders.TO, to);
@@ -213,7 +213,7 @@ public record SipResponse(
          *
          * @param callId the Call-ID value
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder callId(String callId) {
             headers.set(SipHeaders.CALL_ID, callId);
@@ -226,7 +226,7 @@ public record SipResponse(
          * @param seq    the sequence number
          * @param method the method
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder cseq(long seq, SipMethod method) {
             headers.set(SipHeaders.CSEQ, seq + " " + method.name());
@@ -238,7 +238,7 @@ public record SipResponse(
          *
          * @param contact the Contact value
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder contact(String contact) {
             headers.set(SipHeaders.CONTACT, contact);
@@ -250,7 +250,7 @@ public record SipResponse(
          *
          * @param server the Server value
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder server(String server) {
             headers.set(SipHeaders.SERVER, server);
@@ -262,7 +262,7 @@ public record SipResponse(
          *
          * @param methods the allowed methods
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder allow(String methods) {
             headers.set(SipHeaders.ALLOW, methods);
@@ -274,7 +274,7 @@ public record SipResponse(
          *
          * @param seconds the expiration in seconds
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder expires(int seconds) {
             headers.set(SipHeaders.EXPIRES, String.valueOf(seconds));
@@ -286,7 +286,7 @@ public record SipResponse(
          *
          * @param request the original request
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder fromRequest(SipRequest request) {
             // Copy mandatory headers from request
@@ -304,7 +304,7 @@ public record SipResponse(
          * @param body        the body bytes
          * @param contentType the content type
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder body(byte[] body, String contentType) {
             this.body = body != null ? body.clone() : new byte[0];
@@ -320,7 +320,7 @@ public record SipResponse(
          * @param body        the body string
          * @param contentType the content type
          * @return this builder
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public Builder body(String body, String contentType) {
             return body(body != null ? body.getBytes() : null, contentType);
@@ -330,7 +330,7 @@ public record SipResponse(
          * Builds the response.
          *
          * @return the built SIP response
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public SipResponse build() {
             if (body.length > 0) {

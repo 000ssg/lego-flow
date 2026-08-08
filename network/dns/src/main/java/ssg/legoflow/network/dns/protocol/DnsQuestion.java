@@ -8,7 +8,7 @@ import java.util.Objects;
  * @param name       the domain name being queried
  * @param type       the record type requested
  * @param recordClass the class of the query
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record DnsQuestion(
         DnsName name,
@@ -22,7 +22,7 @@ public record DnsQuestion(
      * @param name the domain name
      * @param type the record type
      * @return the question
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static DnsQuestion of(DnsName name, RecordType type) {
         return new DnsQuestion(
@@ -38,7 +38,7 @@ public record DnsQuestion(
      * @param name the domain name string
      * @param type the record type
      * @return the question
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static DnsQuestion of(String name, RecordType type) {
         return of(DnsName.of(name), type);

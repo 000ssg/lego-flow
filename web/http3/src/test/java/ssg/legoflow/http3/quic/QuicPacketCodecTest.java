@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.*;
  * Tests for {@link QuicPacketCodec} — variable-length integer encoding/decoding
  * and packet encode/decode round-trips for each packet type.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class QuicPacketCodecTest {
 

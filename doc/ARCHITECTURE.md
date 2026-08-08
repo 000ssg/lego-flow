@@ -469,3 +469,276 @@ The integration points differ enough that a shared module would add coupling wit
 ---
 
 **Last Updated**: 2026-07-04
+
+## CI/CD Infrastructure
+
+The project uses GitHub Actions for continuous integration with a multi-job pipeline that covers compilation, testing, coverage gating, protocol-specific test matrices, and interoperability validation.
+
+### Pipeline Jobs
+
+```mermaid
+graph LR
+    build["Build & Test<br/>(ubuntu + macos)"] --> coverage["Coverage Gate<br/>(JaCoCo thresholds)"]
+    build --> interop["Interoperability Tests<br/>(Docker services)"]
+    proto["Protocol Profiles<br/>(web, messaging, auth...)"] 
+    check["Build Check<br/>(fast validation)"]
+
+    build -->|depends on| coverage
+    build -->|depends on| interop
+```
+
+### Coverage Configuration
+
+JaCoCo is configured as an optional profile (`jacoco-coverage`) to avoid blocking local builds when Maven Central is unavailable. In CI, the coverage gate job runs `mvn verify jacoco:check -P all,jacoco-coverage`.
+
+### Protocol-Specific Test Profiles
+
+| Profile | Modules Tested | Purpose |
+|---------|---------------|---------|
+| web-only | blocks, service, web/* | HTTP protocol changes only |
+| messaging-only | blocks, service, messaging/* | MQTT/Kafka/AMQP changes only |
+| network-only | blocks, service, network/* | DNS/SSH/LDAP changes only |
+| auth-only | blocks, service, auth/* | OAuth/Basic/Digest changes only |
+| database-only | blocks, service, database/* | Redis/PostgreSQL/MySQL changes only |
+
+### Interoperability Test Infrastructure
+
+Docker Compose provides reference server implementations:
+- **nginx:alpine** — HTTP/1.1 reference server (port 8080)
+- **eclipse-mosquitto** — MQTT broker (port 1883)
+- **redis:7-alpine** — Redis in-memory store (port 6379)
+- **postgres:17-alpine** — PostgreSQL database (port 5432)
+
+Service health checks wait for container readiness before test execution. Environment variables passed to Maven/Gradle configure target addresses.
+
+### Benchmark Infrastructure
+
+The `benchmarks` module provides JMH-based microbenchmarks for protocol throughput, latency, and serialization performance. Benchmarks run as non-blocking CI gates that warn on regression without failing the build. Results are published as artifacts for trend analysis.
+
+## DP/DF Service Compliance (Sprint 2026-08-06)
+
+### Objective
+
+Unify all protocol implementations under the **DP/DF (DataProcessor/DataFilter)** service pattern so that every server and client can compose within the same `ServicesManager` engine using `ChannelHandler` integration with `DataChannel`.
+
+### Compliance Results
+
+| Metric | Count | Percentage |
+|--------|-------|------------|
+| Total protocol modules audited | 23 | — |
+| Protocol service wrappers created | 43 | — |
+| Protocol channel handlers created | 36 | — |
+| Server-side compliant protocols | 19 of 25 | **76%** (remaining are framework-native HTTP/WebSocket/WAMP) |
+| Client-side compliant protocols | 15 of 15 | **100%** |
+| Modules with both server AND client services | 14 | **61%** |
+
+### Service Wrapper Pattern
+
+Every new service follows this pattern:
+
+```java
+public final class XxxService extends AbstractService<ByteBuffer, ByteBuffer> {
+    private volatile XxxUnderlying implementation;
+    
+    // Builder with name/priority/dependencies
+    public static Builder builder(String host, int port) { ... }
+    
+    @Override protected void doConnect(ServiceContext ctx) {
+        implementation = new XxxUnderlying(...);
+        implementation.start();
+    }
+    
+    @Override protected void doDisconnect(ServiceContext ctx) {
+        if (implementation != null) {
+            implementation.close();
+        }
+    }
+    
+    @Override protected ByteBuffer[] convertToOutput(Context ctx, ByteBuffer... input) {
+        // Transform DP pipeline output for transport
+    }
+    
+    @Override protected ByteBuffer[] convertToInput(Context ctx, ByteBuffer... output) {
+        // Transform transport input for DP pipeline
+    }
+    
+    public ChannelHandler createChannelHandler() {
+        return new XxxChannelHandler(this);
+    }
+}
+```
+
+### Channel Handler Integration
+
+Each `ChannelHandler` bridges `DataChannel` events to the protocol's underlying transport layer:
+
+- **Server handlers** handle inbound connections, dispatch commands to the underlying implementation
+- **Client handlers** manage outbound connections and response processing
+- All handlers implement the `ChannelHandler` interface from the service module
+- Data flows bidirectionally through `DataChannel.read()` / `DataChannel.write()` with ByteBuffer payloads
+
+### Framework-Native Compliance
+
+Some modules already use DP/DF natively and don't require wrapping:
+
+| Module | How Compliant | Notes |
+|--------|--------------|-------|
+| HTTP/HTTP2 | Uses HttpService framework | Already extends AbstractService |
+| WebSocket/WebServices | WebService extends AbstractService | Already uses the pattern |
+| WAMP | WebSocketWampService adapter | Compliant via WebSocket transport |
+| Redis Client | RedisClientService + handler | Only client-side (no server impl) |
+
+### New Underlying Implementations Created
+
+Several protocol modules required new underlying implementations to enable service wrapping:
+
+- **XmppServer.java** — TCP listener with virtual-thread accept loop, uses XmppCodec for stanza decoding
+- **SipServer.java** — Wraps SipRegistrar with TCP listener, uses SipCodec for message decoding
+- **RtspServer.start()** — Added missing start() method with virtual-thread accept loop + executor shutdown
+- **RtspClient standalone constructors** — Made serverRef nullable with null-safe send() fallback
+
+### Multi-Protocol Composition Example
+
+All compliant servers compose within a single ServicesManager:
+
+```java
+var services = new ServicesManager();
+services.register(SshService.builder("localhost", 22).build());
+services.register(DnsService.builder("0.0.0.0", 53).mode(DnsService.Mode.SERVER).build());
+services.register(MqttBrokerService.builder("0.0.0.0", 1883).build());
+services.register(PgServerService.builder(5432).build());
+services.register(CoapServerService.builder().build());
+// ... all compliant protocols in the same engine
+services.startAll();
+```
+
+Similarly, all client services compose in a single manager:
+
+```java
+var services = new ServicesManager();
+services.register(SmtpClientService.builder("smtp.example.com", 587).build());
+services.register(NatsService.builder("nats-server", 4222).build());
+services.register(RedisClientService.builder("localhost", 6379).build());
+// ... all compliant client protocols
+services.startAll();
+```
+
+### Architecture Diagram
+
+```mermaid
+graph TD
+    subgraph "ServicesManager Engine"
+        direction TB
+        
+        subgraph "Server Side - 19 protocols / 76%"
+            S1["SSH Server"] 
+            S2["DNS Server"]
+            S3["MQTT Broker"]
+            S4["SMTP Server"]
+            S5["LDAP Server"]
+            S6["PostgreSQL Server"]
+            S7["FTP Server"]
+            S8["Syslog Collector"]
+            S9["NATS Server"]
+            S10["STOMP Server"]
+            S11["Modbus Server"]
+            S12["CoAP Server"]
+            S13["RTSP Server"]
+            S14["SIP Server"]
+            S15["XMPP Server"]
+            S16["AMQP Container"]
+            S17["SNMP Agent"]
+            S18["IMAP Server"]
+            S19["MySQL Server"]
+        end
+        
+        subgraph "Client Side - 100%"
+            C1["SSH Client"]
+            C2["DNS Client"]
+            C3["SMTP Client"]
+            C4["LDAP Client"]
+            C5["IMAP Client"]
+            C6["NATS Client"]
+            C7["STOMP Client"]
+            C8["CoAP Client"]
+            C9["RTSP Client"]
+            C10["SIP Client"]
+            C11["XMPP Client"]
+            C12["AMQP Client"]
+            C13["Modbus Client"]
+            C14["FTP Client"]
+            C15["Redis Client"]
+        end
+        
+        subgraph "Framework-Native - Already Compliant"
+            F1["HTTP/HTTP2"]
+            F2["WebSocket/WAMP"]
+        end
+    end
+    
+    subgraph "DP/DF Pipeline"
+        DP["DataProcessor<br/>ByteBuffer → ByteBuffer"]
+        DF["DataFilter<br/>ByteBuffer validation"]
+        CH["ChannelHandler<br/>Transport bridge"]
+    end
+    
+    S1 --> CH --> DP
+    C1 --> CH --> DP
+    F1 --> DP
+```
+
+### Testing Strategy
+
+All service wrappers include unit tests verifying:
+- Builder pattern correctness (name, priority, dependencies)
+- Service lifecycle (start/stop/idempotency)
+- Disconnect safety (null-safe cleanup)
+- ChannelHandler creation
+- Record type assertions where applicable
+- Integration tests for server connection handling and client connectivity
+
+See `AGENTS.md` § Testing Guidelines for anti-patterns avoided in test design.
+
+## Build System Dual Support (Maven + Gradle)
+
+Both Maven (`pom.xml`) and Gradle (`build.gradle.kts` / `settings.gradle.kts`) are maintained in parallel with strict parity:
+
+| Maven | Gradle | Purpose |
+|-------|--------|---------|
+| `mvn compile -P all -T 1C` | `./gradlew compileJava --parallel` | Compilation |
+| `mvn test -pl benchmarks -am` | `./gradlew :benchmarks:test` | Testing |
+| `java -jar benchmarks/target/...jar` | `./gradlew :benchmarks:runBenchmarks` | Benchmark execution |
+| `-Dinterop.nginx.host=...` | `-Dinterop.nginx.host=...` or properties file | Interop config |
+
+When project structure or dependencies change, both build systems must be updated simultaneously in the same commit.
+
+## Benchmark Comparison Infrastructure
+
+The project includes JMH-based benchmarks for comparing standalone protocol implementations against their DP/DF service-based wrappers. See `doc/COMPARISON.md` for detailed results and analysis.
+
+### Benchmark Categories
+
+| Category | Purpose | Location |
+|----------|---------|----------|
+| **Pipeline Overhead** | Measures raw DP/DF pipeline cost | `benchmarks/src/main/java/ssg/legoflow/benchmarks/service/PipelineOverheadBenchmark.java` |
+| **Protocol Comparison** | Standalone vs service for each protocol | `benchmarks/src/main/java/ssg/legoflow/benchmarks/comparison/` |
+| **Service Composition** | ServicesManager orchestration cost | `benchmarks/src/main/java/ssg/legoflow/benchmarks/service/ServiceCompositionBenchmark.java` |
+
+### Key Findings (as of 2026-08-06)
+
+- **Pipeline overhead**: < 0.1 μs per operation — negligible relative to protocol codec costs
+- **Filter chain**: Pass-through filters add ~0.0001 μs each — effectively free
+- **Service lifecycle**: Linear scaling, ~11-27 ns per service for connect operations
+- **Overall overhead**: Service wrappers add < 5% to HTTP/MQTT, < 20% for lightweight protocols
+
+### Running Benchmarks
+
+```bash
+# Via Maven (produces shaded JAR)
+mvn -pl benchmarks package -DskipTests -q
+java -jar benchmarks/target/lego-flow-benchmarks-0.1.0-SNAPSHOT.jar ".*ComparisonBenchmark.*"
+
+# Via Gradle
+./gradlew :benchmarks:runBenchmarks --args=".*HttpComparisonBenchmark.*"
+```
+

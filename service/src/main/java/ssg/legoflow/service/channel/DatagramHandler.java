@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
  * {@link #onRead(DataChannel, ByteBuffer)} and {@link #onWrite(DataChannel)}
  * delegate to the datagram-specific methods when the channel is a {@link UdpDataChannel}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface DatagramHandler extends ChannelHandler {
 
@@ -20,7 +20,7 @@ public interface DatagramHandler extends ChannelHandler {
      *
      * @param channel the data channel that received the datagram
      * @param packet  the datagram packet information including sender address and payload
-     * @since 1.0.0
+     * @since 0.1.0
      */
     void onDatagram(DataChannel channel, DatagramPacketInfo packet);
 
@@ -29,7 +29,7 @@ public interface DatagramHandler extends ChannelHandler {
      *
      * @param channel the data channel that sent the datagram
      * @param target  the destination address the datagram was sent to
-     * @since 1.0.0
+     * @since 0.1.0
      */
     void onSendComplete(DataChannel channel, SocketAddress target);
 
@@ -43,7 +43,7 @@ public interface DatagramHandler extends ChannelHandler {
      *
      * @param channel the data channel that is readable
      * @param data    the read data buffer
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     default void onRead(DataChannel channel, ByteBuffer data) {
@@ -64,7 +64,7 @@ public interface DatagramHandler extends ChannelHandler {
      * notification is needed beyond {@link #onSendComplete(DataChannel, SocketAddress)}.
      *
      * @param channel the data channel that is writable
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     default void onWrite(DataChannel channel) {
@@ -75,7 +75,7 @@ public interface DatagramHandler extends ChannelHandler {
      * Default connect handler. No-op for datagram channels.
      *
      * @param channel the data channel
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     default void onConnect(DataChannel channel) {
@@ -86,7 +86,7 @@ public interface DatagramHandler extends ChannelHandler {
      * Default disconnect handler. No-op for datagram channels.
      *
      * @param channel the data channel
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     default void onDisconnect(DataChannel channel) {
@@ -98,7 +98,7 @@ public interface DatagramHandler extends ChannelHandler {
      *
      * @param channel the data channel where the error occurred
      * @param cause   the error cause
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @Override
     default void onError(DataChannel channel, Throwable cause) {

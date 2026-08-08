@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * connection without waiting for the corresponding responses. Responses
  * MUST be sent in the same order as the requests (FIFO ordering).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class PipeliningHandler {
 

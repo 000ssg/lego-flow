@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * OpenID Connect UserInfo response containing standard claims about the authenticated user.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class UserInfo {
 
@@ -17,7 +17,7 @@ public class UserInfo {
      * Creates a UserInfo from claims.
      *
      * @param claims the claims map
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public UserInfo(Map<String, Object> claims) {
         this.claims = new LinkedHashMap<>(claims);
@@ -28,7 +28,7 @@ public class UserInfo {
      *
      * @param json the JSON string
      * @return the UserInfo
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static UserInfo fromJson(String json) {
         // Reuse JwtClaims parser for simple flat JSON
@@ -66,7 +66,7 @@ public class UserInfo {
      *
      * @param name the claim name
      * @return the claim value, or null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getStringClaim(String name) {
         Object v = claims.get(name);
@@ -77,7 +77,7 @@ public class UserInfo {
      * Returns all claims.
      *
      * @return unmodifiable claims map
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Map<String, Object> getClaims() {
         return Collections.unmodifiableMap(claims);
@@ -87,7 +87,7 @@ public class UserInfo {
      * Serializes to JSON.
      *
      * @return the JSON string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toJson() {
         var sb = new StringBuilder("{");

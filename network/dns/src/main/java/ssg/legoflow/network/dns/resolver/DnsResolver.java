@@ -9,7 +9,7 @@ import java.io.IOException;
 /**
  * Interface for DNS resolvers.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface DnsResolver {
 
@@ -19,7 +19,7 @@ public interface DnsResolver {
      * @param query the query message
      * @return the response message
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     DnsMessage resolve(DnsMessage query) throws IOException;
 
@@ -30,7 +30,7 @@ public interface DnsResolver {
      * @param type the record type
      * @return the response message
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     default DnsMessage resolve(String name, RecordType type) throws IOException {
         return resolve(DnsMessage.query(name, type));

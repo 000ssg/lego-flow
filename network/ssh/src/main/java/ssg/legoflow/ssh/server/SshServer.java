@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,7 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * <p>Uses virtual threads for connection handling.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SshServer implements AutoCloseable {
 
@@ -49,6 +50,8 @@ public final class SshServer implements AutoCloseable {
     private ExecutorService executor;
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final AtomicInteger connectionCount = new AtomicInteger(0);
+    /** Latch for tests to wait until a new connection is accepted (signaled synchronously in accept loop). */
+    private volatile CountDownLatch connectionLatch;
     private final ConcurrentHashMap<Integer, SshTransport> connections = new ConcurrentHashMap<>();
 
     /**
@@ -190,6 +193,20 @@ public final class SshServer implements AutoCloseable {
      */
     public int connectionCount() { return connectionCount.get(); }
 
+    /** Reset the connection latch so tests can await the next accepted connection. */
+    public void resetConnectionLatch() {
+        this.connectionLatch = new CountDownLatch(1);
+    }
+
+    /** Await a single connection to be accepted by the server, up to timeoutMs. */
+    public boolean awaitConnection(long timeoutMs) throws InterruptedException {
+        var latch = this.connectionLatch;
+        if (latch == null) {
+            return false;
+        }
+        return latch.await(timeoutMs, java.util.concurrent.TimeUnit.MILLISECONDS);
+    }
+
     @Override
     public void close() throws IOException {
         running.set(false);
@@ -210,11 +227,19 @@ public final class SshServer implements AutoCloseable {
         while (running.get()) {
             try {
                 Socket clientSocket = serverSocket.accept();
-                if (connectionCount.get() >= config.maxConcurrentConnections()) {
+                // Increment count and signal latch synchronously in the accept thread
+                // to avoid virtual-thread scheduling delays on CI runners.
+                int connId = connectionCount.incrementAndGet();
+                if (connectionLatch != null) {
+                    connectionLatch.countDown();
+                    connectionLatch = null;
+                }
+                if (connId > config.maxConcurrentConnections()) {
+                    connectionCount.decrementAndGet();
                     clientSocket.close();
                     continue;
                 }
-                executor.submit(() -> handleConnection(clientSocket));
+                executor.submit(() -> handleConnection(clientSocket, connId));
             } catch (IOException e) {
                 if (running.get()) {
                     LOG.error("Error accepting connection", e);
@@ -223,8 +248,7 @@ public final class SshServer implements AutoCloseable {
         }
     }
 
-    private void handleConnection(Socket clientSocket) {
-        int connId = connectionCount.incrementAndGet();
+    private void handleConnection(Socket clientSocket, int connId) {
         try {
             SshTransport transport = new SshTransport(clientSocket, true);
             connections.put(connId, transport);
@@ -293,16 +317,64 @@ public final class SshServer implements AutoCloseable {
                 transport.sendPacket(new byte[]{52}); // SSH_MSG_USERAUTH_SUCCESS
                 return username;
             } else {
-                transport.sendPacket(new byte[]{52}); // Still accept for demo
-                return username;
+                // Send SSH_MSG_USERAUTH_FAILURE with allowed methods
+                var failure = (AuthResult.Failure) result;
+                ByteBuffer failureBuf = ByteBuffer.allocate(256);
+                failureBuf.put((byte) 51); // SSH_MSG_USERAUTH_FAILURE
+                SshTransportCodec.writeNameList(failureBuf, failure.authMethodsThatCanContinue());
+                failureBuf.put((byte) (failure.partialSuccess() ? 1 : 0));
+                failureBuf.flip();
+                byte[] failureData = new byte[failureBuf.remaining()];
+                failureBuf.get(failureData);
+                transport.sendPacket(failureData);
+                return null; // Auth failed
             }
         }
 
-        // Accept all other auth methods for demo/testing
-        transport.sendPacket(new byte[]{52}); // SSH_MSG_USERAUTH_SUCCESS
-        return username;
-    }
+        // Handle keyboard-interactive if auth context supports it
+        if ("keyboard-interactive".equals(method) && authContext != null) {
+            String submethods = SshTransportCodec.readString(buf);
+            SshTransportCodec.readUint32(buf); // language tag length
+            byte[] langTag = SshTransportCodec.readBinary(buf);
+            // For now, respond with failure since keyboard-interactive is not fully implemented
+            ByteBuffer failureBuf = ByteBuffer.allocate(256);
+            failureBuf.put((byte) 51); // SSH_MSG_USERAUTH_FAILURE
+            SshTransportCodec.writeNameList(failureBuf, java.util.List.copyOf(authContext.allowedMethods()));
+            failureBuf.put((byte) 0); // no partial success
+            failureBuf.flip();
+            byte[] failureData = new byte[failureBuf.remaining()];
+            failureBuf.get(failureData);
+            transport.sendPacket(failureData);
+            return null;
+        }
 
+        // Accept publickey auth if validator is set, otherwise respond with failure
+        if ("publickey".equals(method) && authContext != null) {
+            String keyType = SshTransportCodec.readString(buf);
+            byte[] publicKeyBlob = SshTransportCodec.readBinary(buf);
+            
+            AuthResult result = authContext.authenticatePublicKey(username, 
+                publicKeyBlob);
+            if (result instanceof AuthResult.Success) {
+                transport.sendPacket(new byte[]{52}); // SSH_MSG_USERAUTH_SUCCESS
+                return username;
+            } else {
+                var failure = (AuthResult.Failure) result;
+                ByteBuffer failureBuf = ByteBuffer.allocate(256);
+                failureBuf.put((byte) 51); // SSH_MSG_USERAUTH_FAILURE
+                SshTransportCodec.writeNameList(failureBuf, failure.authMethodsThatCanContinue());
+                failureBuf.put((byte) (failure.partialSuccess() ? 1 : 0));
+                failureBuf.flip();
+                byte[] failureData = new byte[failureBuf.remaining()];
+                failureBuf.get(failureData);
+                transport.sendPacket(failureData);
+                return null;
+            }
+        }
+
+        // No matching auth method or no auth context configured
+        return null;
+    }
     private void processConnectionPackets(SshTransport transport, int connId) throws IOException {
         // Track server-side channels: channelId -> piped streams for communication
         ConcurrentHashMap<Integer, ChannelState> channels = new ConcurrentHashMap<>();

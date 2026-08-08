@@ -15,7 +15,7 @@ import java.util.Map;
  * {@code List<Object>}, {@code Map<String, Object>}.</p>
  *
  * @see <a href="https://github.com/msgpack/msgpack/blob/master/spec.md">MessagePack spec</a>
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MessagePackDecoder {
 

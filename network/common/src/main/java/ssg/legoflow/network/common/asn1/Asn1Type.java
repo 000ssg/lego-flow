@@ -7,7 +7,7 @@ package ssg.legoflow.network.common.asn1;
  * associated tag and value. The sealed hierarchy enables exhaustive pattern
  * matching in {@code switch} expressions.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface Asn1Type
         permits Asn1Boolean, Asn1Integer, Asn1BitString, Asn1OctetString,

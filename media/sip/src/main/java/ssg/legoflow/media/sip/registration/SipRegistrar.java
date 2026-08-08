@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  * Supports registration, re-registration, unregistration (expires=0),
  * and binding queries.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SipRegistrar {
 
@@ -44,7 +44,7 @@ public final class SipRegistrar {
      * Creates a registrar for the given domain.
      *
      * @param domain the registrar domain
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipRegistrar(String domain) {
         this.domain = domain;
@@ -56,7 +56,7 @@ public final class SipRegistrar {
      *
      * @param request the REGISTER request
      * @return the response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipResponse handleRegister(SipRequest request) {
         if (request.method() != SipMethod.REGISTER) {
@@ -128,7 +128,7 @@ public final class SipRegistrar {
      *
      * @param aor the Address-of-Record
      * @return the current non-expired bindings
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<RegistrationBinding> lookup(String aor) {
         List<RegistrationBinding> aorBindings = bindings.get(aor);
@@ -145,7 +145,7 @@ public final class SipRegistrar {
      * Returns the total number of active bindings across all AORs.
      *
      * @return the binding count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int bindingCount() {
         return bindings.values().stream()
@@ -161,7 +161,7 @@ public final class SipRegistrar {
      * Returns the registrar domain.
      *
      * @return the domain
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String domain() {
         return domain;

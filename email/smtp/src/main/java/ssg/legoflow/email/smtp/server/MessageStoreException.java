@@ -3,7 +3,7 @@ package ssg.legoflow.email.smtp.server;
 /**
  * Exception thrown when message storage fails.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MessageStoreException extends Exception {
 

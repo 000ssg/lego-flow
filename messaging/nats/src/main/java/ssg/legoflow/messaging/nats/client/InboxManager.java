@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * <p>Inboxes use the prefix {@code _INBOX.} followed by a unique identifier.
  * Each client instance has its own prefix to avoid collisions.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class InboxManager {
 

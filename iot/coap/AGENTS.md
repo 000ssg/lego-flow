@@ -1,4 +1,9 @@
-# CoAP Module — Development Guide
+# iot / coap — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -61,8 +66,3 @@ The `coap` module implements CoAP (RFC 7252) and its key extensions for constrai
 - Reliability tests: retransmission timing, deduplication, congestion control
 - All tests use loopback UDP (no external CoAP server required)
 - Test count: 157
-
----
-
-**Last Updated**: 2026-06-24
-**For AI assistant versions**

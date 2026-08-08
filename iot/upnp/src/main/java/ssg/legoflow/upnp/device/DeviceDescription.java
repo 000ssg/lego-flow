@@ -25,7 +25,7 @@ import java.util.Objects;
  * optional fields, or non-standard XML structures. Fields like manufacturer and
  * modelName default to "Unknown" if missing, rather than causing parse failures.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DeviceDescription {
 
@@ -61,7 +61,7 @@ public final class DeviceDescription {
      * @param embeddedDevices the list of embedded sub-devices
      * @param icons           the list of device icons
      * @throws NullPointerException if any required parameter is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DeviceDescription(String deviceType, String friendlyName, String manufacturer,
                              String modelName, String modelNumber, String udn,
@@ -87,7 +87,7 @@ public final class DeviceDescription {
      * Returns the UPnP device type URN.
      *
      * @return the device type
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String deviceType() {
         return deviceType;
@@ -97,7 +97,7 @@ public final class DeviceDescription {
      * Returns the human-readable device name.
      *
      * @return the friendly name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String friendlyName() {
         return friendlyName;
@@ -107,7 +107,7 @@ public final class DeviceDescription {
      * Returns the manufacturer name.
      *
      * @return the manufacturer
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String manufacturer() {
         return manufacturer;
@@ -117,7 +117,7 @@ public final class DeviceDescription {
      * Returns the model name.
      *
      * @return the model name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String modelName() {
         return modelName;
@@ -127,7 +127,7 @@ public final class DeviceDescription {
      * Returns the model number.
      *
      * @return the model number, or {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String modelNumber() {
         return modelNumber;
@@ -137,7 +137,7 @@ public final class DeviceDescription {
      * Returns the Unique Device Name.
      *
      * @return the UDN
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String udn() {
         return udn;
@@ -147,7 +147,7 @@ public final class DeviceDescription {
      * Returns the serial number.
      *
      * @return the serial number, or {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String serialNumber() {
         return serialNumber;
@@ -157,7 +157,7 @@ public final class DeviceDescription {
      * Returns the presentation URL.
      *
      * @return the presentation URL, or {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String presentationUrl() {
         return presentationUrl;
@@ -167,7 +167,7 @@ public final class DeviceDescription {
      * Returns the list of services offered by this device.
      *
      * @return an unmodifiable list of service descriptions
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<ServiceDescription> services() {
         return services;
@@ -177,7 +177,7 @@ public final class DeviceDescription {
      * Returns the list of embedded sub-devices.
      *
      * @return an unmodifiable list of embedded device descriptions
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<DeviceDescription> embeddedDevices() {
         return embeddedDevices;
@@ -187,7 +187,7 @@ public final class DeviceDescription {
      * Returns the list of device icons.
      *
      * @return an unmodifiable list of device icons
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<DeviceIcon> icons() {
         return icons;
@@ -210,7 +210,7 @@ public final class DeviceDescription {
      * @return the parsed device description
      * @throws NullPointerException     if {@code xml} is {@code null}
      * @throws IllegalArgumentException if the XML cannot be parsed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static DeviceDescription parseXml(String xml) {
         Objects.requireNonNull(xml, "xml must not be null");
@@ -238,7 +238,7 @@ public final class DeviceDescription {
      * Serializes this device description to UPnP device description XML.
      *
      * @return the complete device description XML with root element
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toXml() {
         var sb = new StringBuilder();

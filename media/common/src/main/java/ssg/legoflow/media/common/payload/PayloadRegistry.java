@@ -12,7 +12,7 @@ import java.util.OptionalInt;
  * <p>Pre-populated with static payload types from RFC 3551. Dynamic payload
  * types can be registered at runtime based on SDP negotiation.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class PayloadRegistry {
 

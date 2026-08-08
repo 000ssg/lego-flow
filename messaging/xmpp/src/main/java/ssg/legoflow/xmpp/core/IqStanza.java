@@ -14,7 +14,7 @@ import java.util.Objects;
  * @param iqType    the IQ type (get, set, result, error)
  * @param namespace the namespace of the payload
  * @param payload   the extension payload
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record IqStanza(
         String id,
@@ -28,7 +28,7 @@ public record IqStanza(
     /**
      * IQ stanza types as defined in RFC 6120.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum IqType {
         /** Request information or data. */

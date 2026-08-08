@@ -22,7 +22,7 @@ import java.util.Objects;
  * @param msgId          the message ID (null for NILVALUE "-")
  * @param structuredData the structured data elements (empty list for NILVALUE "-")
  * @param message        the free-form message text (null if absent)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SyslogMessage(
         Facility facility,

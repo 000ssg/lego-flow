@@ -16,7 +16,7 @@ import java.util.Optional;
  * Provides typed getters/setters for all standard MQTT 5.0 properties and
  * encode/decode methods for wire-format serialization.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MqttProperties {
 
@@ -549,7 +549,7 @@ public final class MqttProperties {
      *
      * @param key   the property key
      * @param value the property value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record UserProperty(String key, String value) {
     }

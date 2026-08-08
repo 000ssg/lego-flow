@@ -7,7 +7,7 @@ package ssg.legoflow.ssh.transport;
  * 30-49 are key exchange method specific, 50-59 are user authentication generic,
  * 60-79 are user authentication method specific, and 80-127 are connection protocol.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum SshMessageType {
 

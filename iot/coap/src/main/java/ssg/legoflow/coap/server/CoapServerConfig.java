@@ -10,7 +10,7 @@ package ssg.legoflow.coap.server;
  * @param ackRandomFactor      the ACK random factor (RFC 7252: 1.5)
  * @param maxRetransmit        the maximum number of retransmissions (RFC 7252: 4)
  * @param maxResourceBodySize  the maximum resource body size for blockwise transfer
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record CoapServerConfig(
         int port,
@@ -32,7 +32,7 @@ public record CoapServerConfig(
      * Creates a configuration with default RFC 7252 values.
      *
      * @return the default configuration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapServerConfig defaults() {
         return new CoapServerConfig(
@@ -51,7 +51,7 @@ public record CoapServerConfig(
      *
      * @param port the UDP port
      * @return the configuration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static CoapServerConfig withPort(int port) {
         return new CoapServerConfig(

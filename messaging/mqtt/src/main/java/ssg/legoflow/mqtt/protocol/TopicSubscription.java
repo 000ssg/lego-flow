@@ -8,7 +8,7 @@ package ssg.legoflow.mqtt.protocol;
  * @param noLocal           if {@code true}, do not forward messages published by this client (MQTT 5.0)
  * @param retainAsPublished if {@code true}, retain the RETAIN flag as published (MQTT 5.0)
  * @param retainHandling    controls how retained messages are delivered on subscribe (MQTT 5.0)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record TopicSubscription(
         String topicFilter,

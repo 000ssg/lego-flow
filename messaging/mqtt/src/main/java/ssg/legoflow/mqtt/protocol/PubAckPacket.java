@@ -6,7 +6,7 @@ package ssg.legoflow.mqtt.protocol;
  * @param packetId   the packet identifier being acknowledged
  * @param reasonCode the reason code (MQTT 5.0)
  * @param properties MQTT 5.0 properties
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record PubAckPacket(
         int packetId,

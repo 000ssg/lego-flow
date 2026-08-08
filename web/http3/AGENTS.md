@@ -1,4 +1,9 @@
-# HTTP/3 Module — Development Guide
+# web / http3 — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Overview
 
@@ -88,15 +93,3 @@ ssg.legoflow.http3/
 - Server tests: end-to-end request/response, server push, 0-RTT
 - Client tests: multiplexed requests, session resumption, connection migration
 - Demo tests: functional tests exercising each demo scenario end-to-end
-
-## Commit Rules
-
-- Update `doc/REQUIREMENTS.md` with commit section
-- Update `doc/ARCHITECTURE.md` if architecture changed
-- Update `README.md` for API changes, new features, or updated test counts
-- Include `Co-Authored-By: AI assistant` in commit messages
-
----
-
-**Last Updated**: 2026-07-07
-**For AI assistant versions**

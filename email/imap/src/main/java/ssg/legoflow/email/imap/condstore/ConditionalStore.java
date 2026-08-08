@@ -11,7 +11,7 @@ import java.util.*;
  * <p>Provides conditional flag updates using UNCHANGEDSINCE modification
  * sequence values, and MODSEQ-based search and fetch filtering.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ConditionalStore {
 

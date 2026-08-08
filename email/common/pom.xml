@@ -5,7 +5,7 @@
     <parent>
         <groupId>ssg</groupId>
         <artifactId>lego-flow-email</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>0.1.0-SNAPSHOT</version>
     </parent>
     <artifactId>lego-flow-email-common</artifactId>
     <name>Lego Flow Email Common — MIME Parsing (RFC 2045-2049)</name>

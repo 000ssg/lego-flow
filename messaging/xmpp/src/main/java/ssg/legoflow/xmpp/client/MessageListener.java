@@ -5,7 +5,7 @@ import ssg.legoflow.xmpp.core.MessageStanza;
 /**
  * Functional interface for receiving XMPP message events.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 @FunctionalInterface
 public interface MessageListener {

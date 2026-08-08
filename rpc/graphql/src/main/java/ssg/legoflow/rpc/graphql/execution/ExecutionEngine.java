@@ -19,7 +19,7 @@ import java.util.concurrent.*;
  *   <li>Partial results with errors</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ExecutionEngine {
 

@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * non-confirmable (NON) messages, automatic retransmission for CON,
  * observe subscriptions, and blockwise transfer.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class CoapClient implements AutoCloseable {
 
@@ -56,7 +56,7 @@ public final class CoapClient implements AutoCloseable {
      *
      * @param config the client configuration
      * @throws IOException if opening the UDP channel fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapClient(CoapClientConfig config) throws IOException {
         this.config = Objects.requireNonNull(config, "config must not be null");
@@ -71,7 +71,7 @@ public final class CoapClient implements AutoCloseable {
      *
      * @param host the target host
      * @throws IOException if opening the UDP channel fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapClient(String host) throws IOException {
         this(CoapClientConfig.defaults(host));
@@ -83,7 +83,7 @@ public final class CoapClient implements AutoCloseable {
      * @param host the target host
      * @param port the target port
      * @throws IOException if opening the UDP channel fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapClient(String host, int port) throws IOException {
         this(CoapClientConfig.defaults(host, port));
@@ -94,7 +94,7 @@ public final class CoapClient implements AutoCloseable {
      *
      * @param confirmable {@code true} for CON, {@code false} for NON
      * @return this client for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapClient setConfirmable(boolean confirmable) {
         this.confirmable = confirmable;
@@ -107,7 +107,7 @@ public final class CoapClient implements AutoCloseable {
      * @param uri the resource URI path (e.g. "/sensors/temperature")
      * @return the response
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapResponse get(String uri) throws IOException {
         var message = buildRequest(CoapCode.GET, uri, null, -1);
@@ -122,7 +122,7 @@ public final class CoapClient implements AutoCloseable {
      * @param contentFormat the content format identifier
      * @return the response
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapResponse post(String uri, byte[] payload, int contentFormat) throws IOException {
         var message = buildRequest(CoapCode.POST, uri, payload, contentFormat);
@@ -137,7 +137,7 @@ public final class CoapClient implements AutoCloseable {
      * @param contentFormat the content format identifier
      * @return the response
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapResponse put(String uri, byte[] payload, int contentFormat) throws IOException {
         var message = buildRequest(CoapCode.PUT, uri, payload, contentFormat);
@@ -150,7 +150,7 @@ public final class CoapClient implements AutoCloseable {
      * @param uri the resource URI path
      * @return the response
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapResponse delete(String uri) throws IOException {
         var message = buildRequest(CoapCode.DELETE, uri, null, -1);
@@ -164,7 +164,7 @@ public final class CoapClient implements AutoCloseable {
      * @param handler the notification handler
      * @return the observe relation
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ObserveRelation observe(String uri, CoapObserveHandler handler) throws IOException {
         Objects.requireNonNull(handler, "handler must not be null");
@@ -193,7 +193,7 @@ public final class CoapClient implements AutoCloseable {
      *
      * @param relation the relation to cancel
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void cancelObserve(ObserveRelation relation) throws IOException {
         Objects.requireNonNull(relation, "relation must not be null");
@@ -219,7 +219,7 @@ public final class CoapClient implements AutoCloseable {
      *
      * @param uri the resource URI path
      * @return a future completing with the response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CompletableFuture<CoapResponse> getAsync(String uri) {
         return CompletableFuture.supplyAsync(() -> {
@@ -238,7 +238,7 @@ public final class CoapClient implements AutoCloseable {
      * @param payload       the request payload
      * @param contentFormat the content format identifier
      * @return a future completing with the response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CompletableFuture<CoapResponse> postAsync(String uri, byte[] payload, int contentFormat) {
         return CompletableFuture.supplyAsync(() -> {
@@ -257,7 +257,7 @@ public final class CoapClient implements AutoCloseable {
      * @param payload       the request payload
      * @param contentFormat the content format identifier
      * @return a future completing with the response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CompletableFuture<CoapResponse> putAsync(String uri, byte[] payload, int contentFormat) {
         return CompletableFuture.supplyAsync(() -> {
@@ -274,7 +274,7 @@ public final class CoapClient implements AutoCloseable {
      *
      * @param uri the resource URI path
      * @return a future completing with the response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CompletableFuture<CoapResponse> deleteAsync(String uri) {
         return CompletableFuture.supplyAsync(() -> {

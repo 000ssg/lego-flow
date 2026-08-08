@@ -4,7 +4,7 @@ package ssg.legoflow.messaging.stomp.core;
  * Exception thrown for STOMP protocol violations such as malformed frames,
  * missing required headers, or invalid state transitions.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class StompProtocolException extends RuntimeException {
 

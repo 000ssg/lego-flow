@@ -17,7 +17,7 @@ import java.util.Objects;
  * @param status       the human-readable status text
  * @param priority     the resource priority (-128 to 127)
  * @param extensions   the list of stanza extensions
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record PresenceStanza(
         String id,
@@ -33,7 +33,7 @@ public record PresenceStanza(
     /**
      * Presence types as defined in RFC 6121.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum PresenceType {
         /** The entity is available (default, no type attribute). */
@@ -57,7 +57,7 @@ public record PresenceStanza(
     /**
      * Presence show values indicating availability sub-state.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum PresenceShow {
         /** Actively interested in chatting. */

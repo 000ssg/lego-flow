@@ -9,7 +9,7 @@ import java.util.List;
  * @param acks            the number of acknowledgments required (-1=all, 0=none, 1=leader)
  * @param timeoutMs       the timeout in milliseconds
  * @param topicData       the data to produce per topic
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ProduceRequest(String transactionalId, short acks, int timeoutMs,
                              List<TopicData> topicData) {

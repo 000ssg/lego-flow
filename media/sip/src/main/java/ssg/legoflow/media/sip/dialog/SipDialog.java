@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * It tracks the dialog state (early, confirmed, terminated),
  * route set, remote target, and CSeq numbers.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SipDialog {
 
@@ -48,7 +48,7 @@ public final class SipDialog {
      * @param isUac     true if this is the UAC side
      * @param localUri  the local URI
      * @param remoteUri the remote URI
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipDialog(String callId, String localTag, String remoteTag,
                      boolean isUac, String localUri, String remoteUri) {
@@ -70,7 +70,7 @@ public final class SipDialog {
      * @param request  the INVITE request
      * @param response the response (1xx or 2xx with To tag)
      * @return the created dialog
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SipDialog createFromUac(SipRequest request, SipResponse response) {
         SipHeaders reqHeaders = request.headers();
@@ -121,7 +121,7 @@ public final class SipDialog {
      * @param request   the received INVITE request
      * @param localTag  the local tag to use
      * @return the created dialog
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SipDialog createFromUas(SipRequest request, String localTag) {
         SipHeaders reqHeaders = request.headers();
@@ -159,7 +159,7 @@ public final class SipDialog {
     /**
      * Confirms the dialog (transitions from EARLY to CONFIRMED).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void confirm() {
         if (state == DialogState.EARLY) {
@@ -172,7 +172,7 @@ public final class SipDialog {
      * Confirms the dialog with a response that may update remote tag and target.
      *
      * @param response the 2xx response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void confirm(SipResponse response) {
         // Update remote target from Contact
@@ -186,7 +186,7 @@ public final class SipDialog {
     /**
      * Terminates the dialog.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void terminate() {
         state = DialogState.TERMINATED;
@@ -197,7 +197,7 @@ public final class SipDialog {
      * Returns the next local CSeq number for in-dialog requests.
      *
      * @return the next CSeq
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long nextLocalCSeq() {
         return localCSeq.incrementAndGet();
@@ -208,7 +208,7 @@ public final class SipDialog {
      *
      * @param cseq the CSeq from the incoming request
      * @return true if the CSeq is valid (greater than current remote CSeq)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean validateRemoteCSeq(long cseq) {
         if (cseq > remoteCSeq) {
@@ -261,7 +261,7 @@ public final class SipDialog {
      *
      * @param method the request method
      * @return a request builder pre-populated with dialog information
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SipRequest.Builder createRequest(SipMethod method) {
         String target = remoteTarget != null ? remoteTarget : remoteUri;

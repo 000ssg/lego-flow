@@ -15,7 +15,7 @@ import java.util.*;
  *
  * <p>Header keys are case-insensitive for lookup but preserve original case.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class NatsHeaders {
 

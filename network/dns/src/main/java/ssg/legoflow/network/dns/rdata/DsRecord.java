@@ -13,7 +13,7 @@ import java.util.Objects;
  * @param algorithm  the algorithm of the referenced DNSKEY
  * @param digestType the digest algorithm (1 = SHA-1, 2 = SHA-256)
  * @param digest     the digest bytes
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record DsRecord(int keyTag, int algorithm, int digestType, byte[] digest)
         implements RData {

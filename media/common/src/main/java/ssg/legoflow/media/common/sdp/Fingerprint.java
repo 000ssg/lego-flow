@@ -9,7 +9,7 @@ import java.util.Objects;
  *
  * @param hashFunction the hash function name (e.g., "sha-256", "sha-1")
  * @param hashValue    the fingerprint hash value (colon-separated hex octets)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Fingerprint(String hashFunction, String hashValue) {
 

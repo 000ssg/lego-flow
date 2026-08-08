@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
  * <p>A length-encoded string is a length-encoded integer followed by that many bytes
  * of string data. NULL is represented by the NULL marker (0xFB) with no following data.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class LengthEncodedString {
 

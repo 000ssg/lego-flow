@@ -20,7 +20,7 @@ import java.util.Objects;
  * <p>Supports both HTTP POST (with {@code application/dns-message} content type)
  * and HTTP GET (with base64url-encoded query parameter).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DohTransport implements AutoCloseable {
 
@@ -36,7 +36,7 @@ public final class DohTransport implements AutoCloseable {
      *
      * @param serverUri the DoH server URI (e.g., "https://dns.google/dns-query")
      * @param timeout   the request timeout
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DohTransport(URI serverUri, Duration timeout) {
         this.serverUri = Objects.requireNonNull(serverUri, "serverUri must not be null");
@@ -52,7 +52,7 @@ public final class DohTransport implements AutoCloseable {
      * @param serverUri  the DoH server URI
      * @param httpClient the HTTP client to use
      * @param timeout    the request timeout
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DohTransport(URI serverUri, HttpClient httpClient, Duration timeout) {
         this.serverUri = Objects.requireNonNull(serverUri);
@@ -66,7 +66,7 @@ public final class DohTransport implements AutoCloseable {
      * @param query the query message
      * @return the response message
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DnsMessage sendPost(DnsMessage query) throws IOException {
         byte[] data = DnsCodec.encode(query);
@@ -89,7 +89,7 @@ public final class DohTransport implements AutoCloseable {
      * @param query the query message
      * @return the response message
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DnsMessage sendGet(DnsMessage query) throws IOException {
         byte[] data = DnsCodec.encode(query);
@@ -113,7 +113,7 @@ public final class DohTransport implements AutoCloseable {
      * @param query the query message
      * @return the response message
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DnsMessage send(DnsMessage query) throws IOException {
         return sendPost(query);

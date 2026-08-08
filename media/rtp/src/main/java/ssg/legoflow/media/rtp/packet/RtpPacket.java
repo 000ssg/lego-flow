@@ -14,7 +14,7 @@ import java.util.Optional;
  *
  * @param header  the RTP header
  * @param payload the media payload data
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record RtpPacket(RtpHeader header, byte[] payload) {
 

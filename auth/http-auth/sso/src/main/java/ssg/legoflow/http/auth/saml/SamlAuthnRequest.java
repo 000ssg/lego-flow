@@ -19,7 +19,7 @@ import java.util.zip.DeflaterOutputStream;
  * Supports both HTTP-Redirect binding (deflate + base64) and HTTP-POST binding
  * (base64 in auto-submitting HTML form).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SamlAuthnRequest {
 
@@ -41,7 +41,7 @@ public class SamlAuthnRequest {
      * @param issuer                      the SP entity ID
      * @param destination                 the IdP SSO URL
      * @param nameIdFormat                the requested NameID format (may be null)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SamlAuthnRequest(String assertionConsumerServiceUrl, String issuer,
                             String destination, String nameIdFormat) {
@@ -60,7 +60,7 @@ public class SamlAuthnRequest {
      * @param assertionConsumerServiceUrl the ACS URL
      * @param spEntityId                  the SP entity ID
      * @return the AuthnRequest
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SamlAuthnRequest fromConfig(SamlConfig config, String assertionConsumerServiceUrl,
                                                String spEntityId) {
@@ -72,7 +72,7 @@ public class SamlAuthnRequest {
      * Generates the AuthnRequest XML string.
      *
      * @return the XML string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toXml() {
         var sb = new StringBuilder();
@@ -98,7 +98,7 @@ public class SamlAuthnRequest {
      * Encodes the AuthnRequest for HTTP-Redirect binding (deflate + base64url).
      *
      * @return the deflated and base64-encoded request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toRedirectBinding() {
         String xml = toXml();
@@ -120,7 +120,7 @@ public class SamlAuthnRequest {
      * Generates an auto-submitting HTML form for HTTP-POST binding.
      *
      * @return the HTML string with a form containing SAMLRequest as a hidden field
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toPostBindingForm() {
         String base64 = Base64.getEncoder().encodeToString(toXml().getBytes(StandardCharsets.UTF_8));
@@ -131,7 +131,7 @@ public class SamlAuthnRequest {
      * Returns the request ID.
      *
      * @return the ID
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getId() {
         return id;
@@ -141,7 +141,7 @@ public class SamlAuthnRequest {
      * Returns the issue instant.
      *
      * @return the instant
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Instant getIssueInstant() {
         return issueInstant;
@@ -151,7 +151,7 @@ public class SamlAuthnRequest {
      * Returns the ACS URL.
      *
      * @return the ACS URL
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getAssertionConsumerServiceUrl() {
         return assertionConsumerServiceUrl;
@@ -161,7 +161,7 @@ public class SamlAuthnRequest {
      * Returns the issuer.
      *
      * @return the issuer
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getIssuer() {
         return issuer;
@@ -171,7 +171,7 @@ public class SamlAuthnRequest {
      * Returns the destination.
      *
      * @return the destination
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getDestination() {
         return destination;

@@ -52,7 +52,7 @@ public class WebSocketFrame {
      * @param code   the close status code
      * @param reason the close reason string
      * @return a close frame with encoded status code and reason
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static WebSocketFrame close(int code, String reason) {
         byte[] reasonBytes = reason != null ? reason.getBytes(StandardCharsets.UTF_8) : new byte[0];
@@ -68,7 +68,7 @@ public class WebSocketFrame {
      *
      * @param closeCode the close code enum
      * @return a close frame with encoded status code and default reason
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static WebSocketFrame close(WebSocketCloseCode closeCode) {
         return close(closeCode.code(), closeCode.reason());
@@ -78,7 +78,7 @@ public class WebSocketFrame {
      * Extracts the close status code from a close frame payload.
      *
      * @return the close code, or -1 if the payload is too short
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getCloseCode() {
         if (opCode != WebSocketOpCode.CLOSE || payload.remaining() < 2) {
@@ -92,7 +92,7 @@ public class WebSocketFrame {
      * Extracts the close reason string from a close frame payload.
      *
      * @return the close reason, or empty string if no reason
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getCloseReason() {
         if (opCode != WebSocketOpCode.CLOSE || payload.remaining() <= 2) {

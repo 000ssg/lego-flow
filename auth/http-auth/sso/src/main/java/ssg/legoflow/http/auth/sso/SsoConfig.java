@@ -8,7 +8,7 @@ import java.util.Set;
  * SSO configuration specifying the federation domain, session parameters,
  * and participating services.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SsoConfig {
 
@@ -26,7 +26,7 @@ public class SsoConfig {
      * @param sessionTimeout  the session timeout
      * @param trustedServices the set of trusted service URLs
      * @param secureCookies   whether cookies require HTTPS
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SsoConfig(String domain, String cookieName, Duration sessionTimeout,
                      Set<String> trustedServices, boolean secureCookies) {
@@ -42,7 +42,7 @@ public class SsoConfig {
      *
      * @param domain the SSO domain
      * @return the configuration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static SsoConfig forDomain(String domain) {
         return new SsoConfig(domain, null, null, null, true);

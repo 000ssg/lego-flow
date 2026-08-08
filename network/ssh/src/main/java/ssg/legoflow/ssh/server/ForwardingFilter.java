@@ -3,7 +3,7 @@ package ssg.legoflow.ssh.server;
 /**
  * Filter that controls which port forwarding requests are allowed.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 @FunctionalInterface
 public interface ForwardingFilter {

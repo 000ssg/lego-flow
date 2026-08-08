@@ -3,7 +3,7 @@ package ssg.legoflow.messaging.amqp.common;
 /**
  * Constants defined by the AMQP 1.0 specification (ISO 19464).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class AmqpConstants {
 

@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
  * the configured authenticator. When a 407 response is received,
  * this handler can supply the appropriate Proxy-Authorization header.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ProxyAuthHandler {
 
@@ -26,7 +26,7 @@ public class ProxyAuthHandler {
      * Creates a new proxy auth handler.
      *
      * @param authenticator the authenticator to use
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ProxyAuthHandler(ProxyAuthenticator authenticator) {
         this.authenticator = authenticator;
@@ -37,7 +37,7 @@ public class ProxyAuthHandler {
      *
      * @param response the response to check
      * @return true if 407
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isAuthRequired(HttpResponse response) {
         return response.getStatus() == HttpStatus.PROXY_AUTHENTICATION_REQUIRED;
@@ -48,7 +48,7 @@ public class ProxyAuthHandler {
      *
      * @param request the request to authenticate
      * @return true if authentication succeeds
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean handleAuth(HttpRequest request) {
         return authenticator.authenticate(request);
@@ -58,7 +58,7 @@ public class ProxyAuthHandler {
      * Creates a challenge response.
      *
      * @return the 407 response with Proxy-Authenticate header
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public HttpResponse createChallenge() {
         return authenticator.createChallenge();
@@ -68,7 +68,7 @@ public class ProxyAuthHandler {
      * Returns the authentication scheme.
      *
      * @return the scheme name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getScheme() {
         return authenticator.getScheme();
@@ -78,7 +78,7 @@ public class ProxyAuthHandler {
      * Returns the maximum number of authentication retries.
      *
      * @return the max retries
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getMaxRetries() {
         return maxRetries;
@@ -88,7 +88,7 @@ public class ProxyAuthHandler {
      * Sets the maximum number of authentication retries.
      *
      * @param maxRetries the max retries
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setMaxRetries(int maxRetries) {
         this.maxRetries = maxRetries;
@@ -98,7 +98,7 @@ public class ProxyAuthHandler {
      * Returns the underlying authenticator.
      *
      * @return the authenticator
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ProxyAuthenticator getAuthenticator() {
         return authenticator;

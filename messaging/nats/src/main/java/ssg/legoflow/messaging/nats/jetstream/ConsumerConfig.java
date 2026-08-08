@@ -16,7 +16,7 @@ import java.time.Duration;
  * @param filterSubject subject filter, or null for all
  * @param maxAckPending maximum number of unacknowledged messages
  * @param startSeq      starting sequence for BY_START_SEQ policy
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ConsumerConfig(
         String durableName,

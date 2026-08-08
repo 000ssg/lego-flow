@@ -22,7 +22,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * <p>The default constructor uses {@link InMemoryLogStorage} (volatile, in-memory).
  * To use durable storage, pass a {@link LogStorage} instance to the three-argument constructor.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class PartitionLog {
 

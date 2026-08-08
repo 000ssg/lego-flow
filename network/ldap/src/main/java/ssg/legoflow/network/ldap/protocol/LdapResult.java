@@ -18,7 +18,7 @@ import java.util.List;
  * @param matchedDn         the matched DN (empty string if not applicable)
  * @param diagnosticMessage the diagnostic message (empty string if none)
  * @param referrals         optional referral URIs
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record LdapResult(
         LdapResultCode resultCode,

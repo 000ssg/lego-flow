@@ -6,7 +6,7 @@ import java.util.List;
  * OffsetForLeaderEpoch response (API key 23).
  *
  * @param topics the per-topic results
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record OffsetForLeaderEpochResponse(List<TopicData> topics) {
 

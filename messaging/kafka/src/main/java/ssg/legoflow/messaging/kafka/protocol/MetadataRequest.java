@@ -7,7 +7,7 @@ import java.util.List;
  *
  * @param topics                    the list of topic names (null = all topics)
  * @param allowAutoTopicCreation    whether to auto-create requested topics
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record MetadataRequest(List<String> topics, boolean allowAutoTopicCreation) {
 

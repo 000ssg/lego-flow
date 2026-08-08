@@ -7,7 +7,7 @@ import ssg.legoflow.email.smtp.protocol.SmtpReply;
  *
  * <p>Contains the server reply that caused the failure, if available.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SmtpException extends Exception {
 

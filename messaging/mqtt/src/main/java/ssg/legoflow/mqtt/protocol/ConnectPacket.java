@@ -11,7 +11,7 @@ package ssg.legoflow.mqtt.protocol;
  * @param password     the password (may be {@code null})
  * @param will         the will message (may be {@code null})
  * @param properties   MQTT 5.0 properties
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ConnectPacket(
         MqttVersion version,

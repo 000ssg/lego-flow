@@ -14,7 +14,7 @@ import java.util.*;
  * <p>Handles partial reads by blocking until a complete RESP message
  * is available. Supports both RESP2 and RESP3 type prefixes.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RespParser {
 

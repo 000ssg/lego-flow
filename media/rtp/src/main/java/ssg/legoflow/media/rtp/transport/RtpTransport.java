@@ -17,7 +17,7 @@ import java.util.Objects;
  * port (RTP port + 1). Uses non-blocking {@link DatagramChannel} for
  * efficient I/O with virtual threads.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RtpTransport implements AutoCloseable {
 

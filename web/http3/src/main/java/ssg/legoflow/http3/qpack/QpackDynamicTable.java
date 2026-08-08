@@ -21,7 +21,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *
  * <p>This class is thread-safe. All operations are guarded by a read-write lock.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class QpackDynamicTable {
 
@@ -41,7 +41,7 @@ public class QpackDynamicTable {
      * Creates a new dynamic table with the given maximum capacity.
      *
      * @param maxCapacity the maximum table capacity in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QpackDynamicTable(int maxCapacity) {
         this.maxCapacity = maxCapacity;
@@ -56,7 +56,7 @@ public class QpackDynamicTable {
      *
      * @param name  the header field name
      * @param value the header field value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void insert(String name, String value) {
         lock.writeLock().lock();
@@ -83,7 +83,7 @@ public class QpackDynamicTable {
      * @param index the zero-based relative index
      * @return the entry at the given index
      * @throws IllegalArgumentException if the index is out of range
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QpackStaticTable.Entry getEntry(int index) {
         lock.readLock().lock();
@@ -106,7 +106,7 @@ public class QpackDynamicTable {
      * Returns the number of entries currently in the table.
      *
      * @return the entry count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int size() {
         lock.readLock().lock();
@@ -121,7 +121,7 @@ public class QpackDynamicTable {
      * Returns the current byte size of the table.
      *
      * @return the current size in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int capacity() {
         lock.readLock().lock();
@@ -136,7 +136,7 @@ public class QpackDynamicTable {
      * Returns the maximum capacity of the table.
      *
      * @return the maximum capacity in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int maxCapacity() {
         return maxCapacity;
@@ -146,7 +146,7 @@ public class QpackDynamicTable {
      * Sets the maximum capacity of the table, evicting entries as needed.
      *
      * @param newCapacity the new maximum capacity in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setCapacity(int newCapacity) {
         lock.writeLock().lock();
@@ -164,7 +164,7 @@ public class QpackDynamicTable {
      * Adds a reference for the given stream ID, incrementing its reference count.
      *
      * @param streamId the QUIC stream ID
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addStreamReference(long streamId) {
         streamReferences.merge(streamId, 1, Integer::sum);
@@ -174,7 +174,7 @@ public class QpackDynamicTable {
      * Removes a reference for the given stream ID, decrementing its reference count.
      *
      * @param streamId the QUIC stream ID
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void removeStreamReference(long streamId) {
         streamReferences.computeIfPresent(streamId, (k, v) -> v <= 1 ? null : v - 1);
@@ -185,7 +185,7 @@ public class QpackDynamicTable {
      *
      * @param streamId the QUIC stream ID
      * @return the reference count, or 0 if no references exist
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getStreamReferenceCount(long streamId) {
         return streamReferences.getOrDefault(streamId, 0);
@@ -195,7 +195,7 @@ public class QpackDynamicTable {
      * Returns the total number of active stream references.
      *
      * @return the number of streams with active references
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getTotalStreamReferences() {
         return streamReferences.size();
@@ -205,7 +205,7 @@ public class QpackDynamicTable {
      * Returns the total number of entries inserted since creation.
      *
      * @return the insert count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getInsertCount() {
         lock.readLock().lock();
@@ -222,7 +222,7 @@ public class QpackDynamicTable {
      * @param name  the header field name
      * @param value the header field value
      * @return the relative index, or {@code -1} if not found
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int findEntry(String name, String value) {
         lock.readLock().lock();
@@ -245,7 +245,7 @@ public class QpackDynamicTable {
      *
      * @param name the header field name
      * @return the relative index, or {@code -1} if not found
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int findNameIndex(String name) {
         lock.readLock().lock();
@@ -266,7 +266,7 @@ public class QpackDynamicTable {
     /**
      * Clears all entries from the table.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void clear() {
         lock.writeLock().lock();
@@ -287,7 +287,7 @@ public class QpackDynamicTable {
      * @param staticIndex the static table index to reference for the name
      * @param value       the header field value
      * @throws IllegalArgumentException if the static index is out of range
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void insertWithStaticNameReference(int staticIndex, String value) {
         var entry = QpackStaticTable.getEntry(staticIndex);
@@ -303,7 +303,7 @@ public class QpackDynamicTable {
      * @param relativeIndex the relative index in the dynamic table
      * @param value         the header field value
      * @throws IllegalArgumentException if the index is out of range
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void insertWithDynamicNameReference(int relativeIndex, String value) {
         var existingEntry = getEntry(relativeIndex);
@@ -320,7 +320,7 @@ public class QpackDynamicTable {
      *
      * @param relativeIndex the relative index of the entry to duplicate
      * @throws IllegalArgumentException if the index is out of range
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void duplicate(int relativeIndex) {
         var entry = getEntry(relativeIndex);
@@ -336,7 +336,7 @@ public class QpackDynamicTable {
      * @param absoluteIndex the absolute insertion index
      * @return the entry at that absolute index
      * @throws IllegalArgumentException if the index is out of range
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QpackStaticTable.Entry getEntryAbsolute(int absoluteIndex) {
         lock.readLock().lock();
@@ -359,7 +359,7 @@ public class QpackDynamicTable {
      * @param base          the base value (Required Insert Count + Delta Base)
      * @return the entry
      * @throws IllegalArgumentException if the index is out of range
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QpackStaticTable.Entry getEntryPostBase(int postBaseIndex, int base) {
         lock.readLock().lock();
@@ -380,7 +380,7 @@ public class QpackDynamicTable {
      * successfully processed a header block that referenced dynamic table entries.</p>
      *
      * @param streamId the QUIC stream ID that was processed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void acknowledgeSectionForStream(long streamId) {
         acknowledgedStreams.add(streamId);
@@ -393,7 +393,7 @@ public class QpackDynamicTable {
      * (RFC 9204 section 4.4.2).</p>
      *
      * @param streamId the QUIC stream ID to cancel
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void cancelStream(long streamId) {
         streamReferences.remove(streamId);
@@ -409,7 +409,7 @@ public class QpackDynamicTable {
      *
      * @param increment the number of new entries received
      * @throws IllegalArgumentException if increment is negative or would exceed insert count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void incrementKnownReceivedCount(int increment) {
         if (increment < 0) {
@@ -433,7 +433,7 @@ public class QpackDynamicTable {
      * the decoder has confirmed receiving.
      *
      * @return the known received count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getKnownReceivedCount() {
         lock.readLock().lock();
@@ -449,7 +449,7 @@ public class QpackDynamicTable {
      *
      * @param streamId the QUIC stream ID
      * @return {@code true} if the stream's header block was acknowledged
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isStreamAcknowledged(long streamId) {
         return acknowledgedStreams.contains(streamId);
@@ -464,7 +464,7 @@ public class QpackDynamicTable {
      *
      * @param maxAbsoluteIndex the maximum absolute index referenced, or -1 if none
      * @return the Required Insert Count value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int computeRequiredInsertCount(int maxAbsoluteIndex) {
         return maxAbsoluteIndex < 0 ? 0 : maxAbsoluteIndex + 1;
@@ -475,7 +475,7 @@ public class QpackDynamicTable {
      *
      * @param requiredInsertCount the required insert count
      * @return the encoded value for the wire
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int encodeRequiredInsertCount(int requiredInsertCount) {
         if (requiredInsertCount == 0) {
@@ -493,7 +493,7 @@ public class QpackDynamicTable {
      *
      * @param encodedValue the encoded value from the wire
      * @return the decoded Required Insert Count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int decodeRequiredInsertCount(int encodedValue) {
         if (encodedValue == 0) {
@@ -527,7 +527,7 @@ public class QpackDynamicTable {
      * Returns the number of entries that have been evicted (dropped) since creation.
      *
      * @return the dropped entry count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getDroppedCount() {
         lock.readLock().lock();

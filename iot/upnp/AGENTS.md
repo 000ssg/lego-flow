@@ -1,4 +1,9 @@
-# UPnP/DLNA Module — Development Guide
+# iot / upnp — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -93,8 +98,3 @@ The code handles this gracefully:
 - `findAllPhysicalInterfaces()` prefers `en*`/`eth*`/`wlan*` over `utun*` (VPN tunnels)
 
 See [ARCHITECTURE.md — UPnP/SSDP Network Diagnostics](doc/ARCHITECTURE.md#upnpssdp-network-diagnostics) for the full troubleshooting guide.
-
----
-
-**Last Updated**: 2026-07-07
-**For AI assistant versions**

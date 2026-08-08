@@ -3,7 +3,7 @@ package ssg.legoflow.xmpp.stream;
 /**
  * Sealed interface for XMPP stream features negotiated during stream setup.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface StreamFeature
         permits StreamFeature.TlsFeature, StreamFeature.SaslFeature,
@@ -21,7 +21,7 @@ public sealed interface StreamFeature
      * TLS stream feature (STARTTLS).
      *
      * @param required whether TLS is mandatory
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record TlsFeature(boolean required) implements StreamFeature {}
 
@@ -30,7 +30,7 @@ public sealed interface StreamFeature
      *
      * @param mechanisms the list of supported SASL mechanisms
      * @param required   whether SASL is mandatory
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record SaslFeature(java.util.List<String> mechanisms, boolean required) implements StreamFeature {}
 
@@ -38,7 +38,7 @@ public sealed interface StreamFeature
      * Resource binding feature.
      *
      * @param required whether binding is mandatory
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record BindFeature(boolean required) implements StreamFeature {}
 
@@ -46,7 +46,7 @@ public sealed interface StreamFeature
      * Session establishment feature (deprecated in RFC 6121 but still common).
      *
      * @param required whether session is mandatory
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record SessionFeature(boolean required) implements StreamFeature {}
 
@@ -55,7 +55,7 @@ public sealed interface StreamFeature
      *
      * @param methods  the supported compression methods
      * @param required whether compression is mandatory
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record CompressionFeature(java.util.List<String> methods, boolean required) implements StreamFeature {}
 }

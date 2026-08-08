@@ -9,7 +9,7 @@ package ssg.legoflow.rpc.graphql.language;
  * @param name         the variable name (without $)
  * @param typeName     the type name as written in the query
  * @param defaultValue the default value, or null
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record VariableDefinition(String name, TypeReference typeName, Value defaultValue) {
 
@@ -17,7 +17,7 @@ public record VariableDefinition(String name, TypeReference typeName, Value defa
      * Represents a type reference in the query language.
      * Can be a named type, list type, or non-null type.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public sealed interface TypeReference {
         /**

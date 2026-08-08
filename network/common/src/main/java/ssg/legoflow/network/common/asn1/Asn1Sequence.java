@@ -11,7 +11,7 @@ import java.util.List;
  * of the BER-encoded elements.
  *
  * @param elements the ordered list of elements
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Asn1Sequence(List<Asn1Type> elements) implements Asn1Type {
 

@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
  * <p>Encodes non-printable and non-ASCII bytes as {@code =XX} hex sequences.
  * Lines are limited to 76 characters with soft line breaks ({@code =\r\n}).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class QuotedPrintableCodec {
 

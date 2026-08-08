@@ -20,7 +20,7 @@ import java.util.*;
  * Path traversal attacks (e.g., "../../etc/passwd") are prevented
  * by normalizing and validating that resolved paths remain within the base directory.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class LocalFileSystem implements FtpFileSystem {
 

@@ -6,7 +6,7 @@ package ssg.legoflow.ftp.protocol;
  * <p>The TYPE command sets the transfer type, which determines how data
  * is encoded on the wire.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum FtpTransferType {
 

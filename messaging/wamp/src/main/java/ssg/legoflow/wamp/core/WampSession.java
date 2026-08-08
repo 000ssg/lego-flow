@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Manages the lifecycle of a single WAMP session, tracking subscriptions and registrations.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class WampSession {
 
@@ -128,7 +128,7 @@ public class WampSession {
      * Returns the authentication identity.
      *
      * @return the auth ID, or {@code null} if not authenticated
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getAuthId() {
         return authId;
@@ -138,7 +138,7 @@ public class WampSession {
      * Sets the authentication identity.
      *
      * @param authId the auth ID
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setAuthId(String authId) {
         this.authId = authId;
@@ -148,7 +148,7 @@ public class WampSession {
      * Returns the authentication role.
      *
      * @return the auth role, or {@code null} if not authenticated
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getAuthRole() {
         return authRole;
@@ -158,7 +158,7 @@ public class WampSession {
      * Sets the authentication role.
      *
      * @param authRole the auth role
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setAuthRole(String authRole) {
         this.authRole = authRole;
@@ -168,7 +168,7 @@ public class WampSession {
      * Returns the authentication method used.
      *
      * @return the auth method, or {@code null} if not authenticated
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getAuthMethod() {
         return authMethod;
@@ -178,7 +178,7 @@ public class WampSession {
      * Sets the authentication method.
      *
      * @param authMethod the auth method
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setAuthMethod(String authMethod) {
         this.authMethod = authMethod;

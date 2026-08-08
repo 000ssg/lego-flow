@@ -11,7 +11,7 @@ import java.util.Objects;
  *
  * @param ssrc    the SSRC of the receiver generating this report
  * @param reports the reception report blocks
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ReceiverReport(
         long ssrc,

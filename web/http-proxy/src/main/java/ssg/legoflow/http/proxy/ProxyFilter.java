@@ -10,7 +10,7 @@ import ssg.legoflow.http.core.HttpResponse;
  * and modify responses before returning to the client. Filters are applied
  * in order of registration.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface ProxyFilter {
 
@@ -20,7 +20,7 @@ public interface ProxyFilter {
      *
      * @param request the outgoing request
      * @return the filtered request (may be the same instance or a new one)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     HttpRequest filterRequest(HttpRequest request);
 
@@ -30,7 +30,7 @@ public interface ProxyFilter {
      *
      * @param response the incoming response from upstream
      * @return the filtered response (may be the same instance or a new one)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     HttpResponse filterResponse(HttpResponse response);
 
@@ -38,7 +38,7 @@ public interface ProxyFilter {
      * Returns the name of this filter for logging and identification.
      *
      * @return the filter name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     String getName();
 
@@ -47,7 +47,7 @@ public interface ProxyFilter {
      * Default is 0.
      *
      * @return the filter order
-     * @since 1.0.0
+     * @since 0.1.0
      */
     default int getOrder() {
         return 0;

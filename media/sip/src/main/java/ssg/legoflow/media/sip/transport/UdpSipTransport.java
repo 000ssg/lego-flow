@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Each message is sent as a single UDP datagram. Incoming messages
  * are received on a virtual thread.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class UdpSipTransport implements SipTransport {
 
@@ -34,7 +34,7 @@ public final class UdpSipTransport implements SipTransport {
      *
      * @param bindAddress the local address to bind to
      * @throws IOException if binding fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public UdpSipTransport(InetSocketAddress bindAddress) throws IOException {
         this.channel = DatagramChannel.open();
@@ -48,7 +48,7 @@ public final class UdpSipTransport implements SipTransport {
      * Creates a UDP transport on any available port.
      *
      * @throws IOException if creation fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public UdpSipTransport() throws IOException {
         this(new InetSocketAddress(0));

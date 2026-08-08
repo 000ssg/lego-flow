@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.*;
  * <p>Verifies that the {@link SsdpService} supports configurable multicast
  * Time-To-Live values as recommended by UPnP Device Architecture (UDA).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class SsdpTtlConfigurationTest {
 

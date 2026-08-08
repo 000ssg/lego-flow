@@ -3,6 +3,7 @@ package ssg.legoflow.coap.codec;
 import ssg.legoflow.coap.protocol.CoapOption;
 
 import java.nio.ByteBuffer;
+import ssg.legoflow.service.util.BufferPool;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -18,7 +19,7 @@ import java.util.List;
  *   <li>14: two extended bytes, value = uint16 + 269</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class CoapOptionCodec {
 
@@ -33,17 +34,17 @@ public final class CoapOptionCodec {
      *
      * @param options the options to encode
      * @return a byte buffer containing the encoded options (flipped, ready for reading)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static ByteBuffer encode(List<CoapOption> options) {
         if (options == null || options.isEmpty()) {
-            return ByteBuffer.allocate(0);
+            return BufferPool.getBuffer(0);
         }
 
         var sorted = new ArrayList<>(options);
         sorted.sort(Comparator.comparingInt(CoapOption::number));
 
-        var buffer = ByteBuffer.allocate(estimateSize(sorted));
+        var buffer = BufferPool.getBuffer(estimateSize(sorted));
         int previousNumber = 0;
 
         for (var option : sorted) {
@@ -74,7 +75,7 @@ public final class CoapOptionCodec {
      *
      * @param buffer the buffer containing encoded options (position at start of options)
      * @return the decoded list of options
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static List<CoapOption> decode(ByteBuffer buffer) {
         var options = new ArrayList<CoapOption>();

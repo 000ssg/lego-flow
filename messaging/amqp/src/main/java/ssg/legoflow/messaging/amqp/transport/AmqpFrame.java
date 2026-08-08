@@ -20,7 +20,7 @@ import java.nio.ByteBuffer;
  * @param type        the frame type (0x00 for AMQP, 0x01 for SASL)
  * @param performative the decoded performative body, or null for empty frames (heartbeats)
  * @param payload     optional payload (for transfer frames), or null
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record AmqpFrame(
         int channel,

@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Federated SSO session that spans multiple services. Tracks which services
  * the user has authenticated with and propagates login/logout across them.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class SsoSession {
 
@@ -27,7 +27,7 @@ public class SsoSession {
      *
      * @param id        the session ID
      * @param principal the authenticated principal
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SsoSession(String id, AuthPrincipal principal) {
         this.id = Objects.requireNonNull(id);
@@ -41,7 +41,7 @@ public class SsoSession {
      * Records that the user has authenticated with a specific service.
      *
      * @param serviceUrl the service URL
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addAuthenticatedService(String serviceUrl) {
         authenticatedServices.add(serviceUrl);
@@ -52,7 +52,7 @@ public class SsoSession {
      * Returns all services the user has authenticated with.
      *
      * @return unmodifiable set of service URLs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Set<String> getAuthenticatedServices() {
         return Collections.unmodifiableSet(authenticatedServices);
@@ -61,7 +61,7 @@ public class SsoSession {
     /**
      * Updates the last access time.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void touch() {
         this.lastAccessedAt = Instant.now();
@@ -70,7 +70,7 @@ public class SsoSession {
     /**
      * Invalidates the session.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void invalidate() {
         this.invalidated = true;
@@ -82,7 +82,7 @@ public class SsoSession {
      *
      * @param timeoutSeconds the timeout in seconds
      * @return true if expired
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isExpired(long timeoutSeconds) {
         if (invalidated) return true;
@@ -94,7 +94,7 @@ public class SsoSession {
      *
      * @param name  the attribute name
      * @param value the attribute value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setAttribute(String name, Object value) {
         attributes.put(name, value);
@@ -106,7 +106,7 @@ public class SsoSession {
      * @param name the attribute name
      * @param <T>  the expected type
      * @return the attribute value, or null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     @SuppressWarnings("unchecked")
     public <T> T getAttribute(String name) {

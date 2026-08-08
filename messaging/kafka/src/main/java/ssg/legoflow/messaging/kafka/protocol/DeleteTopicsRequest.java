@@ -7,7 +7,7 @@ import java.util.List;
  *
  * @param topicNames the topic names to delete
  * @param timeoutMs  the timeout in milliseconds
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record DeleteTopicsRequest(List<String> topicNames, int timeoutMs) {
 }

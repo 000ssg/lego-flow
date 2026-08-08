@@ -1,4 +1,9 @@
-# Network Common Module -- Development Guide
+# network / common — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -74,8 +79,3 @@ All 14 types are `record` classes implementing the `sealed interface Asn1Type`:
 - OID registry lookup, registration, display names (`OidRegistryTest`: 8 tests)
 - All tests use in-memory ByteBuffers (no external dependencies)
 - Test count: 192
-
----
-
-**Last Updated**: 2026-07-06
-**For AI assistant versions**

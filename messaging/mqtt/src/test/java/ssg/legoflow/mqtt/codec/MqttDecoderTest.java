@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * Tests for {@link MqttDecoder}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class MqttDecoderTest {
 

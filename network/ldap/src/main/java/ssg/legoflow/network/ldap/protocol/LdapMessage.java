@@ -21,7 +21,7 @@ import java.util.List;
  * @param messageId  the message identifier (0 for unsolicited notifications)
  * @param protocolOp the protocol operation
  * @param controls   optional controls (empty list if none)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record LdapMessage(
         int messageId,

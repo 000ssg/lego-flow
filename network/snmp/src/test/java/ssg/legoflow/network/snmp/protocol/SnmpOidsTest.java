@@ -8,7 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for {@link SnmpOids} well-known OID constants.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class SnmpOidsTest {
 

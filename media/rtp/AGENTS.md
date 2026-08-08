@@ -1,4 +1,9 @@
-# RTP Module -- Development Guide
+# media / rtp — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -79,8 +84,3 @@ The `rtp` module implements RTP (Real-time Transport Protocol) and RTCP (RTP Con
 - Participant tests: send/receive statistics tracking, jitter update
 - Transport tests: bind, send/receive, close lifecycle
 - Test count: 102
-
----
-
-**Last Updated**: 2026-07-06
-**For AI assistant versions**

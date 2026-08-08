@@ -15,7 +15,7 @@ import java.util.Base64;
  *   <li>Server responds with server-final-message: {@code v=serverSignature} (or error)</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ScramSha256Server implements SaslMechanism {
 

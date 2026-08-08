@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Storage for OAuth 2.0 access and refresh tokens issued by the authorization server.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class TokenStore {
 
@@ -29,7 +29,7 @@ public class TokenStore {
      * @param scopes    the granted scopes
      * @param issuedAt  when the token was issued
      * @param expiresAt when the token expires
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record StoredToken(
             String token,
@@ -43,7 +43,7 @@ public class TokenStore {
          * Checks if this token has expired.
          *
          * @return true if expired
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public boolean isExpired() {
             return Instant.now().isAfter(expiresAt);
@@ -53,7 +53,7 @@ public class TokenStore {
     /**
      * Creates a token store with default lifetimes (1 hour access, 30 days refresh).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public TokenStore() {
         this(Duration.ofHours(1), Duration.ofDays(30));
@@ -64,7 +64,7 @@ public class TokenStore {
      *
      * @param accessTokenLifetime  the access token lifetime
      * @param refreshTokenLifetime the refresh token lifetime
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public TokenStore(Duration accessTokenLifetime, Duration refreshTokenLifetime) {
         this.accessTokenLifetime = accessTokenLifetime;
@@ -78,7 +78,7 @@ public class TokenStore {
      * @param subject  the subject
      * @param scopes   the scopes
      * @return the stored token
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public StoredToken issueAccessToken(String clientId, String subject, Set<String> scopes) {
         String token = generateToken();
@@ -97,7 +97,7 @@ public class TokenStore {
      * @param subject  the subject
      * @param scopes   the scopes
      * @return the stored token
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public StoredToken issueRefreshToken(String clientId, String subject, Set<String> scopes) {
         String token = generateToken();
@@ -114,7 +114,7 @@ public class TokenStore {
      *
      * @param token the token string
      * @return the stored token if valid, empty otherwise
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<StoredToken> validateAccessToken(String token) {
         var stored = accessTokens.get(token);
@@ -127,7 +127,7 @@ public class TokenStore {
      *
      * @param token the token string
      * @return the stored token if valid, empty otherwise
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Optional<StoredToken> validateRefreshToken(String token) {
         var stored = refreshTokens.get(token);
@@ -140,7 +140,7 @@ public class TokenStore {
      *
      * @param token the token to revoke
      * @return true if the token was found and revoked
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean revokeAccessToken(String token) {
         return accessTokens.remove(token) != null;
@@ -151,7 +151,7 @@ public class TokenStore {
      *
      * @param token the token to revoke
      * @return true if the token was found and revoked
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean revokeRefreshToken(String token) {
         return refreshTokens.remove(token) != null;
@@ -161,7 +161,7 @@ public class TokenStore {
      * Revokes all tokens for a subject (user).
      *
      * @param subject the subject
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void revokeBySubject(String subject) {
         accessTokens.values().removeIf(t -> subject.equals(t.subject()));
@@ -172,7 +172,7 @@ public class TokenStore {
      * Removes all expired tokens.
      *
      * @return the number of tokens removed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int cleanExpired() {
         int count = 0;
@@ -185,7 +185,7 @@ public class TokenStore {
      * Returns the access token lifetime.
      *
      * @return the lifetime
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Duration getAccessTokenLifetime() {
         return accessTokenLifetime;
@@ -195,7 +195,7 @@ public class TokenStore {
      * Returns the number of active access tokens.
      *
      * @return the count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int accessTokenCount() {
         return accessTokens.size();
@@ -205,7 +205,7 @@ public class TokenStore {
      * Returns the number of active refresh tokens.
      *
      * @return the count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int refreshTokenCount() {
         return refreshTokens.size();

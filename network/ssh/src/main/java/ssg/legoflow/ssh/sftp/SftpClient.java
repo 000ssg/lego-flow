@@ -17,12 +17,15 @@ import java.util.concurrent.atomic.AtomicInteger;
  * mkdir, rmdir, opendir, readdir, stat, lstat, fstat, setstat, fsetstat,
  * readlink, symlink, realpath.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SftpClient implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(SftpClient.class);
     private static final int SFTP_VERSION = 3;
+
+    /** Default timeout for SFTP operations (milliseconds). */
+    private static final long DEFAULT_TIMEOUT_MS = 10_000;
 
     private final SessionChannel channel;
     private final AtomicInteger requestId = new AtomicInteger(1);
@@ -46,7 +49,10 @@ public final class SftpClient implements AutoCloseable {
     public void init() throws IOException, InterruptedException {
         byte[] initPacket = SftpCodec.encode(new SftpPacket.Init(SFTP_VERSION));
         channel.sendData(initPacket);
-        byte[] response = channel.receiveData();
+        byte[] response = channel.receiveData(DEFAULT_TIMEOUT_MS);
+        if (response == null) {
+            throw new IOException("SFTP init timeout after " + DEFAULT_TIMEOUT_MS + "ms");
+        }
         SftpPacket decoded = SftpCodec.decode(response);
         if (decoded instanceof SftpPacket.Version v) {
             serverVersion = v.version();
@@ -316,7 +322,10 @@ public final class SftpClient implements AutoCloseable {
     }
 
     private SftpPacket decodeResponse() throws IOException, InterruptedException {
-        byte[] data = channel.receiveData();
+        byte[] data = channel.receiveData(DEFAULT_TIMEOUT_MS);
+        if (data == null) {
+            throw new IOException("SFTP operation timed out after " + DEFAULT_TIMEOUT_MS + "ms");
+        }
         return SftpCodec.decode(data);
     }
 

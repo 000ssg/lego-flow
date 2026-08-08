@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for {@link MqttCodec} encode/decode round-trips.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class MqttCodecTest {
 

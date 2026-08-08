@@ -7,7 +7,7 @@ package ssg.legoflow.ssh.transport;
  * in RFC 4253, RFC 4252, and RFC 4254. The sealed hierarchy enables exhaustive
  * pattern matching in switch expressions.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface SshPacket permits
         SshPacket.Disconnect,
@@ -57,7 +57,7 @@ public sealed interface SshPacket permits
      * @param reasonCode  the disconnect reason code
      * @param description human-readable disconnect description
      * @param language    language tag (RFC 3066)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Disconnect(int reasonCode, String description, String language) implements SshPacket {
         @Override public byte messageType() { return 1; }
@@ -67,7 +67,7 @@ public sealed interface SshPacket permits
      * SSH_MSG_IGNORE (type 2).
      *
      * @param data arbitrary data to be ignored
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Ignore(byte[] data) implements SshPacket {
         @Override public byte messageType() { return 2; }
@@ -77,7 +77,7 @@ public sealed interface SshPacket permits
      * SSH_MSG_UNIMPLEMENTED (type 3).
      *
      * @param sequenceNumber the sequence number of the unrecognized packet
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Unimplemented(long sequenceNumber) implements SshPacket {
         @Override public byte messageType() { return 3; }
@@ -89,7 +89,7 @@ public sealed interface SshPacket permits
      * @param alwaysDisplay whether the message should always be displayed
      * @param message       the debug message
      * @param language      language tag
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Debug(boolean alwaysDisplay, String message, String language) implements SshPacket {
         @Override public byte messageType() { return 4; }
@@ -99,7 +99,7 @@ public sealed interface SshPacket permits
      * SSH_MSG_SERVICE_REQUEST (type 5).
      *
      * @param serviceName the requested service name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record ServiceRequest(String serviceName) implements SshPacket {
         @Override public byte messageType() { return 5; }
@@ -109,7 +109,7 @@ public sealed interface SshPacket permits
      * SSH_MSG_SERVICE_ACCEPT (type 6).
      *
      * @param serviceName the accepted service name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record ServiceAccept(String serviceName) implements SshPacket {
         @Override public byte messageType() { return 6; }
@@ -118,7 +118,7 @@ public sealed interface SshPacket permits
     /**
      * SSH_MSG_NEWKEYS (type 21).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record NewKeys() implements SshPacket {
         @Override public byte messageType() { return 21; }
@@ -130,7 +130,7 @@ public sealed interface SshPacket permits
      * SSH_MSG_KEXDH_INIT (type 30).
      *
      * @param e the client's DH public value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record KexDhInit(byte[] e) implements SshPacket {
         @Override public byte messageType() { return 30; }
@@ -142,7 +142,7 @@ public sealed interface SshPacket permits
      * @param hostKey   the server's public host key
      * @param f         the server's DH public value
      * @param signature the signature of the exchange hash
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record KexDhReply(byte[] hostKey, byte[] f, byte[] signature) implements SshPacket {
         @Override public byte messageType() { return 31; }
@@ -154,7 +154,7 @@ public sealed interface SshPacket permits
      * SSH_MSG_KEX_ECDH_INIT (type 30).
      *
      * @param clientPublicKey the client's ephemeral ECDH public key
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record KexEcdhInit(byte[] clientPublicKey) implements SshPacket {
         @Override public byte messageType() { return 30; }
@@ -166,7 +166,7 @@ public sealed interface SshPacket permits
      * @param hostKey         the server's public host key
      * @param serverPublicKey the server's ephemeral ECDH public key
      * @param signature       the signature of the exchange hash
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record KexEcdhReply(byte[] hostKey, byte[] serverPublicKey, byte[] signature) implements SshPacket {
         @Override public byte messageType() { return 31; }
@@ -181,7 +181,7 @@ public sealed interface SshPacket permits
      * @param serviceName the service to start after authentication
      * @param methodName  the authentication method name
      * @param methodData  method-specific data
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record UserAuthRequest(String username, String serviceName, String methodName,
                            byte[] methodData) implements SshPacket {
@@ -193,7 +193,7 @@ public sealed interface SshPacket permits
      *
      * @param authMethodsThatCanContinue list of methods that can continue
      * @param partialSuccess             whether partial success occurred
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record UserAuthFailure(java.util.List<String> authMethodsThatCanContinue,
                            boolean partialSuccess) implements SshPacket {
@@ -203,7 +203,7 @@ public sealed interface SshPacket permits
     /**
      * SSH_MSG_USERAUTH_SUCCESS (type 52).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record UserAuthSuccess() implements SshPacket {
         @Override public byte messageType() { return 52; }
@@ -214,7 +214,7 @@ public sealed interface SshPacket permits
      *
      * @param message  the banner message
      * @param language language tag
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record UserAuthBanner(String message, String language) implements SshPacket {
         @Override public byte messageType() { return 53; }
@@ -228,7 +228,7 @@ public sealed interface SshPacket permits
      * @param language    language tag
      * @param prompts     list of prompts
      * @param echos       whether each prompt should be echoed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record UserAuthInfoRequest(String name, String instruction, String language,
                                java.util.List<String> prompts,
@@ -240,7 +240,7 @@ public sealed interface SshPacket permits
      * SSH_MSG_USERAUTH_INFO_RESPONSE (type 61) for keyboard-interactive.
      *
      * @param responses the user responses to the prompts
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record UserAuthInfoResponse(java.util.List<String> responses) implements SshPacket {
         @Override public byte messageType() { return 61; }
@@ -254,7 +254,7 @@ public sealed interface SshPacket permits
      * @param requestName the request name
      * @param wantReply   whether a reply is expected
      * @param data        request-specific data
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record GlobalRequest(String requestName, boolean wantReply, byte[] data) implements SshPacket {
         @Override public byte messageType() { return 80; }
@@ -264,7 +264,7 @@ public sealed interface SshPacket permits
      * SSH_MSG_REQUEST_SUCCESS (type 81).
      *
      * @param data response data
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record RequestSuccess(byte[] data) implements SshPacket {
         @Override public byte messageType() { return 81; }
@@ -273,7 +273,7 @@ public sealed interface SshPacket permits
     /**
      * SSH_MSG_REQUEST_FAILURE (type 82).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record RequestFailure() implements SshPacket {
         @Override public byte messageType() { return 82; }
@@ -287,7 +287,7 @@ public sealed interface SshPacket permits
      * @param initialWindowSize initial window size
      * @param maxPacketSize    maximum packet size
      * @param data             channel-type-specific data
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record ChannelOpen(String channelType, int senderChannel, long initialWindowSize,
                        long maxPacketSize, byte[] data) implements SshPacket {
@@ -301,7 +301,7 @@ public sealed interface SshPacket permits
      * @param senderChannel    the sender's channel number
      * @param initialWindowSize initial window size
      * @param maxPacketSize    maximum packet size
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record ChannelOpenConfirmation(int recipientChannel, int senderChannel,
                                    long initialWindowSize, long maxPacketSize) implements SshPacket {
@@ -315,7 +315,7 @@ public sealed interface SshPacket permits
      * @param reasonCode       the failure reason code
      * @param description      human-readable description
      * @param language         language tag
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record ChannelOpenFailure(int recipientChannel, int reasonCode,
                               String description, String language) implements SshPacket {
@@ -327,7 +327,7 @@ public sealed interface SshPacket permits
      *
      * @param recipientChannel the recipient's channel number
      * @param bytesToAdd       number of bytes to add to window
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record ChannelWindowAdjust(int recipientChannel, long bytesToAdd) implements SshPacket {
         @Override public byte messageType() { return 93; }
@@ -338,7 +338,7 @@ public sealed interface SshPacket permits
      *
      * @param recipientChannel the recipient's channel number
      * @param data             the data
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record ChannelData(int recipientChannel, byte[] data) implements SshPacket {
         @Override public byte messageType() { return 94; }
@@ -350,7 +350,7 @@ public sealed interface SshPacket permits
      * @param recipientChannel the recipient's channel number
      * @param dataTypeCode     the data type code (1 = SSH_EXTENDED_DATA_STDERR)
      * @param data             the data
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record ChannelExtendedData(int recipientChannel, int dataTypeCode, byte[] data) implements SshPacket {
         @Override public byte messageType() { return 95; }
@@ -360,7 +360,7 @@ public sealed interface SshPacket permits
      * SSH_MSG_CHANNEL_EOF (type 96).
      *
      * @param recipientChannel the recipient's channel number
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record ChannelEof(int recipientChannel) implements SshPacket {
         @Override public byte messageType() { return 96; }
@@ -370,7 +370,7 @@ public sealed interface SshPacket permits
      * SSH_MSG_CHANNEL_CLOSE (type 97).
      *
      * @param recipientChannel the recipient's channel number
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record ChannelClose(int recipientChannel) implements SshPacket {
         @Override public byte messageType() { return 97; }
@@ -383,7 +383,7 @@ public sealed interface SshPacket permits
      * @param requestType      the request type (e.g., "pty-req", "shell", "exec")
      * @param wantReply        whether a reply is expected
      * @param data             request-specific data
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record ChannelRequest(int recipientChannel, String requestType,
                           boolean wantReply, byte[] data) implements SshPacket {
@@ -394,7 +394,7 @@ public sealed interface SshPacket permits
      * SSH_MSG_CHANNEL_SUCCESS (type 99).
      *
      * @param recipientChannel the recipient's channel number
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record ChannelSuccess(int recipientChannel) implements SshPacket {
         @Override public byte messageType() { return 99; }
@@ -404,7 +404,7 @@ public sealed interface SshPacket permits
      * SSH_MSG_CHANNEL_FAILURE (type 100).
      *
      * @param recipientChannel the recipient's channel number
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record ChannelFailure(int recipientChannel) implements SshPacket {
         @Override public byte messageType() { return 100; }

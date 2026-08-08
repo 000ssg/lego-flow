@@ -10,7 +10,7 @@ import java.util.Objects;
  *
  * @param modifier the bandwidth modifier (e.g., "CT", "AS", or extension "X-" prefix)
  * @param value    the bandwidth value in kilobits per second
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Bandwidth(String modifier, int value) {
 

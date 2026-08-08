@@ -10,7 +10,7 @@ import java.util.Objects;
  * <p>These attributes describe a CoAP resource for discovery purposes
  * and are serialized in the link-format representation.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ResourceAttributes {
 
@@ -24,7 +24,7 @@ public final class ResourceAttributes {
     /**
      * Creates empty resource attributes.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ResourceAttributes() {
     }
@@ -33,7 +33,7 @@ public final class ResourceAttributes {
      * Returns the human-readable title.
      *
      * @return the title, or {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String title() {
         return title;
@@ -44,7 +44,7 @@ public final class ResourceAttributes {
      *
      * @param title the title
      * @return this instance for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ResourceAttributes title(String title) {
         this.title = title;
@@ -55,7 +55,7 @@ public final class ResourceAttributes {
      * Returns the resource type (rt=).
      *
      * @return the resource type, or {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String resourceType() {
         return resourceType;
@@ -66,7 +66,7 @@ public final class ResourceAttributes {
      *
      * @param resourceType the resource type
      * @return this instance for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ResourceAttributes resourceType(String resourceType) {
         this.resourceType = resourceType;
@@ -77,7 +77,7 @@ public final class ResourceAttributes {
      * Returns the interface description (if=).
      *
      * @return the interface description, or {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String interfaceDescription() {
         return interfaceDescription;
@@ -88,7 +88,7 @@ public final class ResourceAttributes {
      *
      * @param interfaceDescription the interface description
      * @return this instance for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ResourceAttributes interfaceDescription(String interfaceDescription) {
         this.interfaceDescription = interfaceDescription;
@@ -99,7 +99,7 @@ public final class ResourceAttributes {
      * Returns the maximum size estimate in bytes (sz=).
      *
      * @return the max size estimate, or -1 if not set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int maxSizeEstimate() {
         return maxSizeEstimate;
@@ -110,7 +110,7 @@ public final class ResourceAttributes {
      *
      * @param maxSizeEstimate the max size in bytes
      * @return this instance for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ResourceAttributes maxSizeEstimate(int maxSizeEstimate) {
         this.maxSizeEstimate = maxSizeEstimate;
@@ -121,7 +121,7 @@ public final class ResourceAttributes {
      * Returns the content format (ct=).
      *
      * @return the content format value, or -1 if not set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int contentFormat() {
         return contentFormat;
@@ -132,7 +132,7 @@ public final class ResourceAttributes {
      *
      * @param contentFormat the content format value
      * @return this instance for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ResourceAttributes contentFormat(int contentFormat) {
         this.contentFormat = contentFormat;
@@ -143,7 +143,7 @@ public final class ResourceAttributes {
      * Returns whether the resource is observable (obs).
      *
      * @return {@code true} if observable
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean observable() {
         return observable;
@@ -154,7 +154,7 @@ public final class ResourceAttributes {
      *
      * @param observable whether the resource is observable
      * @return this instance for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ResourceAttributes observable(boolean observable) {
         this.observable = observable;
@@ -166,7 +166,7 @@ public final class ResourceAttributes {
      * (without the URI part).
      *
      * @return the attribute string (e.g. ";rt=temperature;obs;ct=0")
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toCoreLinkFormat() {
         var sb = new StringBuilder();

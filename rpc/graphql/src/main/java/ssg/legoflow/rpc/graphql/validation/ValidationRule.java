@@ -11,7 +11,7 @@ import java.util.List;
  * <p>Each rule checks a specific aspect of a GraphQL document against
  * the schema and returns any validation errors found.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 @FunctionalInterface
 public interface ValidationRule {

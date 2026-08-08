@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -17,7 +18,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for MQTT v5.0 DISCONNECT packet with reason codes (Section 3.14.2).
  *
- * @since 1.0.0
+ * <p>Timing-critical assertions use {@link TestAssertions} with exponential
+ * backoff instead of {@code Thread.sleep()} to avoid flaky failures under parallel
+ * execution (-T 1C).
+ *
+ * @since 0.1.0
  */
 class DisconnectReasonCodeTest {
 
@@ -89,7 +94,10 @@ class DisconnectReasonCodeTest {
             writePacket(ch, codec, disconnect);
         }
 
-        Thread.sleep(200);
+        // Allow async disconnect processing to complete (retry-based)
+        TestAssertions.waitForCondition(
+                () -> !broker.getConnectedClients().contains("will-normal"),
+                Duration.ofSeconds(3), 50);
 
         // Then: will message was NOT published (normal disconnect)
         // Verify by checking there's no retained will message

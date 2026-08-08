@@ -5,7 +5,7 @@ import ssg.legoflow.service.ServiceContext;
 /**
  * Context for WAMP operations, extending {@link ServiceContext} with session and realm information.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface WampContext extends ServiceContext {
 

@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
  *
  * @param operations the operation definitions
  * @param fragments  the fragment definitions
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Document(List<OperationDefinition> operations,
                        List<FragmentDefinition> fragments) {

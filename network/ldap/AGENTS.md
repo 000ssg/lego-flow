@@ -1,4 +1,9 @@
-# LDAP Module — Development Guide
+# network / ldap — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -56,13 +61,3 @@ All LDAP messages use APPLICATION-tagged BER structures as defined in the RFC 45
 ## Dependencies
 - network-common (shared BER/ASN.1 codec)
 - slf4j-api (logging)
-
-## Commit Rules
-- Update doc/REQUIREMENTS.md with commit section
-- Update doc/ARCHITECTURE.md if architecture changed
-- Update README.md for API changes
-
----
-
-**Last Updated**: 2026-07-06
-**For AI assistant versions**

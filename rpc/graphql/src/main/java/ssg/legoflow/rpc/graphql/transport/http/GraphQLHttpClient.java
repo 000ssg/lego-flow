@@ -16,7 +16,7 @@ import java.util.*;
  *
  * <p>Sends queries as POST requests with application/json content type.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class GraphQLHttpClient implements GraphQLTransport, AutoCloseable {
 

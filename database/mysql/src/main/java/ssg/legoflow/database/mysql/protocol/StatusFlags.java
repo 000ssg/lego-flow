@@ -6,7 +6,7 @@ package ssg.legoflow.database.mysql.protocol;
  * <p>Status flags are sent in OK, EOF, and handshake packets to communicate
  * the current server state to the client.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class StatusFlags {
 

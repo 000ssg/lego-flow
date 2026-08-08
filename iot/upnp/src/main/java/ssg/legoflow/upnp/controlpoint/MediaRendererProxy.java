@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  * transport state on a media renderer. Can work with a local
  * {@link MediaRendererDevice} for in-process operation.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class MediaRendererProxy extends DeviceProxy {
 
@@ -35,7 +35,7 @@ public class MediaRendererProxy extends DeviceProxy {
      * @param friendlyName   the human-readable name
      * @param baseUrl        the device base URL
      * @param descriptionXml the device description XML
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MediaRendererProxy(String udn, String friendlyName, URL baseUrl,
                               String descriptionXml) {
@@ -46,7 +46,7 @@ public class MediaRendererProxy extends DeviceProxy {
      * Creates a proxy backed by a local media renderer device (in-process).
      *
      * @param device the local media renderer device
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MediaRendererProxy(MediaRendererDevice device) {
         super(device.getUdn(), device.getFriendlyName(),
@@ -65,7 +65,7 @@ public class MediaRendererProxy extends DeviceProxy {
      * a {@code protocolInfo} attribute to accept the transport URI.
      *
      * @param item the content item to play
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void playItem(ContentItem item) {
         String uri = item.getResourceUrl() != null ? item.getResourceUrl().toString() : "";
@@ -90,7 +90,7 @@ public class MediaRendererProxy extends DeviceProxy {
      *
      * @param item the content item
      * @return DIDL-Lite XML string, or empty string if metadata cannot be generated
-     * @since 1.0.0
+     * @since 0.1.0
      */
     private String generateDidlLiteMetadata(ContentItem item) {
         try {
@@ -117,7 +117,7 @@ public class MediaRendererProxy extends DeviceProxy {
      *
      * @param url the media URL string
      * @return the inferred MIME type, or null if unknown
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String inferMimeType(String url) {
         if (url == null || url.isEmpty()) return null;
@@ -162,7 +162,7 @@ public class MediaRendererProxy extends DeviceProxy {
     /**
      * Starts or resumes playback.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void play() {
         if (localDevice != null) {
@@ -176,7 +176,7 @@ public class MediaRendererProxy extends DeviceProxy {
     /**
      * Pauses playback.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void pause() {
         if (localDevice != null) {
@@ -190,7 +190,7 @@ public class MediaRendererProxy extends DeviceProxy {
     /**
      * Stops playback.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         if (localDevice != null) {
@@ -205,7 +205,7 @@ public class MediaRendererProxy extends DeviceProxy {
      * Seeks to a position.
      *
      * @param position the target position
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void seek(Duration position) {
         String timeStr = ContentItem.formatDuration(position);
@@ -220,7 +220,7 @@ public class MediaRendererProxy extends DeviceProxy {
     /**
      * Advances to the next track.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void next() {
         if (localDevice != null) {
@@ -234,7 +234,7 @@ public class MediaRendererProxy extends DeviceProxy {
     /**
      * Returns to the previous track.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void previous() {
         if (localDevice != null) {
@@ -252,7 +252,7 @@ public class MediaRendererProxy extends DeviceProxy {
      * {@code GetVolume} action (e.g. LG webOS TVs return UPnP error 606).
      *
      * @return the volume (0-100), or -1 if unavailable
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getVolume() {
         if (localDevice != null) {
@@ -272,7 +272,7 @@ public class MediaRendererProxy extends DeviceProxy {
      * Sets the volume level.
      *
      * @param volume the desired volume (0-100)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setVolume(int volume) {
         if (localDevice != null) {
@@ -291,7 +291,7 @@ public class MediaRendererProxy extends DeviceProxy {
      * {@code GetMute} action (e.g. LG webOS TVs return UPnP error 606).
      *
      * @return true if muted, false if unmuted or unavailable
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean getMute() {
         if (localDevice != null) {
@@ -311,7 +311,7 @@ public class MediaRendererProxy extends DeviceProxy {
      * Sets the mute state.
      *
      * @param muted true to mute, false to unmute
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setMute(boolean muted) {
         if (localDevice != null) {
@@ -327,7 +327,7 @@ public class MediaRendererProxy extends DeviceProxy {
      * Returns the current transport state.
      *
      * @return the transport state
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public TransportState getTransportState() {
         if (localDevice != null) {
@@ -342,7 +342,7 @@ public class MediaRendererProxy extends DeviceProxy {
      * Returns the current position info.
      *
      * @return the position info
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public PositionInfo getPosition() {
         if (localDevice != null) {
@@ -366,7 +366,7 @@ public class MediaRendererProxy extends DeviceProxy {
      * Returns the current media info.
      *
      * @return the media info
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MediaInfo getMediaInfo() {
         if (localDevice != null) {
@@ -391,7 +391,7 @@ public class MediaRendererProxy extends DeviceProxy {
      * Subscribes to transport state change events.
      *
      * @param listener the playback listener
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void subscribeTransportEvents(PlaybackListener listener) {
         if (localDevice != null) {

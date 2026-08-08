@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import ssg.legoflow.media.rtp.packet.RtpPacket;
 
 import java.util.Optional;
-import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -19,7 +18,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * <p>Thread-safe for concurrent producers (network receiver) and a single
  * consumer (playout thread).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class JitterBuffer {
 
@@ -34,7 +33,9 @@ public final class JitterBuffer {
     /** Default maximum buffer capacity in packets. */
     public static final int DEFAULT_CAPACITY = 500;
 
-    private final TreeMap<Integer, RtpPacket> buffer = new TreeMap<>(JitterBuffer::seqCompare);
+    // Using fixed-size array instead of TreeMap for better performance
+    private final RtpPacket[] bufferArray;
+    private final int[] seqArray; // To track sequence numbers in the same order as bufferArray
     private final ReentrantLock lock = new ReentrantLock();
     private final int capacity;
     private final int minDelayMs;
@@ -42,6 +43,9 @@ public final class JitterBuffer {
 
     private int nextExpectedSeq = -1;
     private int adaptiveDelayMs;
+    private int bufferHead = 0; // head position in circular buffer
+    private int bufferTail = 0; // tail position in circular buffer
+    private int bufferCount = 0; // current number of elements in buffer
 
     // Statistics
     private final AtomicLong totalReceived = new AtomicLong();
@@ -72,6 +76,9 @@ public final class JitterBuffer {
         this.minDelayMs = minDelayMs;
         this.maxDelayMs = maxDelayMs;
         this.adaptiveDelayMs = minDelayMs;
+        // Pre-size arrays
+        this.bufferArray = new RtpPacket[capacity];
+        this.seqArray = new int[capacity];
     }
 
     /**
@@ -94,8 +101,9 @@ public final class JitterBuffer {
                 nextExpectedSeq = seq;
             }
 
-            // Check for duplicate
-            if (buffer.containsKey(seq)) {
+            // Check for duplicate (use circular buffer indexing)
+            int duplicateIndex = findPacketIndex(seq);
+            if (duplicateIndex >= 0) {
                 duplicates.incrementAndGet();
                 LOG.trace("Duplicate packet seq={}", seq);
                 return InsertResult.DUPLICATE;
@@ -109,14 +117,21 @@ public final class JitterBuffer {
             }
 
             // Check capacity
-            if (buffer.size() >= capacity) {
+            if (bufferCount >= capacity) {
                 overflows.incrementAndGet();
-                // Drop oldest packet to make room
-                buffer.pollFirstEntry();
+                // Drop oldest packet to make room - remove from head
+                bufferArray[bufferHead] = null;
+                bufferHead = (bufferHead + 1) % capacity;
+                bufferCount--;
                 LOG.trace("Buffer overflow, dropped oldest packet");
             }
 
-            buffer.put(seq, packet);
+            // Insert packet
+            int insertIndex = (bufferTail + bufferCount) % capacity;
+            bufferArray[insertIndex] = packet;
+            seqArray[insertIndex] = seq;
+            bufferCount++;
+
             return InsertResult.ACCEPTED;
         } finally {
             lock.unlock();
@@ -135,20 +150,24 @@ public final class JitterBuffer {
     public Optional<RtpPacket> poll() {
         lock.lock();
         try {
-            if (buffer.isEmpty()) {
+            if (bufferCount == 0) {
                 return Optional.empty();
             }
 
-            // Get the first available packet
-            var firstEntry = buffer.firstEntry();
-            int firstSeq = firstEntry.getKey();
-
-            // If this is the expected sequence, play it
-            if (nextExpectedSeq < 0 || firstSeq == nextExpectedSeq) {
-                buffer.pollFirstEntry();
-                nextExpectedSeq = (firstSeq + 1) & 0xFFFF;
+            // Check if the next expected packet is available
+            int expectedIndex = findPacketIndex(nextExpectedSeq);
+            if (expectedIndex >= 0) {
+                RtpPacket packet = bufferArray[expectedIndex];
+                bufferArray[expectedIndex] = null; // Clear reference to help GC
+                seqArray[expectedIndex] = 0; // Clear sequence number
+                bufferCount--;
+                nextExpectedSeq = (nextExpectedSeq + 1) & 0xFFFF;
+                // Advance bufferHead to next non-null slot
+                while (bufferCount > 0 && bufferArray[bufferHead] == null) {
+                    bufferHead = (bufferHead + 1) % capacity;
+                }
                 totalPlayed.incrementAndGet();
-                return Optional.of(firstEntry.getValue());
+                return Optional.of(packet);
             }
 
             return Optional.empty();
@@ -168,13 +187,22 @@ public final class JitterBuffer {
     public Optional<RtpPacket> skip() {
         lock.lock();
         try {
-            if (buffer.isEmpty()) {
+            if (bufferCount == 0) {
                 return Optional.empty();
             }
-            var entry = buffer.pollFirstEntry();
-            nextExpectedSeq = (entry.getKey() + 1) & 0xFFFF;
-            totalPlayed.incrementAndGet();
-            return Optional.of(entry.getValue());
+            
+            // Get the first available packet in sequence order
+            int firstAvailableIndex = findFirstAvailableIndex();
+            if (firstAvailableIndex >= 0) {
+                RtpPacket packet = bufferArray[firstAvailableIndex];
+                bufferArray[firstAvailableIndex] = null; // Clear reference to help GC
+                bufferCount--;
+                nextExpectedSeq = (seqArray[firstAvailableIndex] + 1) & 0xFFFF;
+                totalPlayed.incrementAndGet();
+                return Optional.of(packet);
+            }
+            
+            return Optional.empty();
         } finally {
             lock.unlock();
         }
@@ -217,7 +245,7 @@ public final class JitterBuffer {
     public int size() {
         lock.lock();
         try {
-            return buffer.size();
+            return bufferCount;
         } finally {
             lock.unlock();
         }
@@ -238,7 +266,10 @@ public final class JitterBuffer {
     public void clear() {
         lock.lock();
         try {
-            buffer.clear();
+            for (int i = 0; i < capacity; i++) { bufferArray[i] = null; seqArray[i] = 0; }
+            bufferHead = 0;
+            bufferTail = 0;
+            bufferCount = 0;
             nextExpectedSeq = -1;
         } finally {
             lock.unlock();
@@ -259,6 +290,45 @@ public final class JitterBuffer {
 
     /** @return total buffer overflows */
     public long overflowCount() { return overflows.get(); }
+
+    /**
+     * Finds the index of a packet with the given sequence number in the buffer.
+     * 
+     * @param seq the sequence number to find
+     * @return the index if found, -1 otherwise
+     */
+    private int findPacketIndex(int seq) {
+        // Linear search through the buffer
+        for (int i = 0; i < bufferCount; i++) {
+            int index = (bufferHead + i) % capacity;
+            if (seqArray[index] == seq) {
+                return index;
+            }
+        }
+        return -1;
+    }
+    
+    /**
+     * Finds the index of the first available packet in sequence order.
+     * 
+     * @return the index if found, -1 otherwise
+     */
+    private int findFirstAvailableIndex() {
+        // Linear search for the lowest sequence number >= nextExpectedSeq
+        int lowestIndex = -1;
+        int lowestSeq = Integer.MAX_VALUE;
+        
+        for (int i = 0; i < bufferCount; i++) {
+            int index = (bufferHead + i) % capacity;
+            int seq = seqArray[index];
+            if (seq >= nextExpectedSeq && seq < lowestSeq) {
+                lowestSeq = seq;
+                lowestIndex = index;
+            }
+        }
+        
+        return lowestIndex;
+    }
 
     /**
      * Checks if a sequence number is "late" relative to the expected sequence.
@@ -288,7 +358,7 @@ public final class JitterBuffer {
     /**
      * Result of inserting a packet into the jitter buffer.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum InsertResult {
         /** Packet was accepted and buffered. */

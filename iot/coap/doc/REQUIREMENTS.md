@@ -133,7 +133,7 @@
 3. Use existing `SimpleServerDemo` for GET/PUT, separate `CoapServer` for other features
 4. Use `.equals()` for `CoapCode` comparisons (CoapCode is a final class, not a record)
 5. Create `DemoCoapAllTest` with AssertJ assertions on each Results field
-6. Javadoc on all public classes/methods with @since 1.0.0
+6. Javadoc on all public classes/methods with @since 0.1.0
 
 ### Final Design Decisions
 - Reuse `SimpleServerDemo` for basic GET/PUT operations (proven pattern)

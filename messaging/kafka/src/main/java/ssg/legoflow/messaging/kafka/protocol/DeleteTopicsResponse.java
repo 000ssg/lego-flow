@@ -6,7 +6,7 @@ import java.util.List;
  * DeleteTopics response (API key 20).
  *
  * @param responses the per-topic deletion responses
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record DeleteTopicsResponse(List<TopicResult> responses) {
 

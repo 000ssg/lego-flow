@@ -8,7 +8,7 @@ import java.util.List;
  * <p>Writes transaction markers (commit/abort) to partition logs.
  *
  * @param markers the transaction markers to write
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record WriteTxnMarkersRequest(List<TxnMarker> markers) {
 

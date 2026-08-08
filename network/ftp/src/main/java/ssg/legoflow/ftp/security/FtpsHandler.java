@@ -17,7 +17,7 @@ import java.util.Objects;
  * <p>Manages the AUTH TLS handshake, PBSZ/PROT commands, and TLS socket upgrades
  * for both control and data connections.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class FtpsHandler {
 

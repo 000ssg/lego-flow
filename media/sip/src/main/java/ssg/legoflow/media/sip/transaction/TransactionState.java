@@ -5,7 +5,7 @@ package ssg.legoflow.media.sip.transaction;
  *
  * <p>Covers both INVITE and non-INVITE client and server transaction states.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum TransactionState {
 
@@ -35,7 +35,7 @@ public enum TransactionState {
      * Returns true if this is a final state (COMPLETED, CONFIRMED, or TERMINATED).
      *
      * @return true if final
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isFinal() {
         return this == COMPLETED || this == CONFIRMED || this == TERMINATED;

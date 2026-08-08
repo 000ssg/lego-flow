@@ -8,7 +8,7 @@ import java.security.GeneralSecurityException;
 /**
  * AES-128 in CTR mode cipher for SSH (aes128-ctr).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class Aes128Ctr implements SshCipher {
 

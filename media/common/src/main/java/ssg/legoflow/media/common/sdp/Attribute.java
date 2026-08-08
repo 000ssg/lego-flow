@@ -11,7 +11,7 @@ import java.util.Optional;
  *
  * @param name  the attribute name (never null)
  * @param value the attribute value, or empty for property-style attributes
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Attribute(String name, Optional<String> value) {
 

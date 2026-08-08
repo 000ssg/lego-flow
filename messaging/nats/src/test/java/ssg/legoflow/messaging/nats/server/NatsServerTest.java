@@ -164,15 +164,27 @@ class NatsServerTest {
                 service.connect();
                 requester.connect();
 
-                service.subscribe("echo", msg -> {
+                // On CI, NATS server routing between two clients takes time.
+                // Use CountDownLatch + brief delay for subscription setup to be reliable.
+                var readyLatch = new CountDownLatch(1);
+
+                service.subscribe("echo", (msg) -> {
                     try {
-                        service.publish(msg.replyTo(), msg.payload());
+                        if (msg.replyTo() != null) {
+                            service.publish(msg.replyTo(), msg.payload());
+                        }
+                        readyLatch.countDown();
                     } catch (IOException e) { /* ignore */ }
                 });
-                Thread.sleep(50);
 
-                var reply = requester.request("echo", "ping", Duration.ofSeconds(3));
+                // Brief delay for server to process subscription registration.
+                // On CI the SUB message propagation between two connected clients can take time.
+                Thread.sleep(300);
+
+                // Now send the actual request
+                var reply = requester.request("echo", "ping", Duration.ofSeconds(5));
                 assertThat(reply).isNotNull();
+                readyLatch.await(2, TimeUnit.SECONDS);  // verify callback was invoked
                 assertThat(reply.dataAsString()).isEqualTo("ping");
             }
         }

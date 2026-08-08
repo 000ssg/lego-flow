@@ -12,7 +12,7 @@ import java.nio.ByteBuffer;
  *
  * @param pluginName the name of the auth plugin to switch to
  * @param pluginData the auth plugin data (scramble) for the new plugin
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record AuthSwitchRequest(String pluginName, byte[] pluginData) {
 

@@ -6,7 +6,7 @@ package ssg.legoflow.media.sip.protocol;
  * <p>Includes core methods from RFC 3261 (INVITE, ACK, BYE, CANCEL, REGISTER, OPTIONS)
  * and extension methods (REFER, SUBSCRIBE, NOTIFY, MESSAGE, INFO, PRACK, UPDATE).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum SipMethod {
 

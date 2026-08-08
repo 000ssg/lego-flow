@@ -15,7 +15,7 @@ import java.util.Objects;
  * <p>Represents the media type ({@code type/subtype}) and its parameters
  * (charset, boundary, name, etc.).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ContentType {
 

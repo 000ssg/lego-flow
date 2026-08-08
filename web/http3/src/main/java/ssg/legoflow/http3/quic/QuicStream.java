@@ -21,7 +21,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * <p>This class is thread-safe. All state transitions and flow control
  * operations are guarded by a lock.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class QuicStream {
 
@@ -38,7 +38,7 @@ public class QuicStream {
      * @param streamId          the stream identifier
      * @param initialSendWindow the initial send window in bytes
      * @param initialReceiveWindow the initial receive window in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicStream(long streamId, long initialSendWindow, long initialReceiveWindow) {
         this.streamId = streamId;
@@ -52,7 +52,7 @@ public class QuicStream {
      * Returns the stream identifier.
      *
      * @return the stream ID
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long streamId() {
         return streamId;
@@ -62,7 +62,7 @@ public class QuicStream {
      * Returns the current stream state.
      *
      * @return the current {@link QuicStreamState}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public QuicStreamState state() {
         return state;
@@ -73,7 +73,7 @@ public class QuicStream {
      *
      * @param newState the target state
      * @throws IllegalStateException if the transition is not valid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void transitionTo(QuicStreamState newState) {
         lock.lock();
@@ -94,7 +94,7 @@ public class QuicStream {
      * @param data the data to send
      * @return {@code true} if the send window was sufficient
      * @throws IllegalStateException if the stream is not in a sendable state
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean send(ByteBuffer data) {
         lock.lock();
@@ -120,7 +120,7 @@ public class QuicStream {
      *
      * @param data the received data
      * @throws IllegalStateException if the stream is not in a receivable state
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void receive(ByteBuffer data) {
         lock.lock();
@@ -140,7 +140,7 @@ public class QuicStream {
      * Returns all accumulated received data as a single buffer.
      *
      * @return a {@link ByteBuffer} containing all received data
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ByteBuffer getAccumulatedData() {
         lock.lock();
@@ -165,7 +165,7 @@ public class QuicStream {
      *
      * @param errorCode the application error code
      * @throws IllegalStateException if the stream cannot be reset from its current state
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void resetStream(long errorCode) {
         lock.lock();
@@ -185,7 +185,7 @@ public class QuicStream {
      *
      * @param errorCode the application error code
      * @throws IllegalStateException if stop sending is not valid from the current state
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stopSending(long errorCode) {
         lock.lock();
@@ -203,7 +203,7 @@ public class QuicStream {
      * Returns whether this stream was initiated by the client.
      *
      * @return {@code true} if the stream ID indicates client initiation
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isClientInitiated() {
         return (streamId & 0x01) == 0;
@@ -213,7 +213,7 @@ public class QuicStream {
      * Returns whether this stream was initiated by the server.
      *
      * @return {@code true} if the stream ID indicates server initiation
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isServerInitiated() {
         return (streamId & 0x01) == 1;
@@ -223,7 +223,7 @@ public class QuicStream {
      * Returns whether this is a bidirectional stream.
      *
      * @return {@code true} if the stream type bits indicate bidirectional
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isBidirectional() {
         return (streamId & 0x02) == 0;
@@ -233,7 +233,7 @@ public class QuicStream {
      * Returns whether this is a unidirectional stream.
      *
      * @return {@code true} if the stream type bits indicate unidirectional
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isUnidirectional() {
         return (streamId & 0x02) != 0;
@@ -243,7 +243,7 @@ public class QuicStream {
      * Returns the current send window size.
      *
      * @return the remaining send window in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long sendWindowSize() {
         return sendWindow.get();
@@ -253,7 +253,7 @@ public class QuicStream {
      * Returns the current receive window size.
      *
      * @return the remaining receive window in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long receiveWindowSize() {
         return receiveWindow.get();
@@ -263,7 +263,7 @@ public class QuicStream {
      * Adjusts the send window by the given delta.
      *
      * @param delta the amount to add (positive) or subtract (negative)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void adjustSendWindow(long delta) {
         sendWindow.addAndGet(delta);
@@ -273,7 +273,7 @@ public class QuicStream {
      * Adjusts the receive window by the given delta.
      *
      * @param delta the amount to add (positive) or subtract (negative)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void adjustReceiveWindow(long delta) {
         receiveWindow.addAndGet(delta);
@@ -283,7 +283,7 @@ public class QuicStream {
      * Returns whether the stream is currently open (sending or receiving possible).
      *
      * @return {@code true} if the stream is in an active state
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isOpen() {
         var s = state;
@@ -296,7 +296,7 @@ public class QuicStream {
      * Returns whether the stream is fully closed.
      *
      * @return {@code true} if the stream state is {@link QuicStreamState#CLOSED}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isClosed() {
         return state == QuicStreamState.CLOSED;

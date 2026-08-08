@@ -15,7 +15,7 @@ import java.util.Set;
  * with configurable maximum redirect count. Handles method changes
  * as specified by each redirect type.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class RedirectHandler {
 
@@ -166,7 +166,7 @@ public class RedirectHandler {
      * @param response     the final response
      * @param redirectUrls the list of URLs followed during redirection
      * @param redirectCount the number of redirects followed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record RedirectResult(HttpResponse response, List<String> redirectUrls, int redirectCount) {
         public RedirectResult {
@@ -186,7 +186,7 @@ public class RedirectHandler {
     /**
      * Exception thrown when the maximum redirect count is exceeded.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static class TooManyRedirectsException extends RuntimeException {
         private final int redirectCount;

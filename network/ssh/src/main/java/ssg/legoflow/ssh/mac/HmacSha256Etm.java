@@ -11,7 +11,7 @@ import java.security.GeneralSecurityException;
  * <p>In ETM mode, the MAC is computed over the encrypted packet (after encryption),
  * providing stronger security guarantees than encrypt-and-MAC.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class HmacSha256Etm implements SshMac {
 

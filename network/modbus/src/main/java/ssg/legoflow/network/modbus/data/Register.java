@@ -8,7 +8,7 @@ package ssg.legoflow.network.modbus.data;
  *
  * @param address the register address
  * @param value   the register value (0-65535)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Register(int address, int value) {
 

@@ -15,7 +15,7 @@ package ssg.legoflow.email.smtp.protocol;
  *   <li>End-of-data: a line containing only '.' (after unstuffing) ends the message</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DotStuffing {
 

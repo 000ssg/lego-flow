@@ -3,7 +3,7 @@ package ssg.legoflow.network.dns.protocol;
 /**
  * DNS operation codes (OPCODE) as defined in RFC 1035 and extensions.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum OpCode {
 
@@ -28,7 +28,7 @@ public enum OpCode {
      * Returns the 4-bit numeric value for this operation code.
      *
      * @return the opcode value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int value() {
         return value;
@@ -40,7 +40,7 @@ public enum OpCode {
      * @param value the 4-bit opcode value
      * @return the matching operation code
      * @throws IllegalArgumentException if the value is unknown
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static OpCode fromValue(int value) {
         for (OpCode oc : values()) {

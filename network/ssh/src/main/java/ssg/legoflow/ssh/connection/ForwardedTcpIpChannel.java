@@ -5,7 +5,7 @@ import ssg.legoflow.ssh.transport.SshTransport;
 /**
  * Forwarded TCP/IP channel for remote port forwarding per RFC 4254 section 7.1.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ForwardedTcpIpChannel extends SshChannel {
 

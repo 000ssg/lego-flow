@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * respond with {@code <a h='N'/>} where N is our inbound count. When we receive
  * {@code <a h='N'/>}, we remove stanzas up to N from the unacknowledged queue.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class StreamManagement {
 

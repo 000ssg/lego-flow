@@ -19,7 +19,7 @@ import java.util.function.Consumer;
  * frame sink (e.g. the connection layer). Incoming WebSocket text frames are
  * deserialized and queued for consumption via {@link #receive()}.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class WebSocketWampTransport implements WampTransport {
 

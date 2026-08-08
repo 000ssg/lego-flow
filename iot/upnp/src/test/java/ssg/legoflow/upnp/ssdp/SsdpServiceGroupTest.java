@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.*;
 /**
  * Tests for SSDP integration with {@link ServiceGroup}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class SsdpServiceGroupTest {
 

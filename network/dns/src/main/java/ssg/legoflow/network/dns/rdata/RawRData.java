@@ -12,7 +12,7 @@ import java.util.Arrays;
  *
  * @param recordType the record type value
  * @param data       the raw RDATA bytes
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record RawRData(RecordType recordType, byte[] data) implements RData {
 

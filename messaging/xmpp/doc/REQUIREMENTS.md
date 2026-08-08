@@ -150,7 +150,7 @@
 3. Reuse existing demos: SimpleChatDemo, PresenceDemo, RosterDemo, IoTSensorDemo, IoTControlDemo, IoTDiscoveryDemo, SmartHomeDemo
 4. PubSub demo creates XmppClient directly with node creation, subscription, and item publishing
 5. Create `DemoXmppAllTest` with AssertJ assertions on each Results field
-6. Javadoc on all public classes/methods with @since 1.0.0
+6. Javadoc on all public classes/methods with @since 0.1.0
 
 ### Final Design Decisions
 - Reuse existing demo classes for all features except PubSub

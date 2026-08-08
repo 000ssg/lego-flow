@@ -16,7 +16,7 @@ import java.util.Objects;
  * @param senderPacketCount the total number of RTP data packets sent
  * @param senderOctetCount  the total number of payload octets sent
  * @param reports         the reception report blocks
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SenderReport(
         long ssrc,

@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Command names are stored in uppercase. When a command is not found,
  * an error response is returned automatically.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class CommandRegistry {
 

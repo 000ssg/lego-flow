@@ -21,7 +21,7 @@ import java.util.function.Consumer;
  * mode is auto-detected per connection: if the first byte is a digit, octet
  * counting is assumed; otherwise non-transparent framing with LF delimiter.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class TcpCollector implements AutoCloseable {
 

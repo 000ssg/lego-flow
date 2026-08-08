@@ -9,7 +9,7 @@ import ssg.legoflow.network.common.oid.ObjectIdentifier;
  * The first two arcs are combined in the encoding as {@code 40 * arc1 + arc2}.
  *
  * @param oid the object identifier value
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Asn1ObjectIdentifier(ObjectIdentifier oid) implements Asn1Type {
 

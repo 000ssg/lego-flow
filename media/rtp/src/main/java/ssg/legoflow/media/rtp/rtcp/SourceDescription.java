@@ -10,7 +10,7 @@ import java.util.Objects;
  * with one or more SDES items (CNAME, NAME, EMAIL, etc.).
  *
  * @param chunks the list of SDES chunks
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record SourceDescription(List<SdesChunk> chunks) implements RtcpPacket {
 

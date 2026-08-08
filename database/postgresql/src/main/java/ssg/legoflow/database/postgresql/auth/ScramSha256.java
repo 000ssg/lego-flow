@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>Server responds with server-final-message: {@code v=server-signature}</li>
  * </ol>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ScramSha256 implements PgAuthenticator {
 

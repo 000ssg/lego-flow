@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * Public key authentication method per RFC 4252 section 7.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class PublicKeyAuth implements AuthMethod {
 

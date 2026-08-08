@@ -7,7 +7,7 @@ import java.util.Objects;
 /**
  * Token-based authenticator that validates against a configured token.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class TokenAuthenticator implements Authenticator {
 

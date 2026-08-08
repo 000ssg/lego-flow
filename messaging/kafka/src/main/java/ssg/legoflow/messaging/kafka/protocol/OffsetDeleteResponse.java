@@ -7,7 +7,7 @@ import java.util.List;
  *
  * @param errorCode the top-level error code
  * @param topics    the per-topic results
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record OffsetDeleteResponse(short errorCode, List<TopicData> topics) {
 

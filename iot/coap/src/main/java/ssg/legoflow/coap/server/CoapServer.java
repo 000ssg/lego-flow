@@ -43,7 +43,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * retransmission with exponential backoff for CON messages, observe
  * notification delivery, and blockwise transfer handling.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class CoapServer implements AutoCloseable {
 
@@ -73,7 +73,7 @@ public final class CoapServer implements AutoCloseable {
      *
      * @param config the server configuration
      * @throws NullPointerException if {@code config} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapServer(CoapServerConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
@@ -84,7 +84,7 @@ public final class CoapServer implements AutoCloseable {
     /**
      * Creates a CoAP server with default configuration.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapServer() {
         this(CoapServerConfig.defaults());
@@ -95,7 +95,7 @@ public final class CoapServer implements AutoCloseable {
      *
      * @param resource the resource to add
      * @throws NullPointerException if {@code resource} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void add(CoapResource resource) {
         Objects.requireNonNull(resource, "resource must not be null");
@@ -108,7 +108,7 @@ public final class CoapServer implements AutoCloseable {
      * Removes a resource by path.
      *
      * @param path the resource path to remove
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void remove(String path) {
         resources.remove(path);
@@ -119,7 +119,7 @@ public final class CoapServer implements AutoCloseable {
      *
      * @param path the resource path
      * @return the resource, or {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapResource getResource(String path) {
         return resources.get(path);
@@ -129,7 +129,7 @@ public final class CoapServer implements AutoCloseable {
      * Returns the observe registry.
      *
      * @return the observe registry
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ObserveRegistry observeRegistry() {
         return observeRegistry;
@@ -140,7 +140,7 @@ public final class CoapServer implements AutoCloseable {
      * to receive and process messages.
      *
      * @throws IOException if binding fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void start() throws IOException {
         if (!running.compareAndSet(false, true)) {
@@ -165,7 +165,7 @@ public final class CoapServer implements AutoCloseable {
     /**
      * Stops the server, closing the UDP channel and cleaning up resources.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop() {
         if (!running.compareAndSet(true, false)) {
@@ -201,7 +201,7 @@ public final class CoapServer implements AutoCloseable {
      * returns the configured port.
      *
      * @return the bound port, or the configured port if not yet started
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getPort() {
         if (channel != null && channel.isOpen()) {
@@ -221,7 +221,7 @@ public final class CoapServer implements AutoCloseable {
      * Returns whether the server is currently running.
      *
      * @return {@code true} if the server is running
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isRunning() {
         return running.get();
@@ -242,7 +242,7 @@ public final class CoapServer implements AutoCloseable {
      * @param message the incoming message
      * @param source  the source address
      * @return the response message, or {@code null} if no response is needed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapMessage handleMessage(CoapMessage message, SocketAddress source) {
         // Handle ACK and RST
@@ -333,7 +333,7 @@ public final class CoapServer implements AutoCloseable {
      *
      * @param token the request token
      * @return the separate response entry, or {@code null} if none pending
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SeparateResponseEntry takeSeparateResponse(byte[] token) {
         return pendingSeparateResponses.remove(new TokenKey(token));
@@ -343,7 +343,7 @@ public final class CoapServer implements AutoCloseable {
      * Returns the number of pending separate responses.
      *
      * @return the count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int pendingSeparateResponseCount() {
         return pendingSeparateResponses.size();
@@ -354,7 +354,7 @@ public final class CoapServer implements AutoCloseable {
      *
      * @param response the response message
      * @param target   the target address to send the response to
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record SeparateResponseEntry(CoapMessage response, SocketAddress target) {
     }
@@ -368,7 +368,7 @@ public final class CoapServer implements AutoCloseable {
      * @param groupAddress the multicast group address (e.g. "224.0.1.187")
      * @param networkIf    the network interface to join on
      * @throws IOException if joining the group fails
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void joinMulticastGroup(InetAddress groupAddress, NetworkInterface networkIf) throws IOException {
         Objects.requireNonNull(groupAddress, "groupAddress must not be null");
@@ -386,7 +386,7 @@ public final class CoapServer implements AutoCloseable {
      * Returns whether multicast support is enabled.
      *
      * @return {@code true} if multicast is enabled
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isMulticastEnabled() {
         return multicastEnabled;
@@ -397,7 +397,7 @@ public final class CoapServer implements AutoCloseable {
      *
      * @param address the socket address to check
      * @return {@code true} if the address is multicast
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static boolean isMulticastAddress(SocketAddress address) {
         if (address instanceof InetSocketAddress inet) {
@@ -412,7 +412,7 @@ public final class CoapServer implements AutoCloseable {
      * <p>This is useful when the server needs to flush separate responses
      * that were queued during {@link #handleMessage(CoapMessage, SocketAddress)}.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void flushSeparateResponses() {
         for (var iter = pendingSeparateResponses.entrySet().iterator(); iter.hasNext(); ) {
@@ -426,7 +426,7 @@ public final class CoapServer implements AutoCloseable {
      * Returns the next message ID.
      *
      * @return the next message ID (0-65535)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int nextMessageId() {
         return messageIdCounter.incrementAndGet() & 0xFFFF;

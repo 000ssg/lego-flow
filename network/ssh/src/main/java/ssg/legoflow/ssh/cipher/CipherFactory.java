@@ -6,7 +6,7 @@ import java.util.function.Supplier;
 /**
  * Factory for creating SSH cipher instances by algorithm name.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class CipherFactory {
 

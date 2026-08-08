@@ -7,7 +7,7 @@ import java.util.List;
  *
  * @param errorCode  the error code
  * @param apiKeys    the list of supported API versions
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ApiVersionsResponse(short errorCode, List<ApiVersion> apiKeys) {
 

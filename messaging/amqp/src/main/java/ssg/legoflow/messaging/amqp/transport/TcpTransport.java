@@ -14,7 +14,7 @@ import java.util.Objects;
  * <p>Wraps a {@link SocketChannel} to provide the byte-level I/O
  * required by the invariant AMQP core.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class TcpTransport implements AmqpTransport {
 

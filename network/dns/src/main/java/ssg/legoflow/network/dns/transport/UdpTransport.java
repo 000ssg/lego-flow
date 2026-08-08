@@ -19,7 +19,7 @@ import java.util.Objects;
  * <p>Sends DNS queries as single UDP datagrams and receives responses.
  * Falls back to TCP if the response is truncated (TC flag set).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class UdpTransport implements AutoCloseable {
 
@@ -33,7 +33,7 @@ public final class UdpTransport implements AutoCloseable {
      *
      * @param timeout the receive timeout
      * @throws IOException if the channel cannot be opened
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public UdpTransport(Duration timeout) throws IOException {
         this.channel = DatagramChannel.open();
@@ -49,7 +49,7 @@ public final class UdpTransport implements AutoCloseable {
      * @param address the server address
      * @return the response message
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DnsMessage send(DnsMessage query, InetSocketAddress address) throws IOException {
         byte[] data = DnsCodec.encode(query);
@@ -75,7 +75,7 @@ public final class UdpTransport implements AutoCloseable {
      * @param address the server address
      * @return the raw response bytes
      * @throws IOException if an I/O error occurs
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public byte[] sendRaw(byte[] data, InetSocketAddress address) throws IOException {
         channel.send(ByteBuffer.wrap(data), address);

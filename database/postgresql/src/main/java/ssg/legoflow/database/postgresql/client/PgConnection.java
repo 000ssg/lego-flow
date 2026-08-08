@@ -14,7 +14,7 @@ import java.util.*;
 /**
  * Manages the connection lifecycle and authentication negotiation with a PostgreSQL server.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class PgConnection implements AutoCloseable {
 

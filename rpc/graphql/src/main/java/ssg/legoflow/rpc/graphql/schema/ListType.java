@@ -8,7 +8,7 @@ import java.util.Objects;
  * <p>A list type wraps another type, indicating that the field returns
  * a list of that type. Lists can be nested and combined with NonNull.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ListType implements GraphQLType {
 

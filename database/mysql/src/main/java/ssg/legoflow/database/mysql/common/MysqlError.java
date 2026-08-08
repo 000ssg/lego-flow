@@ -6,7 +6,7 @@ package ssg.legoflow.database.mysql.common;
  * <p>Common error codes used in ERR_Packet responses. Each error has a
  * numeric code, a 5-character SQLSTATE value, and a human-readable message template.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum MysqlError {
 

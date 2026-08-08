@@ -3,7 +3,7 @@ package ssg.legoflow.xmpp.stream;
 /**
  * States of an XMPP XML stream lifecycle.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum XmppStreamState {
 

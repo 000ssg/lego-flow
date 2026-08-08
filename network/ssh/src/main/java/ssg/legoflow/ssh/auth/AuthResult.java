@@ -5,14 +5,14 @@ import java.util.List;
 /**
  * Result of an SSH authentication attempt.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public sealed interface AuthResult {
 
     /**
      * Authentication succeeded.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Success() implements AuthResult {}
 
@@ -21,7 +21,7 @@ public sealed interface AuthResult {
      *
      * @param authMethodsThatCanContinue methods the user can try next
      * @param partialSuccess             whether partial success occurred
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Failure(List<String> authMethodsThatCanContinue,
                    boolean partialSuccess) implements AuthResult {}
@@ -30,7 +30,7 @@ public sealed interface AuthResult {
      * Authentication needs continuation (e.g., keyboard-interactive).
      *
      * @param data continuation data
-     * @since 1.0.0
+     * @since 0.1.0
      */
     record Continuation(byte[] data) implements AuthResult {}
 }

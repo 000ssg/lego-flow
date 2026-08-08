@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>The client sends the password as plaintext. This is the simplest
  * but least secure authentication method.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class CleartextAuth implements PgAuthenticator {
 

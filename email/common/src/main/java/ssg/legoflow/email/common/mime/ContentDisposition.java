@@ -14,7 +14,7 @@ import java.util.Objects;
  * <p>Represents the disposition type (inline, attachment) and parameters
  * such as filename, creation-date, modification-date, and size.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ContentDisposition {
 

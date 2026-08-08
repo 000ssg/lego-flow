@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>The server sends a 4-byte random salt. The client computes:
  * {@code "md5" + md5(md5(password + username) + salt)}
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class Md5Auth implements PgAuthenticator {
 

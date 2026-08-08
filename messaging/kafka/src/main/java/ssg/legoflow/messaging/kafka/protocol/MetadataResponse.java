@@ -7,7 +7,7 @@ import java.util.List;
  *
  * @param brokers the list of brokers
  * @param topics  the list of topic metadata
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record MetadataResponse(List<BrokerMetadata> brokers, List<TopicMetadata> topics) {
 

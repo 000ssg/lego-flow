@@ -13,7 +13,7 @@ import java.time.Duration;
  * @param absTime       the absolute time position
  * @param relCount      the relative counter position
  * @param absCount      the absolute counter position
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record PositionInfo(
         int track,
@@ -30,7 +30,7 @@ public record PositionInfo(
      * Creates a default position info with no media loaded.
      *
      * @return empty position info
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static PositionInfo empty() {
         return new PositionInfo(0, Duration.ZERO, "", "", Duration.ZERO, Duration.ZERO, 0, 0);

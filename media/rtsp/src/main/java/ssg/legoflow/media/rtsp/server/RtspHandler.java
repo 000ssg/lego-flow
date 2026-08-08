@@ -6,7 +6,7 @@ import ssg.legoflow.media.rtsp.protocol.RtspResponse;
 /**
  * Handler interface for processing RTSP requests on the server.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 @FunctionalInterface
 public interface RtspHandler {

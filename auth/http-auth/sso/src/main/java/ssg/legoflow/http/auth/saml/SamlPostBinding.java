@@ -5,7 +5,7 @@ package ssg.legoflow.http.auth.saml;
  * The generated forms contain SAMLRequest or SAMLResponse as hidden fields
  * and auto-submit via JavaScript.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SamlPostBinding {
 
@@ -18,7 +18,7 @@ public final class SamlPostBinding {
      * @param base64Request the base64-encoded SAMLRequest XML
      * @param relayState   optional RelayState value (may be null)
      * @return the HTML string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String generateRequestForm(String destination, String base64Request, String relayState) {
         return generateForm(destination, "SAMLRequest", base64Request, relayState);
@@ -31,7 +31,7 @@ public final class SamlPostBinding {
      * @param base64Response the base64-encoded SAMLResponse XML
      * @param relayState    optional RelayState value (may be null)
      * @return the HTML string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String generateResponseForm(String destination, String base64Response, String relayState) {
         return generateForm(destination, "SAMLResponse", base64Response, relayState);

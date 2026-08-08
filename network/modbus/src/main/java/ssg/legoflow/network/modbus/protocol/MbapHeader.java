@@ -17,7 +17,7 @@ import java.nio.ByteBuffer;
  * @param protocolId    the protocol identifier (always 0 for Modbus TCP)
  * @param length        the number of following bytes
  * @param unitId        the unit identifier (0-255)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record MbapHeader(int transactionId, int protocolId, int length, int unitId) {
 

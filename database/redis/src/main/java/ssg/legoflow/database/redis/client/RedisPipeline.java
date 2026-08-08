@@ -15,7 +15,7 @@ import java.util.List;
  * when {@link #execute()} is called, then all responses are read
  * in order. This reduces round-trip latency.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RedisPipeline {
 

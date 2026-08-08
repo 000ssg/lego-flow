@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * and echo suppression. Messages are delivered by writing to the client
  * connection's output stream.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MessageRouter {
 

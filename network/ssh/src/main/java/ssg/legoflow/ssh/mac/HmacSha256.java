@@ -8,7 +8,7 @@ import java.security.GeneralSecurityException;
 /**
  * HMAC-SHA2-256 MAC for SSH (hmac-sha2-256).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class HmacSha256 implements SshMac {
 

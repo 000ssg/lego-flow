@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
  * exact lookups, lexicographic next-OID queries, and subtree operations.
  * Uses a {@link ConcurrentSkipListMap} for lock-free concurrent access.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MibTree {
 

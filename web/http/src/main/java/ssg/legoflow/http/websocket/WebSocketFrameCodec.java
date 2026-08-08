@@ -5,6 +5,7 @@ import ssg.legoflow.blocks.Context;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import ssg.legoflow.service.util.BufferPool;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,7 +46,7 @@ public class WebSocketFrameCodec extends AbstractDataFilter<ByteBuffer> {
             out.write(length & 0xFF);
         } else {
             out.write(frame.isMasked() ? (127 | 0x80) : 127);
-            var buf = ByteBuffer.allocate(8).putLong(length);
+            var buf = BufferPool.getBuffer(8).putLong(length);
             out.writeBytes(buf.array());
         }
 
@@ -72,7 +73,7 @@ public class WebSocketFrameCodec extends AbstractDataFilter<ByteBuffer> {
      *
      * @param data the buffer containing frame bytes
      * @return the decoded frame, or null if insufficient data
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public WebSocketFrame decodeFrame(ByteBuffer data) {
         var bytes = new byte[data.remaining()];
@@ -133,7 +134,7 @@ public class WebSocketFrameCodec extends AbstractDataFilter<ByteBuffer> {
      *
      * @param data one or more ByteBuffers of incoming data
      * @return list of complete decoded frames (may be empty if data is partial)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<WebSocketFrame> decodeFrames(ByteBuffer... data) {
         var combined = combineWithAccumulator(data);
@@ -193,7 +194,7 @@ public class WebSocketFrameCodec extends AbstractDataFilter<ByteBuffer> {
 
         // Save remainder to accumulator
         if (combined.hasRemaining()) {
-            accumulator = ByteBuffer.allocate(combined.remaining());
+            accumulator = BufferPool.getBuffer(combined.remaining());
             accumulator.put(combined);
             accumulator.flip();
         } else {
@@ -208,7 +209,7 @@ public class WebSocketFrameCodec extends AbstractDataFilter<ByteBuffer> {
         for (var buf : data) {
             totalSize += buf.remaining();
         }
-        var combined = ByteBuffer.allocate(totalSize);
+        var combined = BufferPool.getBuffer(totalSize);
         if (accumulator != null) {
             combined.put(accumulator.duplicate());
             accumulator = null;
@@ -224,7 +225,7 @@ public class WebSocketFrameCodec extends AbstractDataFilter<ByteBuffer> {
      * Returns whether this codec has buffered partial data from a previous decode call.
      *
      * @return true if there is buffered data awaiting more input
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean hasBufferedData() {
         return accumulator != null && accumulator.hasRemaining();

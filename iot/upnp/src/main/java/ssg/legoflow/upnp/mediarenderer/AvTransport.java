@@ -13,7 +13,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * controls (play, pause, stop, seek) and state tracking. Implements
  * a state machine: NO_MEDIA → STOPPED → PLAYING ↔ PAUSED.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class AvTransport {
 
@@ -26,7 +26,7 @@ public class AvTransport {
     /**
      * Seek mode for positioning within media.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum SeekMode {
         /** Seek to a track number. */
@@ -50,7 +50,7 @@ public class AvTransport {
          * Returns the UPnP string value.
          *
          * @return the value string
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public String value() {
             return value;
@@ -61,7 +61,7 @@ public class AvTransport {
          *
          * @param value the string value
          * @return the seek mode
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public static SeekMode fromValue(String value) {
             for (SeekMode mode : values()) {
@@ -101,7 +101,7 @@ public class AvTransport {
     /**
      * Creates a new AVTransport service.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public AvTransport() {
     }
@@ -112,7 +112,7 @@ public class AvTransport {
      * @param instanceId         the instance ID (typically 0)
      * @param currentUri         the URI of the media resource
      * @param currentUriMetadata DIDL-Lite XML metadata for the media
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setAVTransportURI(int instanceId, String currentUri, String currentUriMetadata) {
         lock.lock();
@@ -137,7 +137,7 @@ public class AvTransport {
      * @param instanceId the instance ID
      * @param speed      the playback speed ("1" for normal)
      * @throws IllegalStateException if no media is loaded
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void play(int instanceId, String speed) {
         lock.lock();
@@ -158,7 +158,7 @@ public class AvTransport {
      *
      * @param instanceId the instance ID
      * @throws IllegalStateException if not currently playing
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void pause(int instanceId) {
         lock.lock();
@@ -177,7 +177,7 @@ public class AvTransport {
      * Stops playback.
      *
      * @param instanceId the instance ID
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void stop(int instanceId) {
         lock.lock();
@@ -200,7 +200,7 @@ public class AvTransport {
      * @param instanceId the instance ID
      * @param mode       the seek mode
      * @param target     the seek target (time string for time modes, number for count/track modes)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void seek(int instanceId, SeekMode mode, String target) {
         lock.lock();
@@ -228,7 +228,7 @@ public class AvTransport {
      * Advances to the next track.
      *
      * @param instanceId the instance ID
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void next(int instanceId) {
         lock.lock();
@@ -246,7 +246,7 @@ public class AvTransport {
      * Returns to the previous track.
      *
      * @param instanceId the instance ID
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void previous(int instanceId) {
         lock.lock();
@@ -270,7 +270,7 @@ public class AvTransport {
      * @param instanceId      the instance ID (typically 0)
      * @param nextUri         the URI of the next media resource
      * @param nextUriMetadata DIDL-Lite XML metadata for the next media
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setNextAVTransportURI(int instanceId, String nextUri, String nextUriMetadata) {
         lock.lock();
@@ -290,7 +290,7 @@ public class AvTransport {
      *
      * @param instanceId the instance ID
      * @return a map containing PlayMedia, RecMedia, and RecQualityModes capabilities
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DeviceCapabilities getDeviceCapabilities(int instanceId) {
         return new DeviceCapabilities("NETWORK,NONE", "NOT_IMPLEMENTED", "NOT_IMPLEMENTED");
@@ -301,7 +301,7 @@ public class AvTransport {
      *
      * @param instanceId the instance ID
      * @return the transport settings
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public TransportSettings getTransportSettings(int instanceId) {
         return new TransportSettings(playMode, "NOT_IMPLEMENTED");
@@ -312,7 +312,7 @@ public class AvTransport {
      *
      * @param instanceId the instance ID
      * @param newMode    the play mode to set
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setPlayMode(int instanceId, PlayMode newMode) {
         Objects.requireNonNull(newMode, "newMode must not be null");
@@ -322,7 +322,7 @@ public class AvTransport {
     /**
      * Play mode for the AVTransport (how to handle track transitions).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public enum PlayMode {
         /** Normal playback order. */
@@ -350,7 +350,7 @@ public class AvTransport {
          * Returns the UPnP string value.
          *
          * @return the value string
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public String value() {
             return value;
@@ -361,7 +361,7 @@ public class AvTransport {
          *
          * @param value the string value
          * @return the play mode
-         * @since 1.0.0
+         * @since 0.1.0
          */
         public static PlayMode fromValue(String value) {
             for (PlayMode mode : values()) {
@@ -379,7 +379,7 @@ public class AvTransport {
      * @param playMedia    comma-separated list of supported play media
      * @param recMedia     comma-separated list of supported recording media
      * @param recQualityModes comma-separated list of supported recording quality modes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record DeviceCapabilities(String playMedia, String recMedia, String recQualityModes) {
     }
@@ -389,7 +389,7 @@ public class AvTransport {
      *
      * @param playMode       the current play mode
      * @param recQualityMode the current recording quality mode
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public record TransportSettings(PlayMode playMode, String recQualityMode) {
     }
@@ -399,7 +399,7 @@ public class AvTransport {
      *
      * @param instanceId the instance ID
      * @return the transport info
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public TransportInfo getTransportInfo(int instanceId) {
         return new TransportInfo(transportState, transportStatus, currentSpeed);
@@ -410,7 +410,7 @@ public class AvTransport {
      *
      * @param instanceId the instance ID
      * @return the position info
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public PositionInfo getPositionInfo(int instanceId) {
         return new PositionInfo(
@@ -424,7 +424,7 @@ public class AvTransport {
      *
      * @param instanceId the instance ID
      * @return the media info
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public MediaInfo getMediaInfo(int instanceId) {
         String playMedium = currentUri.isEmpty() ? "NONE" : "NETWORK";
@@ -440,7 +440,7 @@ public class AvTransport {
      *
      * @param position the current position
      * @param duration the total track duration
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void updatePosition(Duration position, Duration duration) {
         this.relTime = position;
@@ -456,7 +456,7 @@ public class AvTransport {
      * <p>If a next URI has been set via {@link #setNextAVTransportURI}, the transport
      * will automatically transition to playing the next URI (gapless playback).
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void playbackCompleted() {
         lock.lock();
@@ -484,7 +484,7 @@ public class AvTransport {
      * Adds a playback listener.
      *
      * @param listener the listener to add
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addPlaybackListener(PlaybackListener listener) {
         Objects.requireNonNull(listener, "listener must not be null");
@@ -495,7 +495,7 @@ public class AvTransport {
      * Removes a playback listener.
      *
      * @param listener the listener to remove
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void removePlaybackListener(PlaybackListener listener) {
         listeners.remove(listener);
@@ -505,7 +505,7 @@ public class AvTransport {
      * Returns the current transport state.
      *
      * @return the transport state
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public TransportState getTransportState() {
         return transportState;
@@ -515,7 +515,7 @@ public class AvTransport {
      * Generates the SCPD XML for this service.
      *
      * @return the SCPD XML string
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String generateScpd() {
         return """

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import ssg.legoflow.service.util.BufferPool;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -14,7 +15,7 @@ import java.nio.charset.StandardCharsets;
  * <p>Handles the text-based RTSP protocol format with HTTP-like syntax.
  * Also detects interleaved binary frames ($ prefix) in the TCP stream.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RtspCodec {
 
@@ -179,7 +180,7 @@ public final class RtspCodec {
 
         if (bytes.length > totalNeeded) {
             int remaining = bytes.length - totalNeeded;
-            accumulator = ByteBuffer.allocate(remaining);
+            accumulator = BufferPool.getBuffer(remaining);
             accumulator.put(bytes, totalNeeded, remaining);
             accumulator.flip();
         } else {
@@ -224,7 +225,7 @@ public final class RtspCodec {
 
         if (bytes.length > totalNeeded) {
             int remaining = bytes.length - totalNeeded;
-            accumulator = ByteBuffer.allocate(remaining);
+            accumulator = BufferPool.getBuffer(remaining);
             accumulator.put(bytes, totalNeeded, remaining);
             accumulator.flip();
         } else {
@@ -245,7 +246,7 @@ public final class RtspCodec {
 
     private ByteBuffer combineWithAccumulator(ByteBuffer data) {
         int totalSize = (accumulator != null ? accumulator.remaining() : 0) + data.remaining();
-        var combined = ByteBuffer.allocate(totalSize);
+        var combined = BufferPool.getBuffer(totalSize);
         if (accumulator != null) {
             combined.put(accumulator.duplicate());
             accumulator = null;

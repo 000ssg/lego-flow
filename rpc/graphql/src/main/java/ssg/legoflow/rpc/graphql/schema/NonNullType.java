@@ -9,7 +9,7 @@ import java.util.Objects;
  * will never return null. When a non-null field returns null, a field
  * error is raised and null propagates to the parent field.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class NonNullType implements GraphQLType {
 

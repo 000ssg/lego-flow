@@ -9,7 +9,7 @@ import java.util.Map;
  * <p>Connection attributes are key-value pairs that the client sends
  * to the server for informational purposes (monitoring, debugging).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ConnectionAttributes {
 

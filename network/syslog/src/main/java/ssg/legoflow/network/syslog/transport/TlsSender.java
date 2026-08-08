@@ -18,7 +18,7 @@ import java.nio.charset.StandardCharsets;
  * <p>Sends syslog messages over a TLS-encrypted TCP connection using
  * octet counting framing as required by RFC 5425.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class TlsSender implements AutoCloseable {
 

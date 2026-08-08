@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>ssg</groupId>
+        <artifactId>lego-flow</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>lego-flow-interop-tests</artifactId>
+    <name>Lego Flow Interop Tests — Protocol interoperability against real servers</name>
+
+    <description>
+        Integration tests that connect Lego Flow protocol implementations to real
+        reference server implementations (nginx, Mosquitto, Redis, PostgreSQL).
+        Excluded from install/deploy lifecycle — this module is for testing only.
+    </description>
+
+    <!-- Skip interop tests by default — only run when Docker services are available (CI interoperability job) -->
+    <properties>
+        <skipInteropTests>true</skipInteropTests>
+    </properties>
+
+    <dependencies>
+        <!-- Protocol modules under test -->
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-http</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-mqtt</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-redis</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-postgresql</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Testing -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- SLF4J for protocol modules -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.simple.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <!-- Exclude from Maven install/deploy -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>3.1.2</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>3.1.2</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+
+            <!-- Skip interop tests by default — require explicit activation in CI with Docker services -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <skipTests>${skipInteropTests}</skipTests>
+                    <systemPropertyVariables>
+                        <interop.nginx.host>localhost</interop.nginx.host>
+                        <interop.nginx.port>8080</interop.nginx.port>
+                        <interop.mosquitto.host>localhost</interop.mosquitto.host>
+                        <interop.mosquitto.port>1883</interop.mosquitto.port>
+                        <interop.redis.host>localhost</interop.redis.host>
+                        <interop.redis.port>6379</interop.redis.port>
+                        <interop.pg.host>localhost</interop.pg.host>
+                        <interop.pg.port>5432</interop.pg.port>
+                        <interop.pg.user>legoflow</interop.pg.user>
+                        <interop.pg.password>legoflow</interop.pg.password>
+                        <interop.pg.db>legoflow_test</interop.pg.db>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+
+            <!-- Failsafe plugin for integration tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <interop.nginx.host>localhost</interop.nginx.host>
+                        <interop.nginx.port>8080</interop.nginx.port>
+                        <interop.mosquitto.host>localhost</interop.mosquitto.host>
+                        <interop.mosquitto.port>1883</interop.mosquitto.port>
+                        <interop.redis.host>localhost</interop.redis.host>
+                        <interop.redis.port>6379</interop.redis.port>
+                        <interop.pg.host>localhost</interop.pg.host>
+                        <interop.pg.port>5432</interop.pg.port>
+                        <interop.pg.user>legoflow</interop.pg.user>
+                        <interop.pg.password>legoflow</interop.pg.password>
+                        <interop.pg.db>legoflow_test</interop.pg.db>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+
+            <!-- Compile test classes with JDK 25 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.14.0</version>
+                <configuration>
+                    <release>25</release>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

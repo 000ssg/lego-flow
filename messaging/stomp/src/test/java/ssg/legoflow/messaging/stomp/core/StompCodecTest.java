@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.*;
 /**
  * Tests for {@link StompCodec} — frame parsing, serialization, and header escaping.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 class StompCodecTest {
 

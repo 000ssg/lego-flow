@@ -20,7 +20,7 @@ import java.util.*;
  * nonce counting, cnonce handling, proxy authentication (407), and
  * Authentication-Info response header generation.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class DigestAuthScheme implements AuthenticationScheme {
 
@@ -42,7 +42,7 @@ public class DigestAuthScheme implements AuthenticationScheme {
      * @param nonceManager the nonce manager
      * @param algorithm    the hash algorithm ("MD5", "MD5-sess", or "SHA-256")
      * @param qop          the quality of protection ("auth" or "auth,auth-int")
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DigestAuthScheme(NonceManager nonceManager, String algorithm, String qop) {
         this(nonceManager, algorithm, qop, false);
@@ -55,7 +55,7 @@ public class DigestAuthScheme implements AuthenticationScheme {
      * @param algorithm    the hash algorithm ("MD5", "MD5-sess", or "SHA-256")
      * @param qop          the quality of protection ("auth" or "auth,auth-int")
      * @param proxyMode    true to use 407 Proxy-Authenticate instead of 401 WWW-Authenticate
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DigestAuthScheme(NonceManager nonceManager, String algorithm, String qop, boolean proxyMode) {
         this.nonceManager = Objects.requireNonNull(nonceManager);
@@ -72,7 +72,7 @@ public class DigestAuthScheme implements AuthenticationScheme {
      * Creates a Digest authentication scheme with MD5 and qop=auth defaults.
      *
      * @param nonceManager the nonce manager
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public DigestAuthScheme(NonceManager nonceManager) {
         this(nonceManager, "MD5", "auth");
@@ -168,7 +168,7 @@ public class DigestAuthScheme implements AuthenticationScheme {
      *
      * @param response the HTTP response to add the header to
      * @param context  the authentication context
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void addAuthenticationInfo(HttpResponse response, AuthContext context) {
         if (lastDigest == null) {
@@ -213,7 +213,7 @@ public class DigestAuthScheme implements AuthenticationScheme {
      *
      * @param response the HTTP response
      * @param context  the authentication context
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void proxyChallenge(HttpResponse response, AuthContext context) {
         String nonce = nonceManager.generateNonce();
@@ -270,7 +270,7 @@ public class DigestAuthScheme implements AuthenticationScheme {
      * @param algorithm the hash algorithm ("MD5", "MD5-sess", "SHA-256", "SHA-256-sess")
      * @param body      the request body (for auth-int)
      * @return the computed response hash
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String computeDigestResponse(String username, String realm, String password,
                                                 String method, String uri, String nonce,
@@ -312,7 +312,7 @@ public class DigestAuthScheme implements AuthenticationScheme {
      * @param algorithm the hash algorithm
      * @param body      the response body (for auth-int)
      * @return the rspauth hash
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String computeRspAuth(String username, String realm, String password,
                                          String uri, String nonce, String nc, String cnonce,
@@ -349,7 +349,7 @@ public class DigestAuthScheme implements AuthenticationScheme {
      * @param cnonce   the client nonce
      * @param algorithm the algorithm (MD5, MD5-sess, SHA-256, SHA-256-sess)
      * @return the computed HA1
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static String computeHA1(String username, String realm, String password,
                              String nonce, String cnonce, String algorithm) {
@@ -368,7 +368,7 @@ public class DigestAuthScheme implements AuthenticationScheme {
      *
      * @param algorithm the algorithm identifier
      * @return the base algorithm (MD5 or SHA-256)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static String baseAlgorithm(String algorithm) {
         if (algorithm == null) return "MD5";
@@ -384,7 +384,7 @@ public class DigestAuthScheme implements AuthenticationScheme {
      *
      * @param algorithm the algorithm
      * @return true if it is a session variant
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static boolean isSessionAlgorithm(String algorithm) {
         return algorithm != null && algorithm.toUpperCase(Locale.ROOT).endsWith("-SESS");
@@ -396,7 +396,7 @@ public class DigestAuthScheme implements AuthenticationScheme {
      * @param input     the input string
      * @param algorithm the algorithm name
      * @return the hex-encoded hash
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static String hash(String input, String algorithm) {
         try {
@@ -419,7 +419,7 @@ public class DigestAuthScheme implements AuthenticationScheme {
      *
      * @param params the parameter string
      * @return map of parameter name to value
-     * @since 1.0.0
+     * @since 0.1.0
      */
     static Map<String, String> parseDigestParams(String params) {
         Map<String, String> result = new LinkedHashMap<>();
@@ -467,7 +467,7 @@ public class DigestAuthScheme implements AuthenticationScheme {
      * Returns the configured algorithm.
      *
      * @return the algorithm
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getAlgorithm() {
         return algorithm;
@@ -477,7 +477,7 @@ public class DigestAuthScheme implements AuthenticationScheme {
      * Returns the configured qop.
      *
      * @return the qop
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getQop() {
         return qop;
@@ -487,7 +487,7 @@ public class DigestAuthScheme implements AuthenticationScheme {
      * Returns the nonce manager.
      *
      * @return the nonce manager
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public NonceManager getNonceManager() {
         return nonceManager;
@@ -497,7 +497,7 @@ public class DigestAuthScheme implements AuthenticationScheme {
      * Returns whether this scheme operates in proxy mode (407 Proxy-Authenticate).
      *
      * @return true if proxy mode
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isProxyMode() {
         return proxyMode;

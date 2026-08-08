@@ -18,7 +18,7 @@
 10. SessionCookie with SameSite, Secure, HttpOnly, Max-Age, Path, Domain support
 11. JWT from scratch: HS256 (javax.crypto.Mac), RS256 (java.security.Signature)
 12. JWT claims with JSON serialization/deserialization from scratch (no external JSON library)
-13. All classes with Javadoc including @since 1.0.0
+13. All classes with Javadoc including @since 0.1.0
 14. Thread-safe implementations using ConcurrentHashMap and volatile fields
 15. AutoCloseable for SessionManager
 

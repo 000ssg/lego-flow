@@ -8,7 +8,7 @@ import ssg.legoflow.network.common.oid.ObjectIdentifier;
  * <p>Provides constants for commonly referenced OIDs in SNMP operations,
  * including MIB-2 system group, interface group, trap OIDs, and USM OIDs.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SnmpOids {
 

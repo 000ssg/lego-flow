@@ -10,7 +10,7 @@ import java.security.GeneralSecurityException;
  *
  * <p>AEAD cipher providing both encryption and authentication.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class Aes256Gcm implements SshCipher {
 

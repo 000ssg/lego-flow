@@ -18,7 +18,7 @@ import java.util.concurrent.ThreadLocalRandom;
  *   <li>Compensation factor: e / (e-1) = 1.21828...</li>
  * </ul>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class RtcpIntervalCalculator {
 

@@ -7,7 +7,7 @@ package ssg.legoflow.http3;
  * HTTP/3 defines fewer frame types than HTTP/2 because many connection-level
  * concerns are handled by QUIC.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum Http3FrameType {
 
@@ -42,7 +42,7 @@ public enum Http3FrameType {
      * Returns the wire-format frame type code.
      *
      * @return the frame type code
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long code() {
         return code;
@@ -54,7 +54,7 @@ public enum Http3FrameType {
      * @param code the frame type code
      * @return the matching {@code Http3FrameType}
      * @throws IllegalArgumentException if the code is not recognised
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static Http3FrameType fromCode(long code) {
         for (var type : values()) {

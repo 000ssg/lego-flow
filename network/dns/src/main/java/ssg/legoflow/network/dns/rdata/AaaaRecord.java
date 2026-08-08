@@ -11,7 +11,7 @@ import java.util.Objects;
  * AAAA record RDATA: a 16-byte IPv6 address (RFC 3596).
  *
  * @param address the IPv6 address
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record AaaaRecord(Inet6Address address) implements RData {
 
@@ -30,7 +30,7 @@ public record AaaaRecord(Inet6Address address) implements RData {
      * @param ip the IPv6 address string
      * @return the AAAA record
      * @throws IllegalArgumentException if the address is invalid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static AaaaRecord of(String ip) {
         try {
@@ -50,7 +50,7 @@ public record AaaaRecord(Inet6Address address) implements RData {
      * @param bytes the 16-byte IPv6 address
      * @return the AAAA record
      * @throws IllegalArgumentException if the byte array is not 16 bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static AaaaRecord fromBytes(byte[] bytes) {
         if (bytes.length != 16) {

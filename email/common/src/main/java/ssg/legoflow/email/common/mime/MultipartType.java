@@ -3,7 +3,7 @@ package ssg.legoflow.email.common.mime;
 /**
  * Common multipart subtypes per RFC 2046 and related RFCs.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum MultipartType {
 

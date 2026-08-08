@@ -7,7 +7,7 @@ package ssg.legoflow.media.sip.dialog;
  * user agents that persists for some time. Dialogs are identified by
  * Call-ID, local tag, and remote tag.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum DialogState {
 
@@ -32,7 +32,7 @@ public enum DialogState {
      * Returns true if the dialog is still active (EARLY or CONFIRMED).
      *
      * @return true if active
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isActive() {
         return this == EARLY || this == CONFIRMED;

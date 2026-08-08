@@ -20,7 +20,7 @@ import java.util.Objects;
  * @param num  the block number (0-based)
  * @param more whether more blocks follow
  * @param szx  the size exponent (0-6), where blockSize = 2^(szx + 4)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record BlockOption(int num, boolean more, int szx) {
 
@@ -47,7 +47,7 @@ public record BlockOption(int num, boolean more, int szx) {
      * <p>Valid sizes are: 16, 32, 64, 128, 256, 512, 1024.
      *
      * @return the block size in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getBlockSize() {
         return 1 << (szx + 4);
@@ -57,7 +57,7 @@ public record BlockOption(int num, boolean more, int szx) {
      * Encodes this block option to a byte array suitable for use as an option value.
      *
      * @return the encoded bytes (1-3 bytes)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public byte[] encode() {
         int value = (num << 4) | (more ? 0x08 : 0) | szx;
@@ -86,7 +86,7 @@ public record BlockOption(int num, boolean more, int szx) {
      * @param data the encoded bytes (1-3 bytes)
      * @return the decoded block option
      * @throws IllegalArgumentException if the data length is invalid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static BlockOption decode(byte[] data) {
         Objects.requireNonNull(data, "data must not be null");
@@ -112,7 +112,7 @@ public record BlockOption(int num, boolean more, int szx) {
      * @param blockSize the block size in bytes (must be a power of 2, 16-1024)
      * @return the size exponent
      * @throws IllegalArgumentException if the block size is invalid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static int szxFromBlockSize(int blockSize) {
         return switch (blockSize) {

@@ -19,7 +19,7 @@
 11. SpnegoConfig with builder pattern combining GssConfig and stripRealmFromPrincipal (default: true)
 12. SpnegoConfig.of(gssConfig) factory method for default configuration
 13. Realm stripping: "user@EXAMPLE.COM" becomes "user" when enabled
-14. All public classes with Javadoc @since 1.0.0
+14. All public classes with Javadoc @since 0.1.0
 
 ## Implementation
 

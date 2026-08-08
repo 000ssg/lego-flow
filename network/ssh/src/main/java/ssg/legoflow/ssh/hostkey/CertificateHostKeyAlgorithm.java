@@ -13,7 +13,7 @@ import java.util.Objects;
  * issuance and verification. The algorithm name returns the certificate variant
  * (e.g., {@code "ssh-ed25519-cert-v01@openssh.com"}).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class CertificateHostKeyAlgorithm implements HostKeyAlgorithm {
 

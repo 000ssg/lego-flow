@@ -10,7 +10,7 @@ import java.util.List;
  * @param columns  the column descriptors
  * @param rows     the data rows (each row is an array of string values, null for SQL NULL)
  * @param tag      the command completion tag (e.g., "SELECT 5", "INSERT 0 1")
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ResultSet(
         List<ColumnDescription> columns,

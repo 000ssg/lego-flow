@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>Manages the client lifecycle: INFO/CONNECT handshake, authentication,
  * PUB/SUB/UNSUB processing, PING/PONG keep-alive, and graceful shutdown.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ClientConnection implements AutoCloseable {
 

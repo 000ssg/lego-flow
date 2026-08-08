@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  * <p>Parses date-time strings found in email Date headers, handling the standard
  * RFC 5322 format as well as many common deviations found in the wild.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DateTimeParser {
 

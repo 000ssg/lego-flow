@@ -20,7 +20,7 @@ import java.util.concurrent.Executors;
  * or registration as part of larger async workflows.</p>
  *
  * @see WebServiceRegistry
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class AsyncWebServiceRegistry {
 

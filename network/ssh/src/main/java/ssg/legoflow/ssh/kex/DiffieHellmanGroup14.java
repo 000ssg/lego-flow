@@ -12,7 +12,7 @@ import java.security.SecureRandom;
  *
  * <p>Uses the 2048-bit MODP group from RFC 3526 section 3.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class DiffieHellmanGroup14 implements KexAlgorithm {
 

@@ -6,7 +6,7 @@ package ssg.legoflow.messaging.kafka.record;
  * <p>Only GZIP is supported in this JDK-only implementation.
  * Snappy, LZ4, and ZStandard require native libraries.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public enum Compression {
 

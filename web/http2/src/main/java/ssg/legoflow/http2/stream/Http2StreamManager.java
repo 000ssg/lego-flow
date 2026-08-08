@@ -105,7 +105,7 @@ public class Http2StreamManager {
      * @param dependencyStreamId the parent stream ID (0 for root)
      * @param weight             the weight (1-256)
      * @param exclusive          whether this is an exclusive dependency
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setPriority(int streamId, int dependencyStreamId, int weight, boolean exclusive) {
         var stream = getOrCreateStream(streamId);
@@ -130,7 +130,7 @@ public class Http2StreamManager {
      * before their children.
      *
      * @return ordered list of active streams for scheduling
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<Http2Stream> getScheduleOrder() {
         var active = new ArrayList<>(getActiveStreams());
@@ -172,7 +172,7 @@ public class Http2StreamManager {
      * @param totalBandwidth the total bandwidth to allocate
      * @param among          the streams to allocate among
      * @return a map from stream ID to allocated bandwidth
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Map<Integer, Integer> allocateBandwidth(int totalBandwidth, Collection<Http2Stream> among) {
         if (among.isEmpty()) return Map.of();

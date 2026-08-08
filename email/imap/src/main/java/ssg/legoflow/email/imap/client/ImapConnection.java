@@ -18,7 +18,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * and capability negotiation. Provides low-level protocol I/O
  * used by {@link ImapClient}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class ImapConnection implements AutoCloseable {
 

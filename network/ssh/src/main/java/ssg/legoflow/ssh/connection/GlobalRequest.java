@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 /**
  * SSH global requests per RFC 4254 section 4.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class GlobalRequest {
 

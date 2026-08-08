@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 /**
  * SSH connection layer managing multiplexed channels per RFC 4254.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class SshConnection implements AutoCloseable {
 

@@ -10,7 +10,7 @@ import java.util.List;
  * must be sorted by their encoded tag value for canonical ordering.
  *
  * @param elements the list of elements
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record Asn1Set(List<Asn1Type> elements) implements Asn1Type {
 

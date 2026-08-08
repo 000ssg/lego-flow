@@ -7,7 +7,7 @@ import java.util.Set;
 /**
  * Configuration for the caching proxy.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ProxyCacheConfig {
 
@@ -22,7 +22,7 @@ public class ProxyCacheConfig {
     /**
      * Creates a new cache configuration with defaults.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ProxyCacheConfig() {
     }
@@ -31,7 +31,7 @@ public class ProxyCacheConfig {
      * Returns the maximum cache size in bytes.
      *
      * @return the max size in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public long getMaxSizeBytes() {
         return maxSizeBytes;
@@ -41,7 +41,7 @@ public class ProxyCacheConfig {
      * Sets the maximum cache size in bytes.
      *
      * @param maxSizeBytes the max size in bytes
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setMaxSizeBytes(long maxSizeBytes) {
         this.maxSizeBytes = maxSizeBytes;
@@ -51,7 +51,7 @@ public class ProxyCacheConfig {
      * Returns the maximum number of cached entries.
      *
      * @return the max entries
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getMaxEntries() {
         return maxEntries;
@@ -61,7 +61,7 @@ public class ProxyCacheConfig {
      * Sets the maximum number of cached entries.
      *
      * @param maxEntries the max entries
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setMaxEntries(int maxEntries) {
         this.maxEntries = maxEntries;
@@ -71,7 +71,7 @@ public class ProxyCacheConfig {
      * Returns the default TTL for cached responses.
      *
      * @return the default TTL
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Duration getDefaultTtl() {
         return defaultTtl;
@@ -81,7 +81,7 @@ public class ProxyCacheConfig {
      * Sets the default TTL for cached responses.
      *
      * @param defaultTtl the default TTL
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setDefaultTtl(Duration defaultTtl) {
         this.defaultTtl = defaultTtl;
@@ -92,7 +92,7 @@ public class ProxyCacheConfig {
      * If non-empty, only these paths are cached.
      *
      * @return the included paths
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Set<String> getIncludedPaths() {
         return includedPaths;
@@ -102,7 +102,7 @@ public class ProxyCacheConfig {
      * Sets the included path prefixes.
      *
      * @param includedPaths the included paths
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setIncludedPaths(Set<String> includedPaths) {
         this.includedPaths = new HashSet<>(includedPaths);
@@ -112,7 +112,7 @@ public class ProxyCacheConfig {
      * Returns the set of excluded path prefixes.
      *
      * @return the excluded paths
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Set<String> getExcludedPaths() {
         return excludedPaths;
@@ -122,7 +122,7 @@ public class ProxyCacheConfig {
      * Sets the excluded path prefixes.
      *
      * @param excludedPaths the excluded paths
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setExcludedPaths(Set<String> excludedPaths) {
         this.excludedPaths = new HashSet<>(excludedPaths);
@@ -132,7 +132,7 @@ public class ProxyCacheConfig {
      * Returns whether private responses are cached.
      *
      * @return true if private responses are cached
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isCachePrivate() {
         return cachePrivate;
@@ -142,7 +142,7 @@ public class ProxyCacheConfig {
      * Sets whether private responses are cached.
      *
      * @param cachePrivate true to cache private responses
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setCachePrivate(boolean cachePrivate) {
         this.cachePrivate = cachePrivate;
@@ -152,7 +152,7 @@ public class ProxyCacheConfig {
      * Returns whether Cache-Control headers are respected.
      *
      * @return true if Cache-Control is respected
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isRespectCacheControl() {
         return respectCacheControl;
@@ -162,7 +162,7 @@ public class ProxyCacheConfig {
      * Sets whether Cache-Control headers are respected.
      *
      * @param respectCacheControl true to respect
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setRespectCacheControl(boolean respectCacheControl) {
         this.respectCacheControl = respectCacheControl;

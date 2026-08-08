@@ -38,7 +38,7 @@ public class HpackEncoder {
      * being stored in the dynamic table and to signal intermediaries not to compress them.
      *
      * @param names the set of lowercase header names to treat as sensitive
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void setSensitiveHeaders(Set<String> names) {
         this.sensitiveHeaders = Set.copyOf(names);
@@ -48,7 +48,7 @@ public class HpackEncoder {
      * Returns the current set of sensitive header names.
      *
      * @return the sensitive header names
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Set<String> sensitiveHeaders() {
         return sensitiveHeaders;
@@ -59,7 +59,7 @@ public class HpackEncoder {
      *
      * @param name the header name (lowercase)
      * @return true if the header should be never-indexed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isSensitive(String name) {
         return sensitiveHeaders.contains(name.toLowerCase());

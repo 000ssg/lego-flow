@@ -12,7 +12,7 @@ import java.util.Objects;
  * <p>A field has a name, a return type, optional arguments, an optional
  * description, deprecation info, and a resolver (data fetcher).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class FieldDefinition {
 

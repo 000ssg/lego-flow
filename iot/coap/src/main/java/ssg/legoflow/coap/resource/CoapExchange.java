@@ -18,7 +18,7 @@ import java.util.Objects;
  * and sending a response. Supports both piggybacked responses (carried in the ACK)
  * and separate responses (empty ACK now, actual response sent later as a CON message).
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class CoapExchange {
 
@@ -33,7 +33,7 @@ public final class CoapExchange {
      * @param request the incoming request message
      * @param source  the source address of the request
      * @throws NullPointerException if {@code request} or {@code source} is {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapExchange(CoapMessage request, SocketAddress source) {
         this.request = Objects.requireNonNull(request, "request must not be null");
@@ -44,7 +44,7 @@ public final class CoapExchange {
      * Returns the incoming request message.
      *
      * @return the request
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapMessage getRequest() {
         return request;
@@ -54,7 +54,7 @@ public final class CoapExchange {
      * Returns the source address of the request.
      *
      * @return the source socket address
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public SocketAddress getSource() {
         return source;
@@ -64,7 +64,7 @@ public final class CoapExchange {
      * Returns the request options.
      *
      * @return the request options list
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public java.util.List<CoapOption> getRequestOptions() {
         return request.options();
@@ -74,7 +74,7 @@ public final class CoapExchange {
      * Returns query parameters parsed from Uri-Query options.
      *
      * @return a map of query parameter keys to values
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Map<String, String> getQueryParameters() {
         var queries = request.getOptions(CoapOption.URI_QUERY);
@@ -100,7 +100,7 @@ public final class CoapExchange {
      * @param code          the response code
      * @param payload       the response payload
      * @param contentFormat the content format identifier
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void respond(CoapCode code, byte[] payload, int contentFormat) {
         Objects.requireNonNull(code, "code must not be null");
@@ -123,7 +123,7 @@ public final class CoapExchange {
      * Responds with the given code only (no payload).
      *
      * @param code the response code
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void respond(CoapCode code) {
         respond(code, null, -1);
@@ -133,7 +133,7 @@ public final class CoapExchange {
      * Responds with 2.05 Content and the given payload.
      *
      * @param payload the response payload
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void respond(byte[] payload) {
         respond(CoapCode.CONTENT, payload, -1);
@@ -144,7 +144,7 @@ public final class CoapExchange {
      *
      * @param payload       the response payload
      * @param contentFormat the content format identifier
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void respond(byte[] payload, int contentFormat) {
         respond(CoapCode.CONTENT, payload, contentFormat);
@@ -154,7 +154,7 @@ public final class CoapExchange {
      * Returns the response message, or {@code null} if no response has been set.
      *
      * @return the response message, or {@code null}
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public CoapMessage getResponse() {
         return response;
@@ -164,7 +164,7 @@ public final class CoapExchange {
      * Returns whether a response has been set.
      *
      * @return {@code true} if a response exists
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean hasResponse() {
         return response != null;
@@ -178,7 +178,7 @@ public final class CoapExchange {
      * message with the same token. This is used when the server cannot produce
      * the response quickly enough for a piggybacked response.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void markSeparateResponse() {
         this.separateResponse = true;
@@ -188,7 +188,7 @@ public final class CoapExchange {
      * Returns whether this exchange requires a separate response.
      *
      * @return {@code true} if a separate response is needed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isSeparateResponse() {
         return separateResponse;
@@ -205,7 +205,7 @@ public final class CoapExchange {
      * @param payload       the response payload
      * @param contentFormat the content format identifier
      * @param newMessageId  the new message ID for the separate response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public void respondSeparate(CoapCode code, byte[] payload, int contentFormat, int newMessageId) {
         Objects.requireNonNull(code, "code must not be null");

@@ -9,7 +9,7 @@ import ssg.legoflow.http.core.HttpResponse;
  * <p>Implementations validate the Proxy-Authorization header and produce
  * 407 Proxy Authentication Required challenges when authentication fails.</p>
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public interface ProxyAuthenticator {
 
@@ -18,7 +18,7 @@ public interface ProxyAuthenticator {
      *
      * @param request the incoming request
      * @return true if the request is authenticated
-     * @since 1.0.0
+     * @since 0.1.0
      */
     boolean authenticate(HttpRequest request);
 
@@ -27,7 +27,7 @@ public interface ProxyAuthenticator {
      * Proxy-Authenticate challenge header.
      *
      * @return the challenge response
-     * @since 1.0.0
+     * @since 0.1.0
      */
     HttpResponse createChallenge();
 
@@ -35,7 +35,7 @@ public interface ProxyAuthenticator {
      * Returns the authentication scheme name (e.g. "Basic", "Digest").
      *
      * @return the scheme name
-     * @since 1.0.0
+     * @since 0.1.0
      */
     String getScheme();
 }

@@ -7,7 +7,7 @@ import java.util.*;
  * Standard JWT claims (RFC 7519). Supports standard registered claims (iss, sub, aud,
  * exp, nbf, iat, jti) and arbitrary custom claims.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class JwtClaims {
 
@@ -17,7 +17,7 @@ public class JwtClaims {
      * Creates JWT claims from a map.
      *
      * @param claims the claims map
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public JwtClaims(Map<String, Object> claims) {
         this.claims = new LinkedHashMap<>(claims);
@@ -26,7 +26,7 @@ public class JwtClaims {
     /**
      * Creates empty JWT claims.
      *
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public JwtClaims() {
         this.claims = new LinkedHashMap<>();
@@ -61,7 +61,7 @@ public class JwtClaims {
      * @param name  the claim name
      * @param value the claim value
      * @return this for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public JwtClaims claim(String name, Object value) {
         claims.put(name, value);
@@ -90,7 +90,7 @@ public class JwtClaims {
      *
      * @param name the claim name
      * @return the value, or null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getStringClaim(String name) {
         Object v = claims.get(name);
@@ -102,7 +102,7 @@ public class JwtClaims {
      *
      * @param name the claim name
      * @return the value, or null
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Long getLongClaim(String name) {
         Object v = claims.get(name);
@@ -117,7 +117,7 @@ public class JwtClaims {
      * Returns all claims as a map.
      *
      * @return unmodifiable claims map
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public Map<String, Object> toMap() {
         return Collections.unmodifiableMap(claims);
@@ -127,7 +127,7 @@ public class JwtClaims {
      * Checks if the token has expired.
      *
      * @return true if expired
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isExpired() {
         Long exp = getExpiresAt();
@@ -139,7 +139,7 @@ public class JwtClaims {
      * Checks if the token is not yet valid (nbf is in the future).
      *
      * @return true if not yet valid
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isNotYetValid() {
         Long nbf = getNotBefore();
@@ -151,7 +151,7 @@ public class JwtClaims {
      * Serializes claims to a JSON string.
      *
      * @return the JSON representation
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String toJson() {
         var sb = new StringBuilder("{");
@@ -171,7 +171,7 @@ public class JwtClaims {
      *
      * @param json the JSON string
      * @return the parsed claims
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public static JwtClaims fromJson(String json) {
         var claims = new JwtClaims();

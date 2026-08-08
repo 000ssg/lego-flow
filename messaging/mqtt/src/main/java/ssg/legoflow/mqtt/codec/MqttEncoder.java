@@ -12,7 +12,7 @@ import java.util.List;
  * <p>Handles the variable header and payload encoding for each packet type.
  * The fixed header (packet type + remaining length) is added by {@link MqttCodec}.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class MqttEncoder {
 

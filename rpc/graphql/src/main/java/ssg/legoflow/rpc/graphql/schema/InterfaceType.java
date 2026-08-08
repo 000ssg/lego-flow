@@ -9,7 +9,7 @@ import java.util.*;
  * When querying a field that returns an interface, inline fragments or named fragments
  * can be used to select fields on the concrete object types.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class InterfaceType implements GraphQLType {
 

@@ -11,7 +11,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * <p>Stores all delivered messages in a thread-safe list. Messages are retained
  * in memory until explicitly cleared or the store is garbage collected.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class InMemoryMessageStore implements MessageStore {
 

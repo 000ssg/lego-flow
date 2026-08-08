@@ -12,7 +12,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * <p>Containers hold child items and sub-containers, forming a tree
  * structure that maps to the {@code <container>} elements in DIDL-Lite XML.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public class ContentContainer {
 
@@ -29,7 +29,7 @@ public class ContentContainer {
      * @param parentId   the parent container ID ("-1" for root)
      * @param title      the display title
      * @param searchable whether the container supports search
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentContainer(String id, String parentId, String title, boolean searchable) {
         this.id = Objects.requireNonNull(id, "id must not be null");
@@ -43,7 +43,7 @@ public class ContentContainer {
      * Returns the unique container ID.
      *
      * @return the container ID
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getId() {
         return id;
@@ -53,7 +53,7 @@ public class ContentContainer {
      * Returns the parent container ID.
      *
      * @return the parent ID ("-1" for root)
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getParentId() {
         return parentId;
@@ -63,7 +63,7 @@ public class ContentContainer {
      * Returns the display title.
      *
      * @return the title
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public String getTitle() {
         return title;
@@ -73,7 +73,7 @@ public class ContentContainer {
      * Returns the number of direct children.
      *
      * @return the child count
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public int getChildCount() {
         return children.size();
@@ -83,7 +83,7 @@ public class ContentContainer {
      * Returns whether this container supports search.
      *
      * @return true if searchable
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean isSearchable() {
         return searchable;
@@ -93,7 +93,7 @@ public class ContentContainer {
      * Returns an unmodifiable view of the children.
      *
      * @return the list of child items
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<ContentItem> getChildren() {
         return Collections.unmodifiableList(children);
@@ -104,7 +104,7 @@ public class ContentContainer {
      *
      * @param item the item to add
      * @return this container for chaining
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentContainer addChild(ContentItem item) {
         Objects.requireNonNull(item, "item must not be null");
@@ -117,7 +117,7 @@ public class ContentContainer {
      *
      * @param itemId the ID of the item to remove
      * @return true if an item was removed
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public boolean removeChild(String itemId) {
         return children.removeIf(item -> item.getId().equals(itemId));
@@ -129,7 +129,7 @@ public class ContentContainer {
      * @param startIndex   the starting index (0-based)
      * @param requestCount the maximum number of items to return (0 for all)
      * @return the sublist of children
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public List<ContentItem> getChildren(int startIndex, int requestCount) {
         int size = children.size();
@@ -144,7 +144,7 @@ public class ContentContainer {
      * Converts this container to a {@link ContentItem} representation for inclusion in browse results.
      *
      * @return a content item representing this container
-     * @since 1.0.0
+     * @since 0.1.0
      */
     public ContentItem toContentItem() {
         return new ContentItem(id, parentId, title, ContentItemType.CONTAINER);

@@ -20,7 +20,7 @@ import java.util.Objects;
  * <p>While more secure than PLAIN/LOGIN over unencrypted connections, CRAM-MD5
  * has weaknesses and TLS is still recommended.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 public final class CramMd5Auth implements SmtpAuthenticator {
 

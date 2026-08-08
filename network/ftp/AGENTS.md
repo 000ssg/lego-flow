@@ -1,4 +1,9 @@
-# FTP Module — Development Guide
+# network / ftp — Module-Specific Notes
+
+> **Project-wide conventions**: See [root AGENTS.md](../../../AGENTS.md) for requirements documentation, architecture practices, git commit rules, coding conventions, testing practices, JDK 25 features, and dual API design.
+>
+> This file only covers module-specific details not covered by the root guide.
+
 
 ## Module Purpose
 
@@ -67,8 +72,3 @@ The `ftp` module implements FTP (RFC 959) and FTPS (RFC 4217) protocols from scr
 - Demo functional tests: each demo runs against a local server
 - All tests use loopback transport (no external FTP server required)
 - Test count: 386
-
----
-
-**Last Updated**: 2026-06-26
-**For AI assistant versions**

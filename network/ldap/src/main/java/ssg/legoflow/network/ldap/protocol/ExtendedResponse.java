@@ -14,7 +14,7 @@ package ssg.legoflow.network.ldap.protocol;
  * @param result        the LDAP result
  * @param responseName  the optional response OID (null if absent)
  * @param responseValue the optional response value (null if absent)
- * @since 1.0.0
+ * @since 0.1.0
  */
 public record ExtendedResponse(
         LdapResult result,
