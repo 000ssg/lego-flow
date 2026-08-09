@@ -13,23 +13,23 @@ mvn package -pl benchmarks -am -DskipTests
 ### Run all benchmarks
 
 ```bash
-java -jar benchmarks/target/lego-flow-benchmarks-1.0.0-SNAPSHOT.jar
+java -jar benchmarks/target/lego-flow-benchmarks-0.1.0-SNAPSHOT.jar
 ```
 
 ### Run specific benchmark category
 
 ```bash
 # HTTP throughput only
-java -jar benchmarks/target/lego-flow-benchmarks-1.0.0-SNAPSHOT.jar ".*HttpThroughputBenchmark.*"
+java -jar benchmarks/target/lego-flow-benchmarks-0.1.0-SNAPSHOT.jar ".*HttpThroughputBenchmark.*"
 
 # MQTT latency only  
-java -jar benchmarks/target/lego-flow-benchmarks-1.0.0-SNAPSHOT.jar ".*MqttLatencyBenchmark.*"
+java -jar benchmarks/target/lego-flow-benchmarks-0.1.0-SNAPSHOT.jar ".*MqttLatencyBenchmark.*"
 
 # Auth handshake only
-java -jar benchmarks/target/lego-flow-benchmarks-1.0.0-SNAPSHOT.jar ".*AuthHandshakeBenchmark.*"
+java -jar benchmarks/target/lego-flow-benchmarks-0.1.0-SNAPSHOT.jar ".*AuthHandshakeBenchmark.*"
 
 # Codec serialization only
-java -jar benchmarks/target/lego-flow-benchmarks-1.0.0-SNAPSHOT.jar ".*CodecSerializationBenchmark.*"
+java -jar benchmarks/target/lego-flow-benchmarks-0.1.0-SNAPSHOT.jar ".*CodecSerializationBenchmark.*"
 ```
 
 ## Benchmark Suite
@@ -63,14 +63,14 @@ java -jar benchmarks/target/lego-flow-benchmarks-1.0.0-SNAPSHOT.jar ".*CodecSeri
 mvn package -pl benchmarks -am -DskipTests
 
 # Run all benchmarks — output shows ops/ms and µs/op per method:
-java -jar benchmarks/target/lego-flow-benchmarks-1.0.0-SNAPSHOT.jar
+java -jar benchmarks/target/lego-flow-benchmarks-0.1.0-SNAPSHOT.jar
 # Expected: each benchmark prints throughput (ops/ms) or latency (µs/op) with 95% confidence intervals
 
 # Run only specific category:
-java -jar benchmarks/target/lego-flow-benchmarks-1.0.0-SNAPSHOT.jar ".*HttpThroughputBenchmark.*"
+java -jar benchmarks/target/lego-flow-benchmarks-0.1.0-SNAPSHOT.jar ".*HttpThroughputBenchmark.*"
 
 # Run a single benchmark method:
-java -jar benchmarks/target/lego-flow-benchmarks-1.0.0-SNAPSHOT.jar ".*serializeSmallRequest"
+java -jar benchmarks/target/lego-flow-benchmarks-0.1.0-SNAPSHOT.jar ".*serializeSmallRequest"
 ```
 
 ### Gradle path (mirrors Maven above)
