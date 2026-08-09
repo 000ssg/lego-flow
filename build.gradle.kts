@@ -10,6 +10,7 @@ val javaRelease = project.property("javaRelease") as String
 val slf4jVersion = project.property("slf4jVersion") as String
 val slf4jSimpleVersion = project.property("slf4jSimpleVersion") as String
 val junitVersion = project.property("junitVersion") as String
+val junitPlatformVersion = project.property("junitPlatformVersion") as String
 val mockitoVersion = project.property("mockitoVersion") as String
 val assertjVersion = project.property("assertjVersion") as String
 
@@ -54,6 +55,7 @@ subprojects {
         //    with proper synchronization or resource isolation.
         //    Mirrors Maven surefire <parallel>none</parallel>. ──────────
         maxParallelForks = 1
+        dependsOn(tasks.named("jar"))
 
         // JVM args for test forks
         jvmArgs("-XX:+UseG1GC")
@@ -67,7 +69,7 @@ subprojects {
     dependencies {
         "testImplementation"("org.junit.jupiter:junit-jupiter:$junitVersion")
         "testImplementation"("org.assertj:assertj-core:$assertjVersion")
-        "testRuntimeOnly"("org.junit.platform:junit-platform-launcher")
+        "testRuntimeOnly"("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
         "testRuntimeOnly"("org.slf4j:slf4j-simple:$slf4jSimpleVersion")
     }
 
