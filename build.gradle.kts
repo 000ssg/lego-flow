@@ -1,6 +1,8 @@
 import org.gradle.api.tasks.testing.Test
 import org.gradle.jvm.tasks.Jar
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.maven.MavenPublication
 
 group = "ssg"
 version = property("legoFlowVersion") as String
@@ -228,6 +230,69 @@ subprojects.forEach { subproject ->
             val agentJar = jacocoAgent.files.firstOrNull()
             if (agentJar != null) {
                 jvmArgs("-javaagent:${agentJar.absolutePath}=includes=ssg.legoflow.**,output=file,destfile=${subproject.layout.buildDirectory.get().asFile}/jacoco/test.exec")
+            }
+        }
+    }
+}
+
+
+// ── Maven Publish — for publishing to local repo or GitHub Packages ──
+// Skip publishing for benchmarks and interop-tests (no jars produced)
+val skipPublishProjects = setOf("benchmarks", "interop-tests")
+
+subprojects.forEach { subproject ->
+    if (subproject.name in skipPublishProjects) return@forEach
+    
+    subproject.plugins.apply("maven-publish")
+    
+    subproject.configure<PublishingExtension> {
+        publications.create("maven", MavenPublication::class.java) {
+            // For parent-only (pom-style) projects, publish as POM
+            if (subproject.name in parentProjects) {
+                pom {
+                    packaging = "pom"
+                }
+            } else {
+                from(subproject.components.getByName("java"))
+            }
+            
+            groupId = subproject.group.toString()
+            artifactId = subproject.name
+            version = subproject.version.toString()
+            
+            pom {
+                name.set(subproject.name)
+                description.set(subproject.description ?: "Lego Flow ${subproject.name} module")
+                url.set("https://github.com/000ssg/lego-flow")
+                
+                licenses {
+                    license {
+                        name.set("MIT")
+                        url.set("https://opensource.org/licenses/MIT")
+                    }
+                }
+                developers {
+                    developer {
+                        id.set("000ssg")
+                        name.set("Sergey Sidorov")
+                    }
+                }
+                scm {
+                    connection.set("scm:git:git@github.com:000ssg/lego-flow.git")
+                    developerConnection.set("scm:git:git@github.com:000ssg/lego-flow.git")
+                    url.set("https://github.com/000ssg/lego-flow")
+                }
+            }
+        }
+        
+        repositories {
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://m.pkg.github.com/000ssg/lego-flow")
+                credentials {
+                    username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
+                    password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
+                }
             }
         }
     }
