@@ -1,5 +1,6 @@
 package ssg.legoflow.ssh.sftp;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import java.nio.ByteBuffer;
@@ -9,6 +10,15 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 
 class SftpTest {
+
+    private SftpServer server;
+
+    @AfterEach
+    void cleanupServer() {
+        if (server != null) {
+            try { server.close(); } catch (Exception ignored) {}
+        }
+    }
 
     // --- SftpPacketType tests ---
 
@@ -418,7 +428,7 @@ class SftpTest {
         Path sourceFile = tempDir.resolve("original.txt");
         Files.writeString(sourceFile, "rename me");
 
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
 
         // Build posix-rename extended request data: oldpath + newpath
         ByteBuffer dataBuf = ByteBuffer.allocate(256);
@@ -450,7 +460,7 @@ class SftpTest {
         Files.writeString(sourceFile, "new content");
         Files.writeString(targetFile, "old content");
 
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
 
         ByteBuffer dataBuf = ByteBuffer.allocate(256);
         ssg.legoflow.ssh.transport.SshTransportCodec.writeString(dataBuf, "src.txt");
@@ -470,7 +480,7 @@ class SftpTest {
 
     @Test
     void testServerHandleStatvfs() throws Exception {
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
 
         ByteBuffer dataBuf = ByteBuffer.allocate(256);
         ssg.legoflow.ssh.transport.SshTransportCodec.writeString(dataBuf, ".");
@@ -501,7 +511,7 @@ class SftpTest {
 
     @Test
     void testServerHandleUnknownExtension() {
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
 
         SftpPacket.Extended request = new SftpPacket.Extended(1, "unknown@ext", new byte[]{});
         byte[] response = server.handlePacket(SftpCodec.encode(request));
@@ -514,7 +524,7 @@ class SftpTest {
 
     @Test
     void testServerHandlePosixRenameNonexistentSource() throws Exception {
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
 
         ByteBuffer dataBuf = ByteBuffer.allocate(256);
         ssg.legoflow.ssh.transport.SshTransportCodec.writeString(dataBuf, "nosuch.txt");
@@ -533,7 +543,7 @@ class SftpTest {
     // --- Additional SftpServer handler coverage tests ---
 
     @Test void testServerHandlePacketDecodeError() throws Exception {
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
         // Send data that will cause a decode error (type 255 is unknown)
         byte[] badData = new byte[]{(byte)255};
         try {
@@ -547,7 +557,7 @@ class SftpTest {
     }
 
     @Test void testServerHandleUnsupportedPacketType() throws Exception {
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
         // FSETSTAT (type 9) is not handled by the switch -> falls through to default
         byte[] buf = new byte[]{9, 0, 0, 0, 1}; // type=9 (SSH_FXP_FSETSTAT) + dummy data
         try {
@@ -562,7 +572,7 @@ class SftpTest {
 
     @Test void testServerHandleStat() throws Exception {
         Files.writeString(tempDir.resolve("statme.txt"), "stat content");
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
         byte[] response = server.handlePacket(SftpCodec.encode(
                 new SftpPacket.Stat(100, "statme.txt")));
         SftpPacket decoded = SftpCodec.decode(response);
@@ -571,7 +581,7 @@ class SftpTest {
 
     @Test void testServerHandleLstat() throws Exception {
         Files.writeString(tempDir.resolve("lstatme.txt"), "lstat content");
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
         byte[] response = server.handlePacket(SftpCodec.encode(
                 new SftpPacket.Lstat(101, "lstatme.txt")));
         SftpPacket decoded = SftpCodec.decode(response);
@@ -580,7 +590,7 @@ class SftpTest {
 
     @Test void testServerHandleOpendir() throws Exception {
         Files.createDirectory(tempDir.resolve("testdir"));
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
         byte[] response = server.handlePacket(SftpCodec.encode(
                 new SftpPacket.Opendir(102, "testdir")));
         SftpPacket decoded = SftpCodec.decode(response);
@@ -589,7 +599,7 @@ class SftpTest {
 
     @Test void testServerHandleReaddir() throws Exception {
         Files.writeString(tempDir.resolve("readdirmet.txt"), "content");
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
         
         // First open the directory
         byte[] opendirResponse = server.handlePacket(SftpCodec.encode(
@@ -605,7 +615,7 @@ class SftpTest {
 
     @Test void testServerHandleRemove() throws Exception {
         Files.writeString(tempDir.resolve("removeme.txt"), "to be removed");
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
         byte[] response = server.handlePacket(SftpCodec.encode(
                 new SftpPacket.Remove(105, "removeme.txt")));
         SftpPacket.Status status = (SftpPacket.Status) SftpCodec.decode(response);
@@ -614,7 +624,7 @@ class SftpTest {
     }
 
     @Test void testServerHandleMkdir() throws Exception {
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
         byte[] response = server.handlePacket(SftpCodec.encode(
                 new SftpPacket.Mkdir(106, "newdir", SftpFileAttributes.empty())));
         SftpPacket.Status status = (SftpPacket.Status) SftpCodec.decode(response);
@@ -624,7 +634,7 @@ class SftpTest {
 
     @Test void testServerHandleRmdir() throws Exception {
         Files.createDirectory(tempDir.resolve("rmme"));
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
         byte[] response = server.handlePacket(SftpCodec.encode(
                 new SftpPacket.Rmdir(107, "rmme")));
         SftpPacket.Status status = (SftpPacket.Status) SftpCodec.decode(response);
@@ -633,7 +643,7 @@ class SftpTest {
 
     @Test void testServerHandleRead() throws Exception {
         Files.writeString(tempDir.resolve("readme.txt"), "readable content");
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
         
         // Open file first
         byte[] openResponse = server.handlePacket(SftpCodec.encode(
@@ -649,7 +659,7 @@ class SftpTest {
     }
 
     @Test void testServerHandleWrite() throws Exception {
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
         
         // Open file for write
         byte[] openResponse = server.handlePacket(SftpCodec.encode(
@@ -666,7 +676,7 @@ class SftpTest {
     }
 
     @Test void testServerHandleClose() throws Exception {
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
         
         // Open file first
         byte[] openResponse = server.handlePacket(SftpCodec.encode(
@@ -683,7 +693,7 @@ class SftpTest {
     }
 
     @Test void testServerHandleInit() throws Exception {
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
         byte[] response = server.handlePacket(SftpCodec.encode(
                 new SftpPacket.Init(3)));
         SftpPacket.Version version = (SftpPacket.Version) SftpCodec.decode(response);
@@ -691,7 +701,7 @@ class SftpTest {
     }
 
     @Test void testServerHandleRealpath() throws Exception {
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
         byte[] response = server.handlePacket(SftpCodec.encode(
                 new SftpPacket.Realpath(114, ".")));
         SftpPacket decoded = SftpCodec.decode(response);
@@ -700,7 +710,7 @@ class SftpTest {
 
     @Test void testServerHandleWriteAppend() throws Exception {
         Files.writeString(tempDir.resolve("appendme.txt"), "initial ");
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
         
         byte[] openResponse = server.handlePacket(SftpCodec.encode(
                 new SftpPacket.Open(115, "appendme.txt", 
@@ -715,7 +725,7 @@ class SftpTest {
     }
 
     @Test void testServerHandleOpenNonexistentForRead() throws Exception {
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
         byte[] response = server.handlePacket(SftpCodec.encode(
                 new SftpPacket.Open(117, "nonexistent.txt", SftpCodec.SSH_FXF_READ, 
                         SftpFileAttributes.empty())));
@@ -724,7 +734,7 @@ class SftpTest {
     }
 
     @Test void testServerHandleRemoveNonexistent() throws Exception {
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
         byte[] response = server.handlePacket(SftpCodec.encode(
                 new SftpPacket.Remove(118, "nonexistent.txt")));
         SftpPacket.Status status = (SftpPacket.Status) SftpCodec.decode(response);
@@ -732,7 +742,7 @@ class SftpTest {
     }
 
     @Test void testServerHandleWriteToClosedHandle() throws Exception {
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
         
         // Invalid handle that doesn't exist
         byte[] response = server.handlePacket(SftpCodec.encode(
@@ -742,7 +752,7 @@ class SftpTest {
     }
 
     @Test void testServerHandleReadFromClosedHandle() throws Exception {
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
         
         byte[] response = server.handlePacket(SftpCodec.encode(
                 new SftpPacket.Read(120, "invalid-handle".getBytes(), 0L, 100)));
@@ -751,7 +761,7 @@ class SftpTest {
     }
 
     @Test void testServerHandleCloseInvalidHandle() throws Exception {
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
         
         byte[] response = server.handlePacket(SftpCodec.encode(
                 new SftpPacket.Close(121, "invalid-handle".getBytes())));
@@ -761,7 +771,7 @@ class SftpTest {
 
     @Test void testServerHandleReadEmptyFile() throws Exception {
         Files.write(tempDir.resolve("empty.txt"), new byte[0]);
-        SftpServer server = new SftpServer(tempDir);
+        server = new SftpServer(tempDir);
         
         byte[] openResponse = server.handlePacket(SftpCodec.encode(
                 new SftpPacket.Open(122, "empty.txt", SftpCodec.SSH_FXF_READ, 
