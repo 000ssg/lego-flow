@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @since 0.1.0
  */
-public final class SftpServer {
+public final class SftpServer implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(SftpServer.class);
     private static final int SFTP_VERSION = 3;
@@ -38,6 +38,16 @@ public final class SftpServer {
     public SftpServer(Path rootDirectory) {
         this.rootDirectory = Objects.requireNonNull(rootDirectory, "rootDirectory");
     }
+    @Override
+    public void close() {
+        handles.values().stream()
+                .filter(h -> h instanceof Closeable)
+                .forEach(h -> {
+                    try { ((Closeable) h).close(); } catch (IOException ignored) {}
+                });
+        handles.clear();
+    }
+
 
     /**
      * Handles an incoming SFTP packet and returns the response.

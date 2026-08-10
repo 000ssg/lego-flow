@@ -148,7 +148,7 @@ public class HttpSession {
      */
     public boolean isExpired(long timeoutSeconds) {
         if (invalidated) return true;
-        return Instant.now().isAfter(lastAccessTime.plusSeconds(timeoutSeconds));
+        return !Instant.now().isBefore(lastAccessTime.plusSeconds(timeoutSeconds));
     }
 
     private void checkValid() {

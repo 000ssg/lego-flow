@@ -9,6 +9,25 @@
     <name>Lego Flow — Composable Data Processing Framework (root)</name>
 
     <modules>
+        <!-- Core modules -->
+        <module>blocks</module>
+        <module>service</module>
+        <!-- Category aggregator modules -->
+        <module>web</module>
+        <module>iot</module>
+        <module>auth</module>
+        <module>messaging</module>
+        <module>rpc</module>
+        <module>database</module>
+        <module>email</module>
+        <module>network</module>
+        <module>media</module>
+        <!-- Demos module (excluded from install/deploy) -->
+        <module>demos</module>
+        <!-- Benchmarks module (excluded from install/deploy) -->
+        <module>benchmarks</module>
+        <!-- Interop tests module (excluded from install/deploy) -->
+        <module>interop-tests</module>
     </modules>
 
     <properties>
@@ -17,7 +36,7 @@
         <!-- Dependency versions — centralised here so child POMs stay DRY -->
         <slf4j.version>1.7.36</slf4j.version>
         <slf4j.simple.version>2.0.9</slf4j.simple.version>
-        <junit.version>5.10.1</junit.version>
+        <junit.version>5.11.4</junit.version>
         <mockito.version>5.8.0</mockito.version>
         <assertj.version>3.24.2</assertj.version>
         <testcontainers.version>1.20.5</testcontainers.version>
@@ -394,83 +413,7 @@
                 </plugins>
             </build>
         </profile>
-        <profile>
-            <id>all</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <modules>
-                <module>blocks</module>
-                <module>service</module>
-                <module>web</module>
-                <module>iot</module>
-                <module>auth</module>
-                <!-- Protocol add-on category modules -->
-                <module>messaging</module>
-                <module>rpc</module>
-                <module>database</module>
-                <module>email</module>
-                <module>network</module>
-                <module>media</module>
-                <!-- Demos module (excluded from install/deploy) -->
-                <module>demos</module>
-                <!-- Benchmarks module (excluded from install/deploy) -->
-                <module>benchmarks</module>
-                <!-- Interop tests module (excluded from install/deploy) -->
-                <module>interop-tests</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>web-only</id>
-            <modules>
-                <module>blocks</module>
-                <module>service</module>
-                <module>web</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>messaging-only</id>
-            <modules>
-                <module>blocks</module>
-                <module>service</module>
-                <module>web</module>
-                <module>messaging</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>network-only</id>
-            <modules>
-                <module>blocks</module>
-                <module>service</module>
-                <module>web</module>
-                <module>auth</module>
-                <module>network</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>auth-only</id>
-            <modules>
-                <module>blocks</module>
-                <module>service</module>
-                <module>web</module>
-                <module>auth</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>database-only</id>
-            <modules>
-                <module>blocks</module>
-                <module>service</module>
-                <module>database</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>minimal</id>
-            <modules>
-                <module>blocks</module>
-                <module>service</module>
-            </modules>
-        </profile>
+
     </profiles>
 
 </project>
