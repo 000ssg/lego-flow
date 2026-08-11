@@ -104,6 +104,12 @@ class DnsServerIntegrationTest {
             
             client.query("example.com.", RecordType.A);
             
+            // Allow async virtual thread to update counters (retry on CI race condition)
+            int retries = 10;
+            while (server.queriesReceived() <= queriesBefore && retries-- > 0) {
+                Thread.sleep(50);
+            }
+            
             assertThat(server.queriesReceived()).isGreaterThan(queriesBefore);
             assertThat(server.responsesSent()).isGreaterThan(responsesBefore);
         }
@@ -165,6 +171,12 @@ class DnsServerIntegrationTest {
             for (int i = 0; i < 5; i++) {
                 DnsMessage response = client.query("example.com.", RecordType.A);
                 assertThat(response.header().rCode()).isEqualTo(ResponseCode.NOERROR);
+            }
+            
+            // Allow async virtual thread to update counters (retry on CI race condition)
+            int retries = 10;
+            while (server.queriesReceived() < 5 && retries-- > 0) {
+                Thread.sleep(50);
             }
             
             assertThat(server.queriesReceived()).isGreaterThanOrEqualTo(5);
