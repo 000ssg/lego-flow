@@ -17,20 +17,21 @@ val mockitoVersion = project.property("mockitoVersion") as String
 val assertjVersion = project.property("assertjVersion") as String
 
 // Parent-only projects (no Java sources — equivalent to Maven pom-packaging)
-val parentProjects = setOf("auth", "http-auth", "web", "iot", "messaging", "rpc", "database", "email", "network", "media")
+val parentProjects = setOf("lego-flow-auth", "lego-flow-http-auth", "lego-flow-web", "lego-flow-iot", "lego-flow-messaging", "lego-flow-rpc", "lego-flow-database", "lego-flow-email", "lego-flow-network", "lego-flow-media")
 
 repositories {
     mavenCentral()
 }
 
 subprojects {
+    // Set group and version for ALL subprojects (including pom-style aggregators)
+    group = "ssg"
+    version = rootProject.version
+
     // Skip Java plugin for parent-only (pom-packaging) projects
     if (name in parentProjects) return@subprojects
 
     apply(plugin = "java-library")
-
-    group = "ssg"
-    version = rootProject.version
 
     // Java toolchain — tells Gradle (and IntelliJ) which JDK to use
     configure<JavaPluginExtension> {
@@ -124,8 +125,8 @@ fun Project.setupBenchmarkModule() {
         "implementation"("org.openjdk.jmh:jmh-core:$jmhVersion")
         "annotationProcessor"("org.openjdk.jmh:jmh-generator-annprocess:$jmhVersion")
         // Core modules
-        "implementation"(project(":blocks"))
-        "implementation"(project(":service"))
+        "implementation"(project(":lego-flow-blocks"))
+        "implementation"(project(":lego-flow-service"))
         // Protocol modules under test (mirrors benchmarks/pom.xml dependencies)
         "implementation"(project(":lego-flow-http"))
         "implementation"(project(":lego-flow-mqtt"))
@@ -288,7 +289,7 @@ subprojects.forEach { subproject ->
         repositories {
             maven {
                 name = "GitHubPackages"
-                url = uri("https://m.pkg.github.com/000ssg/lego-flow")
+                url = uri("https://maven.pkg.github.com/000ssg/lego-flow")
                 credentials {
                     username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
                     password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")

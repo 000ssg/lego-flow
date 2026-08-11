@@ -8,11 +8,11 @@
     <parent>
         <groupId>ssg</groupId>
         <artifactId>lego-flow-database</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>0.1.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     
-    <artifactId>database-redis</artifactId>
+    <artifactId>lego-flow-redis</artifactId>
     <name>Redis Database</name>
     <description>Redis database client implementation</description>
     

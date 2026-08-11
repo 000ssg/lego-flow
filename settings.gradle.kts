@@ -1,8 +1,10 @@
 rootProject.name = "lego-flow"
 
-// Core modules
-include("blocks")
-include("service")
+// Core modules — project names match Maven artifactIds for consistent publishing
+include("lego-flow-blocks")
+project(":lego-flow-blocks").projectDir = file("blocks")
+include("lego-flow-service")
+project(":lego-flow-service").projectDir = file("service")
 include("demos")
 
 // Infrastructure modules (excluded from install/deploy)
@@ -10,15 +12,24 @@ include("benchmarks")
 include("interop-tests")
 
 // Parent-only aggregator projects (Maven pom-style, no Java sources)
-include(":auth")
-include(":web")
-include(":iot")
-include(":messaging")
-include(":rpc")
-include(":database")
-include(":email")
-include(":network")
-include(":media")
+include("lego-flow-auth")
+project(":lego-flow-auth").projectDir = file("auth")
+include("lego-flow-web")
+project(":lego-flow-web").projectDir = file("web")
+include("lego-flow-iot")
+project(":lego-flow-iot").projectDir = file("iot")
+include("lego-flow-messaging")
+project(":lego-flow-messaging").projectDir = file("messaging")
+include("lego-flow-rpc")
+project(":lego-flow-rpc").projectDir = file("rpc")
+include("lego-flow-database")
+project(":lego-flow-database").projectDir = file("database")
+include("lego-flow-email")
+project(":lego-flow-email").projectDir = file("email")
+include("lego-flow-network")
+project(":lego-flow-network").projectDir = file("network")
+include("lego-flow-media")
+project(":lego-flow-media").projectDir = file("media")
 
 // Nested sub-modules — give each a unique project name matching Maven artifactId
 val nestedModules = mapOf(

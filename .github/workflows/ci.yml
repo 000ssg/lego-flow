@@ -169,11 +169,11 @@ jobs:
       matrix:
         include:
           - profile: web-only
-            modules: ":blocks:test :service:test :lego-flow-http:test"
+            modules: ":lego-flow-blocks:test :lego-flow-service:test :lego-flow-http:test"
           - profile: messaging-only
-            modules: ":blocks:test :service:test :lego-flow-http:test :lego-flow-mqtt:test"
+            modules: ":lego-flow-blocks:test :lego-flow-service:test :lego-flow-http:test :lego-flow-mqtt:test"
           - profile: auth-only
-            modules: ":blocks:test :service:test :lego-flow-gssapi:test :lego-flow-http-auth-core:test :lego-flow-http-auth-basic-digest:test :lego-flow-http-auth-oauth:test :lego-flow-http-auth-sso:test :lego-flow-http-auth-spnego:test"
+            modules: ":lego-flow-blocks:test :lego-flow-service:test :lego-flow-gssapi:test :lego-flow-http-auth-core:test :lego-flow-http-auth-basic-digest:test :lego-flow-http-auth-oauth:test :lego-flow-http-auth-sso:test :lego-flow-http-auth-spnego:test"
       fail-fast: false
 
     steps:

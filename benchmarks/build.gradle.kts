@@ -3,8 +3,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":blocks"))
-    api(project(":service"))
+    api(project(":lego-flow-blocks"))
+    api(project(":lego-flow-service"))
     api(project(":lego-flow-http"))
     api(project(":lego-flow-mqtt"))
     api(project(":lego-flow-redis"))

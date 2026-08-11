@@ -20,7 +20,7 @@ tasks.withType<AbstractArchiveTask>().configureEach { isPreserveFileTimestamps =
 
 dependencies {
     // Core modules
-    api(project(":blocks")); api(project(":service"))
+    api(project(":lego-flow-blocks")); api(project(":lego-flow-service"))
 
     // Web modules
     api(project(":lego-flow-http")); api(project(":lego-flow-http2")); api(project(":lego-flow-http3"))

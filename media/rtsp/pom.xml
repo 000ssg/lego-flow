@@ -5,7 +5,7 @@
     <parent>
         <groupId>ssg</groupId>
         <artifactId>lego-flow-media</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>0.1.0</version>
     </parent>
     <artifactId>lego-flow-rtsp</artifactId>
     <name>Lego Flow RTSP — Real-Time Streaming Protocol 2.0 (RFC 7826)</name>

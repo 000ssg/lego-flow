@@ -6,7 +6,7 @@
     <parent>
         <groupId>ssg</groupId>
         <artifactId>lego-flow</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>0.1.0</version>
     </parent>
     <artifactId>lego-flow-benchmarks</artifactId>
     <name>Lego Flow Benchmarks — Cross-module performance benchmarks (JMH)</name>
@@ -40,7 +40,7 @@
         </dependency>
         <dependency>
             <groupId>ssg</groupId>
-            <artifactId>messaging-stomp</artifactId>
+            <artifactId>lego-flow-stomp</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -57,7 +57,7 @@
         </dependency>
         <dependency>
             <groupId>ssg</groupId>
-            <artifactId>messaging-mqtt</artifactId>
+            <artifactId>lego-flow-mqtt</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -72,12 +72,12 @@
         </dependency>
         <dependency>
             <groupId>ssg</groupId>
-            <artifactId>database-redis</artifactId>
+            <artifactId>lego-flow-redis</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>ssg</groupId>
-            <artifactId>network-dns</artifactId>
+            <artifactId>lego-flow-dns</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
