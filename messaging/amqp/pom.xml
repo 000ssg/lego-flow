@@ -5,7 +5,7 @@
     <parent>
         <groupId>ssg</groupId>
         <artifactId>lego-flow-messaging</artifactId>
-        <version>0.1.0</version>
+        <version>0.2.0-SNAPSHOT</version>
     </parent>
     <artifactId>lego-flow-amqp</artifactId>
     <name>Lego Flow AMQP — AMQP 1.0 (ISO 19464) Messaging Protocol</name>

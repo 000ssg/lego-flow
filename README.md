@@ -687,8 +687,8 @@ All published artifacts use the `lego-flow-*` prefix (groupId: `ssg`). Choose th
 
 | Artifact | Description |
 |---|---|
-| `ssg:lego-flow-blocks:0.1.0` | Core abstractions: DataProcessor, DataFilter, Context, pipelines |
-| `ssg:lego-flow-service:0.1.0` | Service lifecycle, channel management, scoped contexts, NIO channels |
+| `ssg:lego-flow-blocks:0.2.0-SNAPSHOT` | Core abstractions: DataProcessor, DataFilter, Context, pipelines |
+| `ssg:lego-flow-service:0.2.0-SNAPSHOT` | Service lifecycle, channel management, scoped contexts, NIO channels |
 
 **Maven:**
 ```xml
@@ -707,8 +707,8 @@ All published artifacts use the `lego-flow-*` prefix (groupId: `ssg`). Choose th
 **Gradle (Kotlin DSL):**
 ```kotlin
 dependencies {
-    implementation("ssg:lego-flow-blocks:0.1.0")
-    implementation("ssg:lego-flow-service:0.1.0")
+    implementation("ssg:lego-flow-blocks:0.2.0-SNAPSHOT")
+    implementation("ssg:lego-flow-service:0.2.0-SNAPSHOT")
 }
 ```
 
