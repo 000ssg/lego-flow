@@ -13,6 +13,9 @@ jobs:
   release:
     name: "Build & Publish"
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
 
     steps:
       - name: Checkout repository
@@ -27,21 +30,15 @@ jobs:
 
       - name: Build & test
         run: |
-          ./gradlew clean build \
-            --parallel \
-            --no-daemon \
-            -x :benchmarks:test \
-            -x :interop-tests:test
+          ./gradlew clean build --parallel --no-daemon -x :benchmarks:test -x :interop-tests:test
         env:
           CI: true
 
       - name: Publish to GitHub Packages
         run: |
-          ./gradlew publishToMavenLocal publish \
-            --parallel \
-            --no-daemon
+          ./gradlew publishToMavenLocal publish --parallel --no-daemon
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE_PAT: ${{ secrets.PACKAGE_PAT }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

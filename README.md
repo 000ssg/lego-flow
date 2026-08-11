@@ -5,7 +5,7 @@
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/Tests-11230-brightgreen.svg)]()
-[![Version](https://img.shields.io/badge/Version-0.1.0-blue.svg)]()
+[![Version](https://img.shields.io/badge/Version-0.2.0-SNAPSHOT-blue.svg)]()
 
 A composable data processing framework for Java built on JDK 25, providing layered abstractions from low-level data blocks to high-level protocol implementations.
 
@@ -1022,6 +1022,13 @@ See [interop-tests/README.md](interop-tests/README.md) for details.
 ---
 
 <a id="license"></a>
+---
+
+## Documentation
+
+- [Release Procedure](doc/RELEASE_PROCEDURE.md) — step-by-step guide for releasing new versions
+- [Code Overview](blocks/doc/CODE_OVERVIEW.md) — per-module architecture and design
+
 ## License
 
 MIT
