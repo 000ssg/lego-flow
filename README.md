@@ -542,17 +542,8 @@ See [interop-tests/README.md](interop-tests/README.md) for details.
 <a id="roadmap"></a>
 ## Roadmap
 
-- [x] v0.0.0 — Project structure, root POM, documentation framework
-- [x] v0.1.0 — blocks module: DP<I,O>, DF<T>, Context, State, Statistics
-- [x] v0.2.0 — service module: Service, AsyncService, Scopes, Users, Manager
-- [x] v0.3.0 — http module: HTTP/1.1, features, SSL, WebSocket
-- [x] v0.4.0 — web-services module: endpoints, content negotiation
-- [x] v0.5.0 — wamp module: WAMP core + WebSocket adapter
-- [x] v0.6.0 — http2 module: HTTP/2, HPACK, stream multiplexing, server push; service module: UDP transport
-- [x] v0.7.0 — http3 module: HTTP/3, QUIC, QPACK
-- [x] v0.8.0 — upnp module: UPnP/DLNA, SSDP, SOAP, media server/renderer/control point
-- [x] v0.9.0 — IoT protocol modules: MQTT (pub/sub, QoS, broker/client), CoAP (constrained REST, observe, blockwise), XMPP (presence, messaging, IoT extensions)
-- [x] v0.10.0 — Protocol add-on modules: 22 new leaf modules (messaging, rpc, database, email, network, media) + module reorganization into 9 categories (web, iot, auth, messaging, rpc, database, email, network, media)
+v0.1.0 released. The framework covers 40+ protocol modules across 9 categories.
+The 0.2.0 development cycle focuses on protocol completeness, stability, and production readiness.
 
 ---
 
