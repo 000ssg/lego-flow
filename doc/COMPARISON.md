@@ -172,15 +172,15 @@ To regenerate this document with fresh benchmark data:
 mvn -pl benchmarks package -DskipTests -q
 
 # Run all benchmarks (warmup=2, measure=3, fork=1 for speed)
-java -jar benchmarks/target/lego-flow-benchmarks-0.1.0-SNAPSHOT.jar \
+java -jar benchmarks/target/lego-flow-benchmarks-0.2.0-SNAPSHOT.jar \
   -wi 2 -i 3 -f 1 ".*ComparisonBenchmark.*|.*PipelineOverheadBenchmark.*|.*ServiceCompositionBenchmark.*"
 
 # Or run specific benchmark suites:
-java -jar benchmarks/target/lego-flow-benchmarks-0.1.0-SNAPSHOT.jar \
+java -jar benchmarks/target/lego-flow-benchmarks-0.2.0-SNAPSHOT.jar \
   "ssg.legoflow.benchmarks.service.PipelineOverheadBenchmark"
 
 # Full production run (warmup=3, measure=5, fork=1):
-java -jar benchmarks/target/lego-flow-benchmarks-0.1.0-SNAPSHOT.jar \
+java -jar benchmarks/target/lego-flow-benchmarks-0.2.0-SNAPSHOT.jar \
   .*ComparisonBenchmark.*
 ```
 

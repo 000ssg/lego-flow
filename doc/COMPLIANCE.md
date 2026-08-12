@@ -39,7 +39,7 @@ The compliance pattern requires:
 
 | Module | Server Service | Server Handler | Client Service | Client Handler | Notes |
 |--------|--------------|----------------|----------------|----------------|-------|
-| DNS | ✅ DnsService | ✅ DnsChannelHandler | ✅ DnsClientService | ✅ DnpClientChannelHandler | UDP+TCP server, client resolver |
+| DNS | ✅ DnsService | ✅ DnsChannelHandler | ✅ DnsClientService | ✅ DnsClientChannelHandler | UDP+TCP server, client resolver |
 | LDAP | ✅ LdapService | ✅ LdapChannelHandler | ✅ LdapClientService | ✅ LdapClientChannelHandler | Full directory protocol |
 | SSH | ✅ SshService | ✅ SshChannelHandler | ✅ SshClientService | ✅ SshClientChannelHandler | Full authentication, session channels |
 | SMTP | ✅ SmtpService | ✅ SmtpChannelHandler | ✅ SmtpClientService | ✅ SmtpClientChannelHandler | Mail server + client |

@@ -736,7 +736,7 @@ The project includes JMH-based benchmarks for comparing standalone protocol impl
 ```bash
 # Via Maven (produces shaded JAR)
 mvn -pl benchmarks package -DskipTests -q
-java -jar benchmarks/target/lego-flow-benchmarks-0.1.0-SNAPSHOT.jar ".*ComparisonBenchmark.*"
+java -jar benchmarks/target/lego-flow-benchmarks-0.2.0-SNAPSHOT.jar ".*ComparisonBenchmark.*"
 
 # Via Gradle
 ./gradlew :benchmarks:runBenchmarks --args=".*HttpComparisonBenchmark.*"

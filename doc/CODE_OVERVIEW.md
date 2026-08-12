@@ -255,7 +255,7 @@ This is the correct bidirectional symmetry: submit is the reverse of consume. Ho
 | email (all) | ~150 | Full coverage |
 | network (all) | ~920 | Full coverage |
 | media (all) | ~509 | Full coverage |
-| **Total** | **~8,600+** | All tests passing as of 2026-07-11 |
+| **Total** | **~11,230** | All tests passing as of 2026-07-11 |
 
 ---
 
