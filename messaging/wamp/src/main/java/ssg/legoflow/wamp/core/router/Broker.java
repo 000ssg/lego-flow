@@ -56,11 +56,11 @@ public class Broker {
      * @return the Subscribed confirmation message
      */
     public WampMessage.Subscribed handleSubscribe(WampMessage.Subscribe subscribe, WampTransport transport, long sessionId) {
+        String topic = subscribe.topic();
         long subscriptionId = subscriptionIdCounter.getAndIncrement();
-        var entry = new SubscriptionEntry(subscriptionId, transport, sessionId);
+        var entry = new SubscriptionEntry(subscriptionId, transport, sessionId, topic);
 
         String matchPolicy = getMatchPolicy(subscribe.options());
-        String topic = subscribe.topic();
 
         switch (matchPolicy) {
             case "prefix" -> prefixSubscriptions
@@ -212,6 +212,37 @@ public class Broker {
         return entries != null ? entries.size() : 0;
     }
 
+
+    /**
+     * Returns the set of all topics that have active exact-match subscriptions.
+     *
+     * @return unmodifiable set of topic URIs
+     * @since 0.2.0
+     */
+    public Set<String> getSubscriptionTopics() {
+        return Set.copyOf(topicSubscriptions.keySet());
+    }
+
+    /**
+     * Returns the set of all prefix-matched subscription patterns.
+     *
+     * @return unmodifiable set of prefix patterns
+     * @since 0.2.0
+     */
+    public Set<String> getPrefixSubscriptionPatterns() {
+        return Set.copyOf(prefixSubscriptions.keySet());
+    }
+
+    /**
+     * Returns the set of all wildcard-matched subscription patterns.
+     *
+     * @return unmodifiable set of wildcard patterns
+     * @since 0.2.0
+     */
+    public Set<String> getWildcardSubscriptionPatterns() {
+        return Set.copyOf(wildcardSubscriptions.keySet());
+    }
+
     /**
      * Returns the retained event for a topic, if any.
      *
@@ -258,9 +289,9 @@ public class Broker {
     }
 
     private void removeSubscription(long subscriptionId, Map<String, Set<SubscriptionEntry>> subscriptions) {
-        for (var entries : subscriptions.values()) {
-            entries.removeIf(e -> e.subscriptionId() == subscriptionId);
-        }
+        subscriptions.entrySet().removeIf(entry ->
+            entry.getValue().removeIf(e -> e.subscriptionId() == subscriptionId) && entry.getValue().isEmpty()
+        );
     }
 
     private boolean containsSessionId(List<Number> sessionIds, long sessionId) {
@@ -271,13 +302,17 @@ public class Broker {
     }
 
     /**
-     * Internal record associating a subscription ID with a transport endpoint and session ID.
+     * Internal record associating a subscription ID with a transport endpoint, session ID, and topic.
+     * The topic field stores the original subscription topic for reflection/introspection.
      *
-     * @since 0.1.0
+     * @since 0.1.0 (topic field added in 0.2.0)
      */
-    record SubscriptionEntry(long subscriptionId, WampTransport transport, long sessionId) {
+    record SubscriptionEntry(long subscriptionId, WampTransport transport, long sessionId, String topic) {
+        SubscriptionEntry(long subscriptionId, WampTransport transport, long sessionId) {
+            this(subscriptionId, transport, sessionId, null);
+        }
         SubscriptionEntry(long subscriptionId, WampTransport transport) {
-            this(subscriptionId, transport, 0);
+            this(subscriptionId, transport, 0, null);
         }
     }
 }

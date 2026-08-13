@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Combined WAMP router providing both Broker (pub/sub) and Dealer (RPC) functionality.
@@ -36,6 +38,8 @@ public class WampRouter {
     /** procedure name -> handler for custom meta procedures */
     private final Map<String, BiFunction<WampMessage.Call, WampTransport, List<Object>>> metaProcedures =
             new ConcurrentHashMap<>();
+    /** session leave callbacks for extension features (e.g., Testament) */
+    private final List<Consumer<Long>> sessionLeaveListeners = new CopyOnWriteArrayList<>();
 
     /**
      * Creates a new router with its own Broker and Dealer.
@@ -73,6 +77,20 @@ public class WampRouter {
     public boolean unregisterMetaProcedure(String name) {
         return metaProcedures.remove(name) != null;
     }
+    /**
+     * Registers a callback invoked when a session leaves.
+     * <p>
+     * Used by extension features (e.g., Testament API) to perform cleanup
+     * or publish lifecycle events when a session disconnects.
+     * The callback is invoked synchronously from {@link #sessionLeft(long)}.
+     *
+     * @param listener the callback (sessionId -> void)
+     * @since 0.2.0
+     */
+    public void addSessionLeaveConsumer(Consumer<Long> listener) {
+        sessionLeaveListeners.add(listener);
+    }
+
 
     /**
      * Routes a WAMP message from a client to the appropriate handler.
@@ -144,6 +162,9 @@ public class WampRouter {
     public void sessionLeft(long sessionId) {
         var session = activeSessions.remove(sessionId);
         publishMetaEvent(META_ON_LEAVE, List.of(sessionId));
+        for (var listener : sessionLeaveListeners) {
+            listener.accept(sessionId);
+        }
     }
 
     /**

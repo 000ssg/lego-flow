@@ -7,6 +7,7 @@ import ssg.legoflow.wamp.core.transport.WampTransport;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -278,6 +279,16 @@ public class Dealer {
         var entries = registrations.get(procedure);
         return entries != null ? entries.size() : 0;
     }
+    /**
+     * Returns the set of all registered procedure URIs.
+     *
+     * @return unmodifiable set of procedure names
+     * @since 0.2.0
+     */
+    public Set<String> getRegisteredProcedures() {
+        return Set.copyOf(registrations.keySet());
+    }
+
 
     /**
      * Cancels the timeout for a given call request ID.

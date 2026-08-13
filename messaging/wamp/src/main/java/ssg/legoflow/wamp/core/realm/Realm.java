@@ -91,6 +91,30 @@ public class Realm {
                 "dealer", Map.of()
         )));
     }
+    /**
+     * Adds a virtual session with the given authentication context.
+     * <p>
+     * Virtual sessions have no transport — they exist purely for identity mapping
+     * (e.g., HTTP-authenticated users calling WAMP procedures via REST bridge).
+     * Unlike {@link #addSession(WampTransport)}, this method does not require
+     * a transport and does not send a Welcome message.
+     *
+     * @param authId    the authentication identity (may be null)
+     * @param authRole  the authentication role (may be null)
+     * @param authMethod the auth method used (may be null)
+     * @return the assigned session ID
+     * @since 0.2.0
+     */
+    public long addVirtualSession(String authId, String authRole, String authMethod) {
+        long sessionId = sessionIdCounter.getAndIncrement();
+        var session = new WampSession();
+        session.establish(sessionId, name);
+        if (authId != null) session.setAuthId(authId);
+        if (authRole != null) session.setAuthRole(authRole);
+        if (authMethod != null) session.setAuthMethod(authMethod);
+        sessions.put(sessionId, session);
+        return sessionId;
+    }
 
     /**
      * Removes a session from this realm.
