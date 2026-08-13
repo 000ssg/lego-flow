@@ -7,6 +7,7 @@ import ssg.legoflow.wamp.core.transport.WampTransport;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 
 /**
  * Combined WAMP router providing both Broker (pub/sub) and Dealer (RPC) functionality.
@@ -32,6 +33,9 @@ public class WampRouter {
     private final Dealer dealer;
     /** session ID -> session info for meta procedures */
     private final Map<Long, WampSession> activeSessions = new ConcurrentHashMap<>();
+    /** procedure name -> handler for custom meta procedures */
+    private final Map<String, BiFunction<WampMessage.Call, WampTransport, List<Object>>> metaProcedures =
+            new ConcurrentHashMap<>();
 
     /**
      * Creates a new router with its own Broker and Dealer.
@@ -39,6 +43,35 @@ public class WampRouter {
     public WampRouter() {
         this.broker = new Broker();
         this.dealer = new Dealer();
+    }
+
+    /**
+     * Registers a custom meta procedure handler.
+     * <p>
+     * Meta procedures are called by name (procedure URI) and receive the Call message
+     * and the caller's transport. The handler returns a list of result arguments
+     * (or {@code null} to indicate no result).
+     * <p>
+     * This enables extension projects (e.g., RWAMP) to add meta procedures
+     * such as session kill, testament, or reflection without modifying the router core.
+     *
+     * @param name    the procedure URI (e.g., "wamp.session.kill")
+     * @param handler the handler function
+     * @since 0.2.0
+     */
+    public void registerMetaProcedure(String name, BiFunction<WampMessage.Call, WampTransport, List<Object>> handler) {
+        metaProcedures.put(name, handler);
+    }
+
+    /**
+     * Removes a previously registered custom meta procedure.
+     *
+     * @param name the procedure URI
+     * @return {@code true} if the procedure was removed
+     * @since 0.2.0
+     */
+    public boolean unregisterMetaProcedure(String name) {
+        return metaProcedures.remove(name) != null;
     }
 
     /**
@@ -71,7 +104,7 @@ public class WampRouter {
             case WampMessage.Unregister unregister ->
                     transport.send(dealer.handleUnregister(unregister));
             case WampMessage.Call call -> {
-                // Handle meta procedures
+                // Handle meta procedures (built-in and custom)
                 if (isMetaProcedure(call.procedure())) {
                     handleMetaCall(call, transport);
                 } else {
@@ -152,7 +185,8 @@ public class WampRouter {
     private boolean isMetaProcedure(String procedure) {
         return META_SESSION_COUNT.equals(procedure)
                 || META_SESSION_LIST.equals(procedure)
-                || META_SESSION_GET.equals(procedure);
+                || META_SESSION_GET.equals(procedure)
+                || metaProcedures.containsKey(procedure);
     }
 
     private void handleMetaCall(WampMessage.Call call, WampTransport transport) {
@@ -174,7 +208,13 @@ public class WampRouter {
                 }
                 yield List.of();
             }
-            default -> List.of();
+            default -> {
+                var handler = metaProcedures.get(call.procedure());
+                if (handler != null) {
+                    yield handler.apply(call, transport);
+                }
+                yield List.of();
+            }
         };
         transport.send(new WampMessage.Result(call.requestId(), Map.of(), result));
     }

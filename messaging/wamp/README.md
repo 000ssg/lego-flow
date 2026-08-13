@@ -4,7 +4,7 @@
 [![Java](https://img.shields.io/badge/Java-25+-orange.svg)](https://www.oracle.com/java/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)]()
-[![Tests](https://img.shields.io/badge/Tests-295_passing-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-264_passing-brightgreen.svg)]()
 
 WAMP protocol implementation with a two-layer architecture: transport-agnostic invariant core and pluggable WebSocket adapter.
 
@@ -34,6 +34,10 @@ WAMP protocol implementation with a two-layer architecture: transport-agnostic i
 - **Publisher exclusion** — `exclude_me` option (default true)
 - **Session meta events** — `wamp.session.on_join`, `wamp.session.on_leave`
 - **Session meta procedures** — `wamp.session.count`, `wamp.session.list`, `wamp.session.get`
+- **Custom meta procedures** — `registerMetaProcedure()` for extensible meta RPC handlers
+- **Call timeout** — Automatic timeout enforcement with `wamp.error.timeout`
+- **Session lifecycle states** — `SessionState` enum (PENDING/ESTABLISHED/CLOSING/CLOSED)
+- **Active sessions accessor** — `getActiveSessions()` snapshot in Realm
 - **WAMP-CRA authentication** — HMAC-SHA256 challenge-response
 - **Ticket authentication** — Simple token-based auth
 - **Cryptosign authentication** — Ed25519 digital signatures

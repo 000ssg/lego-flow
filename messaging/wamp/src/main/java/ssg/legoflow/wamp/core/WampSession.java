@@ -13,7 +13,7 @@ public class WampSession {
 
     private long sessionId;
     private String realm;
-    private volatile boolean established;
+    private volatile SessionState state = SessionState.PENDING;
     private String authId;
     private String authRole;
     private String authMethod;
@@ -29,25 +29,39 @@ public class WampSession {
     public void establish(long sessionId, String realm) {
         this.sessionId = sessionId;
         this.realm = realm;
-        this.established = true;
+        this.state = SessionState.ESTABLISHED;
     }
 
     /**
      * Closes this session, clearing all subscriptions and registrations.
      */
     public void close() {
-        this.established = false;
+        this.state = SessionState.CLOSED;
         this.subscriptions.clear();
         this.registrations.clear();
     }
 
     /**
+     * Returns the current lifecycle state of this session.
+     *
+     * @return the session state
+     * @since 0.2.0
+     */
+    public SessionState getState() {
+        return state;
+    }
+
+    /**
      * Returns whether this session is currently established.
+     * <p>
+     * {@code true} when state is {@link SessionState#ESTABLISHED}.
+     * For backward compatibility this method remains available.
+     * Prefer {@link #getState()} for full lifecycle tracking.
      *
      * @return {@code true} if established
      */
     public boolean isEstablished() {
-        return established;
+        return state == SessionState.ESTABLISHED;
     }
 
     /**

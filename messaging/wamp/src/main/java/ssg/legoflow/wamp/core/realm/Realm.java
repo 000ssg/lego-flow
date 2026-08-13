@@ -63,6 +63,19 @@ public class Realm {
     }
 
     /**
+     * Returns a snapshot of all active sessions in this realm.
+     * <p>
+     * The returned map is unmodifiable and reflects the session set at the
+     * time of the call; it is not live-linked to the internal registry.
+     *
+     * @return unmodifiable map of session ID to session
+     * @since 0.2.0
+     */
+    public Map<Long, WampSession> getActiveSessions() {
+        return Map.copyOf(sessions);
+    }
+
+    /**
      * Adds a new session to this realm, establishing it with a unique session ID.
      *
      * @param transport the client's transport

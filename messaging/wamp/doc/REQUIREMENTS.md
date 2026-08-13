@@ -17,6 +17,47 @@
 
 ---
 
+## WAMP Extension Points — SessionState, Meta Procedures, Call Timeout, Active Sessions (2026-08-13)
+
+### Original Request
+> "Implement 4 backward-compatible changes to lego-flow's WAMP to enable RWAMP extensions: SessionState enum in WampSession, registerMetaProcedure() in WampRouter, call timeout support in Dealer, getActiveSessions() accessor in Realm."
+
+### Reformulated Requirements
+1. **SessionState enum** — Replace boolean `established` field in `WampSession` with proper lifecycle enum (PENDING → ESTABLISHED → CLOSING → CLOSED), preserving backward-compatible `isEstablished()` method
+2. **Meta procedure registration** — Add `registerMetaProcedure()` / `unregisterMetaProcedure()` in `WampRouter` for extensibility, enabling external code to add custom meta procedures
+3. **Call timeout** — Add `setTimeoutExecutor()` in `Dealer` with automatic timeout enforcement when `timeout` option is present in Call options; integrates with existing cancellation
+4. **Active sessions accessor** — Add `getActiveSessions()` read-only accessor in `Realm` for session iteration
+
+### Final Design Decisions
+- **SessionState** — Enum with `isActive()` helper; PENDING on construction, ESTABLISHED on `establish()`, CLOSED on `close()`
+- **Meta procedures** — Stored in ConcurrentHashMap, checked after built-in procedures; built-in procedures always take precedence
+- **Call timeout** — Only active when executor is configured; uses milliseconds internally; cancel and yield both cancel active timeouts
+- **Progressive results** — Original progressive results handling preserved; timeout cancellation only on final (non-progressive) yield
+
+### Implementation Details
+- **New source files**: `SessionState.java` (enum, 4 values, isActive helper)
+- **Modified source files**: `WampSession.java` (state enum, getState()), `WampRouter.java` (meta procedure registry), `Dealer.java` (timeout scheduling, cancelTimeout, timeoutCall), `Realm.java` (getActiveSessions())
+- **Total source files changed**: 5 (1 new + 4 modified)
+
+### Test Coverage
+- **New test classes**: `SessionStateTest` (6), `MetaProcedureTest` (5), `CallTimeoutTest` (5), `RealmActiveSessionsTest` (5)
+- **Total tests**: 264 passing (up from 113; +151 total, +21 from this change)
+- **Coverage**: Session lifecycle transitions, meta procedure registration/unregistration, timeout firing, timeout cancellation via yield/cancel, invalid timeout values, active sessions snapshot
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Background agents | 0 |
+| Agent tokens | ~50000 |
+| Agent tool calls | ~40 |
+| Agent wall time | ~60 min |
+| Files created/modified | 10 (5 source + 5 test) |
+| Lines added/removed | +180 / -15 |
+| Tests added | 21 (total: 264) |
+
+---
+
+
 ## WebSocket Adapter Completion — Full Server, Demo, and Test Expansion (2026-06-16)
 
 ### Original Request

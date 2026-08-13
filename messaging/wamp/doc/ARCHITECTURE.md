@@ -151,6 +151,58 @@ Each realm is an independent routing domain:
 - **Filter / Pipe** — WampWebSocketFilter (AbstractDataFilter): separates encode/decode concerns from transport wiring
 - **Template Method** — AbstractDataFilter defines the ENCODE/DECODE skeleton; WampWebSocketFilter fills in WAMP JSON specifics
 
+
+## Extension Points
+
+The WAMP core provides extensibility hooks for downstream projects (e.g., RWAMP) to add
+production-grade features without modifying core classes.
+
+### Session Lifecycle States
+
+`WampSession` exposes a `SessionState` enum (PENDING → ESTABLISHED → CLOSING → CLOSED)
+via `getState()`. Extension code can track session lifecycle transitions for metrics,
+logging, or cleanup hooks. The backward-compatible `isEstablished()` method remains
+available for existing callers.
+
+### Custom Meta Procedures
+
+`WampRouter.registerMetaProcedure(String name, BiFunction<Call, Transport, List<Object>> handler)`
+allows registration of custom meta procedures. Built-in procedures (session count, list, get)
+always take precedence. Custom handlers receive the Call message and caller transport,
+returning result arguments. Use `unregisterMetaProcedure()` for cleanup.
+
+### Call Timeout Enforcement
+
+`Dealer.setTimeoutExecutor(ScheduledExecutorService)` enables call timeout enforcement.
+When configured, any Call with a `timeout` option (in seconds) is tracked and automatically
+cancelled if the callee does not respond. Timeout fires as `wamp.error.timeout` and sends
+INTERRUPT to the callee. The feature is opt-in — without an executor, timeouts are ignored.
+
+### Active Sessions Access
+
+`Realm.getActiveSessions()` returns an unmodifiable snapshot of the session map for iteration.
+Useful for kill procedures, session enumeration, and statistics.
+
+```mermaid
+graph TD
+    subgraph "Extension points"
+        E1["SessionState enum<br/>lifecycle tracking"]
+        E2["registerMetaProcedure<br/>custom meta RPCs"]
+        E3["setTimeoutExecutor<br/>call timeout"]
+        E4["getActiveSessions<br/>session iteration"]
+    end
+    subgraph "Used by RWAMP"
+        RW1["Session kill procedures"]
+        RW2["Testament API"]
+        RW3["Call timeout feature"]
+        RW4["Virtual sessions"]
+    end
+    E1 --> RW1
+    E2 --> RW1
+    E3 --> RW3
+    E4 --> RW1
+    E4 --> RW4
+
 ## Extension: Adding a New Transport Adapter
 
 1. Create a new package: `ssg.legoflow.wamp.adapter.<transport>/`
