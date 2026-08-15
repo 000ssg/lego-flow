@@ -62,6 +62,10 @@
             <groupId>ssg</groupId>
             <artifactId>lego-flow-cluster-discovery</artifactId>
         </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-cluster-coordination</artifactId>
+        </dependency>
 
         <!-- Web modules -->
         <dependency>

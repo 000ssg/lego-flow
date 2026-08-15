@@ -6,6 +6,7 @@
         <groupId>ssg</groupId>
         <artifactId>lego-flow</artifactId>
         <version>0.2.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>lego-flow-cluster-coordination</artifactId>
     <name>Lego Flow Cluster Coordination — etcd/Raft shared state, leader election, distributed locks</name>
@@ -21,10 +22,6 @@
         <dependency>
             <groupId>ssg</groupId>
             <artifactId>lego-flow-cluster-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ssg</groupId>
-            <artifactId>lego-flow-grpc</artifactId>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

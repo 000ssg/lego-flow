@@ -745,9 +745,21 @@ java -jar benchmarks/target/lego-flow-benchmarks-0.2.0-SNAPSHOT.jar ".*Compariso
 
 ---
 
-## Cluster Protocols (planned — branch `cluster_protocols`)
+## Cluster Protocols (implemented — branch `cluster_protocols`)
 
-Multi-node clustering support is planned across 8 phases, enabling deployment of Lego Flow services in clusters without external infrastructure (or with optional etcd).
+Multi-node clustering support across 8 phases, enabling deployment of Lego Flow services in clusters without external infrastructure (or with optional etcd).
+
+**Completed phases** (branch `cluster_protocols`):
+- **Phase 1** — Core abstractions: `ClusterNode`, `ClusterEvent`, `ClusterMembership`, `ClusterManager`, `ClusterConfig`, `ClusterStatus`, `ClusterTransport`, `ConsistentHashRing` (116 tests)
+- **Phase 2** — DNS-SD/mDNS Discovery: `DnsSdDiscovery`, `DnsSdBrowser`, `MdnsResponder` (102 tests)
+- **Phase 3** — etcd/Raft Coordination: `EtcdClient`, `EtcdKVStore`, `EtcdLease`, `EtcdLock`, `EtcdElection`, `EtcdWatcher`, `EtcdDiscovery`, `RaftLeaderElection` (168 tests)
+
+**Planned phases** (Phases 4-8):
+- Phase 4 — gRPC Cluster Resolver + LB
+- Phase 5 — NATS Cluster Bus
+- Phase 6 — Sticky Sessions
+- Phase 7 — HTTP Cache Coherence
+- Phase 8 — Integration Demos
 
 ### New Modules
 
