@@ -65,6 +65,21 @@
             </dependency>
             <dependency>
                 <groupId>ssg</groupId>
+                <artifactId>lego-flow-cluster-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ssg</groupId>
+                <artifactId>lego-flow-cluster-discovery</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ssg</groupId>
+                <artifactId>lego-flow-cluster-coordination</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ssg</groupId>
                 <artifactId>lego-flow-http</artifactId>
                 <version>${project.version}</version>
             </dependency>

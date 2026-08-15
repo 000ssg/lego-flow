@@ -54,6 +54,10 @@
             <groupId>ssg</groupId>
             <artifactId>lego-flow-service</artifactId>
         </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-cluster-core</artifactId>
+        </dependency>
 
         <!-- Web modules -->
         <dependency>
