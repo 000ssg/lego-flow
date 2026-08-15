@@ -742,3 +742,68 @@ java -jar benchmarks/target/lego-flow-benchmarks-0.2.0-SNAPSHOT.jar ".*Compariso
 ./gradlew :benchmarks:runBenchmarks --args=".*HttpComparisonBenchmark.*"
 ```
 
+
+---
+
+## Cluster Protocols (planned — branch `cluster_protocols`)
+
+Multi-node clustering support is planned across 8 phases, enabling deployment of Lego Flow services in clusters without external infrastructure (or with optional etcd).
+
+### New Modules
+
+```mermaid
+graph LR
+    subgraph "Cluster (network/cluster/)"
+        core["core<br/><small>membership, events, lifecycle</small>"]
+        discovery["discovery<br/><small>DNS-SD/mDNS</small>"]
+    end
+
+    subgraph "Coordination (service/cluster-coordination/)"
+        coordination["etcd client<br/><small>shared state, locks, election</small>"]
+    end
+
+    subgraph "Existing Modules (extended)"
+        grpc["grpc<br/><small>+ cluster resolver, LB</small>"]
+        nats["nats<br/><small>+ cluster bus</small>"]
+        http["http<br/><small>+ sticky sessions</small>"]
+        httpproxy["http-proxy<br/><small>+ health monitor</small>"]
+        dns["dns<br/><small>reused for mDNS</small>"]
+    end
+
+    core --> discovery
+    coordination --> core
+    grpc --> core
+    nats --> core
+    http --> core
+    httpproxy --> core
+    discovery --> dns
+```
+
+### Module Layout
+
+| Module | Artifact | Scope |
+|--------|----------|-------|
+| `network/cluster` | `lego-flow-cluster` (pom) | Aggregator for cluster protocols |
+| `network/cluster/core` | `lego-flow-cluster-core` | `ClusterNode`, `ClusterEvent`, `ClusterMembership`, `ClusterManager`, `ConsistentHashRing` |
+| `network/cluster/discovery` | `lego-flow-cluster-discovery` | DNS-SD/mDNS (RFC 6762/8305) |
+| `service/cluster-coordination` | `lego-flow-cluster-coordination` | etcd client: shared state, leases, locks, leader election |
+
+### Extended Existing Modules
+
+| Module | Extension | Purpose |
+|--------|-----------|---------|
+| `rpc/grpc` | `cluster` subpackage | Cluster-aware resolver, client-side load balancing |
+| `messaging/nats` | `cluster` subpackage | Cluster messaging bus, ordered invalidation |
+| `web/http` | `cluster` subpackage | Sticky sessions, cache coherence |
+| `web/http-proxy` | `cluster` subpackage | Health monitoring, cluster backend group |
+
+### Protocol Selection
+
+| Functionality | Primary | Alternative |
+|---------------|---------|-------------|
+| Discovery | DNS-SD/mDNS, etcd | gRPC resolver |
+| Shared State | etcd (Raft) | Redis, ZooKeeper |
+| Inter-Node RPC | gRPC (extended) | — |
+| Cluster Messaging | NATS (extended) | Redis Pub/Sub |
+| Workload Balancing | Consistent Hashing, Sticky Sessions | Round-robin, Least-Request |
+| Cache Coherence | NATS invalidation bus | gRPC signals |

@@ -12,6 +12,7 @@
         <!-- Core modules -->
         <module>blocks</module>
         <module>service</module>
+        <module>service/cluster-coordination</module>
         <!-- Category aggregator modules -->
         <module>web</module>
         <module>iot</module>

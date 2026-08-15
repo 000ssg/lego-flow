@@ -5,6 +5,10 @@ include("lego-flow-blocks")
 project(":lego-flow-blocks").projectDir = file("blocks")
 include("lego-flow-service")
 project(":lego-flow-service").projectDir = file("service")
+
+// Cluster coordination — service-level module (not nested under a category)
+include("lego-flow-cluster-coordination")
+project(":lego-flow-cluster-coordination").projectDir = file("service/cluster-coordination")
 include("demos")
 
 // Infrastructure modules (excluded from install/deploy)
@@ -78,6 +82,10 @@ val nestedModules = mapOf(
 
     // Network modules
     "lego-flow-network-common"  to "network/common",
+    // Cluster modules
+    "lego-flow-cluster"              to "network/cluster",
+    "lego-flow-cluster-core"         to "network/cluster/core",
+    "lego-flow-cluster-discovery"    to "network/cluster/discovery",
     "lego-flow-dns"            to "network/dns",
     "lego-flow-ldap"           to "network/ldap",
     "lego-flow-snmp"           to "network/snmp",
