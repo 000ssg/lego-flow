@@ -144,3 +144,106 @@
 | Files created/modified | 3 |
 | Lines added/removed | +458 / -20 |
 | Tests added | 0 (total: 542) |
+
+---
+
+## Commit: (planned) — HTTP Sticky Sessions + Consistent Hashing (Phase 6)
+
+### Original Request
+> "investigate cluster-related protocols and choose most popular for each cluster functionality (sharing state, workload balancing, discovery, optimized processing). Cover generic networking as well as HTTP-related activities (supporting web servers cluster). Create plan with reasonable split into phases."
+
+### Reformulated Requirements
+1. Define `StickySessionRouter` — routes HTTP requests to nodes based on session cookie
+2. Define `SessionCookieBuilder` — generates and parses `X-Legoflow-Session` cookies
+3. Define `SessionAffinityConfig` — configuration for sticky session behavior (TTL, cookie name, hash keys)
+4. Define `StickySessionHasher` — extracts session key from request (cookie, header, or source IP)
+5. Define `StickySessionFeature` — composable feature for HTTP servers in a cluster
+6. Router must handle node failure by issuing new session cookie to remaining node
+7. Cookie TTL must be configurable with automatic expiration handling
+8. Integration with `ConsistentHashRing` from cluster core for deterministic routing
+
+### Final Design Decisions
+- **Package:** `ssg.legoflow.http.cluster` (extension to existing HTTP module)
+- **Dependencies:** `network/cluster/core` for `ClusterNode`, `ConsistentHashRing`
+- **Cookie name:** `X-Legoflow-Session` (custom header-based approach)
+- **Hash key priority:** cookie → header → source IP (fallback chain)
+- **TTL handling:** cookies carry expiration; expired sessions trigger re-routing
+- **No external dependencies** — pure HTTP sticky session logic
+
+### Implementation Details
+- `StickySessionRouter.java` — routes requests using session affinity
+- `SessionCookieBuilder.java` — creates and parses session cookies
+- `SessionAffinityConfig.java` — TTL, cookie name, fallback strategy
+- `StickySessionHasher.java` — key extraction from various request attributes
+- `StickySessionFeature.java` — HTTP server feature for sticky sessions
+- `ResponseCache.java` — modified to support cache operations needed by coherence
+
+### Test Coverage
+| Test Class | Coverage |
+|-----------|----------|
+| `StickySessionRouterTest` | Routing with cookies, header fallback, IP fallback, node failure |
+| `SessionCookieBuilderTest` | Cookie generation, parsing, TTL handling, edge cases |
+| `SessionAffinityConfigTest` | Builder, defaults, validation |
+| `StickySessionHasherTest` | Cookie extraction, header extraction, IP fallback |
+| `StickySessionFeatureTest` | Server-side feature integration |
+| **Tests added**: 5 |
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Background agents | 0 |
+| Agent tokens | ~10000 |
+| Agent tool calls | ~18 |
+| Agent wall time | ~25 min |
+| Files created/modified | 12 |
+| Lines added/removed | +600 / -2 |
+| Tests added | 5 |
+
+---
+
+## Commit: (planned) — HTTP Cache Coherence (Phase 7)
+
+### Original Request
+> "investigate cluster-related protocols and choose most popular for each cluster functionality. Cover generic networking as well as HTTP-related activities (supporting web servers cluster). Create plan with reasonable split into phases."
+
+### Reformulated Requirements
+1. Define `CacheCoherenceFeature` — server-side cache coherence for web server clusters
+2. Define `HttpCacheInvalidator` — publishes invalidation events on content change
+3. Define `CacheCoherenceConfig` — configuration for invalidation scope and propagation
+4. When a node processes a write (PUT/POST/DELETE), publish invalidation to peers
+5. Receiving nodes invalidate matching cache entries based on configured scope
+6. Support PREFIX scope (invalidate all matching paths) and EXACT scope (invalidate specific path)
+7. Integration with NATS or gRPC bus for cross-node propagation
+
+### Final Design Decisions
+- **Package:** `ssg.legoflow.http.cluster` (shared with Phase 6)
+- **Dependencies:** `network/cluster/core`, messaging bus (NATS or gRPC)
+- **Scope:** PREFIX (default) invalidates all paths matching the prefix
+- **Event format:** `CacheInvalidationEvent` with source node, paths list
+- **Async propagation:** invalidation events published asynchronously
+
+### Implementation Details
+- `CacheCoherenceFeature.java` — handles write→invalidate publish cycle
+- `HttpCacheInvalidator.java` — creates and broadcasts invalidation events
+- `CacheCoherenceConfig.java` — scope, TTL, bus configuration
+
+### Test Coverage
+| Test Class | Coverage |
+|-----------|----------|
+| `CacheCoherenceConfigTest` | Builder, defaults, validation, scope enum |
+| `CacheCoherenceFeatureTest` | Write detection, publish, receive, local invalidation |
+| `HttpCacheInvalidatorTest` | Event creation, path matching, broadcast |
+| **Tests added**: 3 |
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Background agents | 0 |
+| Agent tokens | ~6000 |
+| Agent tool calls | ~12 |
+| Agent wall time | ~15 min |
+| Files created/modified | 6 |
+| Lines added/removed | +350 / -1 |
+| Tests added | 3 |
+
+---

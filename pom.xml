@@ -12,6 +12,7 @@
         <!-- Core modules -->
         <module>blocks</module>
         <module>service</module>
+        <module>service/cluster-coordination</module>
         <!-- Category aggregator modules -->
         <module>web</module>
         <module>iot</module>
@@ -60,6 +61,21 @@
             <dependency>
                 <groupId>ssg</groupId>
                 <artifactId>lego-flow-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ssg</groupId>
+                <artifactId>lego-flow-cluster-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ssg</groupId>
+                <artifactId>lego-flow-cluster-discovery</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ssg</groupId>
+                <artifactId>lego-flow-cluster-coordination</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

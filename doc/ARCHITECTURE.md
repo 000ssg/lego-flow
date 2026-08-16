@@ -56,6 +56,8 @@ graph TD
         modbus["modbus"]
         ssh["ssh"]
         ftp["ftp"]
+        clustercore["cluster-core"]
+        clusterdiscovery["cluster-discovery"]
     end
 
     subgraph "IoT (iot/)"
@@ -70,6 +72,7 @@ graph TD
 
     subgraph "Service Layer"
         svc["service"]
+        coord["cluster-coordination"]
     end
 
     subgraph "Foundation"
@@ -108,6 +111,13 @@ graph TD
     rtsp -->|uses| svc
     rtp -->|uses| svc
     sip -->|uses| svc
+    clusterdiscovery --> clustercore
+    coord --> clustercore
+    grpc --> clustercore
+    nats --> clustercore
+    http --> clustercore
+    proxy --> clustercore
+    clusterdiscovery --> dns
     svc -->|uses| blocks
 ```
 
@@ -354,7 +364,7 @@ Seven messaging protocol modules covering message brokers, event streaming, pub/
 
 ### Network Category (network/)
 
-Eight network protocol modules including shared BER/ASN.1 codec:
+Ten network protocol modules including shared BER/ASN.1 codec and cluster protocols:
 
 - **DNS** — Binary packet format, all record types, EDNS0, DNSSEC validation, DoH, DoT, recursive resolver + authoritative server
 - **LDAP** — BER codec (shared network/common), bind, search with filter expressions, extended operations, STARTTLS
@@ -363,6 +373,8 @@ Eight network protocol modules including shared BER/ASN.1 codec:
 - **Modbus** — Function codes for coils/registers, MBAP header framing, TCP transport
 - **SSH** — (moved from root) Transport, kex, ciphers, auth, channels, SFTP, SCP
 - **FTP** — (moved from root) Client + server, TLS, REST, implicit FTPS
+- **Cluster Core** — Membership SPI, event model, health checking, consistent hashing (Ketama)
+- **Cluster Discovery** — DNS-SD/mDNS zero-config peer discovery (RFC 6762/8305)
 
 ### Media Category (media/)
 
@@ -468,7 +480,12 @@ The integration points differ enough that a shared module would add coupling wit
 
 ---
 
-**Last Updated**: 2026-07-04
+#### Cluster
+- [cluster-core](../network/cluster/core/doc/ARCHITECTURE.md)
+- [cluster-discovery](../network/cluster/discovery/doc/ARCHITECTURE.md)
+- [cluster-coordination](../service/cluster-coordination/doc/ARCHITECTURE.md)
+
+**Last Updated**: 2026-08-16
 
 ## CI/CD Infrastructure
 
@@ -742,3 +759,80 @@ java -jar benchmarks/target/lego-flow-benchmarks-0.2.0-SNAPSHOT.jar ".*Compariso
 ./gradlew :benchmarks:runBenchmarks --args=".*HttpComparisonBenchmark.*"
 ```
 
+
+---
+
+## Cluster Protocols (implemented — branch `cluster_protocols`)
+
+Multi-node clustering support across 8 phases, enabling deployment of Lego Flow services in clusters without external infrastructure (or with optional etcd).
+
+**Completed phases** (branch `cluster_protocols`):
+- **Phase 1** — Core abstractions: `ClusterNode`, `ClusterEvent`, `ClusterMembership`, `ClusterManager`, `ClusterConfig`, `ClusterStatus`, `ClusterTransport`, `ConsistentHashRing` (116 tests)
+- **Phase 2** — DNS-SD/mDNS Discovery: `DnsSdDiscovery`, `DnsSdBrowser`, `MdnsResponder` (102 tests)
+- **Phase 3** — etcd/Raft Coordination: `EtcdClient`, `EtcdKVStore`, `EtcdLease`, `EtcdLock`, `EtcdElection`, `EtcdWatcher`, `EtcdDiscovery`, `RaftLeaderElection` (168 tests)
+
+**Completed phases** (Phases 4-8):
+- **Phase 4** — gRPC Cluster Resolver + LB: `GrpcLoadBalancer`, `RoundRobinBalancer`, `LeastRequestBalancer`, `ConsistentHashBalancer`, `ClusterSubchannel` (8 tests)
+- **Phase 5** — NATS Cluster Bus: `NatsClusterBus`, `NatsClusterHealthBus`, `NatsDistributedPubSub` (4 tests)
+- **Phase 6** — Sticky Sessions: `StickySessionRouter`, `SessionCookieBuilder`, `StickySessionHasher`, `StickySessionFeature` (5 tests)
+- **Phase 7** — Cache Coherence: `CacheCoherenceFeature`, `HttpCacheInvalidator`, `ClusterHealthMonitor` (4 tests)
+- **Phase 8** — Integration Demos: 7 demo scenarios with 9 tests (runner + aggregate)
+
+### New Modules
+
+```mermaid
+graph LR
+    subgraph "Cluster (network/cluster/)"
+        core["core<br/><small>membership, events, lifecycle</small>"]
+        discovery["discovery<br/><small>DNS-SD/mDNS</small>"]
+    end
+
+    subgraph "Coordination (service/cluster-coordination/)"
+        coordination["etcd client<br/><small>shared state, locks, election</small>"]
+    end
+
+    subgraph "Existing Modules (extended)"
+        grpc["grpc<br/><small>+ cluster resolver, LB</small>"]
+        nats["nats<br/><small>+ cluster bus</small>"]
+        http["http<br/><small>+ sticky sessions</small>"]
+        httpproxy["http-proxy<br/><small>+ health monitor</small>"]
+        dns["dns<br/><small>reused for mDNS</small>"]
+    end
+
+    core --> discovery
+    coordination --> core
+    grpc --> core
+    nats --> core
+    http --> core
+    httpproxy --> core
+    discovery --> dns
+```
+
+### Module Layout
+
+| Module | Artifact | Scope |
+|--------|----------|-------|
+| `network/cluster` | `lego-flow-cluster` (pom) | Aggregator for cluster protocols |
+| `network/cluster/core` | `lego-flow-cluster-core` | `ClusterNode`, `ClusterEvent`, `ClusterMembership`, `ClusterManager`, `ConsistentHashRing` |
+| `network/cluster/discovery` | `lego-flow-cluster-discovery` | DNS-SD/mDNS (RFC 6762/8305) |
+| `service/cluster-coordination` | `lego-flow-cluster-coordination` | etcd client: shared state, leases, locks, leader election |
+
+### Extended Existing Modules
+
+| Module | Extension | Purpose |
+|--------|-----------|---------|
+| `rpc/grpc` | `cluster` subpackage | Cluster-aware resolver, client-side load balancing |
+| `messaging/nats` | `cluster` subpackage | Cluster messaging bus, ordered invalidation |
+| `web/http` | `cluster` subpackage | Sticky sessions, cache coherence |
+| `web/http-proxy` | `cluster` subpackage | Health monitoring, cluster backend group |
+
+### Protocol Selection
+
+| Functionality | Primary | Alternative |
+|---------------|---------|-------------|
+| Discovery | DNS-SD/mDNS, etcd | gRPC resolver |
+| Shared State | etcd (Raft) | Redis, ZooKeeper |
+| Inter-Node RPC | gRPC (extended) | — |
+| Cluster Messaging | NATS (extended) | Redis Pub/Sub |
+| Workload Balancing | Consistent Hashing, Sticky Sessions | Round-robin, Least-Request |
+| Cache Coherence | NATS invalidation bus | gRPC signals |

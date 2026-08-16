@@ -79,6 +79,12 @@ graph TD
         ftp["ftp<br/><small>FTP/FTPS RFC 959</small>"]
     end
 
+    subgraph "Cluster (network/cluster/ + service/)"
+        clustercore["cluster/core<br/><small>membership, events, hashing</small>"]
+        clusterdisc["cluster/discovery<br/><small>DNS-SD/mDNS</small>"]
+        coord["coordination<br/><small>etcd: state, locks, election</small>"]
+    end
+
     subgraph "IoT (iot/)"
         upnp["upnp<br/><small>UPnP/DLNA</small>"]
         coap["coap<br/><small>CoAP RFC 7252</small>"]
@@ -158,6 +164,14 @@ flowchart LR
     service --> snmp
     service --> syslog
     service --> modbus
+    service --> clustercore[cluster/core]
+    clustercore --> clusterdisc[cluster/discovery]
+    clusterdisc --> dns2
+    service --> coord[cluster-coordination]
+    coord --> clustercore
+    clustercore --> grpc
+    clustercore --> nats
+    clustercore --> http
     service --> rtsp
     service --> rtp
     service --> sip
@@ -202,6 +216,9 @@ flowchart LR
 | **network** | modbus | lego-flow-modbus | Modbus TCP: function codes, MBAP framing, client + server |
 | **network** | ssh | lego-flow-ssh | SSH-2 (RFC 4251-4256): transport, auth, channels, SFTP, SCP |
 | **network** | ftp | lego-flow-ftp | FTP/FTPS (RFC 959, RFC 4217): client + server, TLS |
+| **network** | cluster/core | lego-flow-cluster-core | Cluster membership, events, lifecycle, consistent hashing |
+| **network** | cluster/discovery | lego-flow-cluster-discovery | DNS-SD/mDNS (RFC 6762/8305) service discovery |
+| **service** | cluster-coordination | lego-flow-cluster-coordination | etcd v3: shared state, leases, locks, leader election |
 | **media** | rtsp | lego-flow-rtsp | RTSP 2.0 (RFC 7826): streaming control, SDP negotiation |
 | **media** | rtp | lego-flow-rtp | RTP/RTCP (RFC 3550): real-time transport, jitter buffer, SSRC management |
 | **media** | sip | lego-flow-sip | SIP (RFC 3261): VoIP signaling, dialog state machine, registration |
@@ -544,6 +561,23 @@ See [interop-tests/README.md](interop-tests/README.md) for details.
 
 v0.1.0 released. The framework covers 40+ protocol modules across 9 categories.
 The 0.2.0 development cycle focuses on protocol completeness, stability, and production readiness.
+
+### Cluster Protocols (0.2.0 — ✅ Complete)
+
+Multi-node clustering support for deploying Lego Flow services across multiple nodes:
+
+| Phase | Capability | Protocol | Status |
+|-------|-----------|----------|--------|
+| 1 | Core abstractions | ClusterNode, ClusterEvent, ClusterMembership | ✅ Done |
+| 2 | Zero-config discovery | DNS-SD/mDNS (RFC 6762/8305) | ✅ Done |
+| 3 | Shared state + election | etcd v3 client (Raft-backed) | ✅ Done |
+| 4 | Client-side RPC load balancing | gRPC cluster resolver + balancers | ✅ Done |
+| 5 | Cluster messaging bus | NATS pub/sub + ordered invalidation | ✅ Done |
+| 6 | Data partitioning + sticky sessions | Consistent Hashing (Ketama) + HTTP sticky sessions | ✅ Done |
+| 7 | Cache coherence | Cross-node cache invalidation | ✅ Done |
+| 8 | Integration demos | End-to-end cluster scenarios | ✅ Done |
+
+See [Cluster Master Plan](network/cluster/doc/plan/master.md) for detailed phase breakdowns.
 
 ---
 

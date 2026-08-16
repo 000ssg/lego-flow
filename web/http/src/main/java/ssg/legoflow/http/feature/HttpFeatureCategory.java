@@ -12,5 +12,11 @@ public enum HttpFeatureCategory {
     WEBSOCKET,
     STATIC,
     HTTP2,
-    HTTP3
+    HTTP3,
+    /**
+     * Cluster-related features: sticky sessions, load balancing, cache coherence.
+     *
+     * @since 0.2.0
+     */
+    CLUSTER
 }

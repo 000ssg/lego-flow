@@ -19,5 +19,6 @@
         <module>modbus</module>
         <module>ssh</module>
         <module>ftp</module>
+        <module>cluster</module>
     </modules>
 </project>

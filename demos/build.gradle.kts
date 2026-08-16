@@ -22,6 +22,10 @@ dependencies {
     // Core modules
     api(project(":lego-flow-blocks")); api(project(":lego-flow-service"))
 
+    // Cluster modules
+    api(project(":lego-flow-cluster-core")); api(project(":lego-flow-cluster-discovery"))
+    api(project(":lego-flow-cluster-coordination"))
+
     // Web modules
     api(project(":lego-flow-http")); api(project(":lego-flow-http2")); api(project(":lego-flow-http3"))
     api(project(":lego-flow-web-services")); api(project(":lego-flow-http-proxy"))

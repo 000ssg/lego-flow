@@ -409,6 +409,39 @@ while (server.connectionCount() <= countBefore) {
 assertThat(server.connectionCount()).isGreaterThan(countBefore);
 ```
 
+
+### 6. Timing-Dependent State Transitions in Simulations ❌
+**Never rely on:** Scheduled background tasks (e.g. heartbeat detection, health checks) to produce
+state transitions in tests or demos. Under CI load, `Thread.sleep(N)` can overshoot the task
+interval, causing nodes to be falsely marked SUSPECT/FAILED on macOS or Windows CI even though
+they are healthy. The same code passes on Ubuntu CI or local machines.
+
+**Root cause:** When `Thread.sleep(X)` duration is close to the failure-detection threshold
+(`heartbeatInterval * failureThreshold`), platform-specific scheduling variance makes the
+test non-deterministic. On slow runners, `elapsed >= threshold` triggers false failure detection.
+
+**Always use:** One of these approaches:
+1. **Explicit state simulation** — call the API directly to change state rather than waiting for
+   background tasks:
+   ```java
+   // ✅ Deterministic — no timing involved
+   manager.simulateFailure(nodeId);           // mark node as failed explicitly
+   manager.processHeartbeat(recoveredNode);   // recover node explicitly
+   ```
+2. **Defensive thresholds** — set failure thresholds orders of magnitude higher than any
+   sleep duration in the test:
+   ```java
+   var config = ClusterConfig.builder()
+       .heartbeatInterval(Duration.ofMillis(100))
+       .heartbeatFailureThreshold(100)  // 10s timeout, far exceeds demo sleeps
+       .build();
+   ```
+3. **No Thread.sleep at all** — if all operations are synchronous and deterministic,
+   eliminate sleeps entirely from simulations.
+
+**Key insight:** A test/demo should never depend on the coincidence that a background task
+fires within a specific window. Make state transitions explicit and synchronous.
+
 ## Test Design Rules
 
 ### Timeout Guidelines by Operation Type
@@ -465,6 +498,9 @@ void testWithResources() throws Exception {
 2. **Virtual-thread scheduling delays**: Under load, virtual threads can be delayed 5-15 seconds
 3. **Network I/O timing**: Loopback connections still go through the OS networking stack which can be delayed
 4. **File system caching**: Test results from cache may not reflect actual execution timing
+5. **Thread.sleep precision varies by platform**: `Thread.sleep(300)` may return after 350ms+
+   on macOS/Windows CI due to scheduler granularity. Never assume millisecond-precision sleeps;
+   add margin or use deterministic patterns (explicit state transitions, latches).
 
 ## Service Class Testing Checklist
 
@@ -648,6 +684,81 @@ mvn compile -DskipTests -pl '!benchmarks'
 ./gradlew test
 ```
 
+### Standard Module Structure
+
+Every module in the project MUST follow this structure. New modules are **non-compliant** without all required files:
+
+```
+module/
+  README.md                 — Module overview, features, quick-start code, dependency badges
+  AGENTS.md                 — Module-specific conventions for AI agents (references root AGENTS.md)
+  CLAUDE.md                 — Symlink: `CLAUDE.md -> AGENTS.md`
+  pom.xml                   — Maven POM (parent = category POM or root)
+  build.gradle.kts          — Gradle build (depends on other modules via project(":..."))
+  doc/
+    ARCHITECTURE.md         — Module purpose, Mermaid diagrams, package structure, design decisions
+    COMPLIANCE.md           — Spec compliance matrix (RFC sections → status → test ref)
+    REQUIREMENTS.md         — Historical requirements tracking (append-only, commit-based)
+  src/main/java/            — Source files under ssg.legoflow.<category>.<module>/
+  src/test/java/            — Tests under matching package structure
+```
+
+#### README.md (at module root)
+- Must include shields (Java version, Maven, License, Tests count, Version)
+- Brief description (1-2 sentences)
+- Overview section with ASCII or Mermaid diagram
+- Quick Start section with runnable code examples
+- Dependencies section listing module dependencies
+
+#### AGENTS.md (at module root)
+- Must reference root AGENTS.md with relative link
+- Must cover: module purpose, key interfaces, design decisions, thread safety model
+- Package structure listing (package → purpose)
+- Testing notes (framework, test count)
+- Module-specific coding conventions
+
+#### CLAUDE.md
+- **Must be a symlink** to AGENTS.md (not a copy)
+- Created via: `ln -s AGENTS.md CLAUDE.md`
+
+#### doc/ARCHITECTURE.md
+- Module purpose, key abstractions, design patterns, data flow
+- Mermaid diagrams for architecture (graph TD or graph LR) — no ASCII art
+- Package structure listing with descriptions
+- Design decisions with rationale
+
+#### doc/COMPLIANCE.md
+- Specifications covered (RFCs, APIs, standards)
+- Compliance matrix: requirement → status → verification (test ref)
+- Thread safety coverage table
+
+#### doc/REQUIREMENTS.md
+- Commit-based entries (append-only, historical)
+- Each entry: Original Request, Reformulated Requirements, Design Decisions, Implementation, Test Coverage, Cost Estimate
+
+
+#### Aggregator Modules (POM-only, no source code)
+
+Aggregator modules (e.g., `auth/`, `database/`, `network/`) group child modules under a common
+parent POM. They follow a relaxed structure:
+
+- **Required**: `README.md`, `AGENTS.md`, `CLAUDE.md` (symlink → AGENTS.md), `pom.xml`
+- **Not required**: `build.gradle.kts`, `doc/COMPLIANCE.md`, `src/` directories
+- **Recommended**: `doc/ARCHITECTURE.md` (parent chain diagram), `doc/REQUIREMENTS.md` (if any decisions specific to aggregation)
+- `pom.xml` must declare `<packaging>pom</packaging>` and list child `<modules>`
+
+#### Special Modules (benchmarks, demos, interop-tests)
+
+Special modules at the project root have relaxed requirements:
+
+- **Required**: `README.md`, `AGENTS.md`, `CLAUDE.md` (symlink), `pom.xml`
+- **Not required**: `doc/COMPLIANCE.md`
+- `benchmarks/` — excluded from Maven builds; Gradle-only
+- `demos/` — integration demos; may have timing-sensitive tests
+- `interop-tests/` — Maven-only; requires Docker reference servers
+
+**When creating a new module, ensure ALL files are present before committing.** Use existing modules (e.g., `web/http`, `network/dns`) as reference templates.
+
 ### Structural Rules
 
 1. **Never remove parent references** from child modules — they ensure inheritance from the correct parent POM hierarchy.
@@ -727,3 +838,88 @@ When buffer pooling or thread management changes are made:
 2. Update doc/PERFORMANCE_IMPROVEMENTS.md with expanded coverage section
 3. Update doc/COMPARISON.md with benchmark comparisons (old vs new)
 4. Add to README.md Performance section: number of codecs using BufferPool, hit ratio targets
+
+
+## 9. Callback APIs Must Be Testable ⚠️ NEW
+
+### Problem: IntConsumer Callbacks Block Deterministic Testing
+When a background component fires callbacks with just a count or primitive value (e.g.
+`IntConsumer` with failure count), tests cannot determine WHICH entity triggered the callback.
+This forces tests to use `Thread.sleep` as a workaround, creating platform-specific flakiness.
+
+### Anti-Pattern ❌: Callback Without Identity
+```java
+// BAD: Test cannot tell which node changed — must sleep
+GrpcHealthChecker checker = new GrpcHealthChecker(interval, threshold, probe, i -> latch.countDown());
+// After state change: Thread.sleep(200); assertThat(checker.status("n1")).isEqualTo(NOT_SERVING);
+```
+
+### Correct Pattern ✅: BiConsumer with Entity Identifier
+```java
+// GOOD: Test can filter by nodeId and assert the right entity changed
+GrpcHealthChecker checker = new GrpcHealthChecker(interval, threshold, probe,
+    (nodeId, failures) -> {
+        if ("n1".equals(nodeId) && failures >= threshold) latch.countDown();
+    }
+);
+// After state change: assertThat(latch.await(2, TimeUnit.SECONDS)).isTrue();
+```
+
+### Rule
+**All callback parameters must carry enough context for tests to identify the triggering entity.**
+If a callback conveys only a count or status, extend the signature to include the entity
+identifier (nodeId, key, name, etc.) before the class is merged.
+
+## 10. No Self-Referencing Variables in Constructor Lambdas ⚠️ NEW
+
+### Problem: Java Definite Assignment Blocks `var` and Explicit Types
+When a lambda passed to a constructor references the variable being initialized, Java's
+definite assignment analysis rejects it — even with explicit types (not just `var`).
+
+### Anti-Pattern ❌: Constructor Lambda References the Target
+```java
+// COMPILE ERROR: variable checker might not have been initialized
+GrpcHealthChecker checker = new GrpcHealthChecker(interval, threshold, probe,
+    (nodeId, failures) -> {
+        HealthStatus s = checker.status(nodeId); // ← references checker being initialized
+        ...
+    }
+);
+```
+
+### Correct Pattern ✅: Use Lambda Parameters for All Decisions
+```java
+// GOOD: All decisions based on lambda parameters only
+GrpcHealthChecker checker = new GrpcHealthChecker(interval, threshold, probe,
+    (nodeId, failures) -> {
+        if (failures >= threshold && "n1".equals(nodeId)) latch.countDown();
+        // No checker.status() calls — failures param is sufficient
+    }
+);
+```
+
+### Rule
+**Lambda parameters passed to constructors must carry all data needed for decisions.** If the
+test needs to query state back from the object, do so AFTER the constructor completes (outside
+the lambda).
+
+## Test Quality Enforcement
+
+### Mandatory Pre-Commit Test Review
+**Before committing any new test file, the author MUST verify against ALL anti-patterns below:**
+
+| # | Anti-Pattern | Check |
+|---|-------------|-------|
+| 1 | Thread.sleep as primary sync | Use CountDownLatch with assert |
+| 2 | Insufficient timeouts (< 5s for network) | Use generous timeouts |
+| 3 | Warmup requests for readiness | Use latch + propagation delay |
+| 4 | Assert before latch verify | Latch assert first |
+| 5 | Connection count without polling | Poll with deadline |
+| 6 | Timing-dependent state transitions | Explicit simulation or defensive thresholds |
+| 9 | Non-testable callbacks | BiConsumer with entity ID |
+| 10 | Self-referencing constructor lambdas | Use lambda params only |
+
+**If a test uses Thread.sleep to wait for a scheduled task (health check, watcher, heartbeat),**
+**it violates anti-pattern #1 AND #6 simultaneously and MUST be rewritten with latch-based
+waiting before the commit is accepted.** This has caused 3+ CI failures across platforms
+(Ubuntu, macOS, Windows) in the cluster_protocols branch alone.

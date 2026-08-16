@@ -104,3 +104,48 @@
 | Files created/modified | 3 |
 | Lines added/removed | +400 / -5 |
 | Tests added | 1 (total: 252) |
+
+---
+
+## Commit: (planned) — Proxy Cluster Health Monitor (Phase 7)
+
+### Original Request
+> "investigate cluster-related protocols and choose most popular for each cluster functionality. Cover generic networking as well as HTTP-related activities (supporting web servers cluster). Create plan with reasonable split into phases."
+
+### Reformulated Requirements
+1. Define `ClusterHealthMonitor` — monitors health of backend servers in a proxy cluster
+2. Define `ProxyClusterConfig` — configuration for cluster-aware proxy backend groups
+3. Health monitor must detect unhealthy backends and trigger removal from pool
+4. Support configurable health check thresholds (unhealthy, recovery)
+5. Emit `HealthEvent` on state transitions for external listeners
+6. Backend recovery must be detected and server re-included
+
+### Final Design Decisions
+- **Package:** `ssg.legoflow.http.proxy.cluster` (extension to existing http-proxy module)
+- **Dependencies:** `network/cluster/core` for `ClusterNode`
+- **Health check:** configurable thresholds for unhealthy detection and recovery
+- **Event-driven:** health events published to listener callback
+- **Reuses `BackendServer` model** from http-proxy for backend representation
+
+### Implementation Details
+- `ClusterHealthMonitor.java` — tracks backend health, emits events on transitions
+- `ProxyClusterConfig.java` — backend group, thresholds, scheduling config
+
+### Test Coverage
+| Test Class | Coverage |
+|-----------|----------|
+| `ClusterHealthMonitorTest` | Health transitions, thresholds, recovery, event emission |
+| **Tests added**: 1 |
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Background agents | 0 |
+| Agent tokens | ~4000 |
+| Agent tool calls | ~10 |
+| Agent wall time | ~12 min |
+| Files created/modified | 5 |
+| Lines added/removed | +200 / -1 |
+| Tests added | 1 |
+
+---

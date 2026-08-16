@@ -125,3 +125,56 @@
 
 - This document is append-only for commit sections
 - Requirements updated with each feature addition
+
+---
+
+## Commit: (planned) — NATS Cluster Bus (Phase 5)
+
+### Original Request
+> "investigate cluster-related protocols and choose most popular for each cluster functionality (sharing state, workload balancing, discovery, optimized processing). Cover generic networking as well as HTTP-related activities (supporting web servers cluster). Create plan with reasonable split into phases."
+
+### Reformulated Requirements
+1. Define `NatsClusterBus` — cluster-wide pub/sub over NATS for inter-node messaging
+2. Define `NatsClusterConfig` — configuration for cluster bus (NATS connection, subjects, queue groups)
+3. Define `NatsClusterHealthBus` — health check propagation via NATS
+4. Define `NatsDistributedPubSub` — publish-subscribe with cluster-wide topic distribution
+5. Support topic-based routing: publish to a subject, all cluster nodes subscribe
+6. Support queue-based processing: only one node handles each message
+7. Health bus must handle restart gracefully (recreate scheduler on close/restart)
+8. All operations must be async (CompletableFuture) with proper error handling
+9. Integration with `ClusterTransport` SPI from cluster core
+
+### Final Design Decisions
+- **Package:** `ssg.legoflow.messaging.nats.cluster` (extension to existing NATS module)
+- **Dependencies:** `network/cluster/core` for `ClusterNode`, `ClusterEvent`
+- **Strategy:** NATS as the backing transport for cluster messaging
+- **Topic convention:** `cluster.<cluster-name>.<operation>` for routing
+- **Health bus** uses `ScheduledExecutorService` for periodic health pings with graceful restart
+
+### Implementation Details
+- `NatsClusterBus.java` — cluster bus wrapping NATS connection for pub/sub
+- `NatsClusterConfig.java` — NATS connection settings + cluster topic prefixes
+- `NatsClusterHealthBus.java` — periodic health ping with recovery on restart
+- `NatsDistributedPubSub.java` — distributed publish-subscribe with ack tracking
+
+### Test Coverage
+| Test Class | Coverage |
+|-----------|----------|
+| `NatsClusterBusTest` | Pub/sub lifecycle, topic routing, message delivery |
+| `NatsClusterConfigTest` | Builder, defaults, validation |
+| `NatsClusterHealthBusTest` | Health pings, restart after close, scheduler recreation |
+| `NatsDistributedPubSubTest` | Distributed publish, subscriber notification, acks |
+| **Tests added**: 4 (in `messaging/nats/src/test/java/.../cluster/`) |
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Background agents | 0 |
+| Agent tokens | ~8000 |
+| Agent tool calls | ~15 |
+| Agent wall time | ~20 min |
+| Files created/modified | 12 |
+| Lines added/removed | +500 / -3 |
+| Tests added | 4 |
+
+---

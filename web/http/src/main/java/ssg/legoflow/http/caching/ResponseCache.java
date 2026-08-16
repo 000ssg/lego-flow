@@ -12,6 +12,13 @@ public interface ResponseCache {
 
     void remove(String key);
 
+    /**
+     * Invalidates a cache entry. Default implementation delegates to {@link #remove(String)}.
+     *
+     * @param key the cache entry key
+     */
+    default void invalidate(String key) { remove(key); }
+
     void clear();
 
     int size();

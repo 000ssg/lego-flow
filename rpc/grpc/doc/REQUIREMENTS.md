@@ -130,3 +130,66 @@
 ---
 
 **Last Updated**: 2026-07-07
+
+---
+
+## Commit: (planned) — gRPC Cluster Resolver + Load Balancer (Phase 4)
+
+### Original Request
+> "investigate cluster-related protocols and choose most popular for each cluster functionality (sharing state, workload balancing, discovery, optimized processing). Cover generic networking as well as HTTP-related activities (supporting web servers cluster). Create plan with reasonable split into phases."
+
+### Reformulated Requirements
+1. Define `AddressSource` — SPI for discovering gRPC backend addresses
+2. Define `ClusterSubchannel` — represents a connection to one backend (with health state)
+3. Define `HealthStatus` — enum for backend health (READY, NOT_SERVING, TRANSIENT_FAILURE, IDLE)
+4. Define `GrpcLoadBalancer` — factory and SPI for load balancing strategies
+5. Implement `RoundRobinBalancer` — even distribution across healthy backends
+6. Implement `LeastRequestBalancer` — route to backend with fewest active requests
+7. Implement `ConsistentHashBalancer` — session affinity via consistent hashing
+8. Define `GrpcHealthChecker` — periodic health probe for backends
+9. All balancers must filter out unhealthy backends
+10. gRPC-over-HTTP/2 metadata must be preserved through load balancing
+
+### Final Design Decisions
+- **Package:** `ssg.legoflow.rpc.grpc.cluster` (extension to existing gRPC module)
+- **Dependencies:** `network/cluster/core` for `ClusterNode` model
+- **No external dependencies** — pure load balancing logic
+- **Strategy pattern** — each balancer implements `GrpcLoadBalancer` SPI
+- **Health-aware** — balancers receive `ClusterSubchannel` with health status
+- **Consistent hashing** uses same `MurmurHash3` from cluster core
+
+### Implementation Details
+- `AddressSource.java` — SPI for backend address discovery
+- `ClusterSubchannel.java` — immutable subchannel with node + health
+- `HealthStatus.java` — enum: READY, NOT_SERVING, TRANSIENT_FAILURE, IDLE
+- `GrpcLoadBalancer.java` — factory + SPI with `updateChannels()` and `select()`
+- `RoundRobinBalancer.java` — atomic counter-based round robin
+- `LeastRequestBalancer.java` — selects backend with minimum active requests
+- `ConsistentHashBalancer.java` — consistent hash ring with configurable keys
+- `GrpcHealthChecker.java` — periodic readiness probe via GRPC health check protocol
+
+### Test Coverage
+| Test Class | Coverage |
+|-----------|----------|
+| `AddressSourceTest` | SPI contract verification |
+| `ClusterSubchannelTest` | Construction, equality, health transitions |
+| `HealthStatusTest` | Enum values, toString |
+| `GrpcLoadBalancerTest` | Factory methods, SPI compliance |
+| `RoundRobinBalancerTest` | Even distribution, unhealthy exclusion |
+| `LeastRequestBalancerTest` | Active request tracking, dynamic balancing |
+| `ConsistentHashBalancerTest` | Key→backend mapping, consistency |
+| `GrpcHealthCheckerTest` | Health probe scheduling, state transitions |
+| **Tests added**: 8 (in `rpc/grpc/src/test/java/.../cluster/`) |
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Background agents | 0 |
+| Agent tokens | ~12000 |
+| Agent tool calls | ~20 |
+| Agent wall time | ~25 min |
+| Files created/modified | 18 |
+| Lines added/removed | +800 / -5 |
+| Tests added | 8 |
+
+---
