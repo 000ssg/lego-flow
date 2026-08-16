@@ -409,6 +409,39 @@ while (server.connectionCount() <= countBefore) {
 assertThat(server.connectionCount()).isGreaterThan(countBefore);
 ```
 
+
+### 6. Timing-Dependent State Transitions in Simulations ❌
+**Never rely on:** Scheduled background tasks (e.g. heartbeat detection, health checks) to produce
+state transitions in tests or demos. Under CI load, `Thread.sleep(N)` can overshoot the task
+interval, causing nodes to be falsely marked SUSPECT/FAILED on macOS or Windows CI even though
+they are healthy. The same code passes on Ubuntu CI or local machines.
+
+**Root cause:** When `Thread.sleep(X)` duration is close to the failure-detection threshold
+(`heartbeatInterval * failureThreshold`), platform-specific scheduling variance makes the
+test non-deterministic. On slow runners, `elapsed >= threshold` triggers false failure detection.
+
+**Always use:** One of these approaches:
+1. **Explicit state simulation** — call the API directly to change state rather than waiting for
+   background tasks:
+   ```java
+   // ✅ Deterministic — no timing involved
+   manager.simulateFailure(nodeId);           // mark node as failed explicitly
+   manager.processHeartbeat(recoveredNode);   // recover node explicitly
+   ```
+2. **Defensive thresholds** — set failure thresholds orders of magnitude higher than any
+   sleep duration in the test:
+   ```java
+   var config = ClusterConfig.builder()
+       .heartbeatInterval(Duration.ofMillis(100))
+       .heartbeatFailureThreshold(100)  // 10s timeout, far exceeds demo sleeps
+       .build();
+   ```
+3. **No Thread.sleep at all** — if all operations are synchronous and deterministic,
+   eliminate sleeps entirely from simulations.
+
+**Key insight:** A test/demo should never depend on the coincidence that a background task
+fires within a specific window. Make state transitions explicit and synchronous.
+
 ## Test Design Rules
 
 ### Timeout Guidelines by Operation Type
@@ -465,6 +498,9 @@ void testWithResources() throws Exception {
 2. **Virtual-thread scheduling delays**: Under load, virtual threads can be delayed 5-15 seconds
 3. **Network I/O timing**: Loopback connections still go through the OS networking stack which can be delayed
 4. **File system caching**: Test results from cache may not reflect actual execution timing
+5. **Thread.sleep precision varies by platform**: `Thread.sleep(300)` may return after 350ms+
+   on macOS/Windows CI due to scheduler granularity. Never assume millisecond-precision sleeps;
+   add margin or use deterministic patterns (explicit state transitions, latches).
 
 ## Service Class Testing Checklist
 
