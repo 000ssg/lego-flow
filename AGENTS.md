@@ -648,6 +648,81 @@ mvn compile -DskipTests -pl '!benchmarks'
 ./gradlew test
 ```
 
+### Standard Module Structure
+
+Every module in the project MUST follow this structure. New modules are **non-compliant** without all required files:
+
+```
+module/
+  README.md                 — Module overview, features, quick-start code, dependency badges
+  AGENTS.md                 — Module-specific conventions for AI agents (references root AGENTS.md)
+  CLAUDE.md                 — Symlink: `CLAUDE.md -> AGENTS.md`
+  pom.xml                   — Maven POM (parent = category POM or root)
+  build.gradle.kts          — Gradle build (depends on other modules via project(":..."))
+  doc/
+    ARCHITECTURE.md         — Module purpose, Mermaid diagrams, package structure, design decisions
+    COMPLIANCE.md           — Spec compliance matrix (RFC sections → status → test ref)
+    REQUIREMENTS.md         — Historical requirements tracking (append-only, commit-based)
+  src/main/java/            — Source files under ssg.legoflow.<category>.<module>/
+  src/test/java/            — Tests under matching package structure
+```
+
+#### README.md (at module root)
+- Must include shields (Java version, Maven, License, Tests count, Version)
+- Brief description (1-2 sentences)
+- Overview section with ASCII or Mermaid diagram
+- Quick Start section with runnable code examples
+- Dependencies section listing module dependencies
+
+#### AGENTS.md (at module root)
+- Must reference root AGENTS.md with relative link
+- Must cover: module purpose, key interfaces, design decisions, thread safety model
+- Package structure listing (package → purpose)
+- Testing notes (framework, test count)
+- Module-specific coding conventions
+
+#### CLAUDE.md
+- **Must be a symlink** to AGENTS.md (not a copy)
+- Created via: `ln -s AGENTS.md CLAUDE.md`
+
+#### doc/ARCHITECTURE.md
+- Module purpose, key abstractions, design patterns, data flow
+- Mermaid diagrams for architecture (graph TD or graph LR) — no ASCII art
+- Package structure listing with descriptions
+- Design decisions with rationale
+
+#### doc/COMPLIANCE.md
+- Specifications covered (RFCs, APIs, standards)
+- Compliance matrix: requirement → status → verification (test ref)
+- Thread safety coverage table
+
+#### doc/REQUIREMENTS.md
+- Commit-based entries (append-only, historical)
+- Each entry: Original Request, Reformulated Requirements, Design Decisions, Implementation, Test Coverage, Cost Estimate
+
+
+#### Aggregator Modules (POM-only, no source code)
+
+Aggregator modules (e.g., `auth/`, `database/`, `network/`) group child modules under a common
+parent POM. They follow a relaxed structure:
+
+- **Required**: `README.md`, `AGENTS.md`, `CLAUDE.md` (symlink → AGENTS.md), `pom.xml`
+- **Not required**: `build.gradle.kts`, `doc/COMPLIANCE.md`, `src/` directories
+- **Recommended**: `doc/ARCHITECTURE.md` (parent chain diagram), `doc/REQUIREMENTS.md` (if any decisions specific to aggregation)
+- `pom.xml` must declare `<packaging>pom</packaging>` and list child `<modules>`
+
+#### Special Modules (benchmarks, demos, interop-tests)
+
+Special modules at the project root have relaxed requirements:
+
+- **Required**: `README.md`, `AGENTS.md`, `CLAUDE.md` (symlink), `pom.xml`
+- **Not required**: `doc/COMPLIANCE.md`
+- `benchmarks/` — excluded from Maven builds; Gradle-only
+- `demos/` — integration demos; may have timing-sensitive tests
+- `interop-tests/` — Maven-only; requires Docker reference servers
+
+**When creating a new module, ensure ALL files are present before committing.** Use existing modules (e.g., `web/http`, `network/dns`) as reference templates.
+
 ### Structural Rules
 
 1. **Never remove parent references** from child modules — they ensure inheritance from the correct parent POM hierarchy.
