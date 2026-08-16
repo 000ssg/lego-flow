@@ -265,10 +265,7 @@ class DnsSdDiscoveryIntegrationTest {
             discovery.addListener(listenerA);
             discovery.addListener(listenerB);
 
-            discovery.start();
-            Thread.sleep(500);
-
-            // Fire a test event
+            // Fire a test event (no start() needed — listener management is independent of sockets)
             ClusterEvent testEvent = new ClusterEvent.NodeJoined(
                     discovery.localNode(), Instant.now());
             discovery.fireEvent(testEvent);
@@ -276,12 +273,20 @@ class DnsSdDiscoveryIntegrationTest {
             assertThat(countA.get()).isEqualTo(1);
             assertThat(countB.get()).isEqualTo(1);
 
-            // Remove listener A
+            // Remove listener A and verify it no longer receives events
             discovery.removeListener(listenerA);
             discovery.fireEvent(testEvent);
 
             assertThat(countA.get()).isEqualTo(1); // Not incremented
             assertThat(countB.get()).isEqualTo(2);
+
+            // Re-add listener A and verify it works again
+            discovery.addListener(listenerA);
+            discovery.fireEvent(testEvent);
+
+            assertThat(countA.get()).isEqualTo(2); // Incremented again
+            assertThat(countB.get()).isEqualTo(3);
         }
     }
 }
+
