@@ -56,6 +56,8 @@ graph TD
         modbus["modbus"]
         ssh["ssh"]
         ftp["ftp"]
+        clustercore["cluster-core"]
+        clusterdiscovery["cluster-discovery"]
     end
 
     subgraph "IoT (iot/)"
@@ -70,6 +72,7 @@ graph TD
 
     subgraph "Service Layer"
         svc["service"]
+        coord["cluster-coordination"]
     end
 
     subgraph "Foundation"
@@ -108,6 +111,13 @@ graph TD
     rtsp -->|uses| svc
     rtp -->|uses| svc
     sip -->|uses| svc
+    clusterdiscovery --> clustercore
+    coord --> clustercore
+    grpc --> clustercore
+    nats --> clustercore
+    http --> clustercore
+    proxy --> clustercore
+    clusterdiscovery --> dns
     svc -->|uses| blocks
 ```
 
@@ -354,7 +364,7 @@ Seven messaging protocol modules covering message brokers, event streaming, pub/
 
 ### Network Category (network/)
 
-Eight network protocol modules including shared BER/ASN.1 codec:
+Ten network protocol modules including shared BER/ASN.1 codec and cluster protocols:
 
 - **DNS** — Binary packet format, all record types, EDNS0, DNSSEC validation, DoH, DoT, recursive resolver + authoritative server
 - **LDAP** — BER codec (shared network/common), bind, search with filter expressions, extended operations, STARTTLS
@@ -363,6 +373,8 @@ Eight network protocol modules including shared BER/ASN.1 codec:
 - **Modbus** — Function codes for coils/registers, MBAP header framing, TCP transport
 - **SSH** — (moved from root) Transport, kex, ciphers, auth, channels, SFTP, SCP
 - **FTP** — (moved from root) Client + server, TLS, REST, implicit FTPS
+- **Cluster Core** — Membership SPI, event model, health checking, consistent hashing (Ketama)
+- **Cluster Discovery** — DNS-SD/mDNS zero-config peer discovery (RFC 6762/8305)
 
 ### Media Category (media/)
 
@@ -468,7 +480,12 @@ The integration points differ enough that a shared module would add coupling wit
 
 ---
 
-**Last Updated**: 2026-07-04
+#### Cluster
+- [cluster-core](../network/cluster/core/doc/ARCHITECTURE.md)
+- [cluster-discovery](../network/cluster/discovery/doc/ARCHITECTURE.md)
+- [cluster-coordination](../service/cluster-coordination/doc/ARCHITECTURE.md)
+
+**Last Updated**: 2026-08-16
 
 ## CI/CD Infrastructure
 

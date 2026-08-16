@@ -1,6 +1,6 @@
 # Cluster Discovery Module — DNS-SD / mDNS
 
-## Commit: Phase 2 — DNS-SD / mDNS Service Discovery (2026-08-15)
+## Commit: 374a652 — DNS-SD / mDNS Service Discovery (2026-08-15)
 
 ### Original Request
 > Implement cluster protocols for the lego-flow project. Choose the most popular protocols for each cluster functionality (sharing state, workload balancing, discovery, optimized processing, etc.) covering generic networking as well as HTTP-related activities. Create new protocols under the `network/cluster` module with smart module grouping.

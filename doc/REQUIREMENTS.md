@@ -302,7 +302,8 @@ Implemented 8-phase cluster protocol suite enabling multi-node deployment of Leg
 2. **fa90d15** — Phase 1: Cluster Core Abstractions (16 src, 13 tests)
 3. **374a652** — Phase 2: DNS-SD/mDNS Discovery (10 src, 10 tests)
 4. **8080878** — Phase 3: etcd/Raft Coordination (12 src, 12 tests)
-5. **(planned)** — Phases 4-8: gRPC LB, NATS Bus, HTTP Cluster, Demos
+5. **156c668** — Phases 4-8: gRPC LB, NATS Bus, HTTP Cluster, Demos (8 src, 8 tests, 7 demos)
+6. **(docs)** — Missing architecture/compliance docs + main ARCHITECTURE.md update
 
 ## Original Request
 > "investigate cluster-related protocols and choose most popular for each cluster functionality (sharing state, workload balancing, discovery, optimized processing). Cover generic networking as well as HTTP-related activities (supporting web servers cluster). Create plan with reasonable split into phases."
@@ -316,3 +317,49 @@ Implemented 8-phase cluster protocol suite enabling multi-node deployment of Leg
 6. HTTP sticky sessions for web server clusters
 7. Cross-node cache coherence via invalidation events
 8. Integration demos demonstrating end-to-end cluster scenarios
+
+
+---
+
+## Commit: (docs) — Documentation Completeness for Cluster Modules (2026-08-16)
+
+### Original Request
+> "missing architecture (where applicable) and compliance documents for new modules/functionality. new module is missing gradle files. re-check overall project for consistency across modules structure and documentation and fix it."
+
+### Reformulated Requirements
+1. Create ARCHITECTURE.md for network/cluster/core, network/cluster/discovery, service/cluster-coordination
+2. Create COMPLIANCE.md for the same three modules
+3. Update main doc/ARCHITECTURE.md Mermaid diagram to include cluster modules
+4. Add cluster module entries to Module Documentation index
+5. Update Network category description to include cluster modules
+6. Fix duplicate REQUIREMENTS.md in cluster-coordination (root vs doc/)
+7. Verify all build files (Gradle + Maven) are consistent
+
+### Final Design Decisions
+- Follow existing module doc patterns (web/http/doc/ARCHITECTURE.md as reference)
+- Use Mermaid for all diagrams per AGENTS.md
+- ARCHITECTURE.md documents package structure, key abstractions, data flow
+- COMPLIANCE.md covers spec compliance matrices with test references
+- Main ARCHITECTURE.md updated to show cluster modules in layered architecture
+
+### Implementation Details
+- `network/cluster/core/doc/ARCHITECTURE.md` — 85 lines
+- `network/cluster/core/doc/COMPLIANCE.md` — 58 lines
+- `network/cluster/discovery/doc/ARCHITECTURE.md` — 62 lines
+- `network/cluster/discovery/doc/COMPLIANCE.md` — 72 lines
+- `service/cluster-coordination/doc/ARCHITECTURE.md` — 80 lines
+- `service/cluster-coordination/doc/COMPLIANCE.md` — 55 lines
+- `doc/ARCHITECTURE.md` — Updated Mermaid diagram + Module Documentation + Network category
+- `service/cluster-coordination/doc/REQUIREMENTS.md` — Fixed duplicate (merged root-level content)
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Background agents | 0 |
+| Agent tokens | ~5000 |
+| Agent tool calls | ~15 |
+| Agent wall time | ~15 min |
+| Files created | 6 (ARCHITECTURE.md + COMPLIANCE.md for 3 modules) |
+| Files modified | 2 (doc/ARCHITECTURE.md, doc/REQUIREMENTS.md) |
+| Lines added | ~350 |
+| Tests added | 0 (docs only) |

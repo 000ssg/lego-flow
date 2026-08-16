@@ -1,6 +1,6 @@
 # Cluster Core — Requirements & Design
 
-## Commit: (planned) — Cluster Core Abstractions
+## Commit: fa90d15 — Cluster Core Abstractions (2026-08-15)
 
 ### Original Request
 > "investigate cluster-related protocols and choose most popular for each cluster functionality (sharing state, workload balancing, discovery, optimized processing). Cover generic networking as well as HTTP-related activities (supporting web servers cluster). Create plan with reasonable split into phases."
