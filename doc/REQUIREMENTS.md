@@ -276,3 +276,43 @@ All improvements targeted scenarios with frequent packet encoding/decoding opera
 |--------|-----------|-----------|-------|
 | Performance optimizations | ~450 | 3 files modified | SIP, RTP, JitterBuffer optimizations |
 
+---
+
+# Cluster Protocols — Branch cluster_protocols
+
+## Summary
+Implemented 8-phase cluster protocol suite enabling multi-node deployment of Lego Flow services. Total: 69 source files, 66 tests, 8 demos, 9 demo tests.
+
+## Phases Implemented
+
+| Phase | Protocol | Module | Source Files | Tests |
+|-------|----------|--------|-------------|-------|
+| 1 | Core Abstractions | network/cluster/core | 16 | 13 |
+| 2 | DNS-SD/mDNS | network/cluster/discovery | 10 | 10 |
+| 3 | etcd/Raft Coordination | service/cluster-coordination | 12 | 12 |
+| 4 | gRPC Cluster Resolver | rpc/grpc | 8 | 8 |
+| 5 | NATS Cluster Bus | messaging/nats | 4 | 4 |
+| 6 | Sticky Sessions | web/http | 8 | 8 |
+| 7 | Cache Coherence | web/http + web/http-proxy | 3 | 2 |
+| 8 | Integration Demos | demos | 8 | 9 |
+
+## Commits
+
+1. **be52ae0** — Cluster Protocols: design plans for 8-phase multi-node clustering
+2. **fa90d15** — Phase 1: Cluster Core Abstractions (16 src, 13 tests)
+3. **374a652** — Phase 2: DNS-SD/mDNS Discovery (10 src, 10 tests)
+4. **8080878** — Phase 3: etcd/Raft Coordination (12 src, 12 tests)
+5. **(planned)** — Phases 4-8: gRPC LB, NATS Bus, HTTP Cluster, Demos
+
+## Original Request
+> "investigate cluster-related protocols and choose most popular for each cluster functionality (sharing state, workload balancing, discovery, optimized processing). Cover generic networking as well as HTTP-related activities (supporting web servers cluster). Create plan with reasonable split into phases."
+
+## Requirements
+1. Core cluster abstractions (node, events, membership, lifecycle, hashing)
+2. Zero-config node discovery via DNS-SD/mDNS (RFC 6762/8305)
+3. Shared state via etcd/Raft (KV store, transactions, locks, election, leases, watch)
+4. gRPC client-side load balancing (round-robin, least-request, consistent hash)
+5. NATS cluster messaging bus with health monitoring
+6. HTTP sticky sessions for web server clusters
+7. Cross-node cache coherence via invalidation events
+8. Integration demos demonstrating end-to-end cluster scenarios

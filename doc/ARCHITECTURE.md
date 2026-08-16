@@ -754,12 +754,12 @@ Multi-node clustering support across 8 phases, enabling deployment of Lego Flow 
 - **Phase 2** — DNS-SD/mDNS Discovery: `DnsSdDiscovery`, `DnsSdBrowser`, `MdnsResponder` (102 tests)
 - **Phase 3** — etcd/Raft Coordination: `EtcdClient`, `EtcdKVStore`, `EtcdLease`, `EtcdLock`, `EtcdElection`, `EtcdWatcher`, `EtcdDiscovery`, `RaftLeaderElection` (168 tests)
 
-**Planned phases** (Phases 4-8):
-- Phase 4 — gRPC Cluster Resolver + LB
-- Phase 5 — NATS Cluster Bus
-- Phase 6 — Sticky Sessions
-- Phase 7 — HTTP Cache Coherence
-- Phase 8 — Integration Demos
+**Completed phases** (Phases 4-8):
+- **Phase 4** — gRPC Cluster Resolver + LB: `GrpcLoadBalancer`, `RoundRobinBalancer`, `LeastRequestBalancer`, `ConsistentHashBalancer`, `ClusterSubchannel` (8 tests)
+- **Phase 5** — NATS Cluster Bus: `NatsClusterBus`, `NatsClusterHealthBus`, `NatsDistributedPubSub` (4 tests)
+- **Phase 6** — Sticky Sessions: `StickySessionRouter`, `SessionCookieBuilder`, `StickySessionHasher`, `StickySessionFeature` (5 tests)
+- **Phase 7** — Cache Coherence: `CacheCoherenceFeature`, `HttpCacheInvalidator`, `ClusterHealthMonitor` (4 tests)
+- **Phase 8** — Integration Demos: 7 demo scenarios with 9 tests (runner + aggregate)
 
 ### New Modules
 

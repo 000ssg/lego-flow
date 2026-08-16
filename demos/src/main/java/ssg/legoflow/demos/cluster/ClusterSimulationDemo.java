@@ -48,6 +48,7 @@ public class ClusterSimulationDemo {
         var managerA = createManager("node-A", nodeA);
         managerA.addListener(event -> logEvent("node-A", event));
         managerA.start();
+        managerA.setLeader(nodeA);
         results.put("step1-members", managerA.status().memberCount());
         results.put("step1-leader", managerA.getLeader());
         System.out.println("[1] Node A started. Members: " + managerA.status().memberCount());

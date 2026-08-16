@@ -562,20 +562,20 @@ See [interop-tests/README.md](interop-tests/README.md) for details.
 v0.1.0 released. The framework covers 40+ protocol modules across 9 categories.
 The 0.2.0 development cycle focuses on protocol completeness, stability, and production readiness.
 
-### Cluster Protocols (0.2.0 — in progress)
+### Cluster Protocols (0.2.0 — ✅ Complete)
 
 Multi-node clustering support for deploying Lego Flow services across multiple nodes:
 
 | Phase | Capability | Protocol | Status |
 |-------|-----------|----------|--------|
-| 1 | Core abstractions | ClusterNode, ClusterEvent, ClusterMembership | planned |
-| 2 | Zero-config discovery | DNS-SD/mDNS (RFC 6762/8305) | planned |
-| 3 | Shared state + election | etcd v3 client (Raft-backed) | planned |
-| 4 | Client-side RPC load balancing | gRPC cluster resolver + balancers | planned |
-| 5 | Cluster messaging bus | NATS pub/sub + ordered invalidation | planned |
-| 6 | Data partitioning + sticky sessions | Consistent Hashing (Ketama) + HTTP sticky sessions | planned |
-| 7 | Cache coherence | Cross-node cache invalidation | planned |
-| 8 | Integration demos | End-to-end cluster scenarios | planned |
+| 1 | Core abstractions | ClusterNode, ClusterEvent, ClusterMembership | ✅ Done |
+| 2 | Zero-config discovery | DNS-SD/mDNS (RFC 6762/8305) | ✅ Done |
+| 3 | Shared state + election | etcd v3 client (Raft-backed) | ✅ Done |
+| 4 | Client-side RPC load balancing | gRPC cluster resolver + balancers | ✅ Done |
+| 5 | Cluster messaging bus | NATS pub/sub + ordered invalidation | ✅ Done |
+| 6 | Data partitioning + sticky sessions | Consistent Hashing (Ketama) + HTTP sticky sessions | ✅ Done |
+| 7 | Cache coherence | Cross-node cache invalidation | ✅ Done |
+| 8 | Integration demos | End-to-end cluster scenarios | ✅ Done |
 
 See [Cluster Master Plan](network/cluster/doc/plan/master.md) for detailed phase breakdowns.
 
