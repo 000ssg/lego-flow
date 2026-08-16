@@ -196,7 +196,7 @@ public class ClusterSimulationDemo {
         var config = ClusterConfig.builder()
                 .name(CLUSTER_NAME)
                 .heartbeatInterval(HB_INTERVAL)
-                .heartbeatFailureThreshold(3)
+                .heartbeatFailureThreshold(50)
                 .joinTimeout(Duration.ofSeconds(5))
                 .leaveTimeout(Duration.ofSeconds(3))
                 .build();

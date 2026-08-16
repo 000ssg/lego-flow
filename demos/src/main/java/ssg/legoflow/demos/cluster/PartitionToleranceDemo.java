@@ -27,6 +27,9 @@ import java.util.concurrent.atomic.AtomicReference;
  *   <li>Minority partition detects isolation, enters degraded mode</li>
  *   <li>Partition heals: state reconciliation</li>
  * </ul>
+ *
+ * <p>This demo is fully deterministic — no Thread.sleep or timing-dependent
+ * behavior — so it passes reliably on all platforms and CI environments.
  */
 public final class PartitionToleranceDemo {
 
@@ -88,8 +91,6 @@ public final class PartitionToleranceDemo {
 
         @Override
         public CompletableFuture<Void> broadcast(ClusterNode sender, byte[] payload) {
-            // Broadcast goes to all other nodes in the same partition
-            // (the ClusterManager handles iterating over known members)
             inbox.accept("__broadcast__", payload);
             return CompletableFuture.completedFuture(null);
         }
@@ -136,11 +137,12 @@ public final class PartitionToleranceDemo {
 
     /**
      * Runs the partition tolerance simulation.
+     *
+     * <p>Fully deterministic — no Thread.sleep, no timing dependencies.
      */
     public Map<String, Object> run() throws Exception {
         Map<String, Object> results = new LinkedHashMap<>();
         var partitionState = new PartitionState();
-        var inboxes = new HashMap<String, CompletableFuture<byte[]>>();
 
         var nodes = new ArrayList<MutableNode>();
         var managers = new ArrayList<ClusterManager>();
@@ -154,6 +156,7 @@ public final class PartitionToleranceDemo {
             var config = ClusterConfig.builder()
                     .name("partition-cluster")
                     .heartbeatInterval(Duration.ofMillis(100))
+                    .heartbeatFailureThreshold(100)
                     .build();
 
             var log = new CopyOnWriteArrayList<String>();
@@ -180,9 +183,8 @@ public final class PartitionToleranceDemo {
             eventLogs.add(log);
         }
 
-        Thread.sleep(300);
+        // ── Step 1: Form cluster (all-to-all discovery) ──
         simulateDiscovery(nodes, managers);
-        Thread.sleep(300);
 
         var status0 = managers.get(0).status();
         results.put("initial_member_count", status0.memberCount());
@@ -196,18 +198,16 @@ public final class PartitionToleranceDemo {
         results.put("partition_created", true);
         System.out.println("[2] Partition created: majority=" + majority + ", minority=" + minority);
 
-        // Simulate heartbeats within each partition
-        Thread.sleep(200);
-        simulateDiscoveryWithin(nodes, managers, majority);
-        simulateDiscoveryWithin(nodes, managers, minority);
-        Thread.sleep(200);
+        // Explicitly mark cross-partition nodes as FAILED on each manager.
+        // This simulates what would happen in real networks: nodes on the other
+        // side become unreachable and are detected as failed.
+        simulatePartitionEffects(nodes, managers, majority, minority);
 
-        // Majority sees its own members
+        // ── Step 3: Check partition state ──
         var majorityStatus = managers.get(0).status();
         results.put("majority_partition_size", majorityStatus.memberCount());
         System.out.println("[3] Majority partition sees " + majorityStatus.memberCount() + " members");
 
-        // Minority sees its own members
         var minorityStatus = managers.get(3).status();
         results.put("minority_partition_size", minorityStatus.memberCount());
         System.out.println("[4] Minority partition sees " + minorityStatus.memberCount() + " members");
@@ -222,7 +222,7 @@ public final class PartitionToleranceDemo {
         System.out.println("[5] No split-brain: majority has quorum=" + majorityHasQuorum
                 + ", minority has quorum=" + minorityHasQuorum);
 
-        // ── Step 3: Majority continues operations ──
+        // ── Step 4: Majority continues operations ──
         boolean majorityCanServe = majorityHasQuorum;
         boolean minorityReadonly = !minorityHasQuorum;
         results.put("majority_serves_operations", majorityCanServe);
@@ -230,14 +230,13 @@ public final class PartitionToleranceDemo {
         System.out.println("[6] Majority serves: " + majorityCanServe
                 + ", Minority read-only: " + minorityReadonly);
 
-        // ── Step 4: Partition heals ──
+        // ── Step 5: Partition heals ──
         partitionState.healPartition();
         results.put("partition_healed", true);
         System.out.println("[7] Partition healed");
 
-        Thread.sleep(300);
+        // Recovery: all-to-all discovery re-discovers previously failed nodes
         simulateDiscovery(nodes, managers);
-        Thread.sleep(300);
 
         var healedStatus = managers.get(0).status();
         results.put("healed_member_count", healedStatus.memberCount());
@@ -258,6 +257,10 @@ public final class PartitionToleranceDemo {
         return results;
     }
 
+    /**
+     * Simulates all-to-all heartbeat discovery. Each manager receives
+     * heartbeats from every other node, adding or recovering them.
+     */
     private void simulateDiscovery(List<MutableNode> nodes, List<ClusterManager> managers) {
         for (int i = 0; i < nodes.size(); i++) {
             for (int j = 0; j < nodes.size(); j++) {
@@ -268,13 +271,27 @@ public final class PartitionToleranceDemo {
         }
     }
 
-    private void simulateDiscoveryWithin(List<MutableNode> nodes, List<ClusterManager> managers,
-                                          Set<String> group) {
-        for (int i = 0; i < nodes.size(); i++) {
-            if (!group.contains(nodes.get(i).id())) continue;
-            for (int j = 0; j < nodes.size(); j++) {
-                if (i != j && group.contains(nodes.get(j).id())) {
-                    managers.get(j).processHeartbeat(nodes.get(i).toNode());
+    /**
+     * Simulates the effects of a network partition. For each manager,
+     * marks nodes in the opposite partition as FAILED using
+     * {@link ClusterManager#simulateFailure(String)}.
+     *
+     * <p>This is deterministic — no timing or Thread.sleep involved.
+     */
+    private void simulatePartitionEffects(List<MutableNode> nodes, List<ClusterManager> managers,
+                                           Set<String> groupA, Set<String> groupB) {
+        for (int j = 0; j < managers.size(); j++) {
+            String localNodeId = nodes.get(j).id();
+            for (int i = 0; i < nodes.size(); i++) {
+                String remoteNodeId = nodes.get(i).id();
+                if (remoteNodeId.equals(localNodeId)) continue;
+
+                boolean localInA = groupA.contains(localNodeId);
+                boolean remoteInA = groupA.contains(remoteNodeId);
+
+                // If local and remote are in different partitions, mark remote as failed
+                if (localInA != remoteInA) {
+                    managers.get(j).simulateFailure(remoteNodeId);
                 }
             }
         }

@@ -164,6 +164,7 @@ public final class AutoDiscoveringWebClusterDemo {
             var config = ClusterConfig.builder()
                     .name("web-cluster")
                     .heartbeatInterval(Duration.ofMillis(100))
+                    .heartbeatFailureThreshold(100)
                     .build();
 
             var transport = new SimTransport(nodeId, payload -> {});
