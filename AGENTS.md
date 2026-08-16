@@ -838,3 +838,88 @@ When buffer pooling or thread management changes are made:
 2. Update doc/PERFORMANCE_IMPROVEMENTS.md with expanded coverage section
 3. Update doc/COMPARISON.md with benchmark comparisons (old vs new)
 4. Add to README.md Performance section: number of codecs using BufferPool, hit ratio targets
+
+
+## 9. Callback APIs Must Be Testable ⚠️ NEW
+
+### Problem: IntConsumer Callbacks Block Deterministic Testing
+When a background component fires callbacks with just a count or primitive value (e.g.
+`IntConsumer` with failure count), tests cannot determine WHICH entity triggered the callback.
+This forces tests to use `Thread.sleep` as a workaround, creating platform-specific flakiness.
+
+### Anti-Pattern ❌: Callback Without Identity
+```java
+// BAD: Test cannot tell which node changed — must sleep
+GrpcHealthChecker checker = new GrpcHealthChecker(interval, threshold, probe, i -> latch.countDown());
+// After state change: Thread.sleep(200); assertThat(checker.status("n1")).isEqualTo(NOT_SERVING);
+```
+
+### Correct Pattern ✅: BiConsumer with Entity Identifier
+```java
+// GOOD: Test can filter by nodeId and assert the right entity changed
+GrpcHealthChecker checker = new GrpcHealthChecker(interval, threshold, probe,
+    (nodeId, failures) -> {
+        if ("n1".equals(nodeId) && failures >= threshold) latch.countDown();
+    }
+);
+// After state change: assertThat(latch.await(2, TimeUnit.SECONDS)).isTrue();
+```
+
+### Rule
+**All callback parameters must carry enough context for tests to identify the triggering entity.**
+If a callback conveys only a count or status, extend the signature to include the entity
+identifier (nodeId, key, name, etc.) before the class is merged.
+
+## 10. No Self-Referencing Variables in Constructor Lambdas ⚠️ NEW
+
+### Problem: Java Definite Assignment Blocks `var` and Explicit Types
+When a lambda passed to a constructor references the variable being initialized, Java's
+definite assignment analysis rejects it — even with explicit types (not just `var`).
+
+### Anti-Pattern ❌: Constructor Lambda References the Target
+```java
+// COMPILE ERROR: variable checker might not have been initialized
+GrpcHealthChecker checker = new GrpcHealthChecker(interval, threshold, probe,
+    (nodeId, failures) -> {
+        HealthStatus s = checker.status(nodeId); // ← references checker being initialized
+        ...
+    }
+);
+```
+
+### Correct Pattern ✅: Use Lambda Parameters for All Decisions
+```java
+// GOOD: All decisions based on lambda parameters only
+GrpcHealthChecker checker = new GrpcHealthChecker(interval, threshold, probe,
+    (nodeId, failures) -> {
+        if (failures >= threshold && "n1".equals(nodeId)) latch.countDown();
+        // No checker.status() calls — failures param is sufficient
+    }
+);
+```
+
+### Rule
+**Lambda parameters passed to constructors must carry all data needed for decisions.** If the
+test needs to query state back from the object, do so AFTER the constructor completes (outside
+the lambda).
+
+## Test Quality Enforcement
+
+### Mandatory Pre-Commit Test Review
+**Before committing any new test file, the author MUST verify against ALL anti-patterns below:**
+
+| # | Anti-Pattern | Check |
+|---|-------------|-------|
+| 1 | Thread.sleep as primary sync | Use CountDownLatch with assert |
+| 2 | Insufficient timeouts (< 5s for network) | Use generous timeouts |
+| 3 | Warmup requests for readiness | Use latch + propagation delay |
+| 4 | Assert before latch verify | Latch assert first |
+| 5 | Connection count without polling | Poll with deadline |
+| 6 | Timing-dependent state transitions | Explicit simulation or defensive thresholds |
+| 9 | Non-testable callbacks | BiConsumer with entity ID |
+| 10 | Self-referencing constructor lambdas | Use lambda params only |
+
+**If a test uses Thread.sleep to wait for a scheduled task (health check, watcher, heartbeat),**
+**it violates anti-pattern #1 AND #6 simultaneously and MUST be rewritten with latch-based
+waiting before the commit is accepted.** This has caused 3+ CI failures across platforms
+(Ubuntu, macOS, Windows) in the cluster_protocols branch alone.

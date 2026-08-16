@@ -26,16 +26,20 @@ class EtcdWatcherTest {
     @Test
     void watch_detectsChanges() throws Exception {
         List<EtcdWatcher.WatchEvent> events = new CopyOnWriteArrayList<>();
+        CountDownLatch latch = new CountDownLatch(1);
 
         try (EtcdWatcher watcher = new EtcdWatcher(store, "/prefix/")) {
-            watcher.onEvent(events::add);
+            watcher.onEvent(event -> {
+                events.add(event);
+                latch.countDown();
+            });
             watcher.start();
 
-            try { Thread.sleep(100); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
-
             store.put("/prefix/key", "value".getBytes(StandardCharsets.UTF_8)).join();
-            Thread.sleep(200);
 
+            assertThat(latch.await(3, TimeUnit.SECONDS))
+                    .as("watcher should detect the put")
+                    .isTrue();
             assertThat(events).isNotEmpty();
         }
     }
@@ -43,14 +47,20 @@ class EtcdWatcherTest {
     @Test
     void watch_events_haveRevision() throws Exception {
         List<EtcdWatcher.WatchEvent> events = new CopyOnWriteArrayList<>();
+        CountDownLatch latch = new CountDownLatch(1);
 
         try (EtcdWatcher watcher = new EtcdWatcher(store, "/prefix/")) {
-            watcher.onEvent(events::add);
+            watcher.onEvent(event -> {
+                events.add(event);
+                latch.countDown();
+            });
             watcher.start();
 
-            try { Thread.sleep(100); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
             store.put("/prefix/key", "value".getBytes(StandardCharsets.UTF_8)).join();
-            Thread.sleep(200);
+
+            assertThat(latch.await(3, TimeUnit.SECONDS))
+                    .as("watcher should detect the put")
+                    .isTrue();
 
             for (EtcdWatcher.WatchEvent e : events) {
                 assertThat(e.revision()).isPositive();
@@ -61,14 +71,20 @@ class EtcdWatcherTest {
     @Test
     void watch_events_arePut() throws Exception {
         List<EtcdWatcher.WatchEvent> events = new CopyOnWriteArrayList<>();
+        CountDownLatch latch = new CountDownLatch(1);
 
         try (EtcdWatcher watcher = new EtcdWatcher(store, "/prefix/")) {
-            watcher.onEvent(events::add);
+            watcher.onEvent(event -> {
+                events.add(event);
+                latch.countDown();
+            });
             watcher.start();
 
-            try { Thread.sleep(100); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
             store.put("/prefix/key", "value".getBytes(StandardCharsets.UTF_8)).join();
-            Thread.sleep(200);
+
+            assertThat(latch.await(3, TimeUnit.SECONDS))
+                    .as("watcher should detect the put")
+                    .isTrue();
 
             assertThat(events.stream().allMatch(e -> e.type() == EtcdWatcher.EventType.PUT))
                     .isTrue();
@@ -104,17 +120,20 @@ class EtcdWatcherTest {
     void watch_close_stopsWatching() throws Exception {
         EtcdWatcher watcher = new EtcdWatcher(store, "/prefix/");
         List<EtcdWatcher.WatchEvent> events = new CopyOnWriteArrayList<>();
-        watcher.onEvent(events::add);
+        CountDownLatch latch = new CountDownLatch(1);
+        watcher.onEvent(event -> {
+            events.add(event);
+            latch.countDown();
+        });
         watcher.start();
-
-        try { Thread.sleep(100); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
         watcher.close();
 
-        // Put something after close
+        // Put something after close — should NOT trigger events
         store.put("/prefix/key", "value".getBytes(StandardCharsets.UTF_8)).join();
-        Thread.sleep(200);
+        assertThat(latch.await(1, TimeUnit.SECONDS))
+                .as("no events should fire after close")
+                .isFalse();
 
-        // No events should be emitted after close
         assertThat(events).isEmpty();
     }
 
@@ -147,14 +166,19 @@ class EtcdWatcherTest {
     void close_clearsListeners() throws Exception {
         EtcdWatcher watcher = new EtcdWatcher(store, "/prefix/");
         List<EtcdWatcher.WatchEvent> events = new CopyOnWriteArrayList<>();
-        watcher.onEvent(events::add);
+        CountDownLatch latch = new CountDownLatch(1);
+        watcher.onEvent(event -> {
+            events.add(event);
+            latch.countDown();
+        });
         watcher.start();
 
         // Trigger a change so events fire while watching
         store.put("/prefix/key", "val".getBytes(StandardCharsets.UTF_8)).join();
-        Thread.sleep(200);
 
-        // Should have received events before close
+        assertThat(latch.await(3, TimeUnit.SECONDS))
+                .as("watcher should detect the put")
+                .isTrue();
         assertThat(events).isNotEmpty();
 
         // Close clears listeners and stops the scheduler
@@ -163,11 +187,17 @@ class EtcdWatcherTest {
         // After close, adding a new listener yields no events because
         // the scheduler is shut down and watching=false
         List<EtcdWatcher.WatchEvent> afterClose = new CopyOnWriteArrayList<>();
-        watcher.onEvent(afterClose::add);
+        CountDownLatch afterLatch = new CountDownLatch(1);
+        watcher.onEvent(event -> {
+            afterClose.add(event);
+            afterLatch.countDown();
+        });
 
         // Make another change — no events should fire
         store.put("/prefix/key2", "v2".getBytes(StandardCharsets.UTF_8)).join();
-        try { Thread.sleep(200); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        assertThat(afterLatch.await(1, TimeUnit.SECONDS))
+                .as("no events should fire for listeners added after close")
+                .isFalse();
         assertThat(afterClose).isEmpty();
     }
 }

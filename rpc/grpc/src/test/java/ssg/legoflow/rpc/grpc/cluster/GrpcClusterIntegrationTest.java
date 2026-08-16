@@ -10,7 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -18,6 +21,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Integration tests combining AddressSource, GrpcHealthChecker, and load balancers.
+ *
+ * <p>All health transitions use latch-based waiting (CountDownLatch) via the
+ * BiConsumer callback — no Thread.sleep for async waits (per AGENTS.md anti-pattern #1/#6).
  */
 class GrpcClusterIntegrationTest {
 
@@ -39,10 +45,13 @@ class GrpcClusterIntegrationTest {
                 "n1", true, "n2", true, "n3", true
         ));
 
+        var n2Changed = new CountDownLatch(1);
         GrpcHealthChecker checker = new GrpcHealthChecker(
                 Duration.ofMillis(50), 2,
                 nodeId -> healthState.getOrDefault(nodeId, false),
-                i -> {}
+                (nodeId, failures) -> {
+                    if ("n2".equals(nodeId) && failures >= 2) n2Changed.countDown();
+                }
         );
         nodes.forEach(n -> checker.register(n.id()));
         checker.start();
@@ -60,9 +69,11 @@ class GrpcClusterIntegrationTest {
                     .collect(Collectors.toList());
             assertThat(selected).containsOnly("n1", "n2", "n3");
 
-            // Simulate n2 failure
+            // Simulate n2 failure — wait for health transition via latch
             healthState.put("n2", false);
-            Thread.sleep(150);
+            assertThat(n2Changed.await(2, TimeUnit.SECONDS))
+                    .as("n2 health status should transition to NOT_SERVING")
+                    .isTrue();
 
             var channels = buildChannels(healthState, checker);
             Optional<ClusterSubchannel> result = balancer.select(channels, null);
@@ -78,10 +89,13 @@ class GrpcClusterIntegrationTest {
                 "n1", true, "n2", true, "n3", true
         ));
 
+        var n1Changed = new CountDownLatch(1);
         GrpcHealthChecker checker = new GrpcHealthChecker(
                 Duration.ofMillis(50), 2,
                 nodeId -> healthState.getOrDefault(nodeId, false),
-                i -> {}
+                (nodeId, failures) -> {
+                    if ("n1".equals(nodeId) && failures >= 2) n1Changed.countDown();
+                }
         );
         nodes.forEach(n -> checker.register(n.id()));
         checker.start();
@@ -97,9 +111,11 @@ class GrpcClusterIntegrationTest {
             String nodeId2 = balancer.select(channels, "user-1").get().node().id();
             assertThat(nodeId1).isEqualTo(nodeId2);
 
-            // Simulate n1 failure
+            // Simulate n1 failure — wait for transition via latch
             healthState.put("n1", false);
-            Thread.sleep(150);
+            assertThat(n1Changed.await(2, TimeUnit.SECONDS))
+                    .as("n1 health status should transition to NOT_SERVING")
+                    .isTrue();
 
             channels = buildChannels(healthState, checker);
             balancer.updateChannels(channels);
@@ -134,10 +150,28 @@ class GrpcClusterIntegrationTest {
                 "n1", true, "n2", true, "n3", true
         ));
 
+        // Phase gates — failures >= threshold (2) = NOT_SERVING, failures == 0 = SERVING
+        var n1Failed = new CountDownLatch(1);
+        var n3Failed = new CountDownLatch(1);
+        var n2Failed = new CountDownLatch(1);
+        var n2Recovered = new CountDownLatch(1);
+        boolean[] recoveryPhase = {false};
+
         GrpcHealthChecker checker = new GrpcHealthChecker(
                 Duration.ofMillis(50), 2,
                 nodeId -> healthState.getOrDefault(nodeId, false),
-                i -> {}
+                (nodeId, failures) -> {
+                    if (failures >= 2) {
+                        // Node transitioned to NOT_SERVING
+                        if ("n1".equals(nodeId) && n1Failed.getCount() > 0) n1Failed.countDown();
+                        if ("n3".equals(nodeId) && n3Failed.getCount() > 0) n3Failed.countDown();
+                        if ("n2".equals(nodeId) && !recoveryPhase[0] && n2Failed.getCount() > 0)
+                            n2Failed.countDown();
+                    } else if (failures == 0 && recoveryPhase[0]) {
+                        // Node recovered to SERVING
+                        if ("n2".equals(nodeId)) n2Recovered.countDown();
+                    }
+                }
         );
         nodes.forEach(n -> checker.register(n.id()));
         checker.start();
@@ -153,25 +187,35 @@ class GrpcClusterIntegrationTest {
             // Phase 2: n1 and n3 fail
             healthState.put("n1", false);
             healthState.put("n3", false);
-            Thread.sleep(200);
+            assertThat(n1Failed.await(3, TimeUnit.SECONDS))
+                    .as("n1 should become NOT_SERVING")
+                    .isTrue();
+            assertThat(n3Failed.await(3, TimeUnit.SECONDS))
+                    .as("n3 should become NOT_SERVING")
+                    .isTrue();
 
             var ch2 = buildChannels(healthState, checker);
             balancer.updateChannels(ch2);
             Optional<ClusterSubchannel> result = balancer.select(ch2, null);
             assertThat(result).isPresent();
-            assertThat(result.get().node().id()).isEqualTo("n2"); // only healthy one
+            assertThat(result.get().node().id()).isEqualTo("n2");
 
             // Phase 3: all fail
             healthState.put("n2", false);
-            Thread.sleep(200);
+            assertThat(n2Failed.await(3, TimeUnit.SECONDS))
+                    .as("n2 should become NOT_SERVING")
+                    .isTrue();
 
             var ch3 = buildChannels(healthState, checker);
             balancer.updateChannels(ch3);
             assertThat(balancer.select(ch3, null)).isEmpty();
 
             // Phase 4: n2 recovers
+            recoveryPhase[0] = true;
             healthState.put("n2", true);
-            Thread.sleep(200);
+            assertThat(n2Recovered.await(3, TimeUnit.SECONDS))
+                    .as("n2 should recover to SERVING")
+                    .isTrue();
 
             var ch4 = buildChannels(healthState, checker);
             balancer.updateChannels(ch4);

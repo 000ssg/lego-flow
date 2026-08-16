@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,8 +11,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.function.IntConsumer;
 
 /**
  * Health checker for gRPC backends.
@@ -33,7 +32,7 @@ public final class GrpcHealthChecker implements AutoCloseable {
     private final Duration checkInterval;
     private final int consecutiveFailuresThreshold;
     private final Function<String, Boolean> probeFunction;
-    private final IntConsumer statusChangedListener;
+    private final BiConsumer<String, Integer> statusChangedListener;
     private volatile boolean running = false;
     private ScheduledFuture<?> checkTask;
 
@@ -43,16 +42,16 @@ public final class GrpcHealthChecker implements AutoCloseable {
      * @param checkInterval              how often to check each backend
      * @param consecutiveFailuresThreshold failures before marking NOT_SERVING
      * @param probeFunction              function that probes a backend (true = healthy)
-     * @param statusChangedListener      callback when status changes
+     * @param statusChangedListener      callback (nodeId, failureCount) when status changes
      */
     public GrpcHealthChecker(Duration checkInterval,
                               int consecutiveFailuresThreshold,
                               Function<String, Boolean> probeFunction,
-                              IntConsumer statusChangedListener) {
+                              BiConsumer<String, Integer> statusChangedListener) {
         this.checkInterval = Objects.requireNonNull(checkInterval);
         this.consecutiveFailuresThreshold = consecutiveFailuresThreshold;
         this.probeFunction = Objects.requireNonNull(probeFunction);
-        this.statusChangedListener = statusChangedListener != null ? statusChangedListener : i -> {};
+        this.statusChangedListener = statusChangedListener != null ? statusChangedListener : (n, i) -> {};
         this.scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "grpc-health-checker");
             t.setDaemon(true);
@@ -123,7 +122,7 @@ public final class GrpcHealthChecker implements AutoCloseable {
         failureCount.put(nodeId, failures);
         if (old != status) {
             LOG.info("Backend {} health changed: {} -> {}", nodeId, old, status);
-            statusChangedListener.accept(failures);
+            statusChangedListener.accept(nodeId, failures);
         }
     }
 

@@ -192,17 +192,21 @@ class EtcdCoordinationDemoTest {
         try (var client = new EtcdClient(config)) {
             var store = new EtcdKVStore(client);
             var events = new CopyOnWriteArrayList<String>();
+            var latch = new CountDownLatch(1);
 
             var watcher = new ssg.legoflow.service.cluster.coordination.EtcdWatcher(store, "/config/");
+            watcher.onEvent(event -> {
+                events.add(event.key() + "=" + new String(event.value() != null ? event.value() : new byte[0], StandardCharsets.UTF_8));
+                latch.countDown();
+            });
             watcher.start();
 
-            // Allow watch to start
-            Thread.sleep(200);
-
             store.put("/config/test", "value".getBytes(StandardCharsets.UTF_8)).join();
-            Thread.sleep(300);
 
-            assertThat(events.size()).isGreaterThanOrEqualTo(0); // at least no crash
+            assertThat(latch.await(3, TimeUnit.SECONDS))
+                    .as("watcher should detect the put")
+                    .isTrue();
+            assertThat(events).isNotEmpty();
 
             watcher.close();
         }

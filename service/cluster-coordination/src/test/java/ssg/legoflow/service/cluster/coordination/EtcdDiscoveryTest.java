@@ -130,7 +130,9 @@ class EtcdDiscoveryTest {
             discovery.removeListener(listener);
 
             discovery.start().join();
-            Thread.sleep(200);
+
+            // Trigger leave which fires events — removed listener should not receive them
+            discovery.leave();
 
             // Listener was removed, so no events should be in the list
             assertThat(events).isEmpty();
