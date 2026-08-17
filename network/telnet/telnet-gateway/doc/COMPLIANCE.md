@@ -26,7 +26,9 @@
 | SUPPRESS_GO_AHEAD (3) | Auto-negotiate, default ON | ✅ Implemented |
 | TTYPE (24) | Respond with terminal type | ✅ Implemented |
 | NAWS (31) | Update terminal dimensions | ✅ Implemented |
-| BINARY (0) | Recognized, no translation | ⚠️ Recognized only |
+| BINARY (0) | RFC 856 binary mode state tracking | ✅ Implemented |
+| LINEMODE (32) | Send default LINEMODE IS response (RFC 1143) | ✅ Implemented |
+| NEW_ENV (39) | Provide TERM/COLS/LINES (RFC 1408) | ✅ Implemented |
 
 ## RFC 1091 — TTYPE Integration
 
@@ -41,6 +43,29 @@
 |---------|--------|
 | Accept remote NAWS size | ✅ Implemented |
 | RESIZED event on terminal resize | ✅ Implemented |
+
+## RFC 1079 — Speed Integration
+
+| Feature | Status |
+|---------|--------|
+| Respond with local terminal speed | ✅ Implemented |
+
+## RFC 856 — Binary Transmission Mode
+
+| Feature | Status |
+|---------|--------|
+| Local/remote binary state tracking | ✅ Implemented |
+| BINARY_NEGOTIATED event | ✅ Implemented |
+| Byte-level translation | ❌ Not implemented (known limitation) |
+
+## RFC 1408 — NEW_ENV Integration
+
+| Feature | Status |
+|---------|--------|
+| Provide TERM/COLS/LINES | ✅ Implemented |
+| ENV_EXCHANGED event | ✅ Implemented |
+| INFOMASK filtering | ❌ Not implemented (known limitation) |
+| Remote environment reading | ❌ Not implemented (known limitation) |
 
 ## Terminal Protocol Mapping
 
@@ -62,16 +87,19 @@
 | NEGOTIATED | Option negotiation completed | ✅ Implemented |
 | RESIZED | NAWS update received | ✅ Implemented |
 | TTYPE_EXCHANGED | TTYPE exchange complete | ✅ Implemented |
+| BINARY_NEGOTIATED | BINARY mode negotiated | ✅ Implemented |
+| ENV_EXCHANGED | NEW_ENV exchange complete | ✅ Implemented |
 | DISCONNECTED | Connection closed | ✅ Implemented |
 
 ## Known Limitations
 
-1. **No line-mode editing** — RFC 1116 line discipline not implemented
-2. **No BINARY mode translation** — option recognized but byte-level translation not performed
-3. **No environment option** — RFC 1408 (NEW_ENVY) not implemented
-4. **Single-connection scope** — gateway manages one Telnet session per instance
-5. **No status queries** — terminal status reporting (like DECCRCRQSS) not implemented
-6. **Render-on-write model** — terminal render sent to peer after each data feed; no incremental render
+1. **No line-mode editing** — RFC 1116 line discipline not implemented; LINEMODE sends default IS response only
+2. **No BINARY byte-level translation** — binary mode state is tracked but 8-bit translation not performed
+3. **NEW_ENV: No INFOMASK filtering** — environment variables always provided regardless of peer's INFO request
+4. **NEW_ENV: No remote environment reading** — only provides local variables, does not parse remote environment
+5. **Single-connection scope** — gateway manages one Telnet session per instance
+6. **No status queries** — terminal status reporting (like DECRQSS) not implemented
+7. **Render-on-write model** — terminal render sent to peer after each data feed; no incremental render
 
 ---
 

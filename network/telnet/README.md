@@ -6,9 +6,9 @@ Telnet protocol implementation with terminal emulation gateway.
 
 | Module | Description | Tests |
 |--------|-------------|-------|
-| [telnet-base](telnet-base/) | RFC 854 protocol core: parser, connection, commands, options | ~28 |
-| [telnet-negotiation](telnet-negotiation/) | RFC 855 option negotiation: TTYPE, NAWS, Speed | ~21 |
-| [telnet-gateway](telnet-gateway/) | Protocol ↔ terminal bridge: IAC stripping, auto-negotiation | 9 |
+| [telnet-base](telnet-base/) | RFC 854 protocol core: parser, connection, commands, options | 60 |
+| [telnet-negotiation](telnet-negotiation/) | RFC 855 option negotiation: TTYPE, NAWS, Speed | 72 |
+| [telnet-gateway](telnet-gateway/) | Protocol ↔ terminal bridge: IAC stripping, auto-negotiation | 32 |
 
 ## Architecture
 

@@ -1,6 +1,7 @@
 package ssg.legoflow.network.terminals.base.escape;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -14,6 +15,9 @@ import java.util.List;
  *   <li>APC (ESC _) — Application Program Command</li>
  *   <li>PM  (ESC ^) — Privacy Message</li>
  *   <li>String terminators: ST (ESC \), BEL</li>
+ *   <li>Single-byte ESC sequences: ESC followed by a single letter (IND, RI, HTS, etc.)</li>
+ *   <li>VT52-style ESC # n sequences (reverse video, bold, etc.)</li>
+ *   <li>DEC charset selection: ESC ( letter / ESC ) letter (G0/G1 assignment)</li>
  * </ul>
  *
  * <p>CSI parameters use ';' as the primary separator and ':' as the subparameter
@@ -33,14 +37,16 @@ public final class EscapeParser {
 
     /** Parser states. */
     enum State {
-        GROUND,    // Normal character data
-        CSI,       // Inside CSI sequence
-        DCS,       // Inside DCS sequence
-        OSC,       // Inside OSC sequence
-        APC,       // Inside APC sequence
-        PM,        // Inside PM sequence
-        ESC,       // Just saw ESC, waiting for intro byte
-        ST_ESCAPE, // Saw ESC inside a string, expecting '\' for ST
+        GROUND,       // Normal character data
+        CSI,          // Inside CSI sequence
+        DCS,          // Inside DCS sequence
+        OSC,          // Inside OSC sequence
+        APC,          // Inside APC sequence
+        PM,           // Inside PM sequence
+        ESC,          // Just saw ESC, waiting for intro byte
+        ST_ESCAPE,    // Saw ESC inside a string, expecting '\' for ST
+        ESC_SEQUENCE, // ESC followed by # or other 2-byte intro
+        ESC_CHARSET,  // ESC ( or ) — waiting for charset selector letter
     }
 
     /**
@@ -57,6 +63,37 @@ public final class EscapeParser {
          * @param codepoint the Unicode code point (typically 0x20–0x7E for ASCII)
          */
         default void handleChar(int codepoint) {}
+
+        /**
+         * Handle a single-byte ESC sequence (ESC + letter).
+         * Common sequences: D=IND, M=RI, H=HTS, 7=DECSC, 8=DECRC, Z=DECKPAM
+         *
+         * @param letter the byte following ESC (e.g., 'D', 'M', 'H', '7', '8')
+         */
+        default void handleEscSequence(char letter) {}
+
+        /**
+         * Handle a VT52-style ESC # n sequence.
+         * Common sequences: #3=reversed video, #8=bold, #4=underline, #6=double-height
+         *
+         * @param digit the digit or character after ESC # (e.g., '3', '8', '4')
+         */
+        default void handleEscHash(char digit) {}
+
+        /**
+         * Handle DEC charset selection (ESC ( letter or ESC ) letter).
+         *
+         * <p>Used to assign character sets to G0/G1:
+         * <ul>
+         *   <li>ESC ( B — set G0 to ASCII</li>
+         *   <li>ESC ( 0 — set G0 to DEC Special</li>
+         *   <li>ESC ) K — set G1 to French</li>
+         * </ul>
+         *
+         * @param g0 true if ESC ( (G0 assignment), false if ESC ) (G1 assignment)
+         * @param selector the charset descriptor character (e.g., 'B', '0', 'K')
+         */
+        default void handleEscCharset(boolean g0, char selector) {}
 
         /** Handle a DCS string. */
         default void handleDCS(String data) {}
@@ -77,6 +114,8 @@ public final class EscapeParser {
     private final List<Integer> csiParams;
     /** The string state we returned to after seeing ESC in a string. */
     private State priorStringState = State.GROUND;
+    /** True if current charset intermediate is '(' (G0), false if ')' (G1). */
+    private boolean charsetG0;
 
     public EscapeParser(SequenceHandler handler) {
         this.handler = handler;
@@ -99,10 +138,14 @@ public final class EscapeParser {
             case APC -> handleString(b, State.APC);
             case PM -> handleString(b, State.PM);
             case ST_ESCAPE -> handleStringTerminator(b);
+            case ESC_SEQUENCE -> handleEscSequence(b);
+            case ESC_CHARSET -> handleEscCharset(b);
         }
     }
 
-    /** Process a batch of bytes. */
+    /**
+     * Process a batch of bytes.
+     */
     public void feed(byte[] data) {
         for (byte b : data) {
             feed(b & 0xFF);
@@ -127,8 +170,8 @@ public final class EscapeParser {
             // Printable ASCII character — emit to handler
             handler.handleChar(b);
         }
-        // Control characters (0x00-0x1F except ESC, and 0x7F DEL)
-        // are silently passed through; the terminal handles them.
+        // Control characters (0x00-0x09, 0x0B-0x0C, 0x0E-0x1F, 0x7F, 0x80+)
+        // are silently ignored in GROUND state (handled by the terminal)
     }
 
     private void handleEsc(int b) {
@@ -156,23 +199,59 @@ public final class EscapeParser {
             }
             case '\\' -> {
                 // ST (String Terminator): ESC \
-                // If we came from a string state, terminate it
                 if (priorStringState != State.GROUND) {
                     terminateString(priorStringState);
                     priorStringState = State.GROUND;
                 }
                 state = State.GROUND;
             }
+            case '#' -> {
+                state = State.ESC_SEQUENCE;
+            }
+            case '(' -> {
+                // DEC charset selection for G0
+                charsetG0 = true;
+                state = State.ESC_CHARSET;
+            }
+            case ')' -> {
+                // DEC charset selection for G1
+                charsetG0 = false;
+                state = State.ESC_CHARSET;
+            }
             default -> {
-                // Single-byte control after ESC (e.g., ESC M = RS, ESC D = IND)
+                // Single-byte control after ESC (e.g., ESC M = RS, ESC D = IND,
+                // ESC H = HTS, ESC 7/8 = DECSC/DECRC, ESC Z = DECKPAM)
+                if ((b >= 'A' && b <= 'Z') || (b >= 'a' && b <= 'z')
+                        || (b >= '0' && b <= '9')) {
+                    handler.handleEscSequence((char) b);
+                }
                 state = State.GROUND;
             }
         }
     }
 
+    private void handleEscSequence(int b) {
+        // ESC # was already consumed; now handle the second byte
+        char c = (char) b;
+        if ((b >= '0' && b <= '9') || (b >= 'A' && b <= 'Z')) {
+            handler.handleEscHash(c);
+        }
+        state = State.GROUND;
+    }
+
+    private void handleEscCharset(int b) {
+        // Handle the charset selector letter after ESC ( or ESC )
+        char selector = (char) b;
+        if (selector == 0 || (selector >= 'A' && selector <= 'Z') || (selector >= 'a' && selector <= 'z')
+                || (selector >= '0' && selector <= '9')) {
+            handler.handleEscCharset(charsetG0, selector);
+        }
+        state = State.GROUND;
+    }
+
     private void handleCsi(int b) {
         if (b >= '0' && b <= '9') {
-            // Digit: accumulate into current parameter
+            // Digit: accumulate into current parameter.
             if (csiParams.isEmpty()) {
                 csiParams.add(b - '0');
             } else {
@@ -185,17 +264,12 @@ public final class EscapeParser {
             }
         } else if (b == ';' || b == ':') {
             // Parameter or subparameter separator.
-            // When the list is empty (e.g., CSI ;5H), we need two UNSETs:
-            // one for the leading default parameter, one for the new slot.
             if (csiParams.isEmpty()) {
                 csiParams.add(UNSET);
             }
             csiParams.add(UNSET);
-        } else if (b >= ' ' && b <= '~'
-                && b != ';'
-                && b != ':'
-                && !(b >= '$' && b <= '/')   // DEC intermediate range 1 ($-/)
-                && !(b >= '<' && b <= '?')) { // DEC intermediate range 2 (<, =, >, ?)
+        } else if (b >= '@' && b <= '~'
+                && !(b >= '<' && b <= '?')) { // final byte: 0x40-0x7E excluding DEC intermediates
             // Final byte — resolve UNSET sentinels to 0 and emit
             List<Integer> resolved = new ArrayList<>(csiParams.size());
             for (Integer p : csiParams) {
@@ -206,11 +280,27 @@ public final class EscapeParser {
             state = State.GROUND;
             buffer.setLength(0);
             csiParams.clear();
-        } else if ((b >= '$' && b <= '/')        // DEC intermediate range 1
+        } else if (b >= ' ' && b <= '/'           // CSI intermediate 0x20-0x2F
                 || (b >= '<' && b <= '?')) {     // DEC intermediate range 2
             buffer.append((char) b);
+        } else if (b == 0x1B) {
+            // ESC while in CSI — emit pending digit-only sequence (CSI 7/8) and start new sequence
+            if (csiParams.size() == 1 && buffer.isEmpty() && csiParams.get(0) >= 0 && csiParams.get(0) <= 9) {
+                char digitByte = (char) ('0' + csiParams.get(0));
+                handler.handleCSI(new CSIParams(Collections.emptyList(), "", digitByte));
+            }
+            buffer.setLength(0);
+            csiParams.clear();
+            state = State.ESC;
+            // Don't call handleEsc here — ESC transition is complete.
+            // The next byte will be dispatched to handleEsc by the main feed loop.
+            return;
         } else {
-            // Unknown byte in CSI — discard
+            // Other unknown byte in CSI — emit pending digit-only sequence and discard
+            if (csiParams.size() == 1 && buffer.isEmpty() && csiParams.get(0) >= 0 && csiParams.get(0) <= 9) {
+                char digitByte = (char) ('0' + csiParams.get(0));
+                handler.handleCSI(new CSIParams(Collections.emptyList(), "", digitByte));
+            }
             state = State.GROUND;
             buffer.setLength(0);
             csiParams.clear();
@@ -219,15 +309,12 @@ public final class EscapeParser {
 
     private void handleString(int b, State stringState) {
         if (b == 0x1B) {
-            // ESC — potential start of ST (ESC \)
             priorStringState = stringState;
             state = State.ST_ESCAPE;
         } else if (b == 0x07) {
-            // BEL = ST for OSC
             terminateString(stringState);
             state = State.GROUND;
         } else if (b < 0x20 && b != 0x07 && b != 0x1B) {
-            // Other control characters in string — discard
             state = State.GROUND;
             buffer.setLength(0);
         } else {
@@ -237,12 +324,10 @@ public final class EscapeParser {
 
     private void handleStringTerminator(int b) {
         if (b == '\\') {
-            // Complete ST: ESC \
             terminateString(priorStringState);
             priorStringState = State.GROUND;
             state = State.GROUND;
         } else {
-            // Not backslash — ESC starts a new sequence
             state = State.ESC;
             handleEsc(b);
         }

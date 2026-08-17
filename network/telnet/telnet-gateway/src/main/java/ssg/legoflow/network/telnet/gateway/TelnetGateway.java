@@ -26,19 +26,23 @@ import java.util.function.Consumer;
  *   <li>SUPPRESS_GO_AHEAD — enabled by default</li>
  *   <li>TTYPE — responds with the terminal type</li>
  *   <li>NAWS — updates terminal dimensions on resize</li>
+ *   <li>BINARY — enables 8-bit binary transmission (RFC 856)</li>
+ *   <li>LINEMODE — sends default LINEMODE IS response (RFC 1143)</li>
+ *   <li>NEW_ENV — provides TERM/COLS/LINES environment (RFC 1408)</li>
  * </ul>
+ *
+ * <p>Single-byte commands (BRK, DM, GA, EC, EL, AYT, IP, NOP) are dispatched
+ * to {@link GatewayListener} callbacks for application-level handling.
  *
  * <p>Usage:
  * <pre>{@code
  * Terminal terminal = VT100Terminal.create(config);
  * TelnetGateway gateway = TelnetGateway.forTerminal(terminal)
- *         .build(socket::read, socket::write);
+ *         .writer(socket::write)
+ *         .build();
  *
  * // Feed data from socket
  * gateway.feed(socket.read());
- *
- * // Read terminal output (already escaped for Telnet)
- * byte[] output = gateway.drain();
  * }</pre>
  *
  * @since 0.2.0
@@ -50,7 +54,11 @@ public class TelnetGateway {
     private final OptionNegotiator negotiator;
     private final TTYPEHandler ttypeHandler;
     private final NAWSHandler nawsHandler;
-    private final List<GatewayListener> listeners;
+    private final SpeedHandler speedHandler;
+    private final BinaryHandler binaryHandler;
+    private final LinemodeHandler linemodeHandler;
+    private final NewEnvHandler newEnvHandler;
+    private final CopyOnWriteArrayList<GatewayListener> listeners;
     private boolean echoEnabled = true;
     private boolean suppressGoAhead = true;
 
@@ -58,6 +66,9 @@ public class TelnetGateway {
     public interface GatewayListener {
         void onEvent(GatewayEvent event);
     }
+
+    /** Single-byte Telnet command received from peer. */
+    public record CommandEvent(TelnetCommand command) {}
 
     public enum GatewayEvent {
         /** Connection established. */
@@ -69,12 +80,18 @@ public class TelnetGateway {
         /** Terminal type exchanged. */
         TTYPE_EXCHANGED,
         /** Connection closed. */
-        DISCONNECTED
+        DISCONNECTED,
+        /** Single-byte command received. */
+        COMMAND,
+        /** Binary mode negotiated. */
+        BINARY_NEGOTIATED,
+        /** Environment exchanged. */
+        ENV_EXCHANGED
     }
 
     private TelnetGateway(Builder builder) {
         this.terminal = Objects.requireNonNull(builder.terminal, "terminal must not be null");
-        this.negotiator = builder.negotiator != null ? builder.negotiator : new OptionNegotiator();
+        this.negotiator = builder.negotiator != null ? builder.negotiator : new GatewayNegotiator();
         this.listeners = new CopyOnWriteArrayList<>();
 
         String termType = terminal.type();
@@ -84,9 +101,18 @@ public class TelnetGateway {
         this.nawsHandler = NAWSHandler.localSize(terminal.config().cols(), terminal.config().rows())
                 .onRemoteSize((cols, rows) -> fire(GatewayEvent.RESIZED));
 
+        this.speedHandler = SpeedHandler.localSpeed("38400");
+
+        this.binaryHandler = BinaryHandler.create();
+
+        this.linemodeHandler = LinemodeHandler.create();
+
+        this.newEnvHandler = NewEnvHandler.create(termType, terminal.config().cols(), terminal.config().rows());
+
         this.connection = TelnetConnection.builder()
                 .writer(builder.writer)
                 .onData(this::handleData)
+                .onCommand(this::handleCommand)
                 .onNegotiate(this::handleNegotiate)
                 .onSubnegotiation(evt -> handleSubnegotiation(evt.option(), evt.data()))
                 .build();
@@ -109,24 +135,24 @@ public class TelnetGateway {
 
     /**
      * Send data to the peer (from the terminal or application).
+     * IAC bytes are automatically escaped per RFC 854.
      */
     public void send(byte[] data) {
         connection.send(data);
     }
 
     /**
-     * Send a string to the peer.
+     * Send a string to the peer (UTF-8 encoded, IAC auto-escaped).
      */
     public void send(String text) {
         connection.send(text);
     }
 
     /**
-     * Feed data to the terminal and send output to the peer.
+     * Feed data to the terminal and send rendered output to the peer.
      */
     public void feedTerminal(byte[] data) {
         terminal.feed(data);
-        // Render and send
         String output = String.join("\r\n", terminal.render());
         if (!output.isEmpty()) {
             send(output);
@@ -162,16 +188,79 @@ public class TelnetGateway {
     }
 
     /**
-     * Set echo mode.
+     * Enable or disable echo.
      */
     public void setEchoEnabled(boolean enabled) {
         this.echoEnabled = enabled;
     }
 
+    /**
+     * Check if SUPPRESS GO AHEAD is enabled.
+     */
+    public boolean isSuppressGoAhead() {
+        return suppressGoAhead;
+    }
+
+    /**
+     * Get the binary mode handler.
+     */
+    public BinaryHandler binaryHandler() {
+        return binaryHandler;
+    }
+
+    /**
+     * Get the linemode handler.
+     */
+    public LinemodeHandler linemodeHandler() {
+        return linemodeHandler;
+    }
+
+    /**
+     * Get the new environment handler.
+     */
+    public NewEnvHandler newEnvHandler() {
+        return newEnvHandler;
+    }
+
+    /**
+     * Get an environment variable from NEW_ENV.
+     *
+     * @param name the variable name
+     * @return the value, or null if not set
+     */
+    public String getEnv(String name) {
+        return newEnvHandler.get(name);
+    }
+
+    /**
+     * Set an environment variable for NEW_ENV.
+     *
+     * @param name  the variable name
+     * @param value the value
+     */
+    public void setEnv(String name, String value) {
+        newEnvHandler.set(name, value);
+    }
+
+    /**
+     * Register a gateway event listener.
+     */
+    public void addListener(GatewayListener listener) {
+        Objects.requireNonNull(listener);
+        listeners.add(listener);
+    }
+
+    /**
+     * Remove a gateway event listener.
+     */
+    public void removeListener(GatewayListener listener) {
+        listeners.remove(listener);
+    }
+
     // --- Protocol handlers ---
 
+    /** Handle application data from peer. */
     private void handleData(byte[] data) {
-        // Feed data to terminal
         terminal.feed(data);
 
         // Echo back if enabled
@@ -180,28 +269,113 @@ public class TelnetGateway {
         }
     }
 
-    private void handleNegotiate(TelnetCommand command, int option) {
-        TelnetCommand response = negotiator.negotiate(command, option);
-        connection.sendNegotiate(response, option);
+    /** Handle single-byte Telnet commands (BRK, DM, GA, EC, EL, AYT, IP, NOP). */
+    private void handleCommand(TelnetCommand command) {
+        // Fire event for application-level handling
+        fire(GatewayEvent.COMMAND);
 
-        // Handle special options
-        if (option == TelnetOption.ECHO.code()) {
-            if (command == TelnetCommand.DO && response == TelnetCommand.WILL) {
-                echoEnabled = true;
-            } else if (command == TelnetCommand.DONT && response == TelnetCommand.WONT) {
-                echoEnabled = false;
+        switch (command) {
+            case NOP -> {/* No Operation — silently accepted */}
+            case DM -> {/* Data Mark — flush output, sync point */}
+            case GA -> {/* Go Ahead — no-op when SUPPRESS_GO_AHEAD is active */}
+            case BRK -> {/* Break — signal to application */}
+            case IP -> {/* Interrupt Process — typically generates SIGINT */}
+            case AYT -> {/* Are You There — response is handled by application */}
+            case EC -> {/* Erase Character — handled by terminal */}
+            case EL -> {/* Erase Line — handled by terminal */}
+            case SB -> {/* Start Subnegotiation — handled by parser */}
+            case SE -> {/* End Subnegotiation — handled by parser */}
+            default -> {
+                // Negotiation commands (WILL/WONT/DO/DONT) are handled separately
+                // by onNegotiate callback, not here.
             }
         }
     }
 
-    private void handleSubnegotiation(int option, List<Integer> data) {
-        if (option == TelnetOption.TTYPE.code()) {
-            byte[] response = ttypeHandler.handle(data);
-            if (response != null) {
-                connection.sendSubnegotiation(option, response);
+    /** Handle option negotiation (WILL/WONT/DO/DONT). */
+    private void handleNegotiate(TelnetCommand command, int option) {
+        TelnetCommand response = negotiator.negotiate(command, option);
+        connection.sendNegotiate(response, option);
+
+        // Handle specific options
+        TelnetOption opt = TelnetOption.fromCode(option);
+        if (opt == null) return; // Unknown option — already handled by negotiator
+
+        switch (opt) {
+            case ECHO -> {
+                // Echo enabled when we respond WILL (to DO) or keep enabled (WILL to DONT)
+                echoEnabled = response == TelnetCommand.WILL;
             }
-        } else if (option == TelnetOption.NAWS.code()) {
-            nawsHandler.handle(data);
+            case SUPPRESS_GO_AHEAD -> {
+                // Suppress GO AHEAD enabled when we respond WILL
+                suppressGoAhead = response == TelnetCommand.WILL;
+            }
+            case BINARY -> {
+                // RFC 856: DO BINARY means peer wants us to send binary
+                //           WILL BINARY means peer will send binary
+                if (command == TelnetCommand.DO && response == TelnetCommand.WILL) {
+                    binaryHandler.setLocalBinary(true);
+                    fire(GatewayEvent.BINARY_NEGOTIATED);
+                } else if (command == TelnetCommand.DONT && response == TelnetCommand.WONT) {
+                    binaryHandler.setLocalBinary(false);
+                } else if (command == TelnetCommand.WILL && response == TelnetCommand.DO) {
+                    binaryHandler.setRemoteBinary(true);
+                    fire(GatewayEvent.BINARY_NEGOTIATED);
+                } else if (command == TelnetCommand.WONT && response == TelnetCommand.DONT) {
+                    binaryHandler.setRemoteBinary(false);
+                }
+            }
+            case LINEMODE -> {
+                // Linemode negotiation handled via subnegotiation
+            }
+            case NEW_ENV -> {
+                // New environment handled via subnegotiation
+            }
+            default -> {/* Other options handled by negotiator */}
+        }
+    }
+
+    /** Handle subnegotiation data. */
+    private void handleSubnegotiation(int option, List<Integer> data) {
+        TelnetOption opt = TelnetOption.fromCode(option);
+        if (opt == null) return; // Unknown subnegotiation
+
+        switch (opt) {
+            case TTYPE -> {
+                byte[] ttypeResponse = ttypeHandler.handle(data);
+                if (ttypeResponse != null) {
+                    connection.sendSubnegotiation(option, ttypeResponse);
+                }
+            }
+            case NAWS -> {
+                nawsHandler.handle(data);
+            }
+            case TERMINAL_SPEED -> {
+                byte[] speedResponse = speedHandler.handle(data);
+                if (speedResponse != null) {
+                    connection.sendSubnegotiation(option, speedResponse);
+                }
+            }
+            case LINEMODE -> {
+                byte[] linemodeResponse = linemodeHandler.handle(data);
+                if (linemodeResponse != null) {
+                    connection.sendSubnegotiation(option, linemodeResponse);
+                }
+            }
+            case NEW_ENV -> {
+                byte[] envResponse = newEnvHandler.handle(data);
+                if (envResponse != null) {
+                    connection.sendSubnegotiation(option, envResponse);
+                }
+                fire(GatewayEvent.ENV_EXCHANGED);
+            }
+            case BINARY -> {
+                // BINARY subnegotiation is unusual; handle as state tracking
+                if (!data.isEmpty()) {
+                    // BINARY data subnegotiation — ignore (rare in practice)
+                }
+            }
+            default -> {/* Unknown subnegotiation — ignored */}
         }
     }
 

@@ -9,6 +9,7 @@ import ssg.legoflow.network.terminals.base.escape.CSIParams;
 import ssg.legoflow.network.terminals.base.event.TerminalEventListener;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -32,11 +33,22 @@ public abstract class AbstractTerminal implements Terminal, EscapeParser.Sequenc
     private final List<TerminalEventListener> listeners;
     private final EscapeParser parser;
 
+    /** Tab stops (1-based column indices). Default: every 8 columns. */
+    private final BitSet tabStops;
+
+    /** Buffer for terminal-generated output (DSR responses, DECRQM, etc.). */
+    private final StringBuilder outputBuffer = new StringBuilder();
+
     protected AbstractTerminal(TerminalConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.display = new DisplayModel(config);
         this.listeners = Collections.synchronizedList(new ArrayList<>());
         this.parser = new EscapeParser(this);
+        this.tabStops = new BitSet(config.cols() + 1);
+        // Initialize default tab stops every 8 columns
+        for (int c = 1; c <= config.cols(); c += 8) {
+            tabStops.set(c);
+        }
     }
 
     // --- Terminal interface ---
@@ -65,8 +77,10 @@ public abstract class AbstractTerminal implements Terminal, EscapeParser.Sequenc
      * Printable characters go to the parser.
      */
     private void routeByte(int b) {
-        if (b == ESC || b == BEL) {
+        if (b == ESC || b == BEL || b == 0) {
             parser.feed(b);
+        } else if (b == 0x0E || b == 0x0F) {
+            handleControl(b); // SO / SI
         } else if (b < 0x20 || b == 0x7F) {
             handleControl(b);
         } else if (b == 0x84 || b == 0x85) {
@@ -76,8 +90,9 @@ public abstract class AbstractTerminal implements Terminal, EscapeParser.Sequenc
         }
         // bytes 0x80+ (except IND/RI) are silently ignored
     }
+
     /**
-     * Handle a control character (0x00–0x1F except ESC/BEL, plus DEL, IND, RI).
+     * Handle a control character (0x00–0x1F except ESC/BEL, plus DEL, IND, RI, SO, SI).
      */
     protected void handleControl(int b) {
         switch (b) {
@@ -89,6 +104,12 @@ public abstract class AbstractTerminal implements Terminal, EscapeParser.Sequenc
                 display.cursor().setPos(display.cursor().row(), 1);
                 display.screen().setWrapPending(false);
             }
+            case 0x0E -> selectG0Charset();                               // SO — shift out
+            case 0x0F -> selectG1Charset();                               // SI — shift in
+            case 0x11 -> {/* DC1 — XON (flow control, no-op in emulator) */}
+            case 0x12 -> {/* DC2 — group select (no-op) */}
+            case 0x13 -> {/* DC3 — XOFF (flow control, no-op in emulator) */}
+            case 0x14 -> {/* DC4 — restart (no-op) */}
             case 0x84 -> index();                                         // IND
             case 0x85 -> reverseIndex();                                  // RI
             case 0x7F -> {/* DEL — no effect */}
@@ -99,9 +120,13 @@ public abstract class AbstractTerminal implements Terminal, EscapeParser.Sequenc
     /** Advance to next tab stop (default every 8 columns). */
     private void tabForward() {
         Cursor cur = display.cursor();
-        int nextTab = ((cur.col() - 1) / 8 + 1) * 8 + 1;
-        int target = Math.min(nextTab, config.cols());
-        display.cursor().setPos(cur.row(), target);
+        int current = cur.col();
+        // Find next tab stop after current column
+        int next = tabStops.nextSetBit(current + 1);
+        if (next == -1 || next > config.cols()) {
+            next = config.cols();
+        }
+        display.cursor().setPos(cur.row(), next);
     }
 
     /** Line feed (scroll if at bottom of scroll region). */
@@ -136,17 +161,37 @@ public abstract class AbstractTerminal implements Terminal, EscapeParser.Sequenc
         }
     }
 
-    @Override
-    public Cursor cursor() { return display.cursor(); }
+    /** Set tab stop at current column (HTS). */
+    protected void tabSet() {
+        tabStops.set(display.cursor().col());
+    }
 
-    @Override
-    public TermAttr currentAttr() { return display.currentAttr(); }
+    /** Clear tab stops. */
+    protected void tabClear(int mode) {
+        if (mode == 0 || mode == 3) {
+            // Clear current tab stop
+            tabStops.clear(display.cursor().col());
+        } else if (mode == 2) {
+            // Clear all tab stops
+            tabStops.clear();
+            // Re-initialize defaults
+            for (int c = 1; c <= config.cols(); c += 8) {
+                tabStops.set(c);
+            }
+        } else if (mode == 3) {
+            tabStops.clear(display.cursor().col());
+        }
+    }
 
-    @Override
-    public TerminalConfig config() { return config; }
+    // --- Character set hooks (for subclasses like VT500) ---
 
-    @Override
-    public DisplayModel displayModel() { return display; }
+    /** Called on SO (0x0E) to select G0 character set. */
+    protected void selectG0Charset() { /* Default: no-op */ }
+
+    /** Called on SI (0x0F) to select G1 character set. */
+    protected void selectG1Charset() { /* Default: no-op */ }
+
+    // --- Event listeners ---
 
     @Override
     public void addEventListener(TerminalEventListener listener) {
@@ -165,6 +210,11 @@ public abstract class AbstractTerminal implements Terminal, EscapeParser.Sequenc
         display.setCurrentAttr(TermAttr.DEFAULT);
         display.setOriginMode(config.originMode());
         parser.reset();
+        // Reset tab stops to defaults
+        tabStops.clear();
+        for (int c = 1; c <= config.cols(); c += 8) {
+            tabStops.set(c);
+        }
         onReset();
     }
 
@@ -203,7 +253,41 @@ public abstract class AbstractTerminal implements Terminal, EscapeParser.Sequenc
             case 'X' -> onCsiEraseChar(params);                    // ECH
             case 'f' -> onCsiCursorPosition(params);               // HVP
             case 'd' -> cursorVerticalAbsolute(params.get(0, 1));  // VPA
+            case 'T' -> onCsiTabClear(params);                     // TBC
+            case 'N' -> onCsiSingleShift2(params);                 // SS2
+            case 'O' -> onCsiSingleShift3(params);                 // SS3
             default -> {/* Unknown CSI — subclass may handle */}
+        }
+    }
+
+    @Override
+    public void handleEscSequence(char letter) {
+        switch (letter) {
+            case 'D' -> index();               // IND — index
+            case 'E' -> {/* NEL — next line (CR + LF behavior) */
+                display.cursor().setPos(display.cursor().row(), 1);
+                lineFeed();
+            }
+            case 'H' -> tabSet();               // HTS — horizontal tab set
+            case 'M' -> reverseIndex();         // RI — reverse index
+            case '=' -> {/* DECKPAM — application keypad mode */}
+            case '>' -> {/* DECKPNM — numeric keypad mode */}
+            case '7' -> {/* DECSC — save cursor (handled by subclass) */}
+            case '8' -> {/* DECRC — restore cursor (handled by subclass) */}
+            case 'Z' -> {/* DECKPAM — back index key (handled by subclass) */}
+            default -> {/* Unknown ESC sequence */}
+        }
+    }
+
+    @Override
+    public void handleEscHash(char digit) {
+        // VT52/VT100-style ESC # n sequences
+        switch (digit) {
+            case '3' -> {/* DECSED — set reversed video mode */}
+            case '8' -> {/* DECDBL — double-strike (bold) mode */}
+            case '4' -> {/* DECSWL — single-width line (no-op) */}
+            case '6' -> {/* DECDDC — double-height characters (not supported) */}
+            default -> {/* Unknown ESC # n sequence */}
         }
     }
 
@@ -248,6 +332,13 @@ public abstract class AbstractTerminal implements Terminal, EscapeParser.Sequenc
         display.screen().eraseChars(p.get(0, 1));
     }
 
+    protected void onCsiTabClear(CSIParams p) {
+        tabClear(p.get(0, 0));
+    }
+
+    protected void onCsiSingleShift2(CSIParams p) { /* Default: no-op */ }
+    protected void onCsiSingleShift3(CSIParams p) { /* Default: no-op */ }
+
     protected void cursorNextLine(int count) {
         Cursor cur = display.cursor();
         int newRow = Math.min(config.rows(), cur.row() + count);
@@ -287,7 +378,9 @@ public abstract class AbstractTerminal implements Terminal, EscapeParser.Sequenc
     }
 
     /** Called on reset to allow subclass-specific state clearing. */
-    protected void onReset() {}
+    protected void onReset() {
+        outputBuffer.setLength(0);
+    }
 
     /** Default render — returns visible lines from display model. */
     @Override
@@ -306,4 +399,51 @@ public abstract class AbstractTerminal implements Terminal, EscapeParser.Sequenc
             l.onTitleChange(title);
         }
     }
+
+    /** Get tab stops bit set (for testing). */
+    BitSet tabStops() { return tabStops; }
+
+    /**
+     * Write data to the terminal output buffer.
+     * Used by subclasses to generate responses (DSR, DECRQM) that
+     * the transport layer can read and send to the peer.
+     *
+     * @param data the string to output
+     */
+    protected void output(String data) {
+        outputBuffer.append(data);
+    }
+
+    /**
+     * Read and clear the output buffer.
+     *
+     * @return the buffered output, or null if empty
+     */
+    public String readOutput() {
+        if (outputBuffer.length() == 0) return null;
+        String result = outputBuffer.toString();
+        outputBuffer.setLength(0);
+        return result;
+    }
+
+    /**
+     * Check if there is buffered output available.
+     */
+    public boolean hasOutput() {
+        return outputBuffer.length() > 0;
+    }
+
+    // --- Terminal interface delegation ---
+
+    @Override
+    public Cursor cursor() { return display.cursor(); }
+
+    @Override
+    public TermAttr currentAttr() { return display.currentAttr(); }
+
+    @Override
+    public TerminalConfig config() { return config; }
+
+    @Override
+    public DisplayModel displayModel() { return display; }
 }

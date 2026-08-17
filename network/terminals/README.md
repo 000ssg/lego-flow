@@ -6,14 +6,14 @@ Reusable terminal emulation framework for Java. Provides implementations for VT5
 
 | Module | Description | Tests |
 |--------|-------------|-------|
-| [terminals-base](terminals-base/) | Core abstractions: Terminal, DisplayModel, Screen, Cursor, TermAttr, EscapeParser | 83 |
-| [vt52](vt52/) | VT52 terminal — ESC+letter commands, no CSI | 15 |
-| [vt100](vt100/) | VT100 terminal — full DEC protocol, SGR, DEC private modes | 30 |
-| [vt200](vt200/) | VT200 terminal — video reverse, function keys | 6 |
-| [vt400](vt400/) | VT400 terminal — 2-window, extended SGR | 6 |
-| [vt500](vt500/) | VT500 terminal — DEC charsets, window commands | 6 |
-| [ansi](ansi/) | ANSI X3.64 — standardized subset, no DEC private | 6 |
-| [xterm](xterm/) | XTERM — 256/true color, mouse, bracketed paste, sync | 25 |
+| [terminals-base](terminals-base/) | Core abstractions: Terminal, DisplayModel, Screen, Cursor, TermAttr, EscapeParser | 165 |
+| [vt52](vt52/) | VT52 terminal — ESC+letter commands, no CSI | 33 |
+| [vt100](vt100/) | VT100 terminal — full DEC protocol, SGR, DEC private modes, DECRQM | 71 |
+| [vt200](vt200/) | VT200 terminal — video reverse, function keys | 31 |
+| [vt400](vt400/) | VT400 terminal — 2-window, extended SGR | 40 |
+| [vt500](vt500/) | VT500 terminal — DEC charsets, window commands | 44 |
+| [ansi](ansi/) | ANSI X3.64 — standardized subset, no DEC private | 40 |
+| [xterm](xterm/) | XTERM — 256/true color, mouse, bracketed paste, sync | 53 |
 
 ## Architecture
 

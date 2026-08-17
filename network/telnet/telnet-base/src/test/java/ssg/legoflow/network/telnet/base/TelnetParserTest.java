@@ -89,7 +89,7 @@ class TelnetParserTest {
     @Test
     void testSingleByteCommands() {
         for (TelnetCommand cmd : TelnetCommand.values()) {
-            if (cmd.hasOption() || cmd == TelnetCommand.SB) continue;
+            if (cmd.hasOption() || cmd == TelnetCommand.SB || cmd == TelnetCommand.BRK) continue;
 
             parser.reset();
             listener.clear();
@@ -112,9 +112,16 @@ class TelnetParserTest {
     }
 
     @Test
-    void testBrkCommand() {
-        parser.feed(new byte[]{(byte) 255, (byte) 243});
-        assertThat(listener.commandEvents.get(0)).isEqualTo(TelnetCommand.BRK);
+    void testBrkOutOfBand() {
+        // BRK (255) is an out-of-band TCP signal, not a byte command.
+        // Sending IAC IAC (255 255) produces a literal 255 byte, not BRK.
+        assertThat(TelnetCommand.BRK.code()).isEqualTo(255);
+        
+        // Verify: IAC IAC produces literal 255 in data, not a command
+        parser.feed(new byte[]{(byte) 255, (byte) 255});
+        parser.flush();
+        assertThat(listener.commandEvents).isEmpty();
+        assertThat(listener.allData()).containsExactly(255);
     }
 
     @Test

@@ -111,7 +111,7 @@
 - CSIParamsTest — parameters, sentinels, subparams
 - KeyTranslatorTest — key to escape sequence translation
 
-Total tests: 83
+Total tests: 165
 
 ---
 

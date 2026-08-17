@@ -16,7 +16,7 @@
 11. All ANSI/VT100 features inherited
 
 ## Test Coverage
-- Total tests: 25
+- Total tests: 53
 
 ### Cost Estimate
 | Metric | Value |

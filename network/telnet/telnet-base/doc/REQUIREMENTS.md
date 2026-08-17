@@ -31,7 +31,7 @@
 - TelnetParserTest — state machine, IAC handling, subnegotiation
 - TelnetConnectionTest — send, receive, escaping, negotiation, subnegotiation
 - TelnetOutputStreamTest — IAC doubling
-- Total tests: ~28
+- Total tests: 60
 
 ### Cost Estimate
 | Metric | Value |

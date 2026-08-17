@@ -2,6 +2,7 @@ package ssg.legoflow.network.terminals.ansi;
 
 import ssg.legoflow.network.terminals.base.config.TerminalConfig;
 import ssg.legoflow.network.terminals.base.escape.CSIParams;
+import ssg.legoflow.network.terminals.base.io.TerminalFactory;
 import ssg.legoflow.network.terminals.base.io.Terminal;
 import ssg.legoflow.network.terminals.vt100.VT100Terminal;
 
@@ -28,7 +29,14 @@ public class ANSITerminal extends VT100Terminal {
         return new ANSITerminal(config);
     }
 
-    protected ANSITerminal(TerminalConfig config) {
+    
+    // --- Auto-registration with TerminalFactory ---
+    static {
+        TerminalFactory.register("ansi", config -> ANSITerminal.create(config));
+        TerminalFactory.register("ansi-x3.64", config -> ANSITerminal.create(config));
+    }
+
+protected ANSITerminal(TerminalConfig config) {
         super(config);
     }
 

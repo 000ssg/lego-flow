@@ -1,44 +1,65 @@
 # VT400 Terminal — Compliance
 
-## DEC VT400/VT420 Reference
+## DEC VT400 Reference
 
-The VT400 series adds multi-window support and extended color SGR codes.
+The VT400 extends VT200 with workstation capabilities including extended
+SGR codes, multiple logical windows, and OSC 14 color support.
 
-### All VT200 Features
+### Extended SGR Codes
+
+| Code | Attribute | Status |
+|------|-----------|--------|
+| 82–89 | Extended foreground colors (VT400 palette) | ✅ Implemented |
+| 92–99 | Extended background colors (VT400 palette) | ✅ Implemented |
+
+### Window Management
 
 | Feature | Status |
 |---------|--------|
-| All VT100 features | ✅ Inherited |
-| All VT200 SGR extensions (52, 55) | ✅ Inherited |
+| 4 logical windows | ✅ Implemented |
+| CSI n t — select window | ✅ Implemented |
+| Window clamping (1–4) | ✅ Implemented |
 
-### VT400 Extensions
+### OSC Support
 
-#### Extended SGR (8-color)
+| OSC | Function | Status |
+|-----|----------|--------|
+| 14;RRGGBB | Set default background color | ✅ Implemented |
+| 0;title | Window title (inherited) | ✅ Implemented |
+| 1;icon | Icon title (inherited) | ✅ Implemented |
 
-| Code | Function | Status |
-|------|----------|--------|
-| 82–89 | Extended foreground colors | ✅ Implemented |
-| 92–99 | Extended background colors | ✅ Implemented |
+### Inherited from VT200/VT100
 
-#### Window Selection
+All VT100 and VT200 features are inherited: cursor motion, SGR, DEC private
+modes, cursor save/restore, scroll regions, tab stops, device attributes,
+video reverse (SGR 52/55).
 
-| Sequence | Function | Status |
-|----------|----------|--------|
-| CSI 1 t | Select Window 1 (top) | ✅ Implemented |
-| CSI 2 t | Select Window 2 (bottom) | ✅ Implemented |
-| CSI 3 t | Select Full Screen | ✅ Implemented |
+#
+### DECRQM (Query DEC Private Mode)
 
-#### Commodity Codes (DECCOM)
+| Sequence | Description | Status |
+|----------|-------------|--------|
+| CSI ? $ p | DECRQM — inherited from VT100 (through VT200) | ✅ Inherited |
+# Known Limitations
 
-| Sequence | Function | Status |
-|----------|----------|--------|
-| CSI n u | Repeat next character n times | ✅ Implemented |
+1. **Window selection is logical only** — No physical screen splitting;
+   window selection tracks state but all windows share the same display buffer
+2. **No DECCOM commodity codes** — Commodity selection not implemented
+3. **No window-specific scroll regions** — Scroll region is global
+4. **No vertical/horizontal margin mode** — Margin DECSET modes not implemented
+5. **No XTWINOP window geometry** — Window size/position queries not supported
+6. **No window-specific cursor save/restore** — Cursor state is global
 
-### Known Limitations
+## Verification
 
-1. **Only 2 windows** — VT400 supports up to 4 logical windows; only 2 implemented
-2. **No window-specific scroll regions** — DECSTBM applies to current window only
-3. **No S1D1 (split window)** — physical window splitting not implemented
-4. **No video attribute per-window** — window attributes shared
-5. **No VT400-specific cursor shapes** — not implemented
-6. **No margin splitting** — vertical/horizontal margin mode not implemented
+| Feature | Test Verification |
+|---------|-----------------|
+| Extended SGR (82-89/92-99) | `VT400TerminalTest.testExtendedColor` |
+| Window selection (CSI n t) | `VT400TerminalTest.testWindowSelection` |
+| OSC 14 color | `VT400TerminalTest.testOsc14` |
+| Window clamping | `VT400TerminalTest.testWindowClamp` |
+| Reset | `VT400TerminalTest.testReset` |
+
+---
+
+**Last Updated**: 2026-08-17

@@ -27,10 +27,10 @@ class XTERMDemoTest {
         XTERMTerminal terminal = (XTERMTerminal) XTERMTerminal.create(TerminalConfig.builder()
                 .rows(24).cols(80).build());
 
-        terminal.feed("\033[?2024h");
+        terminal.feed("\033[?2004h");
         assertThat(terminal.isBracketedPaste()).isTrue();
 
-        terminal.feed("\033[?2024l");
+        terminal.feed("\033[?2004l");
         assertThat(terminal.isBracketedPaste()).isFalse();
     }
 

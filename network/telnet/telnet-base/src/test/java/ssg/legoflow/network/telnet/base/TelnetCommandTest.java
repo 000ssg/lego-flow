@@ -11,7 +11,8 @@ class TelnetCommandTest {
         assertThat(TelnetCommand.fromCode(240)).isEqualTo(TelnetCommand.SE);
         assertThat(TelnetCommand.fromCode(241)).isEqualTo(TelnetCommand.NOP);
         assertThat(TelnetCommand.fromCode(242)).isEqualTo(TelnetCommand.DM);
-        assertThat(TelnetCommand.fromCode(243)).isEqualTo(TelnetCommand.BRK);
+        // Code 243 is unassigned — RFC 243 (DM/BRK collision); BRK uses alternate 255
+        assertThat(TelnetCommand.fromCode(243)).isNull();
         assertThat(TelnetCommand.fromCode(244)).isEqualTo(TelnetCommand.IP);
         assertThat(TelnetCommand.fromCode(245)).isEqualTo(TelnetCommand.AO);
         assertThat(TelnetCommand.fromCode(246)).isEqualTo(TelnetCommand.AYT);
@@ -23,6 +24,8 @@ class TelnetCommandTest {
         assertThat(TelnetCommand.fromCode(252)).isEqualTo(TelnetCommand.WONT);
         assertThat(TelnetCommand.fromCode(253)).isEqualTo(TelnetCommand.DO);
         assertThat(TelnetCommand.fromCode(254)).isEqualTo(TelnetCommand.DONT);
+        // BRK uses 255 (out-of-band; never parsed as byte command)
+        assertThat(TelnetCommand.fromCode(255)).isEqualTo(TelnetCommand.BRK);
     }
 
     @Test
@@ -47,7 +50,12 @@ class TelnetCommandTest {
     @Test
     void testCodeValues() {
         for (TelnetCommand cmd : TelnetCommand.values()) {
-            assertThat(cmd.code()).isBetween(240, 254);
+            // BRK uses 255 (IAC code); all others in 240-254 range
+            if (cmd == TelnetCommand.BRK) {
+                assertThat(cmd.code()).isEqualTo(255);
+            } else {
+                assertThat(cmd.code()).isBetween(240, 254);
+            }
         }
     }
 }

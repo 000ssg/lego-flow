@@ -20,7 +20,7 @@ import java.util.Objects;
 public final class TermAttr {
 
     public static final TermAttr DEFAULT = new TermAttr(7, 0, 0, 0, false, false, false,
-            TermAttr.UNDERLINE_NONE, false, false, false, false, 0, 0);
+            TermAttr.UNDERLINE_NONE, false, false, false, false, false, 0, 0);
 
     public static final int BLACK = 0;
     public static final int RED = 1;
@@ -50,13 +50,14 @@ public final class TermAttr {
     private final boolean reverse;
     private final boolean hidden;
     private final boolean strikethrough;
+    private final boolean overline;
     private final int fgMode;
     private final int bgMode;
 
     private TermAttr(int foreground, int background, int fgColor, int bgColor,
                      boolean bold, boolean dim, boolean italic, int underline,
                      boolean blink, boolean reverse, boolean hidden, boolean strikethrough,
-                     int fgMode, int bgMode) {
+                     boolean overline, int fgMode, int bgMode) {
         this.foreground = foreground;
         this.background = background;
         this.fgColor = fgColor;
@@ -69,6 +70,7 @@ public final class TermAttr {
         this.reverse = reverse;
         this.hidden = hidden;
         this.strikethrough = strikethrough;
+        this.overline = overline;
         this.fgMode = fgMode;
         this.bgMode = bgMode;
     }
@@ -99,6 +101,7 @@ public final class TermAttr {
     public boolean reverse() { return reverse; }
     public boolean hidden() { return hidden; }
     public boolean strikethrough() { return strikethrough; }
+    public boolean overline() { return overline; }
 
     public boolean isDefault() { return this == DEFAULT; }
 
@@ -116,13 +119,14 @@ public final class TermAttr {
                 bold == that.bold && dim == that.dim && italic == that.italic &&
                 underline == that.underline && blink == that.blink &&
                 reverse == that.reverse && hidden == that.hidden &&
-                strikethrough == that.strikethrough;
+                strikethrough == that.strikethrough && overline == that.overline;
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(foreground, background, fgColor, bgColor,
-                fgMode, bgMode, bold, dim, italic, underline, blink, reverse, hidden, strikethrough);
+                fgMode, bgMode, bold, dim, italic, underline, blink, reverse,
+                hidden, strikethrough, overline);
     }
 
     @Override
@@ -137,6 +141,7 @@ public final class TermAttr {
         if (reverse) { append(sb, first, "reverse"); first = false; }
         if (hidden) { append(sb, first, "hidden"); first = false; }
         if (strikethrough) { append(sb, first, "strike"); first = false; }
+        if (overline) { append(sb, first, "overline"); first = false; }
         if (fgMode > 0) { append(sb, first, "fg=" + fgMode + ":" + fgColor); first = false; }
         if (bgMode > 0) { append(sb, first, "bg=" + bgMode + ":" + bgColor); first = false; }
         if (fgMode == 0 && foreground != WHITE) { append(sb, first, "fg=" + foreground); first = false; }
@@ -166,6 +171,7 @@ public final class TermAttr {
         private boolean reverse;
         private boolean hidden;
         private boolean strikethrough;
+        private boolean overline;
 
         Builder(TermAttr base) {
             if (base != null) {
@@ -183,6 +189,7 @@ public final class TermAttr {
                 this.reverse = base.reverse;
                 this.hidden = base.hidden;
                 this.strikethrough = base.strikethrough;
+                this.overline = base.overline;
             }
         }
 
@@ -192,7 +199,8 @@ public final class TermAttr {
             fgMode = 0; bgMode = 0;
             bold = false; dim = false; italic = false;
             underline = UNDERLINE_NONE;
-            blink = false; reverse = false; hidden = false; strikethrough = false;
+            blink = false; reverse = false; hidden = false;
+            strikethrough = false; overline = false;
             return this;
         }
 
@@ -204,12 +212,13 @@ public final class TermAttr {
         public Builder reverse(boolean reverse) { this.reverse = reverse; return this; }
         public Builder hidden(boolean hidden) { this.hidden = hidden; return this; }
         public Builder strikethrough(boolean strikethrough) { this.strikethrough = strikethrough; return this; }
+        public Builder overline(boolean overline) { this.overline = overline; return this; }
 
         /** Set 8-color foreground (0–7). */
-        public Builder foreground(int color) { this.fgMode = 0; this.foreground = Math.max(0, Math.min(7, color)); return this; }
+        public Builder foreground(int color) { this.fgMode = 0; this.foreground = Math.max(0, Math.min(15, color)); return this; }
 
         /** Set 8-color background (0–7). */
-        public Builder background(int color) { this.bgMode = 0; this.background = Math.max(0, Math.min(7, color)); return this; }
+        public Builder background(int color) { this.bgMode = 0; this.background = Math.max(0, Math.min(15, color)); return this; }
 
         /** Set 256-color foreground (index 0–255). */
         public Builder foreground256(int index) { this.fgMode = 1; this.fgColor = Math.max(0, Math.min(255, index)); return this; }
@@ -226,7 +235,7 @@ public final class TermAttr {
         public TermAttr build() {
             return new TermAttr(foreground, background, fgColor, bgColor,
                     bold, dim, italic, underline, blink, reverse, hidden, strikethrough,
-                    fgMode, bgMode);
+                    overline, fgMode, bgMode);
         }
     }
 }
