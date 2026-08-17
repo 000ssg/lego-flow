@@ -136,10 +136,10 @@ class XTERMTerminalTest {
 
     @Test
     void testBracketedPaste() {
-        terminal.feed("\u001B[?2004h");
+        terminal.feed("\u001B[?2024h");
         var xterm = (XTERMTerminal) terminal;
         assertThat(xterm.isBracketedPaste()).isTrue();
-        terminal.feed("\u001B[?2004l");
+        terminal.feed("\u001B[?2024l");
         assertThat(xterm.isBracketedPaste()).isFalse();
     }
 
@@ -195,7 +195,7 @@ class XTERMTerminalTest {
 
     @Test
     void testReset() {
-        terminal.feed("\u001B[?1000h\u001B[?1006h\u001B[?2004h");
+        terminal.feed("\u001B[?1000h\u001B[?1006h\u001B[?2024h");
         var xterm = (XTERMTerminal) terminal;
         assertThat(xterm.mouseMode()).isEqualTo(XTERMTerminal.MouseMode.NORMAL);
         assertThat(xterm.isSgrMouse()).isTrue();

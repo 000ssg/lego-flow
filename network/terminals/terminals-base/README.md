@@ -61,4 +61,5 @@ Terminal (interface)
 
 - [Architecture](doc/ARCHITECTURE.md) — design decisions, data flow, escape parser state machine
 - [Requirements](doc/REQUIREMENTS.md) — technical requirements and commit history
+- [Compliance](doc/COMPLIANCE.md) — protocol compliance matrix
 - [Development Guide](AGENTS.md) — coding conventions for this module

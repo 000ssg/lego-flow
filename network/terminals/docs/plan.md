@@ -1,356 +1,221 @@
-# Terminals & Telnet — Implementation Plan
+# Terminal Emulation Framework — Implementation Plan
 
-## 1. Goals
+## Overview
 
-Build a **reusable terminal emulation framework** and a **Telnet protocol implementation**
-for the Lego Flow framework, designed to be consumed by SSH, CLI, Swing, and web-based
-applications.
+This document outlines the terminal emulation framework and Telnet protocol implementation for Lego Flow. The framework provides reusable terminal emulator modules compatible with VT52, VT100, VT200, VT400, VT500, ANSI X3.64, and XTERM terminal types, along with a Telnet protocol bridge (RFC 854).
 
-- **Terminals**: A family of terminal emulators covering the DEC VT series (VT52 through VT500),
-  ANSI X3.64, and XTERM.
-- **Telnet**: A full Telnet protocol stack (RFC 854) with option negotiation (RFC 855) and
-  Terminal-Type (RFC 1091), wired to the terminal emulation modules.
+---
 
-## 2. Architecture Overview
+## Architecture
+
+### Module Hierarchy
 
 ```mermaid
-graph TB
-    subgraph "terminals — parent POM"
-        TB[terminals-base]
-        VT52[vt52]
-        VT100[vt100]
-        VT200[vt200]
-        VT400[vt400]
-        VT500[vt500]
-        ANSI[ansi]
-        XTERM[xterm]
-    end
+graph TD
+    TB["terminals-base<br/>Core abstractions: Terminal, DisplayModel, Screen,<br/>Cursor, TermAttr, EscapeParser, Config"]
 
-    subgraph "telnet — parent POM"
-        TNB[telnet-base]
-        TNN[telnet-negotiation]
-        TNB -->|depends| TB
-        TNN -->|depends| TNB
-    end
+    V52["vt52<br/>VT52 — ESC+letter commands,<br/>cursor address (ESC Y)"]
+    V100["vt100<br/>VT100 — full DEC, CSI, SGR<br/>0-7, DEC private modes"]
 
-    TB -->|"extends protocol interface"| VT52
-    TB -->|"extends protocol interface"| VT100
-    VT100 -->|"extends"| VT200
-    VT200 -->|"extends"| VT400
-    VT400 -->|"extends"| VT500
-    VT100 -->|"extends"| ANSI
-    ANSI -->|"extends"| XTERM
+    V200["vt200<br/>VT200 — extends VT100,<br/>SGR 52/55, PF keys"]
+    V400["vt400<br/>VT400 — extends VT200,<br/>2-window, extended SGR, DECCOM"]
+    V500["vt500<br/>VT500 — extends VT400,<br/>DEC charsets, DCS, SO/SI"]
 
-    TNB -->|"uses"| TB
+    ANS["ansi<br/>ANSI X3.64 — extends VT100,<br/>no DEC private modes"]
+    XT["xterm<br/>XTERM — extends ANSI,<br/>256/true color, mouse,<br/>bracketed paste, sync"]
+
+    TBN["telnet-base<br/>RFC 854 parser, connection,<br/>IAC escaping"]
+    TN["telnet-negotiation<br/>RFC 855 option negotiation,<br/>TTYPE, NAWS, Speed"]
+    TG["telnet-gateway<br/>Protocol ↔ terminal bridge,<br/>ECHO, TTYPE, NAWS"]
+
+    TB --> V52
+    TB --> V100
+    V100 --> V200
+    V200 --> V400
+    V400 --> V500
+    V100 --> ANS
+    ANS --> XT
+    TBN --> TN
+    TBN --> TG
+    TN --> TG
+    TB --> TG
 ```
 
-### Key Design Decisions
+### Inheritance Chains
 
-| Decision | Rationale |
-|----------|-----------|
-| Flat module hierarchy (no deep nesting) | Keeps the dependency graph simple; avoids over-engineering |
-| terminals-base as the sole shared dependency | All terminal types depend on base only, enabling independent upgrades |
-| VT52 as a standalone branch | VT52 uses an entirely different command set from VT100-family |
-| VT100 → VT200 → VT400 → VT500 inheritance chain | Each variant adds capabilities on top of the previous DEC terminal |
-| ANSI as separate branch from VT100 | ANSI X3.64 is a standardized subset, not a DEC product line |
-| XTERM extends ANSI | XTERM is the de-facto terminal standard, extending ANSI with color and mouse |
-| Telnet as sibling to terminals under network/ | Telnet is a network protocol, not a terminal per se |
-| telnet-gateway bridges protocol ↔ terminal | Clean separation: protocol handles wire format, terminal handles display |
+| Chain | Modules | Key Capabilities |
+|-------|---------|-----------------|
+| **VT lineage** | terminals-base → vt100 → vt200 → vt400 → vt500 | DEC private modes, cursor save/restore, SGR, scroll regions, charsets |
+| **ANSI lineage** | terminals-base → vt100 → ansi → xterm | Standard CSI/SGR, 256/true color, mouse tracking, bracketed paste |
+| **Standalone** | terminals-base → vt52 | ESC+letter commands, VT52 cursor addressing |
 
-## 3. Module Inventory
+---
 
-### 3.1 terminals-base
-- **Artifact**: `lego-flow-terminals-base`
-- **Package**: `ssg.legoflow.network.terminals.base`
-- **Scope**: Shared abstractions for all terminal emulators
-- **Contents**:
-  - `Terminal` interface — the primary contract for terminal emulation
-  - `TerminalConfig` — dimensions, colors, title, character set
-  - `DisplayModel` — single-page screen buffer with scroll region
-  - `Screen` — 2D character grid, scroll buffer, cursor
-  - `Cursor` — position, visibility, state
-  - `TermAttr` — text attributes (bold, italic, underline, colors)
-  - `Character` — display character + attributes
-  - `CSIParams` — parsed CSI parameter list
-  - `EscapeParser` — state machine for DEC private / ANSI escape sequences
-  - `TerminalEvent` — structured event for text, cursor, attribute changes
-  - `TerminalEventListener` — callback interface for rendering backends
-  - `KeyTranslator` — convert raw keyboard input to terminal key sequences
-
-### 3.2 vt52
-- **Artifact**: `lego-flow-vt52`
-- **Package**: `ssg.legoflow.network.terminals.vt52`
-- **Parent**: `lego-flow-terminals` (network/terminals/pom.xml)
-- **Depends on**: `lego-flow-terminals-base`
-- **Scope**: VT52 protocol emulation
-- **Contents**: `VT52Terminal`, `VT52Parser`
-- **Commands**: `I`, `F`, `S`, `R`, `E`, `D`, `J`, `Y`, `=`, `>`, `<` (per DEC VT52 manual)
-
-### 3.3 vt100
-- **Artifact**: `lego-flow-vt100`
-- **Package**: `ssg.legoflow.network.terminals.vt100`
-- **Parent**: `lego-flow-terminals`
-- **Depends on**: `lego-flow-terminals-base`
-- **Scope**: VT100 protocol emulation (ANSI-compatible)
-- **Contents**: `VT100Terminal`, `VT100Parser`
-- **Sequences**: CSI cursor, SGR, DECSET/DECRST, DECKPAM/DECKPNM, device attributes,
-  line feed/CR handling, auto-wrap, scroll region
-
-### 3.4 vt200
-- **Artifact**: `lego-flow-vt200`
-- **Package**: `ssg.legoflow.network.terminals.vt200`
-- **Parent**: `lego-flow-terminals`
-- **Depends on**: `lego-flow-terminals-base`, `lego-flow-vt100`
-- **Scope**: VT200 mechanical terminal emulation
-- **Contents**: `VT200Terminal`, `VT200Parser`
-- **Extensions**: Function keys, keypad, video reverse, line feed variant handling
-
-### 3.5 vt400
-- **Artifact**: `lego-flow-vt400`
-- **Package**: `ssg.legoflow.network.terminals.vt400`
-- **Parent**: `lego-flow-terminals`
-- **Depends on**: `lego-flow-terminals-base`, `lego-flow-vt200`
-- **Scope**: VT400/VT420 work-station emulation
-- **Contents**: `VT400Terminal`, `VT400Parser`
-- **Extensions**: Multiple windows, scroll history, extended SGR, DECCOM (commodity codes)
-
-### 3.6 vt500
-- **Artifact**: `lego-flow-vt500`
-- **Package**: `ssg.legoflow.network.terminals.vt500`
-- **Parent**: `lego-flow-terminals`
-- **Depends on**: `lego-flow-terminals-base`, `lego-flow-vt400`
-- **Scope**: VT500/VT520 advanced workstation emulation
-- **Contents**: `VT500Terminal`, `VT500Parser`
-- **Extensions**: Window host commands, DEC character sets, charset selection
-
-### 3.7 ansi
-- **Artifact**: `lego-flow-ansi`
-- **Package**: `ssg.legoflow.network.terminals.ansi`
-- **Parent**: `lego-flow-terminals`
-- **Depends on**: `lego-flow-terminals-base`, `lego-flow-vt100`
-- **Scope**: ANSI X3.64 standard terminal emulation
-- **Contents**: `ANSITerminal`, `ANSIParser`
-- **Sequences**: Standard ANSI subset (no DEC private modes)
-
-### 3.8 xterm
-- **Artifact**: `lego-flow-xterm`
-- **Package**: `ssg.legoflow.network.terminals.xterm`
-- **Parent**: `lego-flow-terminals`
-- **Depends on**: `lego-flow-terminals-base`, `lego-flow-ansi`
-- **Scope**: XTERM modern terminal emulation
-- **Contents**: `XtermTerminal`, `XtermParser`
-- **Extensions**: 256 colors, true color (RGB), mouse tracking (6 modes),
-  bracketed paste, sync mode, focus tracking, modifiers, underline styles,
-  dashed/curly underlines, icon/window titles, clipboard
-
-### 3.9 telnet-base
-- **Artifact**: `lego-flow-telnet-base`
-- **Package**: `ssg.legoflow.network.telnet.telnet-base`
-- **Parent**: `lego-flow-telnet` (network/telnet/pom.xml)
-- **Depends on**: `lego-flow-terminals-base`, `lego-flow-service`
-- **Scope**: Telnet protocol core (RFC 854)
-- **Contents**:
-  - `TelnetState` — state machine (DATA, NEGOTIATING, WILL, WONT, DO, DONT, SB, IS)
-  - `TelnetCommand` — WILL, WONT, DO, DONT, SB, EB, GA, etc.
-  - `TelnetCodec` — encode/decode byte stream
-  - `TelnetConnection` — connection state and configuration
-  - `TelnetClient` — client-side protocol handler
-  - `TelnetServer` — server-side protocol handler
-
-### 3.10 telnet-negotiation
-- **Artifact**: `lego-flow-telnet-negotiation`
-- **Package**: `ssg.legoflow.network.telnet.telnet-negotiation`
-- **Parent**: `lego-flow-telnet`
-- **Depends on**: `lego-flow-telnet-base`
-- **Scope**: Telnet option negotiation (RFC 855)
-- **Contents**:
-  - `TelnetOption` — option registry (256 options)
-  - `NegotiationEngine` — manage negotiation state machine
-  - `TerminalTypeOption` — TYPE-TYPE (RFC 1091)
-  - `SuppressGoAheadOption` — SUPP-DUP
-  - `TerminalSpeedOption` — TERMINAL-SPEED (RFC 1079)
-  - `WindowSizeOption` — WINDOW-SIZE (RFC 1073)
-  - `EchoOption` — ECHO (RFC 857)
-  - `TerminalSpeedNegotiation` — handle TTYPE/TERMINAL-SPEED/NAWS
-
-### 3.11 telnet-gateway
-- **Artifact**: `lego-flow-telnet-gateway`
-- **Package**: `ssg.legoflow.network.telnet.telnet-gateway`
-- **Parent**: `lego-flow-telnet`
-- **Depends on**: `lego-flow-telnet-base`, `lego-flow-telnet-negotiation`,
-  `lego-flow-terminals-base`
-- **Scope**: Bridges Telnet protocol to terminal emulator
-- **Contents**:
-  - `TelnetGateway` — main class connecting TelnetConnection → Terminal
-  - `TelnetTerminalConfig` — apply negotiated options to terminal
-  - `TelnetInputStream` — forward terminal output through TelnetCodec
-  - `TelnetOutputStream` — parse Telnet commands from input, forward to server
-  - `TelnetSession` — high-level session manager
-
-## 4. Compatibility Matrix
+## Terminal Type Reference
 
 ### VT52
-| Feature | Status |
-|---------|--------|
-| Cursor addressing (Y, X) | ✅ Implemented |
-| Cursor motion (I, F, S, R) | ✅ Implemented |
-| Line clear (E, D, J) | ✅ Implemented |
-| Keyboard mode (=, >, <) | ✅ Implemented |
-| Program character set | ❌ N/A (not in VT52) |
-| ANSI escape sequences | ❌ N/A |
+- **Protocol**: ESC followed by single letter commands
+- **Cursor Addressing**: ESC Y row col (value + 32 encoding)
+- **Color**: No
+- **Key Features**: Cursor motion (I/F/S/R), clear display (J), clear EOL (E), line feed (D)
+- **Standards**: DEC VT52 terminal manual
+- **Use Cases**: BBS systems, vintage terminal emulation, minimal footprint
 
 ### VT100
-| Feature | Status |
-|---------|--------|
-| CSI cursor motion (H, f, A, B, C, D) | ✅ Implemented |
-| SGR text attributes (0-7) | ✅ Implemented |
-| DECSavn (save/restore cursor) | ✅ Implemented |
-| DECSET/DECRST modes | ✅ Implemented |
-| DECKPAM/DECKPNM (application keypad) | ✅ Implemented |
-| Device attributes (DA1) | ✅ Implemented |
-| Scroll region | ✅ Implemented |
-| Line operations (IL, DL, ECH, SD, ED) | ✅ Implemented |
+- **Protocol**: CSI sequences with final byte dispatch
+- **Cursor Motion**: CUU/CUD/CUF/CUB/CUP/CHA/VPA/CNL/CPL
+- **SGR**: Codes 0–9 (bold, dim, italic, underline, blink, reverse, hidden, strikethrough)
+- **Colors**: 8-color foreground/background (30–37, 40–47) + bright (90–97, 100–107)
+- **DEC Private**: DECSET/DECRST for origin mode, auto-wrap, application keypad
+- **Key Features**: Cursor save/restore, scroll regions, line/char insert/delete, erase display/line
+- **Standards**: DEC VT100 terminal manual, ANSI X3.64 base
+- **Use Cases**: Classic terminal emulation, SSH, Telnet servers
 
 ### VT200
-| Feature | Status |
-|---------|--------|
-| All VT100 features | ✅ Inherited |
-| Function keys (PF1-PF3, PL1-PL6) | ✅ Implemented |
-| Video reverse | ✅ Implemented |
-| Line feed variant | ✅ Implemented |
-| Mechanical terminal quirks | ✅ Implemented |
+- **Extends**: VT100
+- **Additional SGR**: Code 52 (video reverse), 55 (video normal)
+- **Key Features**: Function key support (PF1–PF3, PL1–PL6)
+- **Use Cases**: Mechanical VT200/VT220 compatibility
 
 ### VT400
-| Feature | Status |
-|---------|--------|
-| All VT200 features | ✅ Inherited |
-| Multiple windows | ✅ Implemented (2 windows) |
-| Window selection | ✅ Implemented |
-| Scroll history | ✅ Implemented |
-| Extended SGR (colors) | ✅ Implemented (8 colors) |
-| DECCOM (commodity codes) | ✅ Implemented |
-| Insert/delete column | ✅ Implemented |
+- **Extends**: VT200
+- **Extended SGR**: Codes 82–89 (extended foreground), 92–99 (extended background)
+- **Key Features**: 2-window support, scroll history, DECCOM commodity codes, insert/delete column
+- **Use Cases**: DEC VT400/VT420 workstation emulation
 
 ### VT500
-| Feature | Status |
-|---------|--------|
-| All VT400 features | ✅ Inherited |
-| Window host commands | ✅ Implemented |
-| DEC character sets (decset) | ✅ Implemented |
-| Character set selection (SO/SI) | ✅ Implemented |
-| User-defined character sets | ✅ Implemented |
-| Extended line feed handling | ✅ Implemented |
+- **Extends**: VT400
+- **DEC Character Sets**: G0/G1 charset selection via SO/SI, DECSET-based
+- **Character Sets**: ASCII, DEC Special, UK, French, French-Canadian, International, Scandinavian, German, User-Defined
+- **DCS**: User-defined character set definition
+- **Use Cases**: DEC VT500/VT520 advanced workstation, international character sets
 
-### ANSI
-| Feature | Status |
-|---------|--------|
-| Standard CSI sequences | ✅ Inherited from VT100 |
-| SGR 0-7 | ✅ Inherited from VT100 |
-| Device control (DC1-DC4) | ✅ Implemented |
-| No DEC private modes | ✅ Enforced |
+### ANSI X3.64
+- **Extends**: VT100 (minus DEC private modes)
+- **Protocol**: Standard CSI sequences only, no ESC [ ? prefix
+- **SGR**: Standard codes 0–9, 30–47
+- **Key Features**: ANSI-compliant behavior, ignores DEC extensions
+- **Standards**: ANSI X3.64 (1979), ECMA-48 base
+- **Use Cases**: Strict ANSI compliance, cross-platform compatibility
 
 ### XTERM
-| Feature | Status |
-|---------|--------|
-| All ANSI features | ✅ Inherited |
-| 256-color palette | ✅ Implemented |
-| True color (RGB) | ✅ Implemented |
-| Mouse tracking (all 6 modes) | ✅ Implemented |
-| Bracketed paste | ✅ Implemented |
-| Sync mode | ✅ Implemented |
-| Focus tracking | ✅ Implemented |
-| Icon/window title | ✅ Implemented |
-| Modifier attributes | ✅ Implemented |
-| Underline styles | ✅ Implemented |
-| DCS strings | ✅ Implemented |
-| Clipboard operations | ✅ Implemented |
+- **Extends**: ANSI
+- **Color**: 256-color palette (38;5;n / 48;5;n), true RGB (38;2;r;g;b / 48;2;r;g;b)
+- **Mouse Tracking**: Button event (1000), highlight (1002), all motion (1003), SGR extended (1006)
+- **Modern Features**: Bracketed paste (2024), synchronized output (2026), focus tracking (1004)
+- **Text Decoration**: Underline styles (4:0–4:5), overline (53)
+- **DCS**: DECRQSS status request strings
+- **Key Features**: Most feature-rich terminal type, modern terminal emulator standard
+- **Standards**: xterm control sequences, de facto terminal standard
+- **Use Cases**: Modern SSH, web terminals, IDE integrated terminals
 
-### Telnet
-| Feature | Status | RFC |
-|---------|--------|-----|
-| Core protocol (DATA, IAC, subnegotiation) | ✅ Implemented | RFC 854 |
-| WILL/WONT negotiation | ✅ Implemented | RFC 855 |
-| DO/DONT negotiation | ✅ Implemented | RFC 855 |
-| Break handling (BRK, DM, BP) | ✅ Implemented | RFC 854 |
-| Go-ahead (GA) | ✅ Implemented | RFC 854 |
-| ENQ | ✅ Implemented | RFC 854 |
-| SUPP-DUP | ✅ Implemented | RFC 857 |
-| ECHO | ✅ Implemented | RFC 857 |
-| TTYPE | ✅ Implemented | RFC 1091 |
-| TERMINAL-SPEED | ✅ Implemented | RFC 1079 |
-| NAWS | ✅ Implemented | RFC 1073 |
-| LINEMODE | ⏳ Future | RFC 1143 |
-| Binary transmission | ✅ Implemented | RFC 856 |
-| Authenticated Telnet | ❌ Not planned | RFC 1116 |
+---
 
-## 5. Reuse Model
+## Telnet Protocol
 
-The terminal emulation modules are designed for use beyond Telnet:
+### Module Structure
 
-| Use Case | Integration |
-|----------|-------------|
-| SSH terminal sessions | Import `lego-flow-*terminal*` + wire to SSH channel |
-| CLI tools | Use `Terminal` interface + `KeyTranslator` |
-| Swing desktop apps | Use `TerminalEventListener` to render to `JComponent` |
-| Web applications | Use `Terminal` interface + `TerminalEvent` to drive HTerm/jsTerm |
-| Telnet client/server | Import `lego-flow-telnet-gateway` + select terminal type |
-| Terminal protocol testing | Import individual modules, feed escape sequences |
+| Module | Purpose | Standards |
+|--------|---------|-----------|
+| telnet-base | RFC 854 state machine, parser, connection, IAC escaping | RFC 854 |
+| telnet-negotiation | Option negotiation state machine, TTYPE, NAWS, Speed handlers | RFC 855, RFC 1091, RFC 1073, RFC 1079 |
+| telnet-gateway | Bridge between Telnet connection and terminal emulator | RFC 854 + terminal protocol mapping |
 
-## 6. Implementation Order
+### Telnet Gateway
 
-1. **terminals-base** — core abstractions, parser, event model
-2. **vt52** — simplest terminal, validates base architecture
-3. **vt100** — the classic terminal, most widely referenced
-4. **vt200** — mechanical terminal extensions
-5. **vt400** — multi-window workstation
-6. **vt500** — advanced workstation
-7. **ansi** — standardized subset
-8. **xterm** — modern terminal
-9. **telnet-base** — protocol core
-10. **telnet-negotiation** — option negotiation
-11. **telnet-gateway** — protocol ↔ terminal bridge
+The gateway bridges raw Telnet protocol with terminal emulation:
+- **Inbound**: Parses Telnet from peer → strips IAC commands → feeds clean data to terminal
+- **Outbound**: Renders terminal output → sends with IAC escaping
+- **Option Negotiation**: ECHO (default on), SUPPRESS_GO_AHEAD (default on), TTYPE (responds with terminal type), NAWS (dimension updates)
 
-## 7. Testing Strategy
+---
 
-Each module follows the project testing conventions:
+## Reuse Model
 
-| Module | Unit Tests | Integration Tests | Total Targets |
-|--------|-----------|-------------------|---------------|
-| terminals-base | 10 | 0 | 10 |
-| vt52 | 5 | 1 | 6 |
-| vt100 | 8 | 2 | 10 |
-| vt200 | 3 | 1 | 4 |
-| vt400 | 3 | 1 | 4 |
-| vt500 | 3 | 1 | 4 |
-| ansi | 3 | 1 | 4 |
-| xterm | 8 | 2 | 10 |
-| telnet-base | 8 | 1 | 9 |
-| telnet-negotiation | 6 | 1 | 7 |
-| telnet-gateway | 5 | 2 | 7 |
-| **Total** | **62** | **13** | **~75** |
+### SSH Protocol Integration
+- Terminal types selected via SSH terminal-type negotiation (TERM environment variable)
+- Gateway replaced by SSH channel handler
+- Terminal rendering feeds into SSH pseudo-terminal
 
-### Test Categories per Module
-1. **Parser tests** — encode/decode round-trip for each escape sequence
-2. **Display model tests** — cursor motion, scroll, attribute application
-3. **Integration tests** — full input → state change → event emission flow
-4. **Edge case tests** — boundary positions, empty strings, malformed input
-5. **Compatibility tests** — verify spec compliance (per COMPLIANCE.md)
+### CLI Integration
+- TerminalConfig used for console output formatting
+- KeyTranslator converts raw input to escape sequences
 
-## 8. Documentation Deliverables
+### Swing/Web Applications
+- Terminal interface with event listeners drives UI rendering
+- Screen buffer rendered to Swing components or HTML/Canvas
+- Cursor position and attributes mapped to UI properties
 
-Per module:
-- `README.md` — shields, quick start, architecture diagram
-- `AGENTS.md` — module-specific conventions
-- `CLAUDE.md` — symlink to AGENTS.md
-- `pom.xml` — Maven build config
-- `build.gradle.kts` — Gradle build config
-- `doc/ARCHITECTURE.md` — design decisions, Mermaid diagrams
-- `doc/COMPLIANCE.md` — spec compliance matrix
-- `doc/REQUIREMENTS.md` — requirements tracking
+### General Pattern
+```java
+TerminalConfig config = TerminalConfig.builder()
+        .rows(24).cols(80).colorDepth(256).build();
+Terminal terminal = TerminalFactory.create("xterm", config);
+terminal.addEventListener(renderer);
+terminal.feed(incomingBytes);
+```
 
-Parent modules (terminals, telnet):
-- `README.md` — overview, sub-module table
-- `AGENTS.md` — parent chain, build commands
-- `CLAUDE.md` — symlink
-- `pom.xml` — parent POM
-- `doc/ARCHITECTURE.md` — parent chain diagram
+---
+
+## Compatibility Matrix
+
+| Feature | VT52 | VT100 | VT200 | VT400 | VT500 | ANSI | XTERM |
+|---------|------|-------|-------|-------|-------|------|-------|
+| CSI cursor motion | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| SGR basic (0-9) | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 8-color (30-47) | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| DEC private modes | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+| Cursor save/restore | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Scroll regions | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 256-color | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| True color RGB | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Mouse tracking | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Bracketed paste | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| DEC charsets | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| Synchronized output | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+
+---
+
+## Testing Strategy
+
+| Module | Unit Tests | Demo Tests | Coverage Target |
+|--------|-----------|------------|-----------------|
+| terminals-base | 165 | TBD | ≥ 80% |
+| vt52 | 15 | TBD | ≥ 80% |
+| vt100 | 30 | TBD | ≥ 80% |
+| vt200 | 6 | TBD | ≥ 90% |
+| vt400 | 6 | TBD | ≥ 80% |
+| vt500 | 6 | TBD | ≥ 80% |
+| ansi | 6 | TBD | ≥ 90% |
+| xterm | 25 | TBD | ≥ 80% |
+| telnet-base | 60 | TBD | ≥ 90% |
+| telnet-negotiation | 24 | TBD | ≥ 80% |
+| telnet-gateway | 9 | TBD | ≥ 80% |
+
+**Total tests**: 352 unit tests + demos
+
+### Test Coverage Gaps (to be addressed)
+- vt200, vt400, vt500, ansi — need more comprehensive tests
+- telnet-gateway — needs integration test scenarios
+- All modules — need demo test classes
+
+---
+
+## Pending Tasks
+
+### Documentation
+- [x] ARCHITECTURE.md — all modules (Mermaid diagrams ✅)
+- [x] REQUIREMENTS.md — all modules
+- [ ] Cost Estimate sections — all 11 modules
+- [ ] COMPLIANCE.md — telnet-gateway
+
+### Demos
+- [ ] Demo classes for all 11 modules (src/main/demo + src/test/demo)
+
+### Quality
+- [ ] Test coverage audit and gap remediation
+- [ ] Final build verification
+
+---
+
+**Last Updated**: 2026-08-17

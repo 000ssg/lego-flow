@@ -119,3 +119,18 @@ Total tests: 83
 
 - This document is append-only for commit sections
 - Requirements updated with each feature addition
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Background agents | 1 (terminal-framework agent) |
+| Agent tokens | ~120K |
+| Agent tool calls | ~85 |
+| Agent wall time | ~45 min |
+| Files created/modified | 14 |
+| Lines added/removed | +1800 / -0 |
+| Tests added | 165 (total: 165) |
+
+---
+
+**Last Updated**: 2026-08-17

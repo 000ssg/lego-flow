@@ -49,6 +49,21 @@ dependencies {
     api(project(":lego-flow-snmp")); api(project(":lego-flow-syslog"))
     api(project(":lego-flow-modbus")); api(project(":lego-flow-ssh")); api(project(":lego-flow-ftp"))
 
+    // Terminal modules
+    api(project(":lego-flow-terminals-base"))
+    api(project(":lego-flow-vt52"))
+    api(project(":lego-flow-vt100"))
+    api(project(":lego-flow-vt200"))
+    api(project(":lego-flow-vt400"))
+    api(project(":lego-flow-vt500"))
+    api(project(":lego-flow-ansi"))
+    api(project(":lego-flow-xterm"))
+
+    // Telnet modules
+    api(project(":lego-flow-telnet-base"))
+    api(project(":lego-flow-telnet-negotiation"))
+    api(project(":lego-flow-telnet-gateway"))
+
     // IoT modules
     api(project(":lego-flow-upnp")); api(project(":lego-flow-coap"))
 

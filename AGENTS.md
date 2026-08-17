@@ -297,12 +297,16 @@ void testFeatureDescription() {
 
 ### 7. Demo Conventions
 
-Each module has a `demo/` sub-package in both `src/main/java` and `src/test/java`:
+All demos live in the central `demos/` module, never in individual protocol modules.
+
+- **Directory structure**: Demos use sub-packages mirroring the source module paths
+  (e.g., `demos/src/main/java/ssg/legoflow/network/terminals/vt100/demo/`)
 - **Main demos**: reusable demo implementations (servers, clients, pipelines)
 - **Test demos**: functional tests that exercise demos with detailed feature verification
 - Demos progress from **simplest** → **average** → **complex**
 - Cover both **common** and **specific** usage variants separately
 - From service module upward: include procedural, functional, and combined variants
+- See [demos/AGENTS.md](demos/AGENTS.md) for detailed demo conventions
 
 ## Current Project Status
 

@@ -106,7 +106,7 @@ public final class XTERMTerminal extends ANSITerminal {
             case 1006 -> sgrMouse = true;                 // SGR extended mouse
             case 1015 -> urxvtMouse = true;               // URXVT mouse
             case 1016 -> sgrMouse = true;                 // SGR mouse alias
-            case 2004 -> bracketedPaste = true;           // Bracketed paste
+            case 2024 -> bracketedPaste = true;           // Bracketed paste
             case 2026 -> syncMode = true;                 // Synchronized output
             default -> {/* Unknown — delegate to VT100 */}
         }
@@ -123,7 +123,7 @@ public final class XTERMTerminal extends ANSITerminal {
             case 1004 -> focusTracking = false;
             case 1005, 1015 -> urxvtMouse = false;
             case 1006, 1016 -> sgrMouse = false;
-            case 2004 -> bracketedPaste = false;
+            case 2024 -> bracketedPaste = false;
             case 2026 -> syncMode = false;
             default -> {/* Unknown — ignore */}
         }

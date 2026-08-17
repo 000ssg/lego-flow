@@ -29,3 +29,18 @@
 ## Test Coverage
 - TelnetGatewayTest — feed/echo, negotiation, TTYPE, NAWS, send, IAC escape
 - Total tests: 9
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Background agents | 1 (terminal-framework agent) |
+| Agent tokens | ~45K |
+| Agent tool calls | ~35 |
+| Agent wall time | ~18 min |
+| Files created/modified | 5 |
+| Lines added/removed | +350 / -0 |
+| Tests added | 9 (total: 9) |
+
+---
+
+**Last Updated**: 2026-08-17

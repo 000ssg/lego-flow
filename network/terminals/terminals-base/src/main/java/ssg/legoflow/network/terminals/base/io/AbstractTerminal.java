@@ -69,14 +69,15 @@ public abstract class AbstractTerminal implements Terminal, EscapeParser.Sequenc
             parser.feed(b);
         } else if (b < 0x20 || b == 0x7F) {
             handleControl(b);
+        } else if (b == 0x84 || b == 0x85) {
+            handleControl(b);
         } else if (b >= 0x20 && b <= 0x7E) {
             parser.feed(b);
         }
-        // bytes 0x7F+ (DEL and above) are silently ignored
+        // bytes 0x80+ (except IND/RI) are silently ignored
     }
-
     /**
-     * Handle a control character (0x00–0x1F except ESC and BEL, plus DEL).
+     * Handle a control character (0x00–0x1F except ESC/BEL, plus DEL, IND, RI).
      */
     protected void handleControl(int b) {
         switch (b) {

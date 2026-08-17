@@ -30,3 +30,18 @@
 - NAWSHandlerTest — local size, remote size parsing
 - SpeedHandlerTest — IS, SEND, local speed, remote speed callback
 - Total tests: ~21
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Background agents | 1 (terminal-framework agent) |
+| Agent tokens | ~40K |
+| Agent tool calls | ~30 |
+| Agent wall time | ~15 min |
+| Files created/modified | 7 |
+| Lines added/removed | +400 / -0 |
+| Tests added | 24 (total: 24) |
+
+---
+
+**Last Updated**: 2026-08-17

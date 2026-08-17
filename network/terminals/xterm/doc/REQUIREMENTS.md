@@ -17,3 +17,18 @@
 
 ## Test Coverage
 - Total tests: 25
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Background agents | 1 (terminal-framework agent) |
+| Agent tokens | ~50K |
+| Agent tool calls | ~35 |
+| Agent wall time | ~20 min |
+| Files created/modified | 5 |
+| Lines added/removed | +500 / -0 |
+| Tests added | 25 (total: 25) |
+
+---
+
+**Last Updated**: 2026-08-17

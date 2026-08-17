@@ -31,4 +31,4 @@ List<String> lines = terminal.render();
 
 ## Documentation
 
-- [Architecture](doc/ARCHITECTURE.md) | [Requirements](doc/REQUIREMENTS.md) | [Development Guide](AGENTS.md)
+- [Architecture](doc/ARCHITECTURE.md) | [Requirements](doc/REQUIREMENTS.md) | [Compliance](doc/COMPLIANCE.md) | [Development Guide](AGENTS.md)

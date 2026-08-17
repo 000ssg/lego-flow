@@ -22,3 +22,18 @@
 
 - VT52TerminalTest — cursor addressing, motion, clear, scroll, keypad modes
 - Total tests: 15
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Background agents | 1 (terminal-framework agent) |
+| Agent tokens | ~40K |
+| Agent tool calls | ~30 |
+| Agent wall time | ~15 min |
+| Files created/modified | 5 |
+| Lines added/removed | +350 / -0 |
+| Tests added | 15 (total: 15) |
+
+---
+
+**Last Updated**: 2026-08-17

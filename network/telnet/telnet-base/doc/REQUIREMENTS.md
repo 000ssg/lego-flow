@@ -32,3 +32,18 @@
 - TelnetConnectionTest — send, receive, escaping, negotiation, subnegotiation
 - TelnetOutputStreamTest — IAC doubling
 - Total tests: ~28
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Background agents | 1 (terminal-framework agent) |
+| Agent tokens | ~60K |
+| Agent tool calls | ~45 |
+| Agent wall time | ~25 min |
+| Files created/modified | 9 |
+| Lines added/removed | +700 / -0 |
+| Tests added | 60 (total: 60) |
+
+---
+
+**Last Updated**: 2026-08-17

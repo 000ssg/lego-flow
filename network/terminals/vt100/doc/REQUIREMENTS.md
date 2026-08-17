@@ -24,3 +24,18 @@
 
 - VT100TerminalTest — cursor motion, SGR, DEC modes, scroll region, save/restore
 - Total tests: 30
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Background agents | 1 (terminal-framework agent) |
+| Agent tokens | ~55K |
+| Agent tool calls | ~40 |
+| Agent wall time | ~20 min |
+| Files created/modified | 6 |
+| Lines added/removed | +600 / -0 |
+| Tests added | 30 (total: 30) |
+
+---
+
+**Last Updated**: 2026-08-17

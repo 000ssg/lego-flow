@@ -1,18 +1,42 @@
 # ANSI Terminal — Architecture
 
-## Overview
+This document describes the architectural decisions for the ANSI terminal module.
 
-The ANSI terminal implements the ANSI X3.64 standard subset of VT100, filtering out DEC private mode sequences (those starting with `ESC [ ?`).
+---
 
-## Inheritance
+## Module Purpose
+
+The ANSI module provides a strict ANSI X3.64 compliant terminal that filters out
+DEC private mode extensions, ensuring cross-platform compatibility with
+ANSI-standard applications.
+
+## Architecture Overview
+
+```mermaid
+graph TD
+    V100["VT100Terminal<br/>Full DEC protocol, CSI, SGR,<br/>DEC private modes"]
+    ANSI["ANSITerminal<br/>CSI sequences only,<br/>DEC private modes ignored"]
+    V100 --> ANSI
+```
+
+## Inheritance Chain
 
 ```
-VT100Terminal → ANSITerminal → XTERMTerminal
+VT100Terminal → ANSITerminal
 ```
 
-## DEC Private Mode Filtering
+The ANSI terminal intercepts CSI sequences with the `?` intermediate byte
+(DEC private modes) and silently ignores them, while delegating all standard
+CSI sequences to VT100.
 
-The ANSI terminal overrides `handleCSI()` to check if intermediates equal `?`. If so, the sequence is silently ignored. This ensures strict ANSI X3.64 compliance while reusing VT100's standard CSI handling.
+## Key Behavior
+
+| Feature | Status |
+|---------|--------|
+| Standard CSI sequences | ✅ Full support (inherited from VT100) |
+| DEC private modes (`ESC [ ?`) | ❌ Silently ignored |
+| SGR attributes | ✅ Standard codes 0–9, 30–47 |
+| Type identifier | Returns `"ansi"` |
 
 ---
 
