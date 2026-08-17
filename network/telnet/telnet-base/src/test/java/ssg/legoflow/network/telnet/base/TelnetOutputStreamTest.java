@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class TelnetOutputStreamTest {
 
     @Test
-    void plainTextPassthrough() throws IOException {
+    void testPlainTextPassthrough() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (TelnetOutputStream out = new TelnetOutputStream(baos)) {
             out.write("hello".getBytes());
@@ -19,7 +19,7 @@ class TelnetOutputStreamTest {
     }
 
     @Test
-    void escapesIac() throws IOException {
+    void testEscapesIac() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (TelnetOutputStream out = new TelnetOutputStream(baos)) {
             out.write(new byte[]{0x61, (byte) 0xFF, 0x62});
@@ -29,7 +29,7 @@ class TelnetOutputStreamTest {
     }
 
     @Test
-    void writeSingleByte() throws IOException {
+    void testWriteSingleByte() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (TelnetOutputStream out = new TelnetOutputStream(baos)) {
             out.write('a');
@@ -38,7 +38,7 @@ class TelnetOutputStreamTest {
     }
 
     @Test
-    void writeSingleIacByte() throws IOException {
+    void testWriteSingleIacByte() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (TelnetOutputStream out = new TelnetOutputStream(baos)) {
             out.write(0xFF);
@@ -48,7 +48,7 @@ class TelnetOutputStreamTest {
     }
 
     @Test
-    void sendCommand() throws IOException {
+    void testSendCommand() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (TelnetOutputStream out = new TelnetOutputStream(baos)) {
             out.sendCommand(TelnetCommand.AYT);
@@ -58,7 +58,7 @@ class TelnetOutputStreamTest {
     }
 
     @Test
-    void sendNegotiate() throws IOException {
+    void testSendNegotiate() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (TelnetOutputStream out = new TelnetOutputStream(baos)) {
             out.sendNegotiate(TelnetCommand.DO, 1);
@@ -68,7 +68,7 @@ class TelnetOutputStreamTest {
     }
 
     @Test
-    void sendSubnegotiation() throws IOException {
+    void testSendSubnegotiation() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (TelnetOutputStream out = new TelnetOutputStream(baos)) {
             out.sendSubnegotiation(24, "xterm\0".getBytes());
@@ -82,7 +82,7 @@ class TelnetOutputStreamTest {
     }
 
     @Test
-    void writeWithOffset() throws IOException {
+    void testWriteWithOffset() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (TelnetOutputStream out = new TelnetOutputStream(baos)) {
             byte[] data = "abcdef".getBytes();
@@ -92,7 +92,7 @@ class TelnetOutputStreamTest {
     }
 
     @Test
-    void writeIntLoop() throws IOException {
+    void testWriteIntLoop() throws IOException {
         // Verify write(byte[]) uses write(int) loop correctly
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (TelnetOutputStream out = new TelnetOutputStream(baos)) {

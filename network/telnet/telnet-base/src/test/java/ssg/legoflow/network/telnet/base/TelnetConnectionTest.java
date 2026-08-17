@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class TelnetConnectionTest {
 
     @Test
-    void sendPlainText() {
+    void testSendPlainText() {
         List<byte[]> written = new ArrayList<>();
         TelnetConnection conn = TelnetConnection.builder()
                 .writer(written::add)
@@ -25,7 +25,7 @@ class TelnetConnectionTest {
     }
 
     @Test
-    void sendEscapesIac() {
+    void testSendEscapesIac() {
         List<byte[]> written = new ArrayList<>();
         TelnetConnection conn = TelnetConnection.builder()
                 .writer(written::add)
@@ -38,7 +38,7 @@ class TelnetConnectionTest {
     }
 
     @Test
-    void receivePlainText() {
+    void testReceivePlainText() {
         List<byte[]> received = new ArrayList<>();
         TelnetConnection conn = TelnetConnection.builder()
                 .writer(data -> {})
@@ -52,7 +52,7 @@ class TelnetConnectionTest {
     }
 
     @Test
-    void receiveEscapedIac() {
+    void testReceiveEscapedIac() {
         List<byte[]> received = new ArrayList<>();
         TelnetConnection conn = TelnetConnection.builder()
                 .writer(data -> {})
@@ -71,7 +71,7 @@ class TelnetConnectionTest {
     }
 
     @Test
-    void receiveNegotiation() {
+    void testReceiveNegotiation() {
         List<TelnetCommand> cmds = new ArrayList<>();
         List<Integer> options = new ArrayList<>();
         TelnetConnection conn = TelnetConnection.builder()
@@ -88,7 +88,7 @@ class TelnetConnectionTest {
     }
 
     @Test
-    void receiveCommand() {
+    void testReceiveCommand() {
         List<TelnetCommand> cmds = new ArrayList<>();
         TelnetConnection conn = TelnetConnection.builder()
                 .writer(data -> {})
@@ -100,7 +100,7 @@ class TelnetConnectionTest {
     }
 
     @Test
-    void receiveSubnegotiation() {
+    void testReceiveSubnegotiation() {
         List<TelnetConnection.SubnegotiationEvent> events = new ArrayList<>();
         TelnetConnection conn = TelnetConnection.builder()
                 .writer(data -> {})
@@ -118,7 +118,7 @@ class TelnetConnectionTest {
     }
 
     @Test
-    void sendCommand() {
+    void testSendCommand() {
         List<byte[]> written = new ArrayList<>();
         TelnetConnection conn = TelnetConnection.builder()
                 .writer(written::add)
@@ -130,7 +130,7 @@ class TelnetConnectionTest {
     }
 
     @Test
-    void sendNegotiate() {
+    void testSendNegotiate() {
         List<byte[]> written = new ArrayList<>();
         TelnetConnection conn = TelnetConnection.builder()
                 .writer(written::add)
@@ -142,7 +142,7 @@ class TelnetConnectionTest {
     }
 
     @Test
-    void sendNegotiateRejectsSingleByteCommand() {
+    void testSendNegotiateRejectsSingleByteCommand() {
         TelnetConnection conn = TelnetConnection.builder()
                 .writer(data -> {})
                 .build();
@@ -152,7 +152,7 @@ class TelnetConnectionTest {
     }
 
     @Test
-    void sendCommandRejectsNegotiationCommand() {
+    void testSendCommandRejectsNegotiationCommand() {
         TelnetConnection conn = TelnetConnection.builder()
                 .writer(data -> {})
                 .build();
@@ -162,7 +162,7 @@ class TelnetConnectionTest {
     }
 
     @Test
-    void sendSubnegotiation() {
+    void testSendSubnegotiation() {
         List<byte[]> written = new ArrayList<>();
         TelnetConnection conn = TelnetConnection.builder()
                 .writer(written::add)
@@ -179,7 +179,7 @@ class TelnetConnectionTest {
     }
 
     @Test
-    void roundTrip() {
+    void testRoundTrip() {
         List<byte[]> serverToClient = new ArrayList<>();
         
         TelnetConnection client = TelnetConnection.builder()
@@ -193,7 +193,7 @@ class TelnetConnectionTest {
     }
 
     @Test
-    void onDataCallbackWithLatch() throws InterruptedException {
+    void testOnDataCallbackWithLatch() throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
         List<byte[]> received = new ArrayList<>();
         TelnetConnection conn = TelnetConnection.builder()
@@ -214,7 +214,7 @@ class TelnetConnectionTest {
     }
 
     @Test
-    void escapeIacUtility() {
+    void testEscapeIacUtility() {
         byte[] input = new byte[]{0x01, (byte) 0xFF, 0x02, (byte) 0xFF, 0x03};
         byte[] escaped = TelnetConnection.escapeIac(input);
         assertThat(escaped)
@@ -223,7 +223,7 @@ class TelnetConnectionTest {
     }
 
     @Test
-    void escapeIacNoIacPresent() {
+    void testEscapeIacNoIacPresent() {
         byte[] input = "hello".getBytes();
         byte[] escaped = TelnetConnection.escapeIac(input);
         assertThat(escaped).isEqualTo(input);

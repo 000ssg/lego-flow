@@ -16,24 +16,24 @@ class VT100TerminalTest {
     }
 
     @Test
-    void type() {
+    void testType() {
         assertThat(terminal.type()).isEqualTo("vt100");
     }
 
     @Test
-    void colorSupport() {
+    void testColorSupport() {
         assertThat(terminal.supportsColor()).isTrue();
     }
 
     @Test
-    void feedText() {
+    void testFeedText() {
         terminal.feed("Hello VT100");
         var lines = terminal.render();
         assertThat(lines.get(0)).startsWith("Hello VT100");
     }
 
     @Test
-    void cursorUp() {
+    void testCursorUp() {
         terminal.feed("\u001B[3;10H");
         terminal.feed("\u001B[2A");
         assertThat(terminal.cursor().row()).isEqualTo(1);
@@ -41,41 +41,41 @@ class VT100TerminalTest {
     }
 
     @Test
-    void cursorDown() {
+    void testCursorDown() {
         terminal.feed("\u001B[3;5H");  // Go to row 3
         terminal.feed("\u001B[5B");      // Down 5
         assertThat(terminal.cursor().row()).isEqualTo(8);
     }
 
     @Test
-    void cursorForward() {
+    void testCursorForward() {
         terminal.feed("\u001B[5C");
         assertThat(terminal.cursor().col()).isEqualTo(6);
     }
 
     @Test
-    void cursorBack() {
+    void testCursorBack() {
         terminal.feed("\u001B[10G");     // CHA — horizontal absolute, col 10
         terminal.feed("\u001B[3D");       // CUB — back 3
         assertThat(terminal.cursor().col()).isEqualTo(7);
     }
 
     @Test
-    void cursorPosition() {
+    void testCursorPosition() {
         terminal.feed("\u001B[10;20H");
         assertThat(terminal.cursor().row()).isEqualTo(10);
         assertThat(terminal.cursor().col()).isEqualTo(20);
     }
 
     @Test
-    void cursorPositionDefaultParams() {
+    void testCursorPositionDefaultParams() {
         terminal.feed("\u001B[H");
         assertThat(terminal.cursor().row()).isEqualTo(1);
         assertThat(terminal.cursor().col()).isEqualTo(1);
     }
 
     @Test
-    void eraseDisplayMode0() {
+    void testEraseDisplayMode0() {
         terminal.feed("Hello");
         terminal.feed("\u001B[10;5H");
         terminal.feed("\u001B[J");
@@ -83,7 +83,7 @@ class VT100TerminalTest {
     }
 
     @Test
-    void eraseLineMode2() {
+    void testEraseLineMode2() {
         terminal.feed("Hello World");
         terminal.feed("\u001B[2K");
         var lines = terminal.render();
@@ -91,34 +91,34 @@ class VT100TerminalTest {
     }
 
     @Test
-    void sgrBold() {
+    void testSgrBold() {
         terminal.feed("\u001B[1m");
         assertThat(terminal.currentAttr().bold()).isTrue();
     }
 
     @Test
-    void sgrUnderline() {
+    void testSgrUnderline() {
         terminal.feed("\u001B[4m");
         assertThat(terminal.currentAttr().underline()).isEqualTo(
                 ssg.legoflow.network.terminals.base.display.TermAttr.UNDERLINE_SINGLE);
     }
 
     @Test
-    void sgrForegroundColor() {
+    void testSgrForegroundColor() {
         terminal.feed("\u001B[31m");
         assertThat(terminal.currentAttr().foreground()).isEqualTo(
                 ssg.legoflow.network.terminals.base.display.TermAttr.RED);
     }
 
     @Test
-    void sgrBackgroundColor() {
+    void testSgrBackgroundColor() {
         terminal.feed("\u001B[44m");
         assertThat(terminal.currentAttr().background()).isEqualTo(
                 ssg.legoflow.network.terminals.base.display.TermAttr.BLUE);
     }
 
     @Test
-    void sgrReset() {
+    void testSgrReset() {
         terminal.feed("\u001B[1m\u001B[31m");
         assertThat(terminal.currentAttr().bold()).isTrue();
         terminal.feed("\u001B[0m");
@@ -127,7 +127,7 @@ class VT100TerminalTest {
     }
 
     @Test
-    void sgrMultipleCodes() {
+    void testSgrMultipleCodes() {
         terminal.feed("\u001B[1;31;42m");
         var attr = terminal.currentAttr();
         assertThat(attr.bold()).isTrue();
@@ -138,7 +138,7 @@ class VT100TerminalTest {
     }
 
     @Test
-    void originMode() {
+    void testOriginMode() {
         terminal.feed("\u001B[?6h");  // DECSET origin mode
         terminal.feed("\u001B[20;5r"); // Scroll region 20-5 (top=20, bottom=5 is wrong)
         // Actually DECSTBM is ESC [ Pt ; Pb r — top must be <= bottom
@@ -153,7 +153,7 @@ class VT100TerminalTest {
     }
 
     @Test
-    void originModeWithScrollRegion() {
+    void testOriginModeWithScrollRegion() {
         terminal.feed("\u001B[5;15r");  // Scroll region 5-15
         terminal.feed("\u001B[?6h");     // DECSET origin mode
         terminal.feed("\u001B[1;1H");    // CUP(1,1) → actual row 5, col 1
@@ -164,7 +164,7 @@ class VT100TerminalTest {
     }
 
     @Test
-    void decrstOriginMode() {
+    void testDecrstOriginMode() {
         terminal.feed("\u001B[?6h");
         terminal.feed("\u001B[?6l");
         terminal.feed("\u001B[5;5H");
@@ -172,7 +172,7 @@ class VT100TerminalTest {
     }
 
     @Test
-    void cursorSaveRestore() {
+    void testCursorSaveRestore() {
         terminal.feed("Hello");
         terminal.feed("\u001B[s");  // DECSC — save cursor
         assertThat(terminal.cursor().col()).isEqualTo(6);
@@ -183,21 +183,21 @@ class VT100TerminalTest {
     }
 
     @Test
-    void insertLines() {
+    void testInsertLines() {
         terminal.feed("\u001B[2;1H");
         terminal.feed("\u001B[2L");
         // 2 lines inserted at row 2
     }
 
     @Test
-    void deleteLines() {
+    void testDeleteLines() {
         terminal.feed("\u001B[2;1H");
         terminal.feed("\u001B[2M");
         // 2 lines deleted at row 2
     }
 
     @Test
-    void reset() {
+    void testReset() {
         terminal.feed("\u001B[1m");
         terminal.reset();
         assertThat(terminal.currentAttr()).isEqualTo(
@@ -205,13 +205,13 @@ class VT100TerminalTest {
     }
 
     @Test
-    void oscTitle() {
+    void testOscTitle() {
         terminal.feed("\u001B]0;My Title\u0007");
         assertThat(terminal.title()).isEqualTo("My Title");
     }
 
     @Test
-    void carriageReturn() {
+    void testCarriageReturn() {
         terminal.feed("Hello");
         terminal.feed("\r");
         assertThat(terminal.cursor().col()).isEqualTo(1);
@@ -219,27 +219,27 @@ class VT100TerminalTest {
     }
 
     @Test
-    void lineFeed() {
+    void testLineFeed() {
         terminal.feed("\n");
         assertThat(terminal.cursor().row()).isEqualTo(2);
     }
 
     @Test
-    void backspace() {
+    void testBackspace() {
         terminal.feed("Hello");
         terminal.feed("\b");
         assertThat(terminal.cursor().col()).isEqualTo(5);
     }
 
     @Test
-    void scrollRegion() {
+    void testScrollRegion() {
         terminal.feed("\u001B[5;15r");
         assertThat(terminal.displayModel().screen().scrollTop()).isEqualTo(5);
         assertThat(terminal.displayModel().screen().scrollBottom()).isEqualTo(15);
     }
 
     @Test
-    void repeatPreceding() {
+    void testRepeatPreceding() {
         terminal.feed("X");
         terminal.feed("\u001B[3b");  // Repeat preceding 3 times
         var lines = terminal.render();

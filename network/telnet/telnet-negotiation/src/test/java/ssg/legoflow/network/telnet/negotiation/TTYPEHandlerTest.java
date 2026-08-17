@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class TTYPEHandlerTest {
 
     @Test
-    void handleSendRequest() {
+    void testHandleSendRequest() {
         TTYPEHandler handler = TTYPEHandler.localType("xterm");
         byte[] response = handler.handle(List.of(TTYPEHandler.SEND));
 
@@ -25,7 +25,7 @@ class TTYPEHandlerTest {
     }
 
     @Test
-    void handleIsRequest() {
+    void testHandleIsRequest() {
         List<Integer> data = new ArrayList<>();
         data.add(TTYPEHandler.IS);
         data.add((int) 'v');
@@ -45,7 +45,7 @@ class TTYPEHandlerTest {
     }
 
     @Test
-    void handleIsWithoutNullTerminator() {
+    void testHandleIsWithoutNullTerminator() {
         List<Integer> data = List.of(TTYPEHandler.IS, (int)'a', (int)'n', (int)'s', (int)'i');
 
         List<String> received = new ArrayList<>();
@@ -57,13 +57,13 @@ class TTYPEHandlerTest {
     }
 
     @Test
-    void handleEmptyData() {
+    void testHandleEmptyData() {
         TTYPEHandler handler = TTYPEHandler.localType("xterm");
         assertThat(handler.handle(List.of())).isNull();
     }
 
     @Test
-    void handleUnknownSuboption() {
+    void testHandleUnknownSuboption() {
         TTYPEHandler handler = TTYPEHandler.localType("xterm");
         assertThat(handler.handle(List.of(99))).isNull();
     }

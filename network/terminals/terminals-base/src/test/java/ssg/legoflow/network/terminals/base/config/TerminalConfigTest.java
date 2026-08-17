@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.*;
 class TerminalConfigTest {
 
     @Test
-    void defaultConfig() {
+    void testDefaultConfig() {
         TerminalConfig config = TerminalConfig.builder().build();
         assertThat(config.rows()).isEqualTo(24);
         assertThat(config.cols()).isEqualTo(80);
@@ -18,7 +18,7 @@ class TerminalConfigTest {
     }
 
     @Test
-    void customConfig() {
+    void testCustomConfig() {
         TerminalConfig config = TerminalConfig.builder()
                 .rows(43)
                 .cols(132)
@@ -40,31 +40,31 @@ class TerminalConfigTest {
     }
 
     @Test
-    void invalidRows() {
+    void testInvalidRows() {
         assertThatThrownBy(() -> TerminalConfig.builder().rows(0).build())
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
-    void invalidCols() {
+    void testInvalidCols() {
         assertThatThrownBy(() -> TerminalConfig.builder().cols(0).build())
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
-    void invalidScrollHistory() {
+    void testInvalidScrollHistory() {
         assertThatThrownBy(() -> TerminalConfig.builder().scrollHistory(-1).build())
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
-    void nullTitleDefaultsToEmpty() {
+    void testNullTitleDefaultsToEmpty() {
         TerminalConfig config = TerminalConfig.builder().title(null).build();
         assertThat(config.title()).isEmpty();
     }
 
     @Test
-    void equality() {
+    void testEquality() {
         TerminalConfig a = TerminalConfig.builder().rows(24).cols(80).build();
         TerminalConfig b = TerminalConfig.builder().rows(24).cols(80).build();
         TerminalConfig c = TerminalConfig.builder().rows(43).cols(132).build();
@@ -75,7 +75,7 @@ class TerminalConfigTest {
     }
 
     @Test
-    void toStringContainsKeyFields() {
+    void testToStringContainsKeyFields() {
         TerminalConfig config = TerminalConfig.builder().rows(43).cols(132).title("test").build();
         String s = config.toString();
         assertThat(s).contains("rows=43");

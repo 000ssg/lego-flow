@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CursorTest {
 
     @Test
-    void initialPosition() {
+    void testInitialPosition() {
         Cursor c = new Cursor(1, 1);
         assertThat(c.row()).isEqualTo(1);
         assertThat(c.col()).isEqualTo(1);
@@ -14,7 +14,7 @@ class CursorTest {
     }
 
     @Test
-    void setPosition() {
+    void testSetPosition() {
         Cursor c = new Cursor(1, 1);
         c.setPos(5, 10);
         assertThat(c.row()).isEqualTo(5);
@@ -22,7 +22,7 @@ class CursorTest {
     }
 
     @Test
-    void up() {
+    void testUp() {
         Cursor c = new Cursor(10, 5);
         c.up(3);
         assertThat(c.row()).isEqualTo(7);
@@ -31,28 +31,28 @@ class CursorTest {
     }
 
     @Test
-    void down() {
+    void testDown() {
         Cursor c = new Cursor(1, 5);
         c.down(3);
         assertThat(c.row()).isEqualTo(4);
     }
 
     @Test
-    void forward() {
+    void testForward() {
         Cursor c = new Cursor(1, 1);
         c.forward(5);
         assertThat(c.col()).isEqualTo(6);
     }
 
     @Test
-    void backClampsToOne() {
+    void testBackClampsToOne() {
         Cursor c = new Cursor(1, 3);
         c.back(10);
         assertThat(c.col()).isEqualTo(1);
     }
 
     @Test
-    void visibility() {
+    void testVisibility() {
         Cursor c = new Cursor(1, 1);
         assertThat(c.visible()).isTrue();
         c.hide();
@@ -64,7 +64,7 @@ class CursorTest {
     }
 
     @Test
-    void cloneCreatesCopy() {
+    void testCloneCreatesCopy() {
         Cursor original = new Cursor(5, 10);
         original.hide();
         Cursor copy = original.clone();

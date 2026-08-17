@@ -4,7 +4,7 @@
 [![Java](https://img.shields.io/badge/Java-25+-orange.svg)](https://www.oracle.com/java/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-11230-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-11505-brightgreen.svg)]()
 [![Version](https://img.shields.io/badge/Version-0.2.0-SNAPSHOT-blue.svg)]()
 
 A composable data processing framework for Java built on JDK 25, providing layered abstractions from low-level data blocks to high-level protocol implementations.
@@ -75,6 +75,8 @@ graph TD
         snmp["snmp<br/><small>SNMP v3</small>"]
         syslog["syslog<br/><small>RFC 5424</small>"]
         modbus["modbus<br/><small>Modbus TCP</small>"]
+        terminals["terminals<br/><small>VT52, VT100-500, ANSI, XTERM</small>"]
+        telnet["telnet<br/><small>RFC 854, option negotiation</small>"]
         ssh["ssh<br/><small>SSH-2 RFC 4251-4256</small>"]
         ftp["ftp<br/><small>FTP/FTPS RFC 959</small>"]
     end
@@ -164,6 +166,8 @@ flowchart LR
     service --> snmp
     service --> syslog
     service --> modbus
+    service --> terminals
+    service --> telnet
     service --> clustercore[cluster/core]
     clustercore --> clusterdisc[cluster/discovery]
     clusterdisc --> dns2
@@ -214,6 +218,8 @@ flowchart LR
 | **network** | snmp | lego-flow-snmp | SNMP v3 (RFC 3411-3418): USM security, traps, bulk operations |
 | **network** | syslog | lego-flow-syslog | Syslog (RFC 5424): structured messages, UDP/TCP/TLS transport |
 | **network** | modbus | lego-flow-modbus | Modbus TCP: function codes, MBAP framing, client + server |
+| **network** | terminals | lego-flow-terminals-* | Terminal emulation: VT52, VT100-500, ANSI, XTERM, display model, escape parser |
+| **network** | telnet | lego-flow-telnet-* | Telnet protocol (RFC 854): parser, option negotiation (RFC 855), gateway |
 | **network** | ssh | lego-flow-ssh | SSH-2 (RFC 4251-4256): transport, auth, channels, SFTP, SCP |
 | **network** | ftp | lego-flow-ftp | FTP/FTPS (RFC 959, RFC 4217): client + server, TLS |
 | **network** | cluster/core | lego-flow-cluster-core | Cluster membership, events, lifecycle, consistent hashing |
@@ -639,6 +645,19 @@ See [Cluster Master Plan](network/cluster/doc/plan/master.md) for detailed phase
 - **ldap/** — [README](network/ldap/README.md) | [Architecture](network/ldap/doc/ARCHITECTURE.md) | [Requirements](network/ldap/doc/REQUIREMENTS.md) | [Compliance](network/ldap/doc/COMPLIANCE.md)
 - **snmp/** — [README](network/snmp/README.md) | [Architecture](network/snmp/doc/ARCHITECTURE.md) | [Requirements](network/snmp/doc/REQUIREMENTS.md) | [Compliance](network/snmp/doc/COMPLIANCE.md)
 - **syslog/** — [README](network/syslog/README.md) | [Architecture](network/syslog/doc/ARCHITECTURE.md) | [Requirements](network/syslog/doc/REQUIREMENTS.md) | [Compliance](network/syslog/COMPLIANCE.md)
+- **terminals/** — [README](network/terminals/README.md)
+  - **terminals-base/** — [README](network/terminals/terminals-base/README.md) | [Architecture](network/terminals/terminals-base/doc/ARCHITECTURE.md) | [Requirements](network/terminals/terminals-base/doc/REQUIREMENTS.md)
+  - **vt52/** — [README](network/terminals/vt52/README.md) | [Architecture](network/terminals/vt52/doc/ARCHITECTURE.md) | [Requirements](network/terminals/vt52/doc/REQUIREMENTS.md)
+  - **vt100/** — [README](network/terminals/vt100/README.md) | [Architecture](network/terminals/vt100/doc/ARCHITECTURE.md) | [Requirements](network/terminals/vt100/doc/REQUIREMENTS.md)
+  - **vt200/** — [README](network/terminals/vt200/README.md) | [Architecture](network/terminals/vt200/doc/ARCHITECTURE.md) | [Requirements](network/terminals/vt200/doc/REQUIREMENTS.md)
+  - **vt400/** — [README](network/terminals/vt400/README.md) | [Architecture](network/terminals/vt400/doc/ARCHITECTURE.md) | [Requirements](network/terminals/vt400/doc/REQUIREMENTS.md)
+  - **vt500/** — [README](network/terminals/vt500/README.md) | [Architecture](network/terminals/vt500/doc/ARCHITECTURE.md) | [Requirements](network/terminals/vt500/doc/REQUIREMENTS.md)
+  - **ansi/** — [README](network/terminals/ansi/README.md) | [Architecture](network/terminals/ansi/doc/ARCHITECTURE.md) | [Requirements](network/terminals/ansi/doc/REQUIREMENTS.md)
+  - **xterm/** — [README](network/terminals/xterm/README.md) | [Architecture](network/terminals/xterm/doc/ARCHITECTURE.md) | [Requirements](network/terminals/xterm/doc/REQUIREMENTS.md)
+- **telnet/** — [README](network/telnet/README.md)
+  - **telnet-base/** — [README](network/telnet/telnet-base/README.md) | [Architecture](network/telnet/telnet-base/doc/ARCHITECTURE.md) | [Requirements](network/telnet/telnet-base/doc/REQUIREMENTS.md) | [Compliance](network/telnet/telnet-base/doc/COMPLIANCE.md)
+  - **telnet-negotiation/** — [README](network/telnet/telnet-negotiation/README.md) | [Architecture](network/telnet/telnet-negotiation/doc/ARCHITECTURE.md) | [Requirements](network/telnet/telnet-negotiation/doc/REQUIREMENTS.md) | [Compliance](network/telnet/telnet-negotiation/doc/COMPLIANCE.md)
+  - **telnet-gateway/** — [README](network/telnet/telnet-gateway/README.md) | [Architecture](network/telnet/telnet-gateway/doc/ARCHITECTURE.md) | [Requirements](network/telnet/telnet-gateway/doc/REQUIREMENTS.md)
 - **modbus/** — [README](network/modbus/README.md) | [Architecture](network/modbus/doc/ARCHITECTURE.md) | [Requirements](network/modbus/doc/REQUIREMENTS.md) | [Compliance](network/modbus/doc/COMPLIANCE.md)
 - **ssh/** — [README](network/ssh/README.md) | [Architecture](network/ssh/doc/ARCHITECTURE.md) | [Requirements](network/ssh/doc/REQUIREMENTS.md) | [Compliance](network/ssh/doc/COMPLIANCE.md)
 - **ftp/** — [README](network/ftp/README.md) | [Architecture](network/ftp/doc/ARCHITECTURE.md) | [Requirements](network/ftp/doc/REQUIREMENTS.md) | [Compliance](network/ftp/doc/COMPLIANCE.md)

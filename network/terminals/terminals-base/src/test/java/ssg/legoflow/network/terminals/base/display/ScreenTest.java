@@ -10,14 +10,14 @@ class ScreenTest {
     }
 
     @Test
-    void defaultCursorAtHome() {
+    void testDefaultCursorAtHome() {
         Screen s = createScreen();
         assertThat(s.cursor().row()).isEqualTo(1);
         assertThat(s.cursor().col()).isEqualTo(1);
     }
 
     @Test
-    void putCharacter() {
+    void testPutCharacter() {
         Screen s = createScreen();
         s.put(new Character('H', TermAttr.DEFAULT));
         Character cell = s.at(1, 1);
@@ -26,7 +26,7 @@ class ScreenTest {
     }
 
     @Test
-    void putAtRightEdgeSetsWrapPending() {
+    void testPutAtRightEdgeSetsWrapPending() {
         Screen s = new Screen(2, 3, 0);
         for (int i = 0; i < 3; i++) {
             s.put(new Character('X', TermAttr.DEFAULT));
@@ -45,7 +45,7 @@ class ScreenTest {
     }
 
     @Test
-    void scrollDown() {
+    void testScrollDown() {
         Screen s = new Screen(3, 5, 10);
         // Fill all rows
         for (int r = 0; r < 3; r++) {
@@ -58,7 +58,7 @@ class ScreenTest {
     }
 
     @Test
-    void scrollUp() {
+    void testScrollUp() {
         Screen s = new Screen(3, 5, 10);
         for (int r = 0; r < 3; r++) {
             s.cursor().setPos(r + 1, 1);
@@ -70,7 +70,7 @@ class ScreenTest {
     }
 
     @Test
-    void scrollRegion() {
+    void testScrollRegion() {
         Screen s = createScreen();
         s.setScrollRegion(5, 20);
         assertThat(s.scrollTop()).isEqualTo(5);
@@ -78,7 +78,7 @@ class ScreenTest {
     }
 
     @Test
-    void insertLines() {
+    void testInsertLines() {
         Screen s = new Screen(3, 5, 0);
         s.setScrollRegion(1, 3);
         for (int i = 0; i < 3; i++) {
@@ -95,7 +95,7 @@ class ScreenTest {
     }
 
     @Test
-    void deleteLines() {
+    void testDeleteLines() {
         Screen s = new Screen(3, 5, 0);
         s.setScrollRegion(1, 3);
         for (int i = 0; i < 3; i++) {
@@ -109,7 +109,7 @@ class ScreenTest {
     }
 
     @Test
-    void clear() {
+    void testClear() {
         Screen s = createScreen();
         s.put(new Character('X', TermAttr.DEFAULT));
         s.clear();
@@ -117,7 +117,7 @@ class ScreenTest {
     }
 
     @Test
-    void renderAll() {
+    void testRenderAll() {
         Screen s = new Screen(3, 5, 0);
         s.put(new Character('H', TermAttr.DEFAULT));
         var lines = s.renderAll();
@@ -126,7 +126,7 @@ class ScreenTest {
     }
 
     @Test
-    void invalidConstructorThrows() {
+    void testInvalidConstructorThrows() {
         assertThatThrownBy(() -> new Screen(0, 80, 0)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new Screen(24, 0, 0)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new Screen(24, 80, -1)).isInstanceOf(IllegalArgumentException.class);

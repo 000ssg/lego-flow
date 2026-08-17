@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class NAWSHandlerTest {
 
     @Test
-    void handleStandardSize() {
+    void testHandleStandardSize() {
         List<Integer> data = List.of(0, 80, 0, 24);
 
         List<int[]> received = new ArrayList<>();
@@ -24,7 +24,7 @@ class NAWSHandlerTest {
     }
 
     @Test
-    void handleLargeSize() {
+    void testHandleLargeSize() {
         List<Integer> data = List.of(7, 128, 4, 56);
 
         List<int[]> received = new ArrayList<>();
@@ -36,7 +36,7 @@ class NAWSHandlerTest {
     }
 
     @Test
-    void handleTooShortData() {
+    void testHandleTooShortData() {
         List<int[]> received = new ArrayList<>();
         NAWSHandler handler = NAWSHandler.localSize(80, 24)
                 .onRemoteSize((cols, rows) -> received.add(new int[]{cols, rows}));
@@ -46,7 +46,7 @@ class NAWSHandlerTest {
     }
 
     @Test
-    void handleInvalidSize() {
+    void testHandleInvalidSize() {
         List<int[]> received = new ArrayList<>();
         NAWSHandler handler = NAWSHandler.localSize(80, 24)
                 .onRemoteSize((cols, rows) -> received.add(new int[]{cols, rows}));
@@ -56,7 +56,7 @@ class NAWSHandlerTest {
     }
 
     @Test
-    void windowSizeValidation() {
+    void testWindowSizeValidation() {
         assertThatThrownBy(() -> new NAWSHandler.WindowSize(0, 24))
                 .isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new NAWSHandler.WindowSize(80, 0))

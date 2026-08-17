@@ -17,19 +17,19 @@ class VT200TerminalTest {
     }
 
     @Test
-    void type() {
+    void testType() {
         assertThat(terminal.type()).isEqualTo("vt200");
     }
 
     @Test
-    void inheritsVt100Features() {
+    void testInheritsVt100Features() {
         terminal.feed("Hello");
         var lines = terminal.render();
         assertThat(lines.get(0)).startsWith("Hello");
     }
 
     @Test
-    void videoReverse() {
+    void testVideoReverse() {
         assertThat(terminal.isVideoReverse()).isFalse();
         terminal.feed("\u001B[52m");
         assertThat(terminal.isVideoReverse()).isTrue();
@@ -38,20 +38,20 @@ class VT200TerminalTest {
     }
 
     @Test
-    void cursorPosition() {
+    void testCursorPosition() {
         terminal.feed("\u001B[5;10H");
         assertThat(terminal.cursor().row()).isEqualTo(5);
         assertThat(terminal.cursor().col()).isEqualTo(10);
     }
 
     @Test
-    void sgrBold() {
+    void testSgrBold() {
         terminal.feed("\u001B[1m");
         assertThat(terminal.currentAttr().bold()).isTrue();
     }
 
     @Test
-    void reset() {
+    void testReset() {
         terminal.feed("\u001B[52m");
         terminal.reset();
         assertThat(terminal.isVideoReverse()).isFalse();

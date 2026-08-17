@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.*;
 class EscapeParserTest {
 
     @Test
-    void plainTextPassthrough() {
+    void testPlainTextPassthrough() {
         boolean[] captured = {false};
         EscapeParser parser = new EscapeParser(params -> captured[0] = true);
         parser.feed("Hello World");
@@ -14,7 +14,7 @@ class EscapeParserTest {
     }
 
     @Test
-    void simpleCsiSequence() {
+    void testSimpleCsiSequence() {
         CSIParams[] result = {null};
         EscapeParser parser = new EscapeParser(params -> result[0] = params);
         parser.feed("\u001B[2;10H");
@@ -25,7 +25,7 @@ class EscapeParserTest {
     }
 
     @Test
-    void csiNoParams() {
+    void testCsiNoParams() {
         CSIParams[] result = {null};
         EscapeParser parser = new EscapeParser(params -> result[0] = params);
         parser.feed("\u001B[J");
@@ -35,7 +35,7 @@ class EscapeParserTest {
     }
 
     @Test
-    void csiSingleParam() {
+    void testCsiSingleParam() {
         CSIParams[] result = {null};
         EscapeParser parser = new EscapeParser(params -> result[0] = params);
         parser.feed("\u001B[32m");
@@ -45,7 +45,7 @@ class EscapeParserTest {
     }
 
     @Test
-    void csiMultipleParams() {
+    void testCsiMultipleParams() {
         CSIParams[] result = {null};
         EscapeParser parser = new EscapeParser(params -> result[0] = params);
         parser.feed("\u001B[38;5;196m");
@@ -56,7 +56,7 @@ class EscapeParserTest {
     }
 
     @Test
-    void oscSequence() {
+    void testOscSequence() {
         String[] result = {null};
         EscapeParser parser = new EscapeParser(new EscapeParser.SequenceHandler() {
             @Override public void handleCSI(CSIParams p) {}
@@ -67,7 +67,7 @@ class EscapeParserTest {
     }
 
     @Test
-    void oscWithStTerminator() {
+    void testOscWithStTerminator() {
         String[] result = {null};
         EscapeParser parser = new EscapeParser(new EscapeParser.SequenceHandler() {
             @Override public void handleCSI(CSIParams p) {}
@@ -78,7 +78,7 @@ class EscapeParserTest {
     }
 
     @Test
-    void incompleteSequenceDiscardedOnReset() {
+    void testIncompleteSequenceDiscardedOnReset() {
         EscapeParser parser = new EscapeParser(p -> {});
         parser.feed('\u001B');
         parser.feed('[');
@@ -87,7 +87,7 @@ class EscapeParserTest {
     }
 
     @Test
-    void midSequenceDetection() {
+    void testMidSequenceDetection() {
         EscapeParser parser = new EscapeParser(p -> {});
         parser.feed('\u001B');
         assertThat(parser.currentState()).isEqualTo(EscapeParser.State.ESC);
@@ -97,14 +97,14 @@ class EscapeParserTest {
     }
 
     @Test
-    void escapeByteInGroundState() {
+    void testEscapeByteInGroundState() {
         EscapeParser parser = new EscapeParser(p -> {});
         parser.feed('\u001B');
         assertThat(parser.currentState()).isEqualTo(EscapeParser.State.ESC);
     }
 
     @Test
-    void bytesAfterEscNonCsi() {
+    void testBytesAfterEscNonCsi() {
         boolean[] captured = {false};
         EscapeParser parser = new EscapeParser(p -> captured[0] = true);
         parser.feed('\u001B');
@@ -114,7 +114,7 @@ class EscapeParserTest {
     }
 
     @Test
-    void feedBytesArray() {
+    void testFeedBytesArray() {
         CSIParams[] result = {null};
         EscapeParser parser = new EscapeParser(params -> result[0] = params);
         byte[] data = new byte[]{0x1B, '[', 'J'};

@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class TermAttrTest {
 
     @Test
-    void defaultAttr() {
+    void testDefaultAttr() {
         TermAttr attr = TermAttr.DEFAULT;
         assertThat(attr.foreground()).isEqualTo(TermAttr.WHITE);
         assertThat(attr.background()).isEqualTo(TermAttr.BLACK);
@@ -22,7 +22,7 @@ class TermAttrTest {
     }
 
     @Test
-    void builderWithStyles() {
+    void testBuilderWithStyles() {
         TermAttr attr = TermAttr.builder()
                 .bold(true)
                 .italic(true)
@@ -34,7 +34,7 @@ class TermAttrTest {
     }
 
     @Test
-    void builderWithColors() {
+    void testBuilderWithColors() {
         TermAttr attr = TermAttr.builder()
                 .foreground(TermAttr.RED)
                 .background(TermAttr.BLUE)
@@ -44,7 +44,7 @@ class TermAttrTest {
     }
 
     @Test
-    void builderWith256Color() {
+    void testBuilderWith256Color() {
         TermAttr attr = TermAttr.builder()
                 .foreground256(196)
                 .background256(235)
@@ -56,7 +56,7 @@ class TermAttrTest {
     }
 
     @Test
-    void builderWithTrueColor() {
+    void testBuilderWithTrueColor() {
         TermAttr attr = TermAttr.builder()
                 .foregroundRgb(0xFF0000)
                 .backgroundRgb(0x0000FF)
@@ -68,7 +68,7 @@ class TermAttrTest {
     }
 
     @Test
-    void reset() {
+    void testReset() {
         TermAttr attr = TermAttr.builder()
                 .bold(true)
                 .foreground(TermAttr.RED)
@@ -78,7 +78,7 @@ class TermAttrTest {
     }
 
     @Test
-    void toBuilder() {
+    void testToBuilder() {
         TermAttr base = TermAttr.builder().bold(true).foreground(TermAttr.GREEN).build();
         TermAttr modified = base.toBuilder().italic(true).build();
         assertThat(modified.bold()).isTrue();
@@ -87,7 +87,7 @@ class TermAttrTest {
     }
 
     @Test
-    void equality() {
+    void testEquality() {
         TermAttr a = TermAttr.builder().bold(true).foreground(TermAttr.RED).build();
         TermAttr b = TermAttr.builder().bold(true).foreground(TermAttr.RED).build();
         TermAttr c = TermAttr.builder().bold(true).foreground(TermAttr.GREEN).build();
@@ -96,13 +96,13 @@ class TermAttrTest {
     }
 
     @Test
-    void colorConstants() {
+    void testColorConstants() {
         assertThat(TermAttr.BLACK).isZero();
         assertThat(TermAttr.WHITE).isEqualTo(7);
     }
 
     @Test
-    void underlineConstants() {
+    void testUnderlineConstants() {
         assertThat(TermAttr.UNDERLINE_NONE).isZero();
         assertThat(TermAttr.UNDERLINE_SINGLE).isEqualTo(1);
     }

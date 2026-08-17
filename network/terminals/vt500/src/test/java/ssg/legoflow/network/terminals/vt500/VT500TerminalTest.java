@@ -17,37 +17,37 @@ class VT500TerminalTest {
     }
 
     @Test
-    void type() {
+    void testType() {
         assertThat(terminal.type()).isEqualTo("vt500");
     }
 
     @Test
-    void defaultCharset() {
+    void testDefaultCharset() {
         assertThat(terminal.activeCharset()).isEqualTo(CharSet.ASCII);
     }
 
     @Test
-    void setG0() {
+    void testSetG0() {
         terminal.setG0(CharSet.DEC_SPECIAL);
         terminal.selectG0();
         assertThat(terminal.activeCharset()).isEqualTo(CharSet.DEC_SPECIAL);
     }
 
     @Test
-    void setG1() {
+    void testSetG1() {
         terminal.setG1(CharSet.GERMAN);
         terminal.selectG1();
         assertThat(terminal.activeCharset()).isEqualTo(CharSet.GERMAN);
     }
 
     @Test
-    void inheritsVt400Features() {
+    void testInheritsVt400Features() {
         terminal.feed("Hello");
         assertThat(terminal.render().get(0)).startsWith("Hello");
     }
 
     @Test
-    void resetRestoresCharsets() {
+    void testResetRestoresCharsets() {
         terminal.setG0(CharSet.DEC_SPECIAL);
         terminal.selectG0();
         terminal.reset();

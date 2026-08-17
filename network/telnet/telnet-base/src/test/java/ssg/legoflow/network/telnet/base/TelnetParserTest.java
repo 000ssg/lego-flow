@@ -20,7 +20,7 @@ class TelnetParserTest {
     }
 
     @Test
-    void plainData() {
+    void testPlainData() {
         parser.feed("hello".getBytes());
         parser.flush();
         assertThat(listener.dataEvents).hasSize(1);
@@ -29,7 +29,7 @@ class TelnetParserTest {
     }
 
     @Test
-    void multipleDataChunks() {
+    void testMultipleDataChunks() {
         parser.feed("ab".getBytes());
         parser.flush();
         parser.feed("cd".getBytes());
@@ -42,7 +42,7 @@ class TelnetParserTest {
     }
 
     @Test
-    void escapedIac() {
+    void testEscapedIac() {
         // "a" IAC IAC "b" → parser flushes "a" on first IAC,
         // then accumulates [255, b] after IAC IAC escape.
         parser.feed(new byte[]{'a', (byte) 255, (byte) 255, 'b'});
@@ -57,7 +57,7 @@ class TelnetParserTest {
     }
 
     @Test
-    void iacWill() {
+    void testIacWill() {
         parser.feed(new byte[]{(byte) 255, (byte) 251, 1});
         assertThat(listener.negotiateEvents).hasSize(1);
         var evt = listener.negotiateEvents.get(0);
@@ -66,28 +66,28 @@ class TelnetParserTest {
     }
 
     @Test
-    void iacWont() {
+    void testIacWont() {
         parser.feed(new byte[]{(byte) 255, (byte) 252, 31});
         assertThat(listener.negotiateEvents.get(0).command()).isEqualTo(TelnetCommand.WONT);
         assertThat(listener.negotiateEvents.get(0).option()).isEqualTo(31);
     }
 
     @Test
-    void iacDo() {
+    void testIacDo() {
         parser.feed(new byte[]{(byte) 255, (byte) 253, 1});
         assertThat(listener.negotiateEvents.get(0).command()).isEqualTo(TelnetCommand.DO);
         assertThat(listener.negotiateEvents.get(0).option()).isEqualTo(1);
     }
 
     @Test
-    void iacDont() {
+    void testIacDont() {
         parser.feed(new byte[]{(byte) 255, (byte) 254, 31});
         assertThat(listener.negotiateEvents.get(0).command()).isEqualTo(TelnetCommand.DONT);
         assertThat(listener.negotiateEvents.get(0).option()).isEqualTo(31);
     }
 
     @Test
-    void singleByteCommands() {
+    void testSingleByteCommands() {
         for (TelnetCommand cmd : TelnetCommand.values()) {
             if (cmd.hasOption() || cmd == TelnetCommand.SB) continue;
 
@@ -100,49 +100,49 @@ class TelnetParserTest {
     }
 
     @Test
-    void nopCommand() {
+    void testNopCommand() {
         parser.feed(new byte[]{(byte) 255, (byte) 241});
         assertThat(listener.commandEvents.get(0)).isEqualTo(TelnetCommand.NOP);
     }
 
     @Test
-    void dmCommand() {
+    void testDmCommand() {
         parser.feed(new byte[]{(byte) 255, (byte) 242});
         assertThat(listener.commandEvents.get(0)).isEqualTo(TelnetCommand.DM);
     }
 
     @Test
-    void brkCommand() {
+    void testBrkCommand() {
         parser.feed(new byte[]{(byte) 255, (byte) 243});
         assertThat(listener.commandEvents.get(0)).isEqualTo(TelnetCommand.BRK);
     }
 
     @Test
-    void aytCommand() {
+    void testAytCommand() {
         parser.feed(new byte[]{(byte) 255, (byte) 246});
         assertThat(listener.commandEvents.get(0)).isEqualTo(TelnetCommand.AYT);
     }
 
     @Test
-    void gaCommand() {
+    void testGaCommand() {
         parser.feed(new byte[]{(byte) 255, (byte) 249});
         assertThat(listener.commandEvents.get(0)).isEqualTo(TelnetCommand.GA);
     }
 
     @Test
-    void ecCommand() {
+    void testEcCommand() {
         parser.feed(new byte[]{(byte) 255, (byte) 247});
         assertThat(listener.commandEvents.get(0)).isEqualTo(TelnetCommand.EC);
     }
 
     @Test
-    void elCommand() {
+    void testElCommand() {
         parser.feed(new byte[]{(byte) 255, (byte) 248});
         assertThat(listener.commandEvents.get(0)).isEqualTo(TelnetCommand.EL);
     }
 
     @Test
-    void subnegotiationBasic() {
+    void testSubnegotiationBasic() {
         parser.feed(new byte[]{
                 (byte) 255, (byte) 250, 24, 'x', 't', 't', 'y', 0,
                 (byte) 255, (byte) 240
@@ -155,7 +155,7 @@ class TelnetParserTest {
     }
 
     @Test
-    void subnegotiationEmpty() {
+    void testSubnegotiationEmpty() {
         parser.feed(new byte[]{
                 (byte) 255, (byte) 250, 31,
                 (byte) 255, (byte) 240
@@ -165,7 +165,7 @@ class TelnetParserTest {
     }
 
     @Test
-    void subnegotiationWithEscapedIac() {
+    void testSubnegotiationWithEscapedIac() {
         parser.feed(new byte[]{
                 (byte) 255, (byte) 250, 24, 'a',
                 (byte) 255, (byte) 255, 'b',
@@ -176,7 +176,7 @@ class TelnetParserTest {
     }
 
     @Test
-    void nawsSubnegotiation() {
+    void testNawsSubnegotiation() {
         parser.feed(new byte[]{
                 (byte) 255, (byte) 250, 31, 0, 80, 0, 24,
                 (byte) 255, (byte) 240
@@ -187,7 +187,7 @@ class TelnetParserTest {
     }
 
     @Test
-    void dataThenCommandThenData() {
+    void testDataThenCommandThenData() {
         parser.feed("ab".getBytes());
         parser.feed(new byte[]{(byte) 255, (byte) 246});
         parser.feed("cd".getBytes());
@@ -201,14 +201,14 @@ class TelnetParserTest {
     }
 
     @Test
-    void commandSplitAcrossFeeds() {
+    void testCommandSplitAcrossFeeds() {
         parser.feed(new byte[]{(byte) 255});
         parser.feed(new byte[]{(byte) 246});
         assertThat(listener.commandEvents.get(0)).isEqualTo(TelnetCommand.AYT);
     }
 
     @Test
-    void willSplitAcrossFeeds() {
+    void testWillSplitAcrossFeeds() {
         parser.feed(new byte[]{(byte) 255, (byte) 251});
         parser.feed(new byte[]{1});
         assertThat(listener.negotiateEvents.get(0).command()).isEqualTo(TelnetCommand.WILL);
@@ -216,7 +216,7 @@ class TelnetParserTest {
     }
 
     @Test
-    void sbSplitAcrossFeeds() {
+    void testSbSplitAcrossFeeds() {
         parser.feed(new byte[]{(byte) 255, (byte) 250, 24});
         parser.feed(new byte[]{'x'});
         parser.feed(new byte[]{(byte) 255, (byte) 240});
@@ -226,7 +226,7 @@ class TelnetParserTest {
     }
 
     @Test
-    void parserStateTransitions() {
+    void testParserStateTransitions() {
         assertThat(parser.state()).isEqualTo(ParserState.DATA);
         parser.feed(new byte[]{(byte) 255});
         assertThat(parser.state()).isEqualTo(ParserState.COMMAND);
@@ -237,7 +237,7 @@ class TelnetParserTest {
     }
 
     @Test
-    void resetClearsState() {
+    void testResetClearsState() {
         parser.feed(new byte[]{(byte) 255});
         assertThat(parser.state()).isEqualTo(ParserState.COMMAND);
         parser.reset();
@@ -246,19 +246,19 @@ class TelnetParserTest {
     }
 
     @Test
-    void unknownCommandIgnored() {
+    void testUnknownCommandIgnored() {
         parser.feed(new byte[]{(byte) 255, (byte) 100});
         assertThat(listener.commandEvents).isEmpty();
     }
 
     @Test
-    void seOutsideSubnegotiationIsCommand() {
+    void testSeOutsideSubnegotiationIsCommand() {
         parser.feed(new byte[]{(byte) 255, (byte) 240});
         assertThat(listener.commandEvents).containsExactly(TelnetCommand.SE);
     }
 
     @Test
-    void multipleEscapedIac() {
+    void testMultipleEscapedIac() {
         // IAC IAC IAC IAC → two literal 255 bytes
         parser.feed(new byte[]{
                 (byte) 255, (byte) 255,

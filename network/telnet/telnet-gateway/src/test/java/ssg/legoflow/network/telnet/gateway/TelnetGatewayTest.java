@@ -27,7 +27,7 @@ class TelnetGatewayTest {
     }
 
     @Test
-    void feedPlainTextToTerminal() {
+    void testFeedPlainTextToTerminal() {
         TelnetGateway gateway = TelnetGateway.forTerminal(terminal)
                 .writer(written::add)
                 .build();
@@ -45,7 +45,7 @@ class TelnetGatewayTest {
     }
 
     @Test
-    void echoCanBeDisabled() {
+    void testEchoCanBeDisabled() {
         TelnetGateway gateway = TelnetGateway.forTerminal(terminal)
                 .writer(written::add)
                 .build();
@@ -58,7 +58,7 @@ class TelnetGatewayTest {
     }
 
     @Test
-    void negotiationResponse() {
+    void testNegotiationResponse() {
         TelnetGateway gateway = TelnetGateway.forTerminal(terminal)
                 .writer(written::add)
                 .build();
@@ -72,7 +72,7 @@ class TelnetGatewayTest {
     }
 
     @Test
-    void dontEchoDisablesEcho() {
+    void testDontEchoDisablesEcho() {
         TelnetGateway gateway = TelnetGateway.forTerminal(terminal)
                 .writer(written::add)
                 .build();
@@ -94,7 +94,7 @@ class TelnetGatewayTest {
     }
 
     @Test
-    void ttypeSubnegotiation() {
+    void testTtypeSubnegotiation() {
         TelnetGateway gateway = TelnetGateway.forTerminal(terminal)
                 .writer(written::add)
                 .build();
@@ -118,7 +118,7 @@ class TelnetGatewayTest {
     }
 
     @Test
-    void nawsSubnegotiation() {
+    void testNawsSubnegotiation() {
         TelnetGateway gateway = TelnetGateway.forTerminal(terminal)
                 .writer(written::add)
                 .build();
@@ -134,7 +134,7 @@ class TelnetGatewayTest {
     }
 
     @Test
-    void sendToPeer() {
+    void testSendToPeer() {
         TelnetGateway gateway = TelnetGateway.forTerminal(terminal)
                 .writer(written::add)
                 .build();
@@ -145,7 +145,7 @@ class TelnetGatewayTest {
     }
 
     @Test
-    void sendEscapesIac() {
+    void testSendEscapesIac() {
         TelnetGateway gateway = TelnetGateway.forTerminal(terminal)
                 .writer(written::add)
                 .build();
@@ -157,7 +157,7 @@ class TelnetGatewayTest {
     }
 
     @Test
-    void terminalAccess() {
+    void testTerminalAccess() {
         TelnetGateway gateway = TelnetGateway.forTerminal(terminal)
                 .writer(written::add)
                 .build();

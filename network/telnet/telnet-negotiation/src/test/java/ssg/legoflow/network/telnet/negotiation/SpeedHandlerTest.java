@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SpeedHandlerTest {
 
     @Test
-    void handleSendRequest() {
+    void testHandleSendRequest() {
         SpeedHandler handler = SpeedHandler.localSpeed("38400");
         byte[] response = handler.handle(List.of(SpeedHandler.SEND));
 
@@ -24,7 +24,7 @@ class SpeedHandlerTest {
     }
 
     @Test
-    void handleIsRequest() {
+    void testHandleIsRequest() {
         List<Integer> data = new ArrayList<>();
         data.add(SpeedHandler.IS);
         data.add((int)'9');
@@ -43,7 +43,7 @@ class SpeedHandlerTest {
     }
 
     @Test
-    void handleEmptyData() {
+    void testHandleEmptyData() {
         SpeedHandler handler = SpeedHandler.localSpeed("38400");
         assertThat(handler.handle(List.of())).isNull();
     }

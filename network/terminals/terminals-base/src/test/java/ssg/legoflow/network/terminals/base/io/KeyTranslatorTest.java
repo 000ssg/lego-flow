@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.*;
 class KeyTranslatorTest {
 
     @Test
-    void arrowKeys() {
+    void testArrowKeys() {
         KeyTranslator kt = new KeyTranslator();
         assertThat(kt.translate("up")).isEqualTo("\u001B[A".getBytes());
         assertThat(kt.translate("down")).isEqualTo("\u001B[B".getBytes());
@@ -15,14 +15,14 @@ class KeyTranslatorTest {
     }
 
     @Test
-    void functionKeys() {
+    void testFunctionKeys() {
         KeyTranslator kt = new KeyTranslator();
         assertThat(kt.translate("f1")).isEqualTo("\u001BOP".getBytes());
         assertThat(kt.translate("f4")).isEqualTo("\u001BOS".getBytes());
     }
 
     @Test
-    void navigationKeys() {
+    void testNavigationKeys() {
         KeyTranslator kt = new KeyTranslator();
         assertThat(kt.translate("home")).isEqualTo("\u001B[H".getBytes());
         assertThat(kt.translate("insert")).isEqualTo("\u001B[2~".getBytes());
@@ -30,21 +30,21 @@ class KeyTranslatorTest {
     }
 
     @Test
-    void controlCharacters() {
+    void testControlCharacters() {
         assertThat(KeyTranslator.translateControl('A')).isEqualTo((byte) 1);
         assertThat(KeyTranslator.translateControl('a')).isEqualTo((byte) 1);
         assertThat(KeyTranslator.translateControl('Z')).isEqualTo((byte) 26);
     }
 
     @Test
-    void caseInsensitive() {
+    void testCaseInsensitive() {
         KeyTranslator kt = new KeyTranslator();
         assertThat(kt.translate("UP")).isNotNull();
         assertThat(kt.translate("Up")).isNotNull();
     }
 
     @Test
-    void unknownKeyReturnsNull() {
+    void testUnknownKeyReturnsNull() {
         KeyTranslator kt = new KeyTranslator();
         assertThat(kt.translate("someUnknownKey")).isNull();
     }

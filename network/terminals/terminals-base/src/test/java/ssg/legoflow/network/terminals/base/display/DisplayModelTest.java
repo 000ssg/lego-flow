@@ -15,48 +15,48 @@ class DisplayModelTest {
     }
 
     @Test
-    void putChar() {
+    void testPutChar() {
         dm.putChar('H');
         String line = dm.screen().rowString(1);
         assertThat(line).startsWith("H");
     }
 
     @Test
-    void cursorPosition() {
+    void testCursorPosition() {
         dm.cursorPosition(5, 10);
         assertThat(dm.cursor().row()).isEqualTo(5);
         assertThat(dm.cursor().col()).isEqualTo(10);
     }
 
     @Test
-    void cursorUpClamped() {
+    void testCursorUpClamped() {
         dm.cursorPosition(3, 1);
         dm.cursorUp(10);
         assertThat(dm.cursor().row()).isEqualTo(1);
     }
 
     @Test
-    void cursorDownClamped() {
+    void testCursorDownClamped() {
         dm.cursorPosition(22, 1);
         dm.cursorDown(10);
         assertThat(dm.cursor().row()).isEqualTo(24);
     }
 
     @Test
-    void clear() {
+    void testClear() {
         dm.putChar('X');
         dm.clear();
         assertThat(dm.screen().at(1, 1).codepoint()).isEqualTo(' ');
     }
 
     @Test
-    void title() {
+    void testTitle() {
         dm.setTitle("My Terminal");
         assertThat(dm.title()).isEqualTo("My Terminal");
     }
 
     @Test
-    void render() {
+    void testRender() {
         dm.putChar('A');
         var lines = dm.render();
         assertThat(lines).hasSize(24);
@@ -64,7 +64,7 @@ class DisplayModelTest {
     }
 
     @Test
-    void eraseDisplayMode0() {
+    void testEraseDisplayMode0() {
         dm.cursorPosition(2, 3);
         dm.eraseDisplay(0);
         // From cursor to end should be spaces
@@ -73,7 +73,7 @@ class DisplayModelTest {
     }
 
     @Test
-    void eraseLineMode2() {
+    void testEraseLineMode2() {
         // Put some content
         dm.cursorPosition(1, 1);
         for (int i = 0; i < 5; i++) dm.putChar((char)('A' + i));
@@ -86,7 +86,7 @@ class DisplayModelTest {
     }
 
     @Test
-    void originModeCursorPosition() {
+    void testOriginModeCursorPosition() {
         TerminalConfig config = TerminalConfig.builder().rows(24).cols(80).originMode(true).build();
         DisplayModel model = new DisplayModel(config);
         model.screen().setScrollRegion(5, 20);

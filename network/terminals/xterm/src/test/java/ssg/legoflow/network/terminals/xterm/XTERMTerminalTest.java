@@ -17,31 +17,31 @@ class XTERMTerminalTest {
     }
 
     @Test
-    void type() {
+    void testType() {
         assertThat(terminal.type()).isEqualTo("xterm");
     }
 
     @Test
-    void colorSupport() {
+    void testColorSupport() {
         assertThat(terminal.supportsColor()).isTrue();
     }
 
     @Test
-    void feedText() {
+    void testFeedText() {
         terminal.feed("Hello XTERM");
         var lines = terminal.render();
         assertThat(lines.get(0)).startsWith("Hello XTERM");
     }
 
     @Test
-    void cursorMotion() {
+    void testCursorMotion() {
         terminal.feed("\u001B[10;20H");
         assertThat(terminal.cursor().row()).isEqualTo(10);
         assertThat(terminal.cursor().col()).isEqualTo(20);
     }
 
     @Test
-    void sgrBasicColors() {
+    void testSgrBasicColors() {
         terminal.feed("\u001B[31m");
         assertThat(terminal.currentAttr().foreground()).isEqualTo(TermAttr.RED);
         terminal.feed("\u001B[44m");
@@ -49,7 +49,7 @@ class XTERMTerminalTest {
     }
 
     @Test
-    void sgr256Foreground() {
+    void testSgr256Foreground() {
         terminal.feed("\u001B[38;5;196m");  // Red in 256 palette
         var attr = terminal.currentAttr();
         assertThat(attr.fgMode()).isEqualTo(1);       // 256-color mode
@@ -57,7 +57,7 @@ class XTERMTerminalTest {
     }
 
     @Test
-    void sgr256Background() {
+    void testSgr256Background() {
         terminal.feed("\u001B[48;5;21m");   // Blue in 256 palette
         var attr = terminal.currentAttr();
         assertThat(attr.bgMode()).isEqualTo(1);        // 256-color mode
@@ -65,7 +65,7 @@ class XTERMTerminalTest {
     }
 
     @Test
-    void sgrTrueColorForeground() {
+    void testSgrTrueColorForeground() {
         terminal.feed("\u001B[38;2;255;128;0m");  // Orange RGB
         var attr = terminal.currentAttr();
         assertThat(attr.fgMode()).isEqualTo(2);       // RGB mode
@@ -73,7 +73,7 @@ class XTERMTerminalTest {
     }
 
     @Test
-    void sgrTrueColorBackground() {
+    void testSgrTrueColorBackground() {
         terminal.feed("\u001B[48;2;0;255;128m");  // Spring green RGB
         var attr = terminal.currentAttr();
         assertThat(attr.bgMode()).isEqualTo(2);        // RGB mode
@@ -81,7 +81,7 @@ class XTERMTerminalTest {
     }
 
     @Test
-    void sgrUnderlineStyles() {
+    void testSgrUnderlineStyles() {
         terminal.feed("\u001B[4:3m");   // Curly underline
         assertThat(terminal.currentAttr().underline()).isEqualTo(TermAttr.UNDERLINE_CURLY);
         terminal.feed("\u001B[4:0m");   // No underline
@@ -89,7 +89,7 @@ class XTERMTerminalTest {
     }
 
     @Test
-    void sgrReset() {
+    void testSgrReset() {
         terminal.feed("\u001B[38;5;100m\u001B[1m");
         assertThat(terminal.currentAttr().bold()).isTrue();
         terminal.feed("\u001B[0m");
@@ -97,28 +97,28 @@ class XTERMTerminalTest {
     }
 
     @Test
-    void mouseTrackingNormal() {
+    void testMouseTrackingNormal() {
         terminal.feed("\u001B[?1000h");  // DECSET 1000 — normal mouse
         var xterm = (XTERMTerminal) terminal;
         assertThat(xterm.mouseMode()).isEqualTo(XTERMTerminal.MouseMode.NORMAL);
     }
 
     @Test
-    void mouseTrackingHighlight() {
+    void testMouseTrackingHighlight() {
         terminal.feed("\u001B[?1002h");
         var xterm = (XTERMTerminal) terminal;
         assertThat(xterm.mouseMode()).isEqualTo(XTERMTerminal.MouseMode.HIGHLIGHT);
     }
 
     @Test
-    void mouseTrackingCellMotion() {
+    void testMouseTrackingCellMotion() {
         terminal.feed("\u001B[?1003h");
         var xterm = (XTERMTerminal) terminal;
         assertThat(xterm.mouseMode()).isEqualTo(XTERMTerminal.MouseMode.CELL_MOTION);
     }
 
     @Test
-    void mouseTrackingOff() {
+    void testMouseTrackingOff() {
         terminal.feed("\u001B[?1000h");
         terminal.feed("\u001B[?1000l");
         var xterm = (XTERMTerminal) terminal;
@@ -126,7 +126,7 @@ class XTERMTerminalTest {
     }
 
     @Test
-    void sgrMouseMode() {
+    void testSgrMouseMode() {
         terminal.feed("\u001B[?1006h");
         var xterm = (XTERMTerminal) terminal;
         assertThat(xterm.isSgrMouse()).isTrue();
@@ -135,7 +135,7 @@ class XTERMTerminalTest {
     }
 
     @Test
-    void bracketedPaste() {
+    void testBracketedPaste() {
         terminal.feed("\u001B[?2004h");
         var xterm = (XTERMTerminal) terminal;
         assertThat(xterm.isBracketedPaste()).isTrue();
@@ -144,7 +144,7 @@ class XTERMTerminalTest {
     }
 
     @Test
-    void syncMode() {
+    void testSyncMode() {
         terminal.feed("\u001B[?2026h");
         var xterm = (XTERMTerminal) terminal;
         assertThat(xterm.isSyncMode()).isTrue();
@@ -153,7 +153,7 @@ class XTERMTerminalTest {
     }
 
     @Test
-    void focusTracking() {
+    void testFocusTracking() {
         terminal.feed("\u001B[?1004h");
         var xterm = (XTERMTerminal) terminal;
         assertThat(xterm.isFocusTracking()).isTrue();
@@ -162,7 +162,7 @@ class XTERMTerminalTest {
     }
 
     @Test
-    void originMode() {
+    void testOriginMode() {
         terminal.feed("\u001B[?6h");
         assertThat(terminal.displayModel().originMode()).isTrue();
         terminal.feed("\u001B[?6l");
@@ -170,13 +170,13 @@ class XTERMTerminalTest {
     }
 
     @Test
-    void oscTitle() {
+    void testOscTitle() {
         terminal.feed("\u001B]0;XTERM Title\u0007");
         assertThat(terminal.title()).isEqualTo("XTERM Title");
     }
 
     @Test
-    void urxvtMouseMode() {
+    void testUrxvtMouseMode() {
         terminal.feed("\u001B[?1015h");
         var xterm = (XTERMTerminal) terminal;
         assertThat(xterm.isUrxvtMouse()).isTrue();
@@ -185,7 +185,7 @@ class XTERMTerminalTest {
     }
 
     @Test
-    void overline() {
+    void testOverline() {
         terminal.feed("\u001B[53m");
         var xterm = (XTERMTerminal) terminal;
         assertThat(xterm.isOverline()).isTrue();
@@ -194,7 +194,7 @@ class XTERMTerminalTest {
     }
 
     @Test
-    void reset() {
+    void testReset() {
         terminal.feed("\u001B[?1000h\u001B[?1006h\u001B[?2004h");
         var xterm = (XTERMTerminal) terminal;
         assertThat(xterm.mouseMode()).isEqualTo(XTERMTerminal.MouseMode.NORMAL);
@@ -208,7 +208,7 @@ class XTERMTerminalTest {
     }
 
     @Test
-    void inheritsAnsiBehavior() {
+    void testInheritsAnsiBehavior() {
         // XTERM should behave like ANSI for standard sequences
         terminal.feed("Hello\u001B[1;1H");  // ANSI cursor positioning
         assertThat(terminal.cursor().row()).isEqualTo(1);

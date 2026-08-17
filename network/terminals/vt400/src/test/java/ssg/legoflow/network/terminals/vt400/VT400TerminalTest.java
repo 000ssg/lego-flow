@@ -16,36 +16,36 @@ class VT400TerminalTest {
     }
 
     @Test
-    void type() {
+    void testType() {
         assertThat(terminal.type()).isEqualTo("vt400");
     }
 
     @Test
-    void colorSupport() {
+    void testColorSupport() {
         assertThat(terminal.supportsColor()).isTrue();
     }
 
     @Test
-    void windowSelection() {
+    void testWindowSelection() {
         assertThat(terminal.activeWindow()).isEqualTo(1);
         terminal.feed("\u001B[2t");
         assertThat(terminal.activeWindow()).isEqualTo(2);
     }
 
     @Test
-    void windowClamped() {
+    void testWindowClamped() {
         terminal.feed("\u001B[5t");
         assertThat(terminal.activeWindow()).isEqualTo(2);
     }
 
     @Test
-    void inheritsVt200Features() {
+    void testInheritsVt200Features() {
         terminal.feed("Hello");
         assertThat(terminal.render().get(0)).startsWith("Hello");
     }
 
     @Test
-    void resetRestoresWindow() {
+    void testResetRestoresWindow() {
         terminal.feed("\u001B[2t");
         terminal.reset();
         assertThat(terminal.activeWindow()).isEqualTo(1);

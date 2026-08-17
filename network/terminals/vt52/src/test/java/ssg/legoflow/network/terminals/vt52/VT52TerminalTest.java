@@ -15,24 +15,24 @@ class VT52TerminalTest {
     }
 
     @Test
-    void type() {
+    void testType() {
         assertThat(terminal.type()).isEqualTo("vt52");
     }
 
     @Test
-    void noColorSupport() {
+    void testNoColorSupport() {
         assertThat(terminal.supportsColor()).isFalse();
     }
 
     @Test
-    void feedText() {
+    void testFeedText() {
         terminal.feed("Hello");
         var lines = terminal.render();
         assertThat(lines.get(0)).startsWith("Hello");
     }
 
     @Test
-    void cursorRight() {
+    void testCursorRight() {
         terminal.feed("AB\u001BI"); // A, B, then cursor right
         assertThat(terminal.cursor().col()).isEqualTo(4); // A(1) B(2) I→right(3→4.. wait)
         // After "AB", cursor is at col 3. ESC I moves right to col 4.
@@ -40,25 +40,25 @@ class VT52TerminalTest {
     }
 
     @Test
-    void cursorLeft() {
+    void testCursorLeft() {
         terminal.feed("ABC\u001BF");
         assertThat(terminal.cursor().col()).isEqualTo(3);
     }
 
     @Test
-    void cursorUp() {
+    void testCursorUp() {
         terminal.feed("\u001BS");
         assertThat(terminal.cursor().row()).isEqualTo(1);
     }
 
     @Test
-    void cursorDown() {
+    void testCursorDown() {
         terminal.feed("\u001BR");
         assertThat(terminal.cursor().row()).isEqualTo(2);
     }
 
     @Test
-    void cursorAddress() {
+    void testCursorAddress() {
         // ESC Y row col — row 5, col 10
         // VT52 encodes as value+32: row 5 = 37='%', col 10 = 42='*'
         terminal.feed("\u001BY%*");
@@ -67,28 +67,28 @@ class VT52TerminalTest {
     }
 
     @Test
-    void clearDisplay() {
+    void testClearDisplay() {
         terminal.feed("Some text");
         terminal.feed("\u001BJ");
         assertThat(terminal.render().get(0)).isEmpty();
     }
 
     @Test
-    void carriageReturn() {
+    void testCarriageReturn() {
         terminal.feed("Hello\rWorld");
         var lines = terminal.render();
         assertThat(lines.get(0)).isEqualTo("World");
     }
 
     @Test
-    void lineFeed() {
+    void testLineFeed() {
         terminal.feed("A\n"); // VT52: LF moves down
         terminal.feed("\u001BD"); // ESC D = line feed
         assertThat(terminal.cursor().row()).isEqualTo(3);
     }
 
     @Test
-    void clearToEndOfLine() {
+    void testClearToEndOfLine() {
         terminal.feed("Hello World");
         terminal.cursor().setPos(1, 4);
         terminal.feed("\u001BE");
@@ -97,7 +97,7 @@ class VT52TerminalTest {
     }
 
     @Test
-    void reset() {
+    void testReset() {
         terminal.feed("Hello");
         terminal.reset();
         assertThat(terminal.cursor().row()).isEqualTo(1);
@@ -105,13 +105,13 @@ class VT52TerminalTest {
     }
 
     @Test
-    void backspace() {
+    void testBackspace() {
         terminal.feed("ABC\u0008");
         assertThat(terminal.cursor().col()).isEqualTo(3);
     }
 
     @Test
-    void tab() {
+    void testTab() {
         terminal.feed("\t");
         assertThat(terminal.cursor().col()).isEqualTo(9);
     }

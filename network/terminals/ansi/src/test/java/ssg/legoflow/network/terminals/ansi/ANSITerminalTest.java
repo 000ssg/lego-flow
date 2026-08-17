@@ -16,17 +16,17 @@ class ANSITerminalTest {
     }
 
     @Test
-    void type() {
+    void testType() {
         assertThat(terminal.type()).isEqualTo("ansi");
     }
 
     @Test
-    void colorSupport() {
+    void testColorSupport() {
         assertThat(terminal.supportsColor()).isTrue();
     }
 
     @Test
-    void ignoresDecPrivateModes() {
+    void testIgnoresDecPrivateModes() {
         terminal.feed("\u001B[?6h"); // DECSET origin mode — ignored
         terminal.feed("\u001B[5;5H");
         // Without origin mode, position is absolute
@@ -34,21 +34,21 @@ class ANSITerminalTest {
     }
 
     @Test
-    void ansiSequencesWork() {
+    void testAnsiSequencesWork() {
         terminal.feed("\u001B[10;20H");
         assertThat(terminal.cursor().row()).isEqualTo(10);
         assertThat(terminal.cursor().col()).isEqualTo(20);
     }
 
     @Test
-    void sgrWorks() {
+    void testSgrWorks() {
         terminal.feed("\u001B[31m");
         assertThat(terminal.currentAttr().foreground()).isEqualTo(
                 ssg.legoflow.network.terminals.base.display.TermAttr.RED);
     }
 
     @Test
-    void feedText() {
+    void testFeedText() {
         terminal.feed("ANSI Terminal");
         assertThat(terminal.render().get(0)).startsWith("ANSI Terminal");
     }

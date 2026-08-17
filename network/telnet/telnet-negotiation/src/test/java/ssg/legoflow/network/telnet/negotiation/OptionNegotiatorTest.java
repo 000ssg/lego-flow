@@ -16,31 +16,31 @@ class OptionNegotiatorTest {
     }
 
     @Test
-    void willIsAcceptedByDefault() {
+    void testWillIsAcceptedByDefault() {
         assertThat(negotiator.negotiate(TelnetCommand.WILL, 1))
                 .isEqualTo(TelnetCommand.DO);
     }
 
     @Test
-    void wontIsRejectedByDefault() {
+    void testWontIsRejectedByDefault() {
         assertThat(negotiator.negotiate(TelnetCommand.WONT, 1))
                 .isEqualTo(TelnetCommand.DONT);
     }
 
     @Test
-    void doTriggersWillByDefault() {
+    void testDoTriggersWillByDefault() {
         assertThat(negotiator.negotiate(TelnetCommand.DO, 1))
                 .isEqualTo(TelnetCommand.WILL);
     }
 
     @Test
-    void dontTriggersWontByDefault() {
+    void testDontTriggersWontByDefault() {
         assertThat(negotiator.negotiate(TelnetCommand.DONT, 1))
                 .isEqualTo(TelnetCommand.WONT);
     }
 
     @Test
-    void willHandshake() {
+    void testWillHandshake() {
         // Remote WILL → we DO; remote confirms with WILL again → we DO
         assertThat(negotiator.negotiate(TelnetCommand.WILL, 1)).isEqualTo(TelnetCommand.DO);
         assertThat(negotiator.negotiate(TelnetCommand.WILL, 1)).isEqualTo(TelnetCommand.DO);
@@ -50,7 +50,7 @@ class OptionNegotiatorTest {
     }
 
     @Test
-    void doHandshake() {
+    void testDoHandshake() {
         // Remote DO → we WILL; remote confirms with DO again → we WILL
         assertThat(negotiator.negotiate(TelnetCommand.DO, 1)).isEqualTo(TelnetCommand.WILL);
         assertThat(negotiator.negotiate(TelnetCommand.DO, 1)).isEqualTo(TelnetCommand.WILL);
@@ -60,7 +60,7 @@ class OptionNegotiatorTest {
     }
 
     @Test
-    void fullNegotiation() {
+    void testFullNegotiation() {
         // Both sides negotiate: remote WILL, we DO; remote confirms WILL
         // Then remote DO (asking us to enable), we WILL; remote confirms DO
         assertThat(negotiator.negotiate(TelnetCommand.WILL, 1)).isEqualTo(TelnetCommand.DO);
@@ -72,7 +72,7 @@ class OptionNegotiatorTest {
     }
 
     @Test
-    void wontAfterWillDisablesOption() {
+    void testWontAfterWillDisablesOption() {
         negotiator.negotiate(TelnetCommand.WILL, 1);
         assertThat(negotiator.negotiate(TelnetCommand.WONT, 1))
                 .isEqualTo(TelnetCommand.DONT);
@@ -80,7 +80,7 @@ class OptionNegotiatorTest {
     }
 
     @Test
-    void customRejectPolicy() {
+    void testCustomRejectPolicy() {
         negotiator = new OptionNegotiator() {
             @Override
             public TelnetCommand shouldAcceptRemote(int option) {
@@ -95,7 +95,7 @@ class OptionNegotiatorTest {
     }
 
     @Test
-    void customLocalPolicy() {
+    void testCustomLocalPolicy() {
         negotiator = new OptionNegotiator() {
             @Override
             public TelnetCommand shouldEnableLocal(int option) {
@@ -110,7 +110,7 @@ class OptionNegotiatorTest {
     }
 
     @Test
-    void optionRecordInitialState() {
+    void testOptionRecordInitialState() {
         OptionRecord rec = new OptionRecord(1);
         assertThat(rec.localState()).isEqualTo(OptionState.OFF);
         assertThat(rec.remoteState()).isEqualTo(OptionState.OFF);
