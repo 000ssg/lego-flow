@@ -20,5 +20,7 @@
         <module>ssh</module>
         <module>ftp</module>
         <module>cluster</module>
+        <module>terminals</module>
+        <module>telnet</module>
     </modules>
 </project>

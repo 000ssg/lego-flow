@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>ssg</groupId>
+        <artifactId>lego-flow-network</artifactId>
+        <version>0.2.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <artifactId>lego-flow-terminals</artifactId>
+    <packaging>pom</packaging>
+    <name>Lego Flow Terminals — Terminal emulation framework (parent)</name>
+    <modules>
+        <module>terminals-base</module>
+        <module>vt52</module>
+        <module>vt100</module>
+        <module>vt200</module>
+        <module>vt400</module>
+        <module>vt500</module>
+        <module>ansi</module>
+        <module>xterm</module>
+    </modules>
+</project>

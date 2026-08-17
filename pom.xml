@@ -135,6 +135,72 @@
             </dependency>
             <dependency>
                 <groupId>ssg</groupId>
+                <artifactId>lego-flow-terminals</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ssg</groupId>
+                <artifactId>lego-flow-terminals-base</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ssg</groupId>
+                <artifactId>lego-flow-vt52</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ssg</groupId>
+                <artifactId>lego-flow-vt100</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ssg</groupId>
+                <artifactId>lego-flow-vt200</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ssg</groupId>
+                <artifactId>lego-flow-vt400</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ssg</groupId>
+                <artifactId>lego-flow-vt500</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ssg</groupId>
+                <artifactId>lego-flow-ansi</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ssg</groupId>
+                <artifactId>lego-flow-xterm</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ssg</groupId>
+                <artifactId>lego-flow-telnet</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ssg</groupId>
+                <artifactId>lego-flow-telnet-base</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ssg</groupId>
+                <artifactId>lego-flow-telnet-negotiation</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ssg</groupId>
+                <artifactId>lego-flow-telnet-gateway</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ssg</groupId>
                 <artifactId>lego-flow-http-proxy</artifactId>
                 <version>${project.version}</version>
             </dependency>
