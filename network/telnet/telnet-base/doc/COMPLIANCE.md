@@ -50,20 +50,52 @@
 
 ## Known Limitations
 
-1. **BRK — no OS process interruption** — BRK command (255) is recognized in
-   TelnetCommand enum and fires a CommandEvent via the listener/callback chain.
-   Full protocol compliance is met at the protocol layer; interrupting a remote
-   OS process is out of scope for a protocol-only implementation.
-2. **DM (Data Mark) — sync handled at gateway level** — DM (242) is recognized
-   by the parser and fires CommandEvent at the base layer. Full DM synchronization
-   (echo-back + awaitDmSync) is implemented in TelnetGateway at the integration
-   layer. The base parser does not track sync state — that is gateway responsibility.
-3. **Line-mode editing — in telnet-negotiation** — LINEMODE subnegotiation parsing
-   and line buffer editing is handled by LinemodeHandler in the telnet-negotiation
-   module. The base module only detects and dispatches SB LINEMODE.
-4. **Binary mode — translation in telnet-negotiation** — BINARY option negotiation
-   (WILL/DO state tracking) is handled in BinaryHandler (telnet-negotiation).
-   The base module only detects and dispatches BINARY negotiation commands.
+### BRK — No OS Process Interruption
+
+**Status**: Partially implemented — recognized in protocol, no OS action.
+
+**Reason**: BRK command (255) is recognized in `TelnetCommand` enum and fires a
+`CommandEvent` via the listener/callback chain. Full protocol compliance is met
+at the protocol layer. Interrupting a remote OS process is out of scope for a
+protocol-only implementation because the library has no integration with an OS
+process lifecycle. A real telnet server would delegate to a pseudo-terminal or
+subprocess — that is the responsibility of the application using the gateway,
+not the telnet library itself.
+
+**Workaround**: Application using the gateway can listen for `CommandEvent(BRK)`
+and dispatch to a subprocess or signal handler as needed.
+
+### DM — Sync Handled at Gateway Level
+
+**Status**: Recognized in parser, full sync in gateway.
+
+DM (242) is recognized by the parser and fires `CommandEvent` at the base layer.
+Full DM synchronization (echo-back + awaitDmSync) is implemented in
+`TelnetGateway` at the integration layer. The base parser does not track sync
+state because DM sync is a transport concern — the base module only needs to
+detect and forward the command. Gateway is responsible for coordinating the
+sync with the underlying stream.
+
+### Line-mode Editing — Delegated to Negotiation Module
+
+**Status**: Detected in parser, handled in telnet-negotiation.
+
+LINEMODE subnegotiation parsing and line buffer editing is handled by
+`LinemodeHandler` in the telnet-negotiation module. The base module only detects
+and dispatches SB LINEMODE. This separation is intentional: the base parser
+knows only about the protocol structure; the negotiation module understands
+option semantics. Splitting lower would require bidirectional awareness between
+modules, violating the single-responsibility principle.
+
+### Binary Mode — Translation in Negotiation Module
+
+**Status**: Negotiation detected in parser, translation in telnet-negotiation.
+
+BINARY option negotiation (WILL/DO state tracking) is handled in `BinaryHandler`
+(telnet-negotiation). The base module only detects and dispatches BINARY
+negotiation commands. Byte-level translation (RFC 856) is in the negotiation
+module because it requires awareness of the binary state machine, which is a
+negotiation-level concern, not a protocol-level one.
 
 ---
 

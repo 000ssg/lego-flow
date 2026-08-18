@@ -59,29 +59,92 @@ Visual attributes (reverse video, bold) are set via ESC # n sequences.
 
 ## Known Limitations
 
-1. **No CSI sequences** — VT52 uses ESC+letter protocol only (historically correct)
-2. **No SGR** — Visual attributes via ESC # n only (historically correct)
-3. **No color support** — VT52 had no color capability (historically correct)
-4. **No double-width/double-height** — ESC # 6 not implemented (display-dependent)
-5. **No line drawing character set** — VT52 line drawing not supported
-6. **No inverted character** — ESC 9 not implemented
-7. **Keypad modes are tracked but not translated** — =/> keys set state but don't
-   affect key translation output (output layer responsibility)
-8. **No scroll region** — VT52 has no scroll region concept (entire screen scrolls)
-9. **No character sets** — VT52 uses only ASCII (DEC Special requires VT100+)
+### No CSI Sequences
 
-## Verification
+**Status**: VT52 uses ESC+letter protocol only (historically correct).
 
-| Feature | Test Verification |
-|---------|-----------------|
-| Cursor motion (I/F/S/R) | `VT52TerminalTest.testCursorMotion<direction>` |
-| Cursor address (ESC Y) | `VT52TerminalTest.testCursorAddress` |
-| Clear operations (J/K/E) | `VT52TerminalTest.testClear<Operation>` |
-| Line feed / reverse line feed | `VT52TerminalTest.testLineFeed`, `testReverseLineFeed` |
-| Reverse video / bold | `VT52TerminalTest.testReverseVideo`, `testBold` |
-| Character output | `VT52TerminalTest.testCharacterOutput` |
-| Reset | `VT52TerminalTest.testReset` |
+**Reason**: The VT52 predated CSI (DEC introduced CSI with the VT100 in 1978).
+The VT52 was designed as a low-cost terminal using simple 2-byte escape sequences
+(ESC + letter). Implementing CSI sequences would make it a VT100, not a VT52.
+This is a deliberate design decision, not a limitation.
+
+### No SGR
+
+**Status**: Visual attributes via ESC # n only (historically correct).
+
+**Reason**: SGR (Select Graphic Rendition) was introduced with the VT100.
+The VT52 only supports reverse video (ESC # 3) and bold (ESC # 8) via the
+ESC # n mechanism. There is no color support or fine-grained attribute
+control. This is historically accurate.
+
+### No Color Support
+
+**Status**: VT52 had no color capability (historically correct).
+
+**Reason**: The VT52 was a monochrome terminal. Color support was introduced
+with the VT52+ color variant and fully realized in the VT220/VT320 series.
+Implementing color would make this a different terminal.
+
+### No Double-Width/Double-Height
+
+**Status**: ESC # 6 not implemented (display-dependent).
+
+**Reason**: ESC # 6 (double-height) requires the terminal to render characters
+at twice their normal height. This is fundamentally a display feature that
+depends on the rendering backend (terminal emulator, web view, etc.). The
+VT52 hardware had a specific display driver that supported this, but in a
+software emulator it requires knowing the display dimensions and font metrics,
+which the terminal emulator does not have access to. The escape sequence
+is parsed and acknowledged, but the visual effect cannot be produced without
+display-specific knowledge.
+
+### No Line Drawing Character Set
+
+**Status**: VT52 line drawing not supported.
+
+**Reason**: The VT52 had no alternate character set with line-drawing
+characters. Line drawing (box-drawing, special symbols) was introduced with
+the VT100's DEC Special charset. Applications needing line drawing should
+use VT100 or later terminal types.
+
+### No Inverted Character
+
+**Status**: ESC 9 not implemented.
+
+**Reason**: ESC 9 (inverted character) is a DEC VT100+ feature that toggles
+inverted display mode. The VT52 only has reverse video (ESC # 3) which
+inverts the entire screen or output stream. ESC 9 inverts individual
+characters, which is a different mechanism.
+
+### Keypad Modes Tracked But Not Translated
+
+**Status**: =/> keys set state but don't affect key translation output.
+
+**Reason**: The VT52 supports three keypad modes (application, numeric,
+normal) but the output layer (keyboard driver, SSH channel, etc.) is
+responsible for generating the appropriate escape sequences. The terminal
+emulator receives already-encoded input — it does not generate key events.
+The keypad mode state is tracked for protocol compliance (the correct
+state can be reported to the host) but does not affect the emulator's
+internal state.
+
+### No Scroll Region
+
+**Status**: VT52 has no scroll region concept (entire screen scrolls).
+
+**Reason**: The VT52 hardware scrolls the entire 24-line screen. It has no
+configurable scroll region like the VT100's DECSTBM (ESC[r;r). This is
+a hardware limitation of the VT52 that is historically correct.
+
+### No Character Sets
+
+**Status**: VT52 uses only ASCII (DEC Special requires VT100+).
+
+**Reason**: The VT52 uses a fixed 7-bit ASCII character set. It has no
+mechanism for charset switching (no ESC ( or ESC ) sequences). DEC Special
+and other character sets were introduced with the VT100. Applications
+requiring non-ASCII characters should use VT100 or later.
 
 ---
 
-**Last Updated**: 2026-08-17
+**Last Updated**: 2026-08-18

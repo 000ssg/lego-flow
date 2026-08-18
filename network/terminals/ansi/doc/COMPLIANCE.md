@@ -68,29 +68,64 @@ silently ignores all DEC private mode sequences.
 | EUT (repeat preceding char) | ✅ Implemented (from VT100) |
 | OSC title (0, 1, 2) | ✅ Implemented (from VT100) |
 
-#
 ### DECRQM (Query DEC Private Mode)
 
 | Sequence | Description | Status |
 |----------|-------------|--------|
 | CSI ? $ p | DECRQM — passed through to VT100 (intermediates are `?$`, not `?`) | ✅ Inherited |
-# Known Limitations
 
-1. **All DEC private modes filtered** — Sequences starting with ESC [ ? are
-   silently ignored, ensuring strict ANSI compliance
-2. **No DEC device attributes** — DA1/DSR not available (DEC extension)
-3. **Origin mode always off** — DECORM not available in ANSI mode
-4. **No application keypad mode** — DECKPAM not available in ANSI mode
-5. **No HPT/VPA decimal** — H'P/T (0x60) not implemented
+## Known Limitations
 
-## Verification
+### All DEC Private Modes Filtered
 
-| Feature | Test Verification |
-|---------|-----------------|
-| DEC private mode filtering | `ANSITerminalTest.testDecPrivateFiltered` |
-| Inherited VT100 features | `ANSITerminalTest.testCursorMotion`, etc. |
-| Reset | `ANSITerminalTest.testReset` |
+**Status**: Sequences starting with ESC [ ? are silently ignored, ensuring
+strict ANSI compliance.
+
+**Reason**: The ANSI X3.64/ECMA-48 standard defines control functions without
+the DEC private mode extensions (ESC [ ? Ps h/l). The ANSI terminal strictly
+filters these out to maintain compliance with the ANSI standard. This is the
+intended behavior — the ANSI terminal is designed for applications that need
+portable, standards-compliant output without DEC extensions. Applications that
+need DEC private modes should use VT100, VT200, or XTERM instead.
+
+### No DEC Device Attributes
+
+**Status**: DA1/DSR not available (DEC extension).
+
+**Reason**: Device Attributes (DA1) and Device Status Report (DSR) are DEC
+extensions, not part of the ANSI/ECMA-48 standard. The ANSI terminal does not
+generate responses to these queries. The VT100 and XTERM variants provide
+these features for applications that need device identification.
+
+### Origin Mode Always Off
+
+**Status**: DECORM not available in ANSI mode.
+
+**Reason**: DECORM (DEC Origin Mode, mode 6) is a DEC private mode that changes
+the cursor coordinate origin from (1,1) to the scroll region top-left. It is
+not part of the ANSI standard. In ANSI mode, cursor coordinates are always
+relative to the screen origin (1,1). Applications needing relative positioning
+can use explicit cursor positioning (CUP) instead.
+
+### No Application Keypad Mode
+
+**Status**: DECKPAM not available in ANSI mode.
+
+**Reason**: DECKPAM (Application Keypad Mode) is a DEC extension that maps
+function keys to escape sequences. Keypad mode is an input-layer concern
+(the keyboard driver determines what sequences function keys generate), not
+a terminal emulation concern. The ANSI terminal filters DEC private modes
+including DECKPAM.
+
+### No HPT/VPA Decimal
+
+**Status**: H'P/T (0x60) not implemented.
+
+**Reason**: The horizontal/vertical tab (HPT/VTA) are non-standard extensions
+that some DEC terminals used for decimal alignment. They are not part of
+ECMA-48 or ANSI X3.64. The VT100+ variants recognize them but the ANSI
+terminal (being strict-compliant) does not.
 
 ---
 
-**Last Updated**: 2026-08-17
+**Last Updated**: 2026-08-18

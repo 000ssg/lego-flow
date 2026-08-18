@@ -114,3 +114,28 @@
 ---
 
 **Last Updated**: 2026-08-18
+
+---
+
+## Interoperability Test Coverage
+
+The `interop-tests` module provides automated interoperability verification
+against real reference implementations:
+
+| Module | Reference | Verified |
+|--------|-----------|----------|
+| SSH version exchange | OpenSSH sshd | RFC 4253 §4.2 version parsing |
+| SSH client KEX | OpenSSH sshd | Protocol version compatibility |
+| Telnet IAC escaping | Netcat -t | RFC 854 §1 byte doubling |
+| Telnet subnegotiation | Netcat -t | RFC 854 §3 SB…SE framing |
+| Telnet option handlers | RFC 1091/1073/1143/1408 | TTYPE, NAWS, LINEMODE, NEW_ENV |
+| Terminal CSI sequences | DEC VT100 Manual | Cursor, SGR, display ops |
+| Terminal DEC modes | xterm ctlseqs | DECAWM, DECORM, DECRQM |
+| Terminal 256/true color | xterm ctlseqs | CSI 38;5;n and CSI 38;2;r;g;b |
+
+**Test locations**: `interop-tests/src/test/java/ssg/legoflow/interop/`
+**Test infrastructure**: See `interop-tests/doc/COMPARISON.md` for full matrix.
+
+---
+
+**Last Updated**: 2026-08-18

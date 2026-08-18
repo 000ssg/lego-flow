@@ -128,32 +128,64 @@ VT100 command set.
 
 ## Known Limitations
 
-1. **DA1 response** — DA1 sequence is recognized but response generation
-   is transport-layer responsibility (emulator stores device type)
-2. **DSR/CPR responses** — Status reports trigger internally; actual
-   response strings must be sent by the transport layer
-3. **DECSTBM cursor positioning** — Cursor reset to (1,1) on region change
-   (some emulators use scroll region top)
-4. **No line wrapping tracking** — Auto-wrap flag managed internally but
-   not exposed via DSR queries
-5. **No scroll history** — VT100 has no scrollback buffer concept
+### DA1 Response — Transport Layer Responsibility
 
-## Verification
+**Status**: DA1 sequence is recognized but response generation is transport-layer
+responsibility (emulator stores device type).
 
-| Feature | Test Verification |
-|---------|-----------------|
-| Cursor motion (A/B/C/D/E/F/G/H/d/f) | `VT100TerminalTest.testCursor<Operation>` |
-| SGR attributes | `VT100TerminalTest.testSGR<Attribute>` |
-| Color codes (30-37, 40-47, 90-97, 100-107) | `VT100TerminalTest.test<Color>` |
-| DECSET/DECRST (modes 1,5,6,7,40) | `VT100TerminalTest.testDecset<Mode>`, `testDecrst<Mode>` |
-| Cursor save/restore | `VT100TerminalTest.testCursorSaveRestore` |
-| Scroll region | `VT100TerminalTest.testScrollRegion` |
-| Tab stops | `VT100TerminalTest.testTabSet`, `testTabClear` |
-| Display operations (ED/EL/IL/DL/DCH/ICH/ECH) | `VT100TerminalTest.test<Operation>` |
-| EUT | `VT100TerminalTest.testRepeatPreceding` |
-| OSC title | `VT100TerminalTest.testOscTitle` |
-| Reset | `VT100TerminalTest.testReset` |
+**Reason**: Device Attributes (DA1) is a terminal→host query. The emulator
+knows its device type, but sending the response requires access to the transport
+layer (socket, SSH channel, etc.). The base terminal framework separates the
+emulation engine from the transport layer, so response generation is delegated.
+Applications access the response via `readOutput()` on the terminal instance.
+
+### DSR/CPR Responses — Transport Layer Responsibility
+
+**Status**: Status reports trigger internally; actual response strings must be
+sent by the transport layer.
+
+**Reason**: Similar to DA1 — DSR (Device Status Report) and CPR (Cursor Position
+Report) require transport-layer access to send the response bytes. The terminal
+emulator generates the response string into its output buffer; the transport
+layer reads and sends it. This separation ensures the emulation logic is
+independent of transport implementation.
+
+### DECSTBM Cursor Positioning
+
+**Status**: Cursor reset to (1,1) on region change (some emulators use scroll
+region top).
+
+**Reason**: The VT100 spec states that changing the scroll region repositions
+the cursor to row 1, column 1 of the new region. This behavior matches the
+original VT100 hardware. Some later emulators (xterm, GNOME Terminal) position
+the cursor at the current row within the new region. The difference is
+negligible in practice because most applications reset cursor position after
+changing scroll regions.
+
+### No Line Wrapping Tracking
+
+**Status**: Auto-wrap flag managed internally but not exposed via DSR queries.
+
+**Reason**: The VT100 hardware does not expose the auto-wrap state as a
+queryable register. It is an internal state. The DEC protocol does not define
+a DSR sub-function for auto-wrap state. Only the DECAWM mode (mode 7) is
+queryable via DECRQM, which returns 1 when auto-wrap is enabled.
+
+### No Scroll History
+
+**Status**: VT100 has no scrollback buffer concept.
+
+**Reason**: The original VT100 hardware had no scrollback capability — it was
+a pure display device with a fixed 24×80 or 24×132 character buffer.
+Scrollback is a terminal-emulator feature added by software terminals (xterm,
+GNOME Terminal, etc.) to support browsing command output. Implementing
+scrollback would require a fundamentally different screen model with infinite
+height, which conflicts with the VT100's fixed-display architecture.
+
+**Comparison**: xterm has scrollback (configurable), but the VT100 specification
+does not include it. Adding scrollback would be an extension beyond the VT100
+spec.
 
 ---
 
-**Last Updated**: 2026-08-17
+**Last Updated**: 2026-08-18

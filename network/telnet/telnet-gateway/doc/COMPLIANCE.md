@@ -140,13 +140,49 @@
 
 ## Known Limitations
 
-1. **Single-connection scope** — gateway manages one Telnet session per instance.
-   Multi-connection support is the responsibility of the application layer.
-2. **No status queries** — terminal status reporting (like DECRQSS) not implemented
-   at the gateway level; this is handled by the terminal emulator directly.
-3. **Render-on-write model** — terminal render sent to peer after each data feed;
-   no incremental render. This matches the telnet-base design where output is
-   batched per feed() call.
+### Single-Connection Scope
+
+**Status**: One Telnet session per gateway instance.
+
+**Reason**: The gateway manages one Telnet session per instance because:
+1. The Telnet protocol is inherently session-oriented (a single TCP connection)
+2. Multi-connection support is the responsibility of the application layer,
+   which creates and manages multiple gateway instances
+3. Each gateway instance is self-contained with its own state machine,
+   negotiation state, and terminal instance
+4. This follows the standard pattern: server socket → accept → create
+   gateway per connection (similar to how HTTP servers work)
+
+This is consistent with how Apache MINA SSHD, Netty telnet examples, and
+other Java telnet implementations handle connections.
+
+### No Status Queries at Gateway Level
+
+**Status**: Terminal status reporting (like DECRQSS) not implemented at the
+gateway level; handled by the terminal emulator directly.
+
+**Reason**: DECRQSS (Device Control String Request Status String) is a terminal
+emulator feature, not a telnet protocol feature. The terminal emulator handles
+DSR, CPR, DA1, and DECRQSS responses directly. The gateway is a protocol
+bridge, not a terminal — it should not duplicate terminal-specific behavior.
+Applications that need status queries should access the terminal emulator
+directly, which is what the gateway provides via `forTerminal()`.
+
+### Render-on-Write Model
+
+**Status**: Terminal render sent to peer after each data feed; no incremental
+render.
+
+**Reason**: This matches the telnet-base design where output is batched per
+`feed()` call. An incremental render model would add complexity without
+significant benefit for telnet, which operates at line/block granularity
+rather than pixel-level rendering. Telnet transmits character-by-character,
+so the performance gain from incremental rendering is negligible. The current
+model is simpler, more predictable, and fully compliant with the telnet
+protocol which expects responses to be sent as they are received.
+
+**Workaround**: For high-throughput scenarios, batch data into larger `feed()`
+calls to reduce the number of render → send cycles.
 
 ---
 

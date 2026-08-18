@@ -73,19 +73,61 @@
 
 ## Known Limitations
 
-1. **LINEMODE — SLC values use defaults** — SLC indices 0–12 are parsed and stored
-   from peer IS responses. Default mappings are used when not overridden. Full
-   interactive reconfiguration of special characters is not yet supported (client
-   may override via SLC SET subcommands, but the gateway does not expose a UI for
-   changing SLC values at runtime).
-2. **NEW_ENV — ESCAPES mask not used** — INFO_ESCAPES (0x02) is defined but
-   intentionally not implemented; no Telnet escape character translation is part
-   of RFC 1408 environment variables.
-3. **NEW_ENV — SCOPE mask not used** — INFO_SCOPE (0x04) is defined but
-   intentionally not implemented; environment variables are local-only, no
-   cross-host scope tracking is needed.
-4. **SUPDUP (RFC 858)** — Not implemented; obsolete protocol, deprecated since
-   the late 1980s with no meaningful modern usage.
+### LINEMODE — SLC Values Use Defaults
+
+**Status**: SLC indices 0–12 are parsed and stored from peer IS responses.
+
+**Reason**: Default SLC mappings are used when not overridden. Full interactive
+reconfiguration of special characters is not yet supported because the gateway
+does not expose a runtime UI for changing SLC values. This is reasonable because:
+1. Most terminal clients use standard SLC values (EOF=4, EL=21, etc.)
+2. Runtime reconfiguration would require an admin API on the gateway
+3. Most telnet clients send their SLC values in the IS suboption, and the
+   gateway accepts them. The limitation applies only to clients that expect
+   the server to modify SLC values dynamically — a rare use case in practice.
+4. SLC values are application-specific; a general-purpose telnet library
+   should not make assumptions about what special characters mean in the
+   application domain.
+
+**Workaround**: The `LinemodeHandler` stores all received SLC values. Applications
+can access them via the handler's internal storage and override defaults as needed
+through the negotiation override mechanism.
+
+### NEW_ENV — ESCAPES Mask Not Used
+
+**Status**: INFO_ESCAPES (0x02) is defined but intentionally not implemented.
+
+**Reason**: No Telnet escape character translation is part of RFC 1408. The
+ESCAPES mask is a legacy extension that some servers use to negotiate escape
+character sequences (like Ctrl+] for telnet). This is not part of the RFC 1408
+specification, and escape handling is a transport-layer concern — the application
+knows its own escape character. Implementing it at the environment-variable
+handler would conflate concerns.
+
+### NEW_ENV — SCOPE Mask Not Used
+
+**Status**: INFO_SCOPE (0x04) is defined but intentionally not implemented.
+
+**Reason**: Environment variables are local-only in this implementation. The
+SCOPE mask is used for cross-host variable scoping in distributed telnet
+environments, which is outside the scope of a library that manages a single
+session. Adding scope tracking would add unnecessary complexity to what is
+already a complete RFC 1408 implementation.
+
+### SUPDUP (RFC 858) — Not Implemented
+
+**Status**: SUPDUP protocol is not implemented.
+
+**Reason**: SUPDUP was an obsolete telnet subprotocol for duplex terminal
+communication, deprecated since the late 1980s with no meaningful modern usage.
+The protocol has been superseded by:
+1. **VT100+ with full CSI support** — Almost universal terminal standard
+2. **SSH** — Secure shell protocol that supersedes telnet entirely
+3. **XTerm/Windows Terminal** — Modern terminal emulators using ANSI escapes
+
+Implementing SUPDUP would add maintenance burden for a protocol that has zero
+modern deployments. No telnet client in the last 30 years requires SUPDUP
+negotiation. The RFC itself notes it was experimental and never widely adopted.
 
 ---
 
