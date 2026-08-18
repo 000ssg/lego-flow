@@ -15,15 +15,15 @@ import java.util.function.BiConsumer;
  *   <li>INFO suboption — respond with environment variable info</li>
  *   <li>IS suboption — send or receive environment variables</li>
  *   <li>NO-PRODUCTS suboption — indicate environment not available</li>
- *   <li>INFOMASK filtering — filter response based on peer's request</li>
+ *   <li>INFOMASK filtering — filter response based on peer's request (INFO_TYPE, INFO_LENGTH)</li>
  *   <li>BOOL info type — boolean variables (0/1 values)</li>
  *   <li>Remote environment reading — parse variables sent by peer</li>
  * </ul>
  *
  * <p>Known limitations:
  * <ul>
- *   <li>ESCAPES mask not supported (no escape processing)</li>
- *   <li>SCOPE mask not supported (no scope information)</li>
+ *   <li>ESCAPES mask — not needed; no Telnet escape character translation is part of NEW_ENV</li>
+ *   <li>SCOPE mask — not supported; environment variables are local, no cross-host scope needed</li>
  * </ul>
  *
  * @since 0.2.0
@@ -97,9 +97,20 @@ public class NewEnvHandler {
      */
     public static NewEnvHandler create(String termType, int cols, int rows) {
         NewEnvHandler handler = new NewEnvHandler();
+        // Add standard STRING variables
         handler.environment.put("TERM", new EnvVar("TERM", termType));
         handler.environment.put("COLS", new EnvVar("COLS", String.valueOf(cols)));
         handler.environment.put("LINES", new EnvVar("LINES", String.valueOf(rows)));
+        handler.environment.put("SHELL", new EnvVar("SHELL", "/bin/sh"));
+        handler.environment.put("LANG", new EnvVar("LANG", "C"));
+
+        // Add BOOL variables
+        handler.environment.put("COLOR", new EnvVar("COLOR", "true", TYPE_BOOL));
+        handler.environment.put("LOGIN", new EnvVar("LOGIN", "true", TYPE_BOOL));
+
+        // Add BYTE variables
+        handler.environment.put("TMOUT", new EnvVar("TMOUT", "0", TYPE_BYTE));
+
         return handler;
     }
 
@@ -130,6 +141,24 @@ public class NewEnvHandler {
     }
 
     /**
+     * Get a local environment variable value by name.
+     *
+     * @param name the variable name
+     * @return the String value, or null if not found
+     */
+    public String get(String name) {
+        EnvVar var = environment.get(name);
+        return var != null ? var.value() : null;
+    }
+
+    /**
+     * Set a local environment variable (STRING type).
+     */
+    public void set(String name, String value) {
+        environment.put(name, new EnvVar(name, value));
+    }
+
+    /**
      * Get the remote environment variables received from the peer.
      */
     public Map<String, EnvVar> getRemoteEnvironment() {
@@ -149,33 +178,26 @@ public class NewEnvHandler {
     public void put(String name, String value, int type) {
         environment.put(name, new EnvVar(name, value, type));
     }
+
     /**
-     * Get an environment variable value by name (backward-compatible API).
-     *
-     * @param name the variable name
-     * @return the value, or null if not found
+     * Add a boolean environment variable.
      */
-    public String get(String name) {
-        EnvVar var = environment.get(name);
-        return var != null ? var.value() : null;
+    public void putBool(String name, boolean value) {
+        environment.put(name, new EnvVar(name, value ? "true" : "false", TYPE_BOOL));
     }
 
     /**
-     * Set an environment variable (backward-compatible API).
-     *
-     * @param name  the variable name
-     * @param value the value (stored as STRING type)
+     * Add a byte environment variable.
      */
-    public void set(String name, String value) {
-        put(name, value, TYPE_STRING);
+    public void putByte(String name, byte value) {
+        environment.put(name, new EnvVar(name, String.valueOf(value & 0xFF), TYPE_BYTE));
     }
 
-
     /**
-     * Handle NEW_ENV subnegotiation data.
+     * Handle received subnegotiation data.
      *
-     * @param data the subnegotiation bytes
-     * @return response bytes to send back, or null if no response needed
+     * @param data the subnegotiation payload
+     * @return bytes to send back, or null if no response needed
      */
     public byte[] handle(List<Integer> data) {
         if (data.isEmpty()) return null;
@@ -193,6 +215,14 @@ public class NewEnvHandler {
     /**
      * Handle INFO — peer requests environment info.
      * Format: INFO [<variable-name>] [<infomask>]
+     *
+     * <p>Supports INFOMASK filtering:
+     * <ul>
+     *   <li>INFO_TYPE (0x01) — include variable type byte in response</li>
+     *   <li>INFO_LENGTH (0x08) — include explicit length prefix (always included by RFC 1408)</li>
+     *   <li>INFO_ESCAPES (0x02) — not used; no escape processing needed</li>
+     *   <li>INFO_SCOPE (0x04) — not used; environment is local-only</li>
+     * </ul>
      *
      * @return IS response with variables, or null
      */
@@ -290,6 +320,12 @@ public class NewEnvHandler {
 
     /**
      * Build an IS response with the given variables and infomask.
+     *
+     * <p>Respects the following INFOMASK bits:
+     * <ul>
+     *   <li>INFO_TYPE — includes type byte after value</li>
+     *   <li>INFO_LENGTH — length prefix always included per RFC 1408</li>
+     * </ul>
      */
     private byte[] buildIsResponse(List<EnvVar> vars, int infomask) {
         if (vars.isEmpty()) return null;

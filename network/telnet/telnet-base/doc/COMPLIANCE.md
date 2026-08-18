@@ -17,7 +17,7 @@
 | SE | 240 | ✅ Implemented |
 | NOP | 241 | ✅ Implemented |
 | DATA MARK | 242 | ✅ Implemented |
-| BRK | 243 | ✅ Implemented |
+| BRK | 255 | ✅ Implemented |
 | IP | 244 | ✅ Implemented |
 | AO | 245 | ✅ Implemented |
 | AYT | 246 | ✅ Implemented |
@@ -50,7 +50,21 @@
 
 ## Known Limitations
 
-1. **No BRK handling** — BRK command is recognized but no special action taken
-2. **No DM (Data Mark) synchronization** — DM byte is recognized but sync protocol not implemented
-3. **No line-mode editing** — line discipline negotiation handled in telnet-negotiation module
-4. **Binary mode** — option recognized but byte-level translation not performed
+1. **BRK — no OS process interruption** — BRK command (255) is recognized in
+   TelnetCommand enum and fires a CommandEvent via the listener/callback chain.
+   Full protocol compliance is met at the protocol layer; interrupting a remote
+   OS process is out of scope for a protocol-only implementation.
+2. **DM (Data Mark) — sync handled at gateway level** — DM (242) is recognized
+   by the parser and fires CommandEvent at the base layer. Full DM synchronization
+   (echo-back + awaitDmSync) is implemented in TelnetGateway at the integration
+   layer. The base parser does not track sync state — that is gateway responsibility.
+3. **Line-mode editing — in telnet-negotiation** — LINEMODE subnegotiation parsing
+   and line buffer editing is handled by LinemodeHandler in the telnet-negotiation
+   module. The base module only detects and dispatches SB LINEMODE.
+4. **Binary mode — translation in telnet-negotiation** — BINARY option negotiation
+   (WILL/DO state tracking) is handled in BinaryHandler (telnet-negotiation).
+   The base module only detects and dispatches BINARY negotiation commands.
+
+---
+
+**Last Updated**: 2026-08-18

@@ -38,12 +38,25 @@ import java.util.function.Consumer;
  * <p>DM (Data Mark) synchronization is supported per RFC 854:
  * receive DM and echo it back, with DM_RECEIVED and DM_SYNC events.
  *
+ * <p>Event model:
+ * <p>All gateway events are expressed as a sealed interface hierarchy
+ * ({@link GatewayEvent}), with each event type carrying relevant data as a record.
+ * This replaces the previous enum-based event model to allow richer, type-safe events.
+ *
  * <p>Usage:
  * <pre>{@code
  * Terminal terminal = VT100Terminal.create(config);
  * TelnetGateway gateway = TelnetGateway.forTerminal(terminal)
  *         .writer(socket::write)
  *         .build();
+ *
+ * gateway.addListener(event -> {
+ *     if (event instanceof GatewayEvent.ResizeEvent e) {
+ *         System.out.println("Resized to " + e.cols() + "x" + e.rows());
+ *     } else if (event instanceof GatewayEvent.TtyEvent e) {
+ *         System.out.println("Terminal type: " + e.type());
+ *     }
+ * });
  *
  * // Feed data from socket
  * gateway.feed(socket.read());
@@ -67,50 +80,91 @@ public class TelnetGateway {
     private boolean suppressGoAhead = true;
     private boolean awaitingDmSync;
 
+    /**
+     * Listener for gateway events.
+     *
+     * <p>Events are typed records implementing {@link GatewayEvent}.
+     * Use instanceof pattern matching to destructure event data.
+     */
     @FunctionalInterface
     public interface GatewayListener {
         void onEvent(GatewayEvent event);
     }
 
+    /**
+     * Sealed interface for all gateway events.
+     *
+     * <p>Each subtype carries structured data for its event type,
+     * replacing the previous flat enum with a rich, type-safe hierarchy.
+     */
+    public sealed interface GatewayEvent
+            permits ConnectedEvent, DisconnectedEvent, NegotiatedEvent,
+                    ResizeEvent, TtyEvent, CommandEvent, DmEvent,
+                    BinaryEvent, EnvEvent, LineEvent,
+                    LinemodeActiveEvent, LinemodeInactiveEvent {
+
+        /** A short human-readable label for this event. */
+        String typeLabel();
+    }
+
+    /** Connection established. */
+    public static record ConnectedEvent() implements GatewayEvent {
+        public String typeLabel() { return "connected"; }
+    }
+
+    /** Connection closed. */
+    public static record DisconnectedEvent() implements GatewayEvent {
+        public String typeLabel() { return "disconnected"; }
+    }
+
+    /** Option negotiation completed. */
+    public static record NegotiatedEvent(int optionCode) implements GatewayEvent {
+        public String typeLabel() { return "negotiated"; }
+    }
+
+    /** Terminal resized via NAWS. */
+    public static record ResizeEvent(int cols, int rows) implements GatewayEvent {
+        public String typeLabel() { return "resized"; }
+    }
+
+    /** Terminal type exchanged via TTYPE. */
+    public static record TtyEvent(String type) implements GatewayEvent {
+        public String typeLabel() { return "tty"; }
+    }
+
     /** Single-byte Telnet command received from peer. */
-    public record CommandEvent(TelnetCommand command) {}
+    public static record CommandEvent(TelnetCommand command) implements GatewayEvent {
+        public String typeLabel() { return "command"; }
+    }
 
     /** Data Mark received or echoed. */
-    public record DmEvent(boolean isSync) {}
+    public static record DmEvent(boolean isSync) implements GatewayEvent {
+        public String typeLabel() { return isSync ? "dm_sync" : "dm_received"; }
+    }
+
+    /** Binary mode negotiated (local or remote). */
+    public static record BinaryEvent(boolean localBinary, boolean remoteBinary) implements GatewayEvent {
+        public String typeLabel() { return "binary"; }
+    }
+
+    /** Environment variable exchanged. */
+    public static record EnvEvent(String name, NewEnvHandler.EnvVar variable) implements GatewayEvent {
+        public String typeLabel() { return "env"; }
+    }
 
     /** Line submitted via LINEMODE. */
-    public record LineEvent(String line) {}
+    public static record LineEvent(String line) implements GatewayEvent {
+        public String typeLabel() { return "line"; }
+    }
 
-    /** Remote environment variable received. */
-    public record EnvVarEvent(String name, NewEnvHandler.EnvVar variable) {}
+    /** LINEMODE activated. */
+    public static record LinemodeActiveEvent() implements GatewayEvent {
+        public String typeLabel() { return "linemode_active"; }
+    }
 
-    public enum GatewayEvent {
-        /** Connection established. */
-        CONNECTED,
-        /** Option negotiation completed. */
-        NEGOTIATED,
-        /** Terminal resized. */
-        RESIZED,
-        /** Terminal type exchanged. */
-        TTYPE_EXCHANGED,
-        /** Connection closed. */
-        DISCONNECTED,
-        /** Single-byte command received. */
-        COMMAND,
-        /** Binary mode negotiated. */
-        BINARY_NEGOTIATED,
-        /** Environment exchanged. */
-        ENV_EXCHANGED,
-        /** Data Mark received. */
-        DM_RECEIVED,
-        /** Data Mark sync complete (sent DM and received echo). */
-        DM_SYNC,
-        /** LINEMODE activated. */
-        LINEMODE_ACTIVE,
-        /** LINEMODE deactivated. */
-        LINEMODE_INACTIVE,
-        /** Line submitted via LINEMODE. */
-        LINE_SUBMITTED
+    /** LINEMODE deactivated. */
+    public static record LinemodeInactiveEvent() implements GatewayEvent {
+        public String typeLabel() { return "linemode_inactive"; }
     }
 
     private TelnetGateway(Builder builder) {
@@ -121,10 +175,10 @@ public class TelnetGateway {
 
         String termType = terminal.type();
         this.ttypeHandler = TTYPEHandler.localType(termType)
-                .onRemoteType(type -> fire(GatewayEvent.TTYPE_EXCHANGED));
+                .onRemoteType(type -> fire(new TtyEvent(type)));
 
         this.nawsHandler = NAWSHandler.localSize(terminal.config().cols(), terminal.config().rows())
-                .onRemoteSize((cols, rows) -> fire(GatewayEvent.RESIZED));
+                .onRemoteSize((cols, rows) -> fire(new ResizeEvent(cols, rows)));
 
         this.speedHandler = SpeedHandler.localSpeed("38400");
 
@@ -132,7 +186,7 @@ public class TelnetGateway {
 
         this.linemodeHandler = LinemodeHandler.create()
                 .onLineSubmitted(line -> {
-                    fire(GatewayEvent.LINE_SUBMITTED);
+                    fire(new LineEvent(line));
                     // Submit the line to the terminal as typed input followed by CR
                     terminal.feed((line + "\r").getBytes());
                     List<String> rendered = terminal.render();
@@ -143,7 +197,7 @@ public class TelnetGateway {
                 });
 
         this.newEnvHandler = NewEnvHandler.create(termType, terminal.config().cols(), terminal.config().rows())
-                .onRemoteVar((name, variable) -> fire(GatewayEvent.ENV_EXCHANGED));
+                .onRemoteVar((name, variable) -> fire(new EnvEvent(name, variable)));
 
         this.connection = TelnetConnection.builder()
                 .writer(builder.writer)
@@ -158,60 +212,85 @@ public class TelnetGateway {
      * Create a builder for a gateway wrapping the given terminal.
      */
     public static Builder forTerminal(Terminal terminal) {
+        if (terminal == null) throw new NullPointerException("terminal must not be null");
         return new Builder(terminal);
     }
 
-    /**
-     * Feed bytes received from the peer into the gateway.
-     * Applies binary translation (RFC 856) and IAC stripping before
-     * feeding clean data to the terminal.
-     */
-    public void feed(byte[] bytes) {
-        if (bytes == null || bytes.length == 0) return;
-        connection.feed(bytes);
+    /** Feed bytes from the remote peer. */
+    public void feed(byte[] data) {
+        if (data == null || data.length == 0) return;
+        connection.feed(data);
         connection.flush();
     }
 
-    /**
-     * Send data to the peer (from the terminal or application).
-     * Applies byte translation (RFC 856) and IAC escaping.
-     */
+    /** Send data to the remote peer (IAC auto-escaped). */
     public void send(byte[] data) {
         if (data == null || data.length == 0) return;
-
-        byte[] translated = binaryHandler.translateOutbound(data);
-        connection.send(translated);
+        connection.send(data);
     }
 
-    /**
-     * Send a string to the peer (UTF-8 encoded, translated, IAC auto-escaped).
-     */
+    /** Send a string to the remote peer (UTF-8, IAC auto-escaped). */
     public void send(String text) {
-        Objects.requireNonNull(text, "text must not be null");
-        send(text.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        connection.send(text);
     }
 
     /**
-     * Send a Data Mark for synchronization (RFC 854).
-     * The peer should echo the DM back; DM_SYNC event fires when received.
+     * Send a Data Mark (DM) per RFC 854.
+     *
+     * <p>The peer should echo the DM back; DM_SYNC event fires when received.
      */
     public void sendDm() {
-        awaitingDmSync = true;
         connection.sendCommand(TelnetCommand.DM);
+        awaitingDmSync = true;
     }
 
     /**
-     * Feed data to the terminal and send rendered output to the peer.
+     * Check if the gateway is currently awaiting a DM echo.
      */
-    public void feedTerminal(byte[] data) {
-        terminal.feed(data);
-        String output = String.join("\r\n", terminal.render());
-        if (!output.isEmpty()) {
-            send(output);
-        }
+    public boolean awaitingDmSync() {
+        return awaitingDmSync;
     }
 
-    /** Get the underlying terminal. */
+    /**
+     * Check if echo is enabled (server echoes input back to peer).
+     */
+    public boolean isEchoEnabled() {
+        return echoEnabled;
+    }
+
+    /**
+     * Enable or disable echo (RFC 857).
+     */
+    public void setEchoEnabled(boolean enabled) {
+        this.echoEnabled = enabled;
+    }
+
+    /**
+     * Check if suppress go-ahead is enabled.
+     */
+    public boolean isSuppressGoAhead() {
+        return suppressGoAhead;
+    }
+
+    /**
+     * Enable or disable suppress go-ahead (RFC 858).
+     */
+    public void setSuppressGoAhead(boolean enabled) {
+        this.suppressGoAhead = enabled;
+    }
+
+    /**
+     * Get the underlying option negotiator.
+     */
+    public OptionNegotiator negotiator() {
+        return negotiator;
+    }
+
+    /**
+     * Get the TTYPE handler.
+     */
+
+    /** Get the terminal used by this gateway. */
     public Terminal terminal() {
         return terminal;
     }
@@ -221,62 +300,52 @@ public class TelnetGateway {
         return connection;
     }
 
-    /** Get the option negotiator. */
-    public OptionNegotiator negotiator() {
-        return negotiator;
+    public TTYPEHandler ttypeHandler() {
+        return ttypeHandler;
     }
 
-    /** Get the binary handler. */
+    /**
+     * Get the NAWS handler.
+     */
+    public NAWSHandler nawsHandler() {
+        return nawsHandler;
+    }
+
+    /**
+     * Get the speed handler.
+     */
+    public SpeedHandler speedHandler() {
+        return speedHandler;
+    }
+
+    /**
+     * Get the binary transmission handler.
+     */
     public BinaryHandler binaryHandler() {
         return binaryHandler;
     }
 
-    /** Get the linemode handler. */
+    /**
+     * Get the linemode handler.
+     */
     public LinemodeHandler linemodeHandler() {
         return linemodeHandler;
     }
 
-    /** Get the NEW_ENV handler. */
+    /**
+     * Get the new environment handler.
+     */
     public NewEnvHandler newEnvHandler() {
         return newEnvHandler;
     }
 
-    /** Check if echo is enabled. */
-    public boolean isEchoEnabled() {
-        return echoEnabled;
-    }
-
-    /** Enable or disable echo. */
-    public void setEchoEnabled(boolean enabled) {
-        this.echoEnabled = enabled;
-    }
-
-    /** Check if SUPPRESS GO AHEAD is enabled. */
-    public boolean isSuppressGoAhead() {
-        return suppressGoAhead;
-    }
-
-    /** Get the remote environment. */
-    public Map<String, NewEnvHandler.EnvVar> remoteEnvironment() {
-        return newEnvHandler.getRemoteEnvironment();
-    }
-
-    /**
-     * Get an environment variable value by name (convenience API).
-     *
-     * @param name the variable name
-     * @return the value, or null if not found
-     */
+    /** Get an environment variable value by name. */
     public String getEnv(String name) {
-        return newEnvHandler.get(name);
+        NewEnvHandler.EnvVar var = newEnvHandler.getEnvironment().get(name);
+        return var != null ? var.value() : null;
     }
 
-    /**
-     * Set an environment variable (convenience API).
-     *
-     * @param name  the variable name
-     * @param value the value (stored as STRING type)
-     */
+    /** Set an environment variable. */
     public void setEnv(String name, String value) {
         newEnvHandler.set(name, value);
     }
@@ -309,7 +378,7 @@ public class TelnetGateway {
 
     /** Add a gateway listener. */
     public void addListener(GatewayListener listener) {
-        listeners.add(listener);
+        listeners.add(Objects.requireNonNull(listener, "listener must not be null"));
     }
 
     /** Remove a gateway listener. */
@@ -348,23 +417,15 @@ public class TelnetGateway {
             case DM -> {
                 // RFC 854: Echo DM back immediately
                 connection.sendCommand(TelnetCommand.DM);
-                fire(GatewayEvent.DM_RECEIVED);
-                fire(GatewayEvent.COMMAND);
+                fire(new DmEvent(false));
 
                 if (awaitingDmSync) {
                     awaitingDmSync = false;
-                    fire(GatewayEvent.DM_SYNC);
+                    fire(new DmEvent(true));
                 }
             }
-            case BRK -> fire(GatewayEvent.COMMAND);
-            case GA -> fire(GatewayEvent.COMMAND);
-            case EC -> fire(GatewayEvent.COMMAND);
-            case EL -> fire(GatewayEvent.COMMAND);
-            case AYT -> fire(GatewayEvent.COMMAND);
-            case IP -> fire(GatewayEvent.COMMAND);
-            case NOP -> fire(GatewayEvent.COMMAND);
-            case AO -> fire(GatewayEvent.COMMAND);
-            case SE -> fire(GatewayEvent.COMMAND);
+            case BRK, GA, EC, EL, AYT, IP, NOP, AO, SE ->
+                fire(new CommandEvent(command));
             default -> {}
         }
     }
@@ -387,14 +448,16 @@ public class TelnetGateway {
             case BINARY -> {
                 if (command == TelnetCommand.DO && response == TelnetCommand.WILL) {
                     binaryHandler.setLocalBinary(true);
-                    fire(GatewayEvent.BINARY_NEGOTIATED);
+                    fire(new BinaryEvent(true, binaryHandler.isRemoteBinary()));
                 } else if (command == TelnetCommand.DONT && response == TelnetCommand.WONT) {
                     binaryHandler.setLocalBinary(false);
+                    fire(new BinaryEvent(false, binaryHandler.isRemoteBinary()));
                 } else if (command == TelnetCommand.WILL && response == TelnetCommand.DO) {
                     binaryHandler.setRemoteBinary(true);
-                    fire(GatewayEvent.BINARY_NEGOTIATED);
+                    fire(new BinaryEvent(binaryHandler.isLocalBinary(), true));
                 } else if (command == TelnetCommand.WONT && response == TelnetCommand.DONT) {
                     binaryHandler.setRemoteBinary(false);
+                    fire(new BinaryEvent(binaryHandler.isLocalBinary(), false));
                 }
             }
             case LINEMODE -> {
@@ -433,9 +496,9 @@ public class TelnetGateway {
                 }
                 // Update events based on linemode state
                 if (linemodeHandler.isActive()) {
-                    fire(GatewayEvent.LINEMODE_ACTIVE);
+                    fire(new LinemodeActiveEvent());
                 } else {
-                    fire(GatewayEvent.LINEMODE_INACTIVE);
+                    fire(new LinemodeInactiveEvent());
                 }
             }
             case NEW_ENV -> {
@@ -443,7 +506,6 @@ public class TelnetGateway {
                 if (envResponse != null) {
                     connection.sendSubnegotiation(option, envResponse);
                 }
-                fire(GatewayEvent.ENV_EXCHANGED);
             }
             case BINARY -> {
                 // BINARY subnegotiation is unusual; handle as state tracking
