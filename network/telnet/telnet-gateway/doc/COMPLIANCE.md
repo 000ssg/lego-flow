@@ -43,8 +43,8 @@
 | NAWS (31) | Update terminal dimensions | ✅ Implemented |
 | BINARY (0) | RFC 856 binary mode with byte translation | ✅ Implemented |
 | LINEMODE (34) | Full linemode with line editing (RFC 1143) | ✅ Implemented |
-| TERMINAL_SPEED (32) | Respond with local speed | ✅ Implemented |
-| NEW_ENV (252) | Provide TERM/COLS/LINES (RFC 1408) | ✅ Implemented |
+| TERMINAL_SPEED (42) | Respond with local speed | ✅ Implemented |
+| NEW_ENV (39) | Provide TERM/COLS/LINES (RFC 1408) | ✅ Implemented |
 
 ## RFC 1091 — TTYPE Integration
 

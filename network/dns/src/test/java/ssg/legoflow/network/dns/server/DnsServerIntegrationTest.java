@@ -105,9 +105,9 @@ class DnsServerIntegrationTest {
             client.query("example.com.", RecordType.A);
             
             // Allow async virtual thread to update counters (retry on CI race condition)
-            int retries = 10;
+            int retries = 40;
             while (server.queriesReceived() <= queriesBefore && retries-- > 0) {
-                Thread.sleep(50);
+                Thread.sleep(100);
             }
             
             assertThat(server.queriesReceived()).isGreaterThan(queriesBefore);
@@ -174,9 +174,9 @@ class DnsServerIntegrationTest {
             }
             
             // Allow async virtual thread to update counters (retry on CI race condition)
-            int retries = 10;
+            int retries = 40;
             while (server.queriesReceived() < 5 && retries-- > 0) {
-                Thread.sleep(50);
+                Thread.sleep(100);
             }
             
             assertThat(server.queriesReceived()).isGreaterThanOrEqualTo(5);

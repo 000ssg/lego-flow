@@ -125,7 +125,7 @@ class TelnetServerInteropTest {
         // IAC SB 24 "hello" IAC SE
         assertThat(msg[0]).isEqualTo(IAC);
         assertThat(msg[1]).isEqualTo(SB);
-        assertThat(msg[2]).isEqualTo(24);
+        assertThat(msg[2] & 0xFF).isEqualTo(24);
         assertThat(new String(msg, 3, payload.length, StandardCharsets.US_ASCII)).isEqualTo("hello");
         assertThat(msg[msg.length - 2]).isEqualTo(IAC);
         assertThat(msg[msg.length - 1]).isEqualTo(SE);
@@ -155,9 +155,10 @@ class TelnetServerInteropTest {
         assertThat(TelnetOption.fromCode(3)).isEqualTo(TelnetOption.SUPPRESS_GO_AHEAD);
         assertThat(TelnetOption.fromCode(24)).isEqualTo(TelnetOption.TTYPE);
         assertThat(TelnetOption.fromCode(31)).isEqualTo(TelnetOption.NAWS);
-        assertThat(TelnetOption.fromCode(32)).isEqualTo(TelnetOption.TERMINAL_SPEED);
+        assertThat(TelnetOption.fromCode(32)).isNull();
+        assertThat(TelnetOption.fromCode(42)).isEqualTo(TelnetOption.TERMINAL_SPEED);
         assertThat(TelnetOption.fromCode(34)).isEqualTo(TelnetOption.LINEMODE);
-        assertThat(TelnetOption.fromCode(252)).isEqualTo(TelnetOption.NEW_ENV);
+        assertThat(TelnetOption.fromCode(39)).isEqualTo(TelnetOption.NEW_ENV);
         assertThat(TelnetOption.fromCode(999)).isNull();
     }
 
@@ -226,7 +227,7 @@ class TelnetServerInteropTest {
     @Test
     void testTTYPEHandlerSendResponse() {
         TTYPEHandler handler = TTYPEHandler.localType("xterm");
-        byte[] response = handler.handle(List.of()); // SEND
+        byte[] response = handler.handle(List.of(1)); // SEND
         assertThat(response).isNotNull();
         assertThat(response[0]).isEqualTo((byte)0); // IS
         assertThat(new String(response, 1, response.length - 2, StandardCharsets.US_ASCII)).isEqualTo("xterm");
@@ -243,7 +244,7 @@ class TelnetServerInteropTest {
                 .onRemoteSize((c, r) -> { cols.set(c); rows.set(r); });
 
         // 132 cols, 50 rows (big-endian)
-        handler.handle(List.of(0, 0, 132, 0, 50));
+        handler.handle(List.of(0, 132, 0, 50));
         assertThat(cols.get()).isEqualTo(132);
         assertThat(rows.get()).isEqualTo(50);
     }

@@ -13,7 +13,7 @@ class TelnetOptionTest {
         assertThat(TelnetOption.fromCode(3)).isEqualTo(TelnetOption.SUPPRESS_GO_AHEAD);
         assertThat(TelnetOption.fromCode(24)).isEqualTo(TelnetOption.TTYPE);
         assertThat(TelnetOption.fromCode(31)).isEqualTo(TelnetOption.NAWS);
-        assertThat(TelnetOption.fromCode(32)).isEqualTo(TelnetOption.LINEMODE);
+        assertThat(TelnetOption.fromCode(34)).isEqualTo(TelnetOption.LINEMODE);
         assertThat(TelnetOption.fromCode(38)).isEqualTo(TelnetOption.ENCRYPT);
         assertThat(TelnetOption.fromCode(42)).isEqualTo(TelnetOption.TERMINAL_SPEED);
     }

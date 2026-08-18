@@ -45,7 +45,7 @@ public enum TelnetOption {
     NAWS(31),
 
     /** Linemode (RFC 1143). */
-    LINEMODE(32),
+    LINEMODE(34),
 
     /** X Display Location. */
     XDISPLAY_LOC(35),

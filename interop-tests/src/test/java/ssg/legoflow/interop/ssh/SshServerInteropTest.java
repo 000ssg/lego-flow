@@ -92,7 +92,7 @@ class SshServerInteropTest {
         assertThat(formatted).isEqualTo("SSH-2.0-legoflow_1.0");
 
         byte[] wire = ourVersion.toBytes();
-        assertThat(wire).hasSize(23); // "SSH-2.0-legoflow_1.0\r\n"
+        assertThat(wire).hasSize(22); // "SSH-2.0-legoflow_1.0\r\n" (22 chars + 2 for CR LF)
         assertThat(new String(wire, StandardCharsets.UTF_8)).isEqualTo("SSH-2.0-legoflow_1.0\r\n");
     }
 

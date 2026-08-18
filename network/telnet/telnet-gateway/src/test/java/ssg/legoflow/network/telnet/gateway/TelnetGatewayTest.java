@@ -417,9 +417,9 @@ class TelnetGatewayTest {
                 .build();
         gateway.addListener(events::add);
 
-        // IAC SB 32 2 (LINEMODE START) IAC SE
+        // IAC SB 34 2 (LINEMODE START) IAC SE
         gateway.feed(new byte[]{
-                (byte) 0xFF, (byte) 0xFA, 32,
+                (byte) 0xFF, (byte) 0xFA, 34,
                 2, // START
                 (byte) 0xFF, (byte) 0xF0
         });
@@ -439,14 +439,14 @@ class TelnetGatewayTest {
 
         // Start linemode
         gateway.feed(new byte[]{
-                (byte) 0xFF, (byte) 0xFA, 32,
+                (byte) 0xFF, (byte) 0xFA, 34,
                 2, // START
                 (byte) 0xFF, (byte) 0xF0
         });
 
         // Stop linemode
         gateway.feed(new byte[]{
-                (byte) 0xFF, (byte) 0xFA, 32,
+                (byte) 0xFF, (byte) 0xFA, 34,
                 3, // OFF
                 (byte) 0xFF, (byte) 0xF0
         });
@@ -465,7 +465,7 @@ class TelnetGatewayTest {
         gateway.addListener(events::add);
 
         gateway.feed(new byte[]{
-                (byte) 0xFF, (byte) 0xFA, 32,
+                (byte) 0xFF, (byte) 0xFA, 34,
                 2, // START
                 (byte) 0xFF, (byte) 0xF0
         });
@@ -556,7 +556,7 @@ class TelnetGatewayTest {
 
         // Start linemode
         gateway.feed(new byte[]{
-                (byte) 0xFF, (byte) 0xFA, 32,
+                (byte) 0xFF, (byte) 0xFA, 34,
                 2, // START
                 (byte) 0xFF, (byte) 0xF0
         });

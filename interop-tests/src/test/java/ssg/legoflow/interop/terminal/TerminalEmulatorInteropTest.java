@@ -40,9 +40,10 @@ class TerminalEmulatorInteropTest {
     @Test
     void testCursorUp() {
         VT100Terminal t = vt100();
+        // Cursor starts at row 1, down 5 → row 6, up 3 → row 3
         t.feed("\u001b[5B");
         t.feed("\u001b[3A");
-        assertThat(t.cursor().row()).isEqualTo(4);
+        assertThat(t.cursor().row()).isEqualTo(3);
     }
 
     @Test
@@ -100,25 +101,30 @@ class TerminalEmulatorInteropTest {
 
     @Test
     void testForegroundColor() {
+        // SGR 31 = red foreground (8-color mode, color index 1)
         VT100Terminal t = vt100();
         t.feed("\u001b[31m");
-        assertThat(t.currentAttr().fgMode()).isEqualTo(31);
+        assertThat(t.currentAttr().foreground()).isEqualTo(1);
+        assertThat(t.currentAttr().fgMode()).isEqualTo(0);  // 0 = 8-color mode
     }
 
     @Test
     void testAllStdioColors() {
+        // SGR 30-37 = 8 standard foreground colors (indices 0-7)
         VT100Terminal t = vt100();
-        for (int i = 30; i <= 37; i++) {
+        for (int i = 0; i <= 7; i++) {
             t.reset();
-            t.feed("\u001b[" + i + "m");
-            assertThat(t.currentAttr().fgMode()).isEqualTo(i);
+            t.feed("\u001b[" + (30 + i) + "m");
+            assertThat(t.currentAttr().foreground()).isEqualTo(i);
+            assertThat(t.currentAttr().fgMode()).isEqualTo(0);  // 8-color mode
         }
     }
 
     @Test
     void testVideoReverse() {
+        // VT100 SGR 7 = reverse video (SGR 52 is a later DEC extension)
         VT100Terminal t = vt100();
-        t.feed("\u001b[52m");
+        t.feed("\u001b[7m");
         assertThat(t.currentAttr().reverse()).isTrue();
     }
 
@@ -182,12 +188,14 @@ class TerminalEmulatorInteropTest {
 
     @Test
     void testDeleteLine() {
+        // DL (Delete Line) deletes line at cursor and shifts lines below up
         VT100Terminal t = vt100();
         t.feed("A\nB\nC");
-        t.feed("\u001b[2;1H");
-        t.feed("\u001b[1M");
+        t.feed("\u001b[2;1H");  // cursor to row 2
+        t.feed("\u001b[1M");   // delete 1 line → "C" shifts to row 2
         List<String> lines = t.render();
-        assertThat(lines.get(1)).isEmpty();
+        // Row 2 now contains "C" (shifted up from row 3)
+        assertThat(lines.get(1)).contains("C");
     }
 
     // ── XTERM ─────────────────────────────────────────────────────
