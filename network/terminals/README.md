@@ -14,6 +14,8 @@ Reusable terminal emulation framework for Java. Provides implementations for VT5
 | [vt500](vt500/) | VT500 terminal — DEC charsets, window commands | 44 |
 | [ansi](ansi/) | ANSI X3.64 — standardized subset, no DEC private | 40 |
 | [xterm](xterm/) | XTERM — 256/true color, mouse, bracketed paste, sync | 53 |
+| [tn3270](tn3270/) | TN3270 — IBM 3270 data stream, field attributes, control functions | 47 |
+| [tn5250](tn5250/) | TN5250 — IBM 5250 data stream, field emphasis, auto-skip, blank | 28 |
 
 ## Architecture
 
@@ -27,6 +29,8 @@ Terminal (interface)
 │   │   └── ANSITerminal — ANSI X3.64 (no DEC private)
 │   │       └── XTERMTerminal — 256/true color, mouse, sync
 │   └── VT52Terminal — independent, ESC+letter commands
+├── TN3270Terminal — IBM 3270 field-structured screen, 3270 data stream
+├── TN5250Terminal — IBM 5250 field-structured screen, 5250 field attrs
 └── TerminalFactory — registry-based creation by type string
 ```
 
@@ -48,6 +52,10 @@ Terminal terminal = TerminalFactory.create("xterm", config);
 
 // Or use the type-specific factory
 Terminal xterm = XTERMTerminal.create(config);
+
+// Mainframe terminals
+Terminal tn3270 = TN3270Terminal.create(config);   // RFC 1576
+Terminal tn5250 = TN5250Terminal.create(config);   // RFC 1662
 Terminal vt100 = VT100Terminal.create(config);
 
 // Feed data

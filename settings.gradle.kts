@@ -108,6 +108,10 @@ val nestedModules = mapOf(
 
     // Telnet modules
     "lego-flow-telnet"            to "network/telnet",
+
+    // Terminal emulation modules — IBM mainframe
+    "lego-flow-tn3270"            to "network/terminals/tn3270",
+    "lego-flow-tn5250"            to "network/terminals/tn5250",
     "lego-flow-telnet-base"       to "network/telnet/telnet-base",
     "lego-flow-telnet-negotiation" to "network/telnet/telnet-negotiation",
     "lego-flow-telnet-gateway"    to "network/telnet/telnet-gateway",

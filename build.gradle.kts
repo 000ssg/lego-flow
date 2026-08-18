@@ -168,6 +168,8 @@ fun Project.setupInteropTestsModule() {
         "testImplementation"(project(":lego-flow-telnet-gateway"))
         "testImplementation"(project(":lego-flow-vt100"))
         "testImplementation"(project(":lego-flow-xterm"))
+        "testImplementation"(project(":lego-flow-tn3270"))
+        "testImplementation"(project(":lego-flow-tn5250"))
     }
 
     // Read skipInteropTests once at configuration time

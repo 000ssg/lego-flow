@@ -68,6 +68,9 @@ public enum TelnetOption {
     /** X Assistant. */
     XASSIST(41),
 
+    /** TN5250 — 5250 terminal emulation over TN5250 (RFC 1662). */
+    TN5250(30),
+
     /** Terminal Speed (RFC 1079). */
     TERMINAL_SPEED(42),
 
@@ -120,7 +123,10 @@ public enum TelnetOption {
     PC_LSSR(61),
 
     /** PC XLAT. */
-    PC_XLAT(62);
+    PC_XLAT(62),
+
+    /** TN3270 — 3270 terminal emulation over Telnet (RFC 1576). */
+    TN3270(255);
 
     private final int code;
 

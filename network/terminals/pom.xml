@@ -20,5 +20,7 @@
         <module>vt500</module>
         <module>ansi</module>
         <module>xterm</module>
+        <module>tn3270</module>
+        <module>tn5250</module>
     </modules>
 </project>
