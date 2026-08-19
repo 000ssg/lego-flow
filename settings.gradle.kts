@@ -94,6 +94,27 @@ val nestedModules = mapOf(
     "lego-flow-ssh"            to "network/ssh",
     "lego-flow-ftp"            to "network/ftp",
 
+
+    // Terminal emulation modules
+    "lego-flow-terminals"         to "network/terminals",
+    "lego-flow-terminals-base"    to "network/terminals/terminals-base",
+    "lego-flow-vt52"              to "network/terminals/vt52",
+    "lego-flow-vt100"             to "network/terminals/vt100",
+    "lego-flow-vt200"             to "network/terminals/vt200",
+    "lego-flow-vt400"             to "network/terminals/vt400",
+    "lego-flow-vt500"             to "network/terminals/vt500",
+    "lego-flow-ansi"              to "network/terminals/ansi",
+    "lego-flow-xterm"             to "network/terminals/xterm",
+
+    // Telnet modules
+    "lego-flow-telnet"            to "network/telnet",
+
+    // Terminal emulation modules — IBM mainframe
+    "lego-flow-tn3270"            to "network/terminals/tn3270",
+    "lego-flow-tn5250"            to "network/terminals/tn5250",
+    "lego-flow-telnet-base"       to "network/telnet/telnet-base",
+    "lego-flow-telnet-negotiation" to "network/telnet/telnet-negotiation",
+    "lego-flow-telnet-gateway"    to "network/telnet/telnet-gateway",
     // Media modules
     "lego-flow-media-common"   to "media/common",
     "lego-flow-rtsp"           to "media/rtsp",

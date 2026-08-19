@@ -297,12 +297,16 @@ void testFeatureDescription() {
 
 ### 7. Demo Conventions
 
-Each module has a `demo/` sub-package in both `src/main/java` and `src/test/java`:
+All demos live in the central `demos/` module, never in individual protocol modules.
+
+- **Directory structure**: Demos use sub-packages mirroring the source module paths
+  (e.g., `demos/src/main/java/ssg/legoflow/network/terminals/vt100/demo/`)
 - **Main demos**: reusable demo implementations (servers, clients, pipelines)
 - **Test demos**: functional tests that exercise demos with detailed feature verification
 - Demos progress from **simplest** → **average** → **complex**
 - Cover both **common** and **specific** usage variants separately
 - From service module upward: include procedural, functional, and combined variants
+- See [demos/AGENTS.md](demos/AGENTS.md) for detailed demo conventions
 
 ## Current Project Status
 
@@ -917,9 +921,174 @@ the lambda).
 | 5 | Connection count without polling | Poll with deadline |
 | 6 | Timing-dependent state transitions | Explicit simulation or defensive thresholds |
 | 9 | Non-testable callbacks | BiConsumer with entity ID |
+| 11 | Wrong protocol enum codes | Verify RFC codes before using |
+| 12 | Byte-to-int AssertJ comparison | Use `| 9 | Non-testable callbacks | BiConsumer with entity ID | 0xFF` for unsigned byte |
+| 13 | Empty payload for handlers | Include suboption type byte |
+| 14 | Wrong NAWS data format | Exactly 4 bytes big-endian |
+| 15 | VT100 SGR color mode | Check foreground(), not fgMode() |
+| 16 | VT100 vs DEC SGR codes | SGR 7 = reverse, not 52 |
+| 17 | CSI DeleteLine semantics | Shifts up, does not clear |
+| 18 | SSH version byte count | Count precisely: 20+2=22 |
+| 19 | Cursor relative math | Verify start position |
+| 20 | Async counter race conditions | 40×100ms retry minimum |
 | 10 | Self-referencing constructor lambdas | Use lambda params only |
 
 **If a test uses Thread.sleep to wait for a scheduled task (health check, watcher, heartbeat),**
 **it violates anti-pattern #1 AND #6 simultaneously and MUST be rewritten with latch-based
 waiting before the commit is accepted.** This has caused 3+ CI failures across platforms
 (Ubuntu, macOS, Windows) in the cluster_protocols branch alone.
+
+## 11. Interop Test Protocol Accuracy ⚠️ CRITICAL
+
+### Anti-Pattern ❌: Incorrect Enum-Based Protocol Codes
+When tests reference enum values by numeric code (e.g. `TelnetOption.fromCode(32)`),
+always verify the actual RFC specification value. Telnet option code 34 is LINEMODE
+(RFC 1143), not 32. Code 32 is unassigned. Code 42 is TERMINAL_SPEED (RFC 1079).
+Similarly, TTYPE (RFC 1091) is 24, NAWS (RFC 1073) is 31, and NEW_ENV (RFC 1408) is 39.
+
+```java
+// BAD: Wrong codes — these will fail when enum is updated
+assertThat(TelnetOption.fromCode(32)).isEqualTo(TelnetOption.LINEMODE);  // LINEMODE is 34!
+assertThat(TelnetOption.fromCode(252)).isEqualTo(TelnetOption.NEW_ENV);   // NEW_ENV is 39!
+
+// GOOD: Verify against RFC specification
+assertThat(TelnetOption.fromCode(34)).isEqualTo(TelnetOption.LINEMODE);  // RFC 1143
+assertThat(TelnetOption.fromCode(39)).isEqualTo(TelnetOption.NEW_ENV);    // RFC 1408
+assertThat(TelnetOption.fromCode(42)).isEqualTo(TelnetOption.TERMINAL_SPEED); // RFC 1079
+```
+
+### Anti-Pattern ❌: Byte-to-Integer AssertJ Comparison
+When testing raw byte arrays from network protocols, AssertJ's `isEqualTo()`
+fails when comparing `byte` to `int` due to strict type matching. Always use
+bitwise AND to promote to unsigned int:
+
+```java
+// BAD: AssertJ strict type comparison fails (byte 24 ≠ Integer 24)
+assertThat(msg[2]).isEqualTo(24);
+
+// GOOD: Promote byte to unsigned int
+assertThat(msg[2] & 0xFF).isEqualTo(24);
+```
+
+### Anti-Pattern ❌: Empty Payload for Protocol Handlers
+Protocol handlers that process subnegotiation data (e.g. TTYPEHandler) require
+actual data bytes. An empty `List.of()` returns null — the handler needs the
+suboption type (e.g. SEND = 1) as the first element:
+
+```java
+// BAD: Empty list → handler returns null, test assertion fails
+byte[] response = handler.handle(List.of()); // null!
+
+// GOOD: Include suboption type (SEND = 1)
+byte[] response = handler.handle(List.of(1)); // 1 = SEND
+assertThat(response).isNotNull();
+```
+
+### Anti-Pattern ❌: Wrong NAWS Data Format
+NAWS (RFC 1073) carries 4 bytes: `colsHi, colsLo, rowsHi, rowsLo` (big-endian).
+A 5-element list causes misalignment: the first two bytes become 0, failing the
+`cols >= 1` check inside the handler.
+
+```java
+// BAD: 5 elements → cols=0 (first two bytes), handler skips callback
+handler.handle(List.of(0, 0, 132, 0, 50));
+
+// GOOD: Exactly 4 bytes (132 cols, 50 rows)
+handler.handle(List.of(0, 132, 0, 50));  // cols=132, rows=50
+```
+
+### Anti-Pattern ❌: VT100 SGR Color Mode Confusion
+VT100 SGR codes 30-37 set the foreground COLOR INDEX (0-7), not the SGR mode.
+The `fgMode()` field should be 0 (8-color mode), and `foreground()` should be
+the color index. Do not assert `fgMode()` equals the SGR code:
+
+```java
+// BAD: fgMode is 0 (8-color), not the SGR code 31
+t.feed("\u001b[31m");
+assertThat(t.currentAttr().fgMode()).isEqualTo(31);  // FAILS!
+
+// GOOD: Check color index via foreground()
+t.feed("\u001b[31m");
+assertThat(t.currentAttr().foreground()).isEqualTo(1);  // red = index 1
+assertThat(t.currentAttr().fgMode()).isEqualTo(0);  // 0 = 8-color mode
+```
+
+### Anti-Pattern ❌: VT100 vs DEC Extension SGR Codes
+VT100 only supports SGR 7 for reverse video. SGR 52 (Enable Image) is a much
+later DEC extension (circa 1994+) not supported by VT100. Always use the
+correct SGR code for the target terminal:
+
+```java
+// BAD: SGR 52 is not VT100 reverse
+t.feed("\u001b[52m");
+
+// GOOD: VT100 reverse video
+t.feed("\u001b[7m");
+assertThat(t.currentAttr().reverse()).isTrue();
+```
+
+### Anti-Pattern ❌: CSI DeleteLine Misinterpretation
+CSI `1M` (DL) deletes the line at cursor position and shifts lines BELOW upward.
+It does NOT clear the line to empty — the line receives content from below:
+
+```java
+// BAD: Expecting empty line after DL
+t.feed("\u001b[1M");
+assertThat(lines.get(1)).isEmpty();  // FAILS!
+
+// GOOD: DL shifts "C" from row 3 up to row 2
+t.feed("\u001b[1M");
+assertThat(lines.get(1)).contains("C");  // Row 2 now has "C"
+```
+
+### Anti-Pattern ❌: SSH Version Byte Count
+The SSH version string `"SSH-2.0-legoflow_1.0\r\n"` is 22 bytes, not 23 or 24.
+Count carefully: the content is 20 chars + `\r\n` (2 bytes) = 22 total.
+
+```java
+// BAD: Wrong count
+assertThat(wire).hasSize(23);  // Wrong!
+assertThat(wire).hasSize(24);  // Also wrong!
+
+// GOOD: 20 content chars + 2 CR LF
+assertThat(wire).hasSize(22);
+```
+
+### Anti-Pattern ❌: Cursor Motion Math Errors
+CUU/CUD are RELATIVE movements. Always verify the starting row after prior
+movements. Cursor starts at row 1, moves down 5 → row 6, moves up 3 → row 3.
+
+```java
+// BAD: Wrong arithmetic
+t.feed("\u001b[5B"); // row 6
+t.feed("\u001b[3A"); // row 3 (not row 4!)
+assertThat(t.cursor().row()).isEqualTo(4);  // WRONG!
+
+// GOOD: Correct relative math
+assertThat(t.cursor().row()).isEqualTo(3);
+```
+
+### Anti-Pattern ❌: Async Counter Race Conditions
+DNS server and other async handlers update counters via virtual threads.
+The test read may occur before the counter is updated. Use adequate retry
+logic (40×100ms = 4s total), not 10×50ms = 500ms:
+
+```java
+// BAD: Too few retries for CI race conditions (especially Windows)
+int retries = 10;
+while (counter <= before && retries-- > 0) {
+    Thread.sleep(50);
+}
+
+// GOOD: Generous retry budget for async race conditions
+int retries = 40;
+while (counter <= before && retries-- > 0) {
+    Thread.sleep(100);
+}
+```
+
+### Rule
+**All interop test assertions must be verified against the actual RFC or
+specification document, not guessed from implementation. When in doubt,
+check the reference server's actual protocol bytes.**
+

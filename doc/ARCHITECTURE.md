@@ -56,6 +56,8 @@ graph TD
         modbus["modbus"]
         ssh["ssh"]
         ftp["ftp"]
+        terminals["terminals"]
+        telnet["telnet"]
         clustercore["cluster-core"]
         clusterdiscovery["cluster-discovery"]
     end
@@ -108,6 +110,9 @@ graph TD
     snmp -->|uses| svc
     syslog -->|uses| svc
     modbus -->|uses| svc
+    terminals -->|uses| svc
+    telnet -->|uses| svc
+    telnet -->|uses| terminals
     rtsp -->|uses| svc
     rtp -->|uses| svc
     sip -->|uses| svc
@@ -472,6 +477,19 @@ The integration points differ enough that a shared module would add coupling wit
 - [modbus](../network/modbus/doc/ARCHITECTURE.md)
 - [ssh](../network/ssh/doc/ARCHITECTURE.md)
 - [ftp](../network/ftp/doc/ARCHITECTURE.md)
+- [terminals](../network/terminals/docs/plan.md) (plan)
+- [terminals-base](../network/terminals/terminals-base/doc/ARCHITECTURE.md)
+- [vt52](../network/terminals/vt52/doc/ARCHITECTURE.md)
+- [vt100](../network/terminals/vt100/doc/ARCHITECTURE.md)
+- [vt200](../network/terminals/vt200/doc/ARCHITECTURE.md)
+- [vt400](../network/terminals/vt400/doc/ARCHITECTURE.md)
+- [vt500](../network/terminals/vt500/doc/ARCHITECTURE.md)
+- [ansi](../network/terminals/ansi/doc/ARCHITECTURE.md)
+- [xterm](../network/terminals/xterm/doc/ARCHITECTURE.md)
+- [telnet](../network/telnet/docs/COMPARISON.md) (comparison)
+- [telnet-base](../network/telnet/telnet-base/doc/ARCHITECTURE.md)
+- [telnet-negotiation](../network/telnet/telnet-negotiation/doc/ARCHITECTURE.md)
+- [telnet-gateway](../network/telnet/telnet-gateway/doc/ARCHITECTURE.md)
 
 #### Media
 - [rtsp](../media/rtsp/doc/ARCHITECTURE.md)
@@ -485,7 +503,7 @@ The integration points differ enough that a shared module would add coupling wit
 - [cluster-discovery](../network/cluster/discovery/doc/ARCHITECTURE.md)
 - [cluster-coordination](../service/cluster-coordination/doc/ARCHITECTURE.md)
 
-**Last Updated**: 2026-08-16
+**Last Updated**: 2026-08-18
 
 ## CI/CD Infrastructure
 
@@ -836,3 +854,99 @@ graph LR
 | Cluster Messaging | NATS (extended) | Redis Pub/Sub |
 | Workload Balancing | Consistent Hashing, Sticky Sessions | Round-robin, Least-Request |
 | Cache Coherence | NATS invalidation bus | gRPC signals |
+
+---
+
+## Terminal Emulation & Telnet Protocol (implemented — branch `terminals`)
+
+Reusable terminal emulation framework with 8 terminal types and Telnet protocol bridge, designed for use in SSH, Telnet servers, CLI applications, and web-based terminal emulators.
+
+### Terminal Emulation Architecture
+
+```mermaid
+graph TD
+    subgraph "Terminal Types"
+        TB["terminals-base<br/>Terminal, DisplayModel, Screen,<br/>Cursor, TermAttr, EscapeParser"]
+        V52["vt52<br/>VT52 — ESC+letter commands"]
+        V100["vt100<br/>VT100 — CSI, SGR 0-7, DEC"]
+        V200["vt200<br/>VT200 — extends VT100"]
+        V400["vt400<br/>VT400 — 4-window, ext SGR"]
+        V500["vt500<br/>VT500 — DEC charsets, DCS"]
+        ANS["ansi<br/>ANSI X3.64"]
+        XT["xterm<br/>256/true color, mouse"]
+    end
+
+    subgraph "Telnet Protocol"
+        TBN["telnet-base<br/>RFC 854 parser"]
+        TN["telnet-negotiation<br/>Option handlers"]
+        TG["telnet-gateway<br/>Protocol ↔ terminal bridge"]
+    end
+
+    TB --> V52
+    TB --> V100
+    V100 --> V200
+    V200 --> V400
+    V400 --> V500
+    V100 --> ANS
+    ANS --> XT
+    TBN --> TN
+    TBN --> TG
+    TN --> TG
+    TB --> TG
+```
+
+### Module Layout
+
+| Module | Artifact | Scope |
+|--------|----------|-------|
+| `network/terminals` | `lego-flow-terminals` (pom) | Aggregator for terminal emulation |
+| `network/terminals/terminals-base` | `lego-flow-terminals-base` | `Terminal`, `DisplayModel`, `Screen`, `Cursor`, `TermAttr`, `EscapeParser` |
+| `network/terminals/vt52` | `lego-flow-vt52` | VT52 terminal (ESC+letter commands) |
+| `network/terminals/vt100` | `lego-flow-vt100` | VT100 terminal (CSI, SGR, DEC private) |
+| `network/terminals/vt200` | `lego-flow-vt200` | VT200 terminal (extends VT100) |
+| `network/terminals/vt400` | `lego-flow-vt400` | VT400 terminal (4-window, extended SGR) |
+| `network/terminals/vt500` | `lego-flow-vt500` | VT500 terminal (DEC charsets, DCS) |
+| `network/terminals/ansi` | `lego-flow-ansi` | ANSI X3.64 terminal (standard CSI only) |
+| `network/terminals/xterm` | `lego-flow-xterm` | XTERM terminal (256/true color, mouse, bracketed paste) |
+| `network/telnet` | `lego-flow-telnet` (pom) | Aggregator for Telnet protocol |
+| `network/telnet/telnet-base` | `lego-flow-telnet-base` | RFC 854 parser, connection, IAC escaping |
+| `network/telnet/telnet-negotiation` | `lego-flow-telnet-negotiation` | RFC 855 option negotiation, TTYPE, NAWS, Speed |
+| `network/telnet/telnet-gateway` | `lego-flow-telnet-gateway` | Protocol ↔ terminal bridge, event model |
+
+### Key Design Decisions
+
+- **Inheritance chain**: DEC lineage (VT100→VT200→VT400→VT500) shares a single inheritance chain; ANSI lineage (VT100→ANSI→XTERM) branches at VT100
+- **Reusable terminal abstractions**: `Terminal` interface and `TerminalEvent` are protocol-agnostic, usable in SSH, Telnet, CLI, Swing, and web-based applications
+- **EscapeParser in base**: Centralized escape sequence parsing in `terminals-base`, extended via method overriding in subclasses
+- **Telnet gateway bridges protocol to terminal**: `TelnetGateway` strips IAC escapes, feeds terminal, re-encodes terminal output for Telnet transport
+- **Event-driven**: Terminal emits `TerminalEvent` for feed operations; gateway emits `GatewayEvent` for protocol events
+
+### Terminal Type Inheritance
+
+| Terminal | Extends | Key Capabilities |
+|----------|---------|-----------------|
+| VT52 | base | ESC+letter commands, cursor address (ESC Y) |
+| VT100 | base | CSI sequences, SGR 0-9, DEC private modes, cursor save/restore |
+| VT200 | VT100 | SGR 52/55, PF key support |
+| VT400 | VT200 | 4-window support, extended SGR, OSC 14 |
+| VT500 | VT400 | DEC charsets (G0/G1, SO/SI), DCS, user-defined charset |
+| ANSI | VT100 | Standard CSI/SGR only, filters DEC private modes |
+| XTERM | ANSI | 256/true color, mouse tracking, bracketed paste, sync, cursor shape |
+
+### Test Coverage
+
+| Module | Tests | Coverage |
+|--------|-------|----------|
+| terminals-base | 159 unit | 76.6% |
+| vt52 | 15 unit | 92.7% |
+| vt100 | 30 unit | 88.5% |
+| vt200 | 6 unit | 97.8% |
+| vt400 | 6 unit | 98.7% |
+| vt500 | 6 unit | 95.6% |
+| ansi | 6 unit | 83.3% |
+| xterm | 25 unit | 73.5% |
+| telnet-base | 60 unit | 96.2% |
+| telnet-negotiation | 24 unit | 93.4% |
+| telnet-gateway | 9 unit | 76.9% |
+| demos | 35 demo | — |
+| **Total** | **679 unit + 35 demo = 714** | — |

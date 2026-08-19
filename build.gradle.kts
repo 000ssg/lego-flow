@@ -162,9 +162,29 @@ fun Project.setupInteropTestsModule() {
         "testImplementation"(project(":lego-flow-mqtt"))
         "testImplementation"(project(":lego-flow-redis"))
         "testImplementation"(project(":lego-flow-postgresql"))
+        "testImplementation"(project(":lego-flow-ssh"))
+        "testImplementation"(project(":lego-flow-telnet-base"))
+        "testImplementation"(project(":lego-flow-telnet-negotiation"))
+        "testImplementation"(project(":lego-flow-telnet-gateway"))
+        "testImplementation"(project(":lego-flow-vt100"))
+        "testImplementation"(project(":lego-flow-xterm"))
+        "testImplementation"(project(":lego-flow-tn3270"))
+        "testImplementation"(project(":lego-flow-tn5250"))
     }
 
-    // Skip tests by default — mirrors Maven skipInteropTests=true property
+    // Read skipInteropTests once at configuration time
+    val skipInterop = findProperty("skipInteropTests")?.toString()?.toBoolean() ?: true
+
+    // When interop tests are skipped, exclude test sources from compilation entirely
+    // so the build doesn't fail due to missing protocol module classes or Docker services.
+    // This mirrors Maven's <skipTests>true</skipTests> which prevents test compilation.
+    if (skipInterop) {
+        tasks.withType<JavaCompile> {
+            exclude("ssg/legoflow/interop/**/*.java")
+        }
+    }
+
+    // Skip test execution by default — mirrors Maven skipInteropTests=true property
     // Override: ./gradlew :interop-tests:test -PskipInteropTests=false
     tasks.withType<Test> {
         // Check both Gradle project properties (-PskipInteropTests=false) and JVM system properties

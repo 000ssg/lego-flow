@@ -191,6 +191,54 @@
             <artifactId>lego-flow-ftp</artifactId>
         </dependency>
 
+        <!-- Terminal modules -->
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-terminals-base</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-vt52</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-vt100</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-vt200</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-vt400</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-vt500</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-ansi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-xterm</artifactId>
+        </dependency>
+
+        <!-- Telnet modules -->
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-telnet-base</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-telnet-negotiation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-telnet-gateway</artifactId>
+        </dependency>
+
         <!-- IoT modules -->
         <dependency>
             <groupId>ssg</groupId>
