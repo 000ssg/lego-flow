@@ -47,6 +47,10 @@ class SshServerInteropTest {
 
     @Test
     void testVersionExchangeWithOpenSSH() throws IOException {
+        if (!shouldRun()) {
+            throw new org.opentest4j.TestAbortedException(
+                    "SSH interop skipped — no sshd available for version exchange");
+        }
         // Verify OpenSSH responds with SSH-2.0 version string
         try (Socket socket = new Socket(sshdHost, sshdPort)) {
             socket.setSoTimeout(5000);
@@ -126,6 +130,10 @@ class SshServerInteropTest {
 
     @Test
     void testOpenSSHCompatRoundTrip() throws IOException {
+        if (!shouldRun()) {
+            throw new org.opentest4j.TestAbortedException(
+                    "SSH interop skipped — no sshd available for round-trip test");
+        }
         // Connect to OpenSSH sshd, read version, verify round-trip
         try (Socket socket = new Socket(sshdHost, sshdPort)) {
             socket.setSoTimeout(5000);

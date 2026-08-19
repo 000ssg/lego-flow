@@ -130,9 +130,10 @@ class TerminalEmulatorInteropTest {
 
     @Test
     void testVideoNormal() {
+        // VT100: SGR 27 turns off reverse (SGR 55 is a later DEC extension)
         VT100Terminal t = vt100();
-        t.feed("\u001b[52m");
-        t.feed("\u001b[55m");
+        t.feed("\u001b[52m");  // SGR 52 — ignored by VT100 (later DEC extension)
+        t.feed("\u001b[27m");  // SGR 27 — correct VT100 reverse-off
         assertThat(t.currentAttr().reverse()).isFalse();
     }
 
