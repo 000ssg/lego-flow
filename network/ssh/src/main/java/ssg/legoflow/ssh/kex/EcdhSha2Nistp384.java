@@ -6,9 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
-
 import javax.crypto.KeyAgreement;
-
 /**
  * ECDH key exchange using nistp384 curve with SHA-384 (RFC 5656).
  *

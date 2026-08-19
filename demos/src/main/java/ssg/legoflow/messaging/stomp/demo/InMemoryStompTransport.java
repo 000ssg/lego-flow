@@ -2,11 +2,9 @@ package ssg.legoflow.messaging.stomp.demo;
 
 import ssg.legoflow.messaging.stomp.core.StompFrame;
 import ssg.legoflow.messaging.stomp.core.transport.StompTransport;
-
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-
 /**
  * In-memory STOMP transport for testing and demos.
  *

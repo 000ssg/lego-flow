@@ -3,14 +3,10 @@ package ssg.legoflow.network.dns.rdata;
 import ssg.legoflow.network.dns.protocol.DnsName;
 import ssg.legoflow.network.dns.protocol.RecordType;
 import ssg.legoflow.network.dns.rdata.dnssec.TypeBitMaps;
-
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
-
 /**
  * NSEC record RDATA: next secure record (RFC 4034).
  *

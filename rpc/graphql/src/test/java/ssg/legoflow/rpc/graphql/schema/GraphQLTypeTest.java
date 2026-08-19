@@ -1,12 +1,9 @@
 package ssg.legoflow.rpc.graphql.schema;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 class GraphQLTypeTest {
 
     @Test

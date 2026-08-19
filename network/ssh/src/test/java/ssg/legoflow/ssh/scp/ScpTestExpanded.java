@@ -2,12 +2,10 @@ package ssg.legoflow.ssh.scp;
 
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.Comparator;
-
 /**
  * Expanded tests for SCP protocol operations.
  */

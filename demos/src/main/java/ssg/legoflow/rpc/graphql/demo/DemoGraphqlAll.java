@@ -10,13 +10,10 @@ import ssg.legoflow.rpc.graphql.sdl.SchemaPrinter;
 import ssg.legoflow.rpc.graphql.sdl.SchemaParser;
 import ssg.legoflow.rpc.graphql.transport.JsonCodec;
 import ssg.legoflow.rpc.graphql.validation.QueryValidator;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 /**
  * Comprehensive demo of all GraphQL module features.
  *

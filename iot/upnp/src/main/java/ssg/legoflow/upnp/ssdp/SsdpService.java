@@ -2,11 +2,9 @@ package ssg.legoflow.upnp.ssdp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import ssg.legoflow.service.channel.ChannelPipeline;
 import ssg.legoflow.service.channel.MulticastDataChannel;
 import ssg.legoflow.service.manager.ServiceGroup;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -31,7 +29,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
  * SSDP discovery service for UPnP device discovery and advertisement.
  *

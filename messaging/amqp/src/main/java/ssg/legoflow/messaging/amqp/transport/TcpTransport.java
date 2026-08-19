@@ -2,12 +2,10 @@ package ssg.legoflow.messaging.amqp.transport;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.Objects;
-
 /**
  * TCP socket adapter implementing {@link AmqpTransport}.
  *

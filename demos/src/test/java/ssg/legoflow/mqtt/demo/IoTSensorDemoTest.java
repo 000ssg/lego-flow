@@ -6,17 +6,13 @@ import ssg.legoflow.mqtt.client.MqttClient;
 import ssg.legoflow.mqtt.client.MqttClientConfig;
 import ssg.legoflow.mqtt.protocol.QoS;
 import org.junit.jupiter.api.Test;
-
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for {@link IoTSensorDemo} scenarios.
  *

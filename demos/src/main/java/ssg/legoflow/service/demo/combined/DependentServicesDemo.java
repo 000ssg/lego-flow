@@ -5,9 +5,7 @@ import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
 import ssg.legoflow.service.functional.ServiceBuilder;
 import ssg.legoflow.service.manager.AbstractServicesManager;
-
 import java.util.List;
-
 /**
  * Demonstrates dependency-aware service management: services that depend
  * on each other are started in correct order and stopped in reverse.

@@ -5,12 +5,10 @@ import ssg.legoflow.network.dns.rdata.*;
 import ssg.legoflow.network.dns.transport.UdpTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.*;
-
 /**
  * Recursive DNS resolver that follows NS referrals from root servers.
  *

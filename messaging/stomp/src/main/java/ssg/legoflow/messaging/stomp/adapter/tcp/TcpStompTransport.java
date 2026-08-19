@@ -3,13 +3,11 @@ package ssg.legoflow.messaging.stomp.adapter.tcp;
 import ssg.legoflow.messaging.stomp.core.StompCodec;
 import ssg.legoflow.messaging.stomp.core.StompFrame;
 import ssg.legoflow.messaging.stomp.core.transport.StompTransport;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-
 /**
  * STOMP transport over raw TCP sockets.
  *

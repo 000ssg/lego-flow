@@ -2,12 +2,10 @@ package ssg.legoflow.http.transfer;
 
 import ssg.legoflow.blocks.AbstractDataFilter;
 import ssg.legoflow.blocks.Context;
-
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-
 public class ChunkedCodec extends AbstractDataFilter<ByteBuffer> {
 
     private final Mode mode;

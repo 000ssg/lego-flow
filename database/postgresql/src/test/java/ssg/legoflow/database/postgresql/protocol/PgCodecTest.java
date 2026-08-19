@@ -1,14 +1,10 @@
 package ssg.legoflow.database.postgresql.protocol;
 
 import org.junit.jupiter.api.Test;
-import ssg.legoflow.database.postgresql.common.SqlState;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.*;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link PgCodec}: encode/decode round-trip for all message types.
  */

@@ -9,12 +9,9 @@ import ssg.legoflow.messaging.amqp.link.ReceiverLink;
 import ssg.legoflow.messaging.amqp.link.SenderLink;
 import ssg.legoflow.messaging.amqp.message.AmqpMessage;
 import ssg.legoflow.messaging.amqp.session.AmqpSession;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.concurrent.TimeUnit;
-
 /**
  * Simple send/receive demo showing basic AMQP 1.0 messaging.
  *

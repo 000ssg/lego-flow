@@ -6,14 +6,11 @@ import ssg.legoflow.xmpp.core.JID;
 import ssg.legoflow.xmpp.core.PresenceStanza;
 import ssg.legoflow.xmpp.core.PresenceStanza.PresenceShow;
 import ssg.legoflow.xmpp.core.PresenceStanza.PresenceType;
-import ssg.legoflow.xmpp.presence.PresenceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
 /**
  * Presence status demo: online/away/dnd, subscription management.
  *

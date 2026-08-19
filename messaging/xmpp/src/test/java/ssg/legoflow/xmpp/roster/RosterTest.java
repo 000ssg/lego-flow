@@ -3,12 +3,9 @@ package ssg.legoflow.xmpp.roster;
 import ssg.legoflow.xmpp.core.JID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link Roster}.
  *

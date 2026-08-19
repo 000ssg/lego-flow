@@ -1,7 +1,6 @@
 package ssg.legoflow.messaging.kafka.auth;
 
 import org.junit.jupiter.api.Test;
-
 import javax.crypto.Mac;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -9,9 +8,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Base64;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link ScramSha256Server}.
  */

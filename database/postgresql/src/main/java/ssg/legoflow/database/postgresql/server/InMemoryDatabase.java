@@ -1,17 +1,13 @@
 package ssg.legoflow.database.postgresql.server;
 
-import ssg.legoflow.database.postgresql.common.PgSeverity;
 import ssg.legoflow.database.postgresql.common.SqlState;
 import ssg.legoflow.database.postgresql.protocol.BackendMessage.ColumnDescription;
 import ssg.legoflow.database.postgresql.protocol.PgType;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
 /**
  * Simple in-memory database supporting basic CREATE TABLE, INSERT, SELECT, UPDATE, DELETE.
  *

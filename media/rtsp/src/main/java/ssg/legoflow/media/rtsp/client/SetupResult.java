@@ -1,9 +1,7 @@
 package ssg.legoflow.media.rtsp.client;
 
 import ssg.legoflow.media.rtsp.protocol.TransportHeader;
-
 import java.util.Objects;
-
 /**
  * Result of an RTSP SETUP operation containing transport parameters
  * negotiated with the server.

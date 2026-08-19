@@ -1,13 +1,10 @@
 package ssg.legoflow.ws;
 
 import org.junit.jupiter.api.Test;
-import ssg.legoflow.blocks.Context;
 import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpMethod;
 import ssg.legoflow.http.core.HttpRequest;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for {@link WebServiceFilter}.
  *

@@ -1,12 +1,10 @@
 package ssg.legoflow.network.dns.rdata;
 
 import ssg.legoflow.network.dns.protocol.RecordType;
-
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Objects;
-
 /**
  * A record RDATA: a 4-byte IPv4 address (RFC 1035).
  *

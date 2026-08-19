@@ -10,15 +10,12 @@ import ssg.legoflow.ws.WebServiceDescriptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.*;
-
 class UserApiDemoTest {
 
     private UserApiService service;

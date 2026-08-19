@@ -4,14 +4,12 @@ import ssg.legoflow.http.auth.AuthContext;
 import ssg.legoflow.http.auth.AuthPrincipal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Password store using SHA-256 hashed passwords with per-user salt.
  * Passwords are stored as salt:hash where both are hex-encoded.

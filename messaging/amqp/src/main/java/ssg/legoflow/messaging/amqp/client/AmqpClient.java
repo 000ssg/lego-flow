@@ -16,12 +16,8 @@ import ssg.legoflow.messaging.amqp.sasl.SaslMechanism;
 import ssg.legoflow.messaging.amqp.session.AmqpSession;
 import ssg.legoflow.messaging.amqp.transport.*;
 import ssg.legoflow.messaging.amqp.types.AmqpType;
-import ssg.legoflow.messaging.amqp.types.Descriptors;
-import ssg.legoflow.messaging.amqp.types.TypeCodec;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -30,7 +26,6 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * AMQP 1.0 client for connecting to containers and exchanging messages.
  *

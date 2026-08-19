@@ -2,12 +2,9 @@ package ssg.legoflow.ftp.data;
 
 import ssg.legoflow.ftp.protocol.FtpTransferType;
 import org.junit.jupiter.api.Test;
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link DataTransfer}.
  */

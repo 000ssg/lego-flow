@@ -2,9 +2,7 @@ package ssg.legoflow.database.redis.service;
 
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
-
 import java.nio.ByteBuffer;
-
 /** Channel handler for Redis client service, routing data between DataChannel and Redis transport. */
 public final class RedisClientChannelHandler implements ChannelHandler {
 

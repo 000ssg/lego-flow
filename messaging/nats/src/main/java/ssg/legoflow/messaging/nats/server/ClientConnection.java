@@ -4,14 +4,12 @@ import ssg.legoflow.messaging.nats.protocol.*;
 import ssg.legoflow.messaging.nats.server.auth.Authenticator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * Per-client connection handler on the server side.
  *

@@ -8,16 +8,12 @@ import ssg.legoflow.media.sip.protocol.SipMethod;
 import ssg.legoflow.media.sip.protocol.SipRequest;
 import ssg.legoflow.media.sip.protocol.SipResponse;
 import ssg.legoflow.media.sip.protocol.SipStatus;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-
 /**
  * SIP registrar server per RFC 3261 section 10.3.
  *

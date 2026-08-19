@@ -2,9 +2,7 @@ package ssg.legoflow.blocks.exceptions;
 
 import ssg.legoflow.blocks.ProcessorState;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for exception classes in the blocks module.
  */

@@ -4,12 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ssg.legoflow.media.rtsp.protocol.*;
 import ssg.legoflow.media.rtsp.server.RtspServer;
-
 import java.net.URI;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * RTSP 2.0 client for controlling media streams.
  *

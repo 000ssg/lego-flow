@@ -6,10 +6,7 @@ import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
 import ssg.legoflow.service.user.AccessControl;
 import ssg.legoflow.service.user.ServiceRole;
-import ssg.legoflow.service.user.UserType;
-
 import java.util.Set;
-
 public class AuthenticatedService extends AbstractService<String, String> {
 
     private final AccessControl accessControl;

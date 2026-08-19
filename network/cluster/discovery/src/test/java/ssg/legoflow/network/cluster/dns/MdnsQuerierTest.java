@@ -3,25 +3,13 @@ package ssg.legoflow.network.cluster.dns;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.dns.protocol.DnsMessage;
-import ssg.legoflow.network.dns.protocol.DnsRecord;
-import ssg.legoflow.network.dns.protocol.RecordType;
-import ssg.legoflow.network.dns.protocol.ResponseCode;
-import ssg.legoflow.network.dns.rdata.ARecord;
-import ssg.legoflow.network.dns.rdata.PtrRecord;
-import ssg.legoflow.network.dns.rdata.SrvRecord;
-import ssg.legoflow.network.dns.rdata.TxtRecord;
-
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.time.Duration;
-import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import static org.assertj.core.api.Assertions.*;
-
 class MdnsQuerierTest {
 
     @Test

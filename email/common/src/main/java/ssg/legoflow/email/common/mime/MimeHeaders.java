@@ -1,9 +1,7 @@
 package ssg.legoflow.email.common.mime;
 
 import ssg.legoflow.email.common.header.HeaderField;
-
 import java.util.*;
-
 /**
  * Case-insensitive header map with support for header folding/unfolding.
  *

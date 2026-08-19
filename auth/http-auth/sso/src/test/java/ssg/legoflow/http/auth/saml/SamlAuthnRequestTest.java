@@ -1,13 +1,10 @@
 package ssg.legoflow.http.auth.saml;
 
 import org.junit.jupiter.api.Test;
-
 import java.io.ByteArrayInputStream;
 import java.util.Base64;
 import java.util.zip.InflaterInputStream;
-
 import static org.assertj.core.api.Assertions.*;
-
 class SamlAuthnRequestTest {
 
     @Test

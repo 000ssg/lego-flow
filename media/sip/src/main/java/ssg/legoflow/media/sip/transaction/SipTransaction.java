@@ -3,9 +3,7 @@ package ssg.legoflow.media.sip.transaction;
 import ssg.legoflow.media.sip.protocol.SipMethod;
 import ssg.legoflow.media.sip.protocol.SipRequest;
 import ssg.legoflow.media.sip.protocol.SipResponse;
-
 import java.util.Objects;
-
 /**
  * Base class for SIP transactions per RFC 3261 section 17.
  *

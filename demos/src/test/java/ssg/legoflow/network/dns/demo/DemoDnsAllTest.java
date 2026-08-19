@@ -1,9 +1,7 @@
 package ssg.legoflow.network.dns.demo;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Runs the comprehensive DNS demo and verifies all feature sections.
  *

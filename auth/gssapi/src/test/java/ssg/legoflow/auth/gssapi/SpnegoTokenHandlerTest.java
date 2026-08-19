@@ -1,11 +1,8 @@
 package ssg.legoflow.auth.gssapi;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.Base64;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link SpnegoTokenHandler}: NegTokenInit/NegTokenResp creation,
  * SPNEGO token detection, Base64 encoding/decoding, and token extraction.

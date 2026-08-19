@@ -3,16 +3,13 @@ package ssg.legoflow.service.channel;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.StandardProtocolFamily;
 import java.nio.channels.Selector;
-
 import static org.assertj.core.api.Assertions.*;
-
 class MulticastDataChannelTest {
 
     private Selector selector;

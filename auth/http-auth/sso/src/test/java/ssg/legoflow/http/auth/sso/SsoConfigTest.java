@@ -1,12 +1,9 @@
 package ssg.legoflow.http.auth.sso;
 
 import org.junit.jupiter.api.Test;
-
 import java.time.Duration;
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.*;
-
 class SsoConfigTest {
 
     @Test

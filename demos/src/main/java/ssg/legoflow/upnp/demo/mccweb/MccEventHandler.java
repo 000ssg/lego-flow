@@ -12,8 +12,6 @@ import ssg.legoflow.upnp.controlpoint.MediaRendererProxy;
 import ssg.legoflow.upnp.mediarenderer.PlaybackEvent;
 import ssg.legoflow.upnp.mediarenderer.PlaybackListener;
 import ssg.legoflow.upnp.mediaserver.ContentItem;
-
-import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -21,7 +19,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-
 /**
  * Handles Server-Sent Events (SSE) for real-time updates in the Media Control Center.
  *

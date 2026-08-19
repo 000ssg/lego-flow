@@ -1,9 +1,7 @@
 package ssg.legoflow.network.cluster.core.hashing;
 
 import ssg.legoflow.network.cluster.core.ClusterNode;
-
 import java.util.Objects;
-
 /**
  * A virtual node on the consistent hash ring (Ketama-style).
  *

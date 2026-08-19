@@ -2,11 +2,8 @@ package ssg.legoflow.network.terminals.tn5250;
 
 import org.junit.jupiter.api.*;
 import ssg.legoflow.network.terminals.base.config.TerminalConfig;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for the TN5250 screen model.
  */

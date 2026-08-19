@@ -3,11 +3,9 @@ package ssg.legoflow.network.dns.rdata;
 import ssg.legoflow.network.dns.protocol.DnsName;
 import ssg.legoflow.network.dns.protocol.RecordType;
 import ssg.legoflow.network.dns.rdata.RData;
-
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Objects;
-
 /**
  * RRSIG record RDATA: DNSSEC signature (RFC 4034).
  *

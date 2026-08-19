@@ -2,9 +2,7 @@ package ssg.legoflow.http.server;
 
 import ssg.legoflow.http.core.*;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class HttpRouterTest {
 
     // HttpContext is only passed through to handlers; our test handlers ignore it, so null is safe

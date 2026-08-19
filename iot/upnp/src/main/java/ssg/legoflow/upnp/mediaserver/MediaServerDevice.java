@@ -4,12 +4,10 @@ import ssg.legoflow.upnp.dlna.DlnaMediaFormat;
 import ssg.legoflow.upnp.dlna.DlnaProfile;
 import ssg.legoflow.upnp.dlna.DlnaProtocolInfo;
 import ssg.legoflow.upnp.ssdp.SsdpService;
-
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Complete UPnP Media Server device implementation.
  *

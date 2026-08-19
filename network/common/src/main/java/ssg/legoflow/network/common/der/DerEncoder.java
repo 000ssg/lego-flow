@@ -2,14 +2,11 @@ package ssg.legoflow.network.common.der;
 
 import ssg.legoflow.network.common.asn1.*;
 import ssg.legoflow.network.common.ber.BerEncoder;
-import ssg.legoflow.network.common.ber.BerLength;
 import ssg.legoflow.network.common.ber.BerTag;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-
 /**
  * DER (Distinguished Encoding Rules) encoder.
  *

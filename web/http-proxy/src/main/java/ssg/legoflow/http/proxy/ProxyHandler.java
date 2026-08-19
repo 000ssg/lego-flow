@@ -1,7 +1,6 @@
 package ssg.legoflow.http.proxy;
 
 import ssg.legoflow.http.core.HttpContext;
-import ssg.legoflow.http.core.HttpMethod;
 import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpRequestHandler;
 import ssg.legoflow.http.core.HttpResponse;
@@ -9,7 +8,6 @@ import ssg.legoflow.http.proxy.forward.ForwardProxy;
 import ssg.legoflow.http.proxy.reverse.ReverseProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 /**
  * HttpRequestHandler integration for the http module's HttpRouter.
  *

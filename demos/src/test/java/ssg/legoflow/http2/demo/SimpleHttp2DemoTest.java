@@ -5,13 +5,9 @@ import ssg.legoflow.http2.connection.Http2Connection;
 import ssg.legoflow.http2.connection.Http2ConnectionPreface;
 import ssg.legoflow.http2.frame.*;
 import org.junit.jupiter.api.Test;
-
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 class SimpleHttp2DemoTest {
 
     @Test

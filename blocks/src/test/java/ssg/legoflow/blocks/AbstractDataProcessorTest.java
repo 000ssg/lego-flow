@@ -5,13 +5,10 @@ import ssg.legoflow.blocks.demo.StringToIntProcessor;
 import ssg.legoflow.blocks.demo.ValidationFilter;
 import ssg.legoflow.blocks.exceptions.StateTransitionException;
 import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 class AbstractDataProcessorTest {
 
     private final Context ctx = new DefaultContext();

@@ -1,11 +1,9 @@
 package ssg.legoflow.network.snmp.protocol;
 
 import ssg.legoflow.network.common.oid.ObjectIdentifier;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
 /**
  * An ordered list of variable bindings (VarBind).
  *

@@ -17,12 +17,10 @@ import ssg.legoflow.http.transfer.ContentEncodingCodec;
 import ssg.legoflow.http.websocket.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
-
 /**
  * Comprehensive demo of all HTTP module features.
  *

@@ -3,15 +3,12 @@ package ssg.legoflow.ssh.transport;
 import ssg.legoflow.ssh.cipher.SshCipher;
 import ssg.legoflow.ssh.mac.SshMac;
 import ssg.legoflow.ssh.compression.SshCompression;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-
 /**
  * SSH binary packet encoding and decoding per RFC 4253 section 6.
  *

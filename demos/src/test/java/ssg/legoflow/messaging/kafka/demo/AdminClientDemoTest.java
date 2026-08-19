@@ -1,11 +1,8 @@
 package ssg.legoflow.messaging.kafka.demo;
 
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.*;
-
 class AdminClientDemoTest {
 
     @Test

@@ -7,12 +7,10 @@ import ssg.legoflow.upnp.device.DeviceDescription;
 import ssg.legoflow.upnp.device.ServiceDescription;
 import ssg.legoflow.upnp.dlna.DlnaProtocolInfo;
 import ssg.legoflow.upnp.mediarenderer.TransportState;
-
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
-
 /**
  * Dialog displaying detailed information about a UPnP device.
  *

@@ -4,12 +4,9 @@ import ssg.legoflow.network.telnet.base.TelnetCommand;
 import ssg.legoflow.network.telnet.base.TelnetOption;
 import ssg.legoflow.network.telnet.negotiation.*;
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class NegotiationDemoTest {
 
     @Test

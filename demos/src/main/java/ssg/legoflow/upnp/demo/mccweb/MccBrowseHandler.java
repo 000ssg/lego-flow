@@ -7,13 +7,10 @@ import ssg.legoflow.http.core.HttpStatus;
 import ssg.legoflow.upnp.controlpoint.ControlPoint;
 import ssg.legoflow.upnp.controlpoint.MediaServerProxy;
 import ssg.legoflow.upnp.mediaserver.ContentItem;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
 import static ssg.legoflow.upnp.demo.mccweb.MccDeviceHandler.jsonResponse;
-
 /**
  * Handles content browsing REST API requests for the Media Control Center.
  *

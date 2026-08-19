@@ -3,15 +3,12 @@ package ssg.legoflow.ftp.server;
 import ssg.legoflow.ftp.client.FtpFileEntry;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link LocalFileSystem}.
  */

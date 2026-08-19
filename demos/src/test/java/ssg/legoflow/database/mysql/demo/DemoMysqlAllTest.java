@@ -1,9 +1,7 @@
 package ssg.legoflow.database.mysql.demo;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Runs the comprehensive MySQL demo and verifies all feature sections.
  *

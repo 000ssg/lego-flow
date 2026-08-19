@@ -4,14 +4,10 @@ import ssg.legoflow.http2.config.Http2Config;
 import ssg.legoflow.http2.connection.Http2Connection;
 import ssg.legoflow.http2.connection.Http2Settings;
 import ssg.legoflow.http2.frame.Http2Frame;
-import ssg.legoflow.http2.stream.Http2FlowControl;
-import ssg.legoflow.http2.stream.Http2Stream;
 import ssg.legoflow.http2.stream.Http2StreamState;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-
 public class FlowControlDemo {
 
     private final Http2Connection connection;

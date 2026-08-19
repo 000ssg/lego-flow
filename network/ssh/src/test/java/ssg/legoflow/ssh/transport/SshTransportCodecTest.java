@@ -1,12 +1,9 @@
 package ssg.legoflow.ssh.transport;
 
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link SshTransportCodec}.
  */

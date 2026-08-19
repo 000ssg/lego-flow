@@ -14,10 +14,8 @@ import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Base64;
 import java.util.Objects;
-
 /**
  * HTTP Negotiate (SPNEGO) authentication scheme per RFC 4559.
  *

@@ -1,12 +1,8 @@
 package ssg.legoflow.demos.cluster;
 
 import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.Method;
 import java.util.Arrays;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for {@link ClusterDemoRunner}.
  *

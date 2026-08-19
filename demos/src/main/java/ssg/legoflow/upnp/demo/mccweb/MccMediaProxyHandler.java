@@ -8,17 +8,13 @@ import ssg.legoflow.http.core.HttpStatus;
 import ssg.legoflow.upnp.controlpoint.ControlPoint;
 import ssg.legoflow.upnp.controlpoint.MediaServerProxy;
 import ssg.legoflow.upnp.mediaserver.ContentItem;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.util.Map;
 import java.util.Objects;
-
 import static ssg.legoflow.upnp.demo.mccweb.MccDeviceHandler.jsonResponse;
-
 /**
  * Proxies media streams from DLNA sources to the browser.
  *

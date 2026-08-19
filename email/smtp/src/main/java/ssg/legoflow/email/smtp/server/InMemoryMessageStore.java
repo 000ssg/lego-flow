@@ -2,9 +2,7 @@ package ssg.legoflow.email.smtp.server;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 /**
  * In-memory message store for testing and development.
  *

@@ -2,14 +2,11 @@ package ssg.legoflow.xmpp.demo;
 
 import ssg.legoflow.xmpp.client.XmppClient;
 import ssg.legoflow.xmpp.client.XmppClientConfig;
-import ssg.legoflow.xmpp.core.JID;
 import ssg.legoflow.xmpp.core.MessageStanza;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * Simplest XMPP demo: two clients exchange messages.
  *

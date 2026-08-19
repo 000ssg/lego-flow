@@ -5,10 +5,8 @@ import ssg.legoflow.xmpp.client.XmppClientConfig;
 import ssg.legoflow.xmpp.iot.discovery.ThingDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.List;
 import java.util.Map;
-
 /**
  * IoT Discovery demo: register things, search by tags, claim ownership.
  *

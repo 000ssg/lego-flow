@@ -1,14 +1,11 @@
 package ssg.legoflow.network.ldap.control;
 
 import ssg.legoflow.network.common.asn1.*;
-import ssg.legoflow.network.common.ber.BerDecoder;
 import ssg.legoflow.network.common.ber.BerEncoder;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * Server-Side Sort controls as defined in RFC 2891.
  *

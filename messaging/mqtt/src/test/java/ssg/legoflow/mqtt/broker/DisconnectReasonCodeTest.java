@@ -5,16 +5,12 @@ import ssg.legoflow.mqtt.protocol.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for MQTT v5.0 DISCONNECT packet with reason codes (Section 3.14.2).
  *

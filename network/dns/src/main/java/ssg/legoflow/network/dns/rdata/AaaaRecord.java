@@ -1,12 +1,10 @@
 package ssg.legoflow.network.dns.rdata;
 
 import ssg.legoflow.network.dns.protocol.RecordType;
-
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Objects;
-
 /**
  * AAAA record RDATA: a 16-byte IPv6 address (RFC 3596).
  *

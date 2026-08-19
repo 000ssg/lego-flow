@@ -1,12 +1,10 @@
 package ssg.legoflow.messaging.kafka.broker;
 
 import ssg.legoflow.messaging.kafka.common.TopicPartition;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Per-broker replica state manager.
  *

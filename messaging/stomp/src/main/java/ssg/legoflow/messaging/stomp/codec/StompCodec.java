@@ -1,14 +1,12 @@
 package ssg.legoflow.messaging.stomp.codec;
 
 import ssg.legoflow.messaging.stomp.StompMessage;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
 /**
  * Codec for encoding and decoding STOMP (Simple Text Oriented Messaging Protocol) messages.
  * 

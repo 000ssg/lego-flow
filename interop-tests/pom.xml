@@ -57,6 +57,24 @@
         </dependency>
         <dependency>
             <groupId>ssg</groupId>
+            <artifactId>lego-flow-dns</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-smtp</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-ftp</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
             <artifactId>lego-flow-telnet-base</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
@@ -82,6 +100,18 @@
         <dependency>
             <groupId>ssg</groupId>
             <artifactId>lego-flow-xterm</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-tn3270</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-tn5250</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

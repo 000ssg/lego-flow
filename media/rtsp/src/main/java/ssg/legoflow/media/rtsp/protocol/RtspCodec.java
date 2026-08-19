@@ -30,7 +30,6 @@ public final class RtspCodec {
      * Creates a stateless codec (for backward compatibility with static methods).
      */
     @SuppressWarnings("unused")
-    private static final RtspCodec STATIC_INSTANCE = null;
 
     /**
      * Encodes an RTSP request to bytes.

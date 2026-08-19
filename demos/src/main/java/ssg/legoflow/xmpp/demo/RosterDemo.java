@@ -7,9 +7,7 @@ import ssg.legoflow.xmpp.roster.Roster;
 import ssg.legoflow.xmpp.roster.RosterItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.List;
-
 /**
  * Roster management demo: add/remove contacts, groups.
  *

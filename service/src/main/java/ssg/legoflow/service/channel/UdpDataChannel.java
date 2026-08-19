@@ -2,7 +2,6 @@ package ssg.legoflow.service.channel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -12,7 +11,6 @@ import java.nio.channels.Selector;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * A {@link DataChannel} implementation wrapping a {@link DatagramChannel} for UDP communication.
  *

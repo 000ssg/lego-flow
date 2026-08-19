@@ -5,10 +5,8 @@ import ssg.legoflow.messaging.amqp.common.AmqpError;
 import ssg.legoflow.messaging.amqp.common.AmqpException;
 import ssg.legoflow.messaging.amqp.types.AmqpType;
 import ssg.legoflow.messaging.amqp.types.TypeCodec;
-
 import java.nio.ByteBuffer;
 import ssg.legoflow.service.util.BufferPool;
-
 /**
  * Encodes and decodes AMQP 1.0 frames to/from the wire format.
  *

@@ -1,14 +1,9 @@
 package ssg.legoflow.http2.demo;
 
-import ssg.legoflow.http2.connection.Http2Connection;
 import ssg.legoflow.http2.frame.Http2Frame;
 import ssg.legoflow.http2.frame.Http2FrameType;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 class MultiplexingDemoTest {
 
     @Test

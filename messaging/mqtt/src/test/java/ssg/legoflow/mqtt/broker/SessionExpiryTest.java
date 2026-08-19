@@ -6,13 +6,10 @@ import ssg.legoflow.mqtt.protocol.QoS;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for MQTT v5.0 Session Expiry Interval (Section 3.1.2.11).
  *

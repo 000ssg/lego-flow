@@ -11,9 +11,7 @@ import ssg.legoflow.media.sip.transaction.ServerTransaction;
 import ssg.legoflow.media.sip.transaction.TransactionState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
-
 /**
  * Comprehensive demo of all SIP module features.
  *

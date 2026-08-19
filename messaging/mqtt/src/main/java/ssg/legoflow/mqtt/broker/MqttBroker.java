@@ -5,7 +5,6 @@ import ssg.legoflow.mqtt.protocol.*;
 import ssg.legoflow.mqtt.topic.TopicTree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
@@ -17,7 +16,6 @@ import java.nio.channels.SocketChannel;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
  * Lightweight MQTT message broker.
  *

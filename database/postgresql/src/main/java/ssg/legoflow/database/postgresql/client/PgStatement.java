@@ -3,14 +3,12 @@ package ssg.legoflow.database.postgresql.client;
 import ssg.legoflow.database.postgresql.protocol.BackendMessage;
 import ssg.legoflow.database.postgresql.protocol.FrontendMessage;
 import ssg.legoflow.database.postgresql.protocol.PgCodec;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * Client-side prepared statement for the extended query protocol.
  *

@@ -6,10 +6,8 @@ import ssg.legoflow.http2.connection.Http2Connection;
 import ssg.legoflow.http2.frame.Http2Frame;
 import ssg.legoflow.http2.server.Http2Server;
 import ssg.legoflow.http2.stream.Http2Stream;
-
 import java.util.ArrayList;
 import java.util.List;
-
 public class ServerPushDemo {
 
     private final Http2Server server;

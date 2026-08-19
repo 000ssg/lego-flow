@@ -1,9 +1,7 @@
 package ssg.legoflow.http3.quic;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link QuicFlowControl} — window consumption, MAX_DATA updates,
  * and blocked detection.

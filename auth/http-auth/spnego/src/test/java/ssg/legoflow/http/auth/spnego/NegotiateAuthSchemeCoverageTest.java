@@ -7,8 +7,6 @@ import ssg.legoflow.http.auth.AuthContext;
 import ssg.legoflow.http.auth.AuthResult;
 import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpMethod;
-import ssg.legoflow.http.core.HttpHeaders;
-
 /**
  * Coverage tests for the remaining branches in NegotiateAuthScheme.
  */

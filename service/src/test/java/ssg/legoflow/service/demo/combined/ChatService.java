@@ -4,13 +4,11 @@ import ssg.legoflow.blocks.Context;
 import ssg.legoflow.service.AbstractService;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
-
 /**
  * Complex demo: multi-session chat with pub/sub-like broadcasting.
  * Manages rooms, sessions, and message distribution combining

@@ -3,7 +3,6 @@ package ssg.legoflow.network.dns.server;
 import ssg.legoflow.network.dns.protocol.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -20,7 +19,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * DNS server supporting both UDP and TCP transports.
  *

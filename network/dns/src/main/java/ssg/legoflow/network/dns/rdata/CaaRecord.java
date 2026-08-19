@@ -1,9 +1,7 @@
 package ssg.legoflow.network.dns.rdata;
 
 import ssg.legoflow.network.dns.protocol.RecordType;
-
 import java.util.Objects;
-
 /**
  * CAA record RDATA: certification authority authorization (RFC 8659).
  *

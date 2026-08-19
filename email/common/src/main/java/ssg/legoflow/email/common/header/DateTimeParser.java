@@ -8,9 +8,7 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 /**
  * RFC 5322 date-time parser with support for common non-standard formats.
  *

@@ -2,12 +2,9 @@ package ssg.legoflow.ssh.cipher;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.ChaCha20ParameterSpec;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
-
 /**
  * ChaCha20-Poly1305 AEAD cipher for SSH (chacha20-poly1305@openssh.com).
  *

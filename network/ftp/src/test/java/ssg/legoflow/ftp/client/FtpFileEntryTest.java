@@ -2,11 +2,8 @@ package ssg.legoflow.ftp.client;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
 import java.time.LocalDateTime;
-
 import static org.assertj.core.api.Assertions.*;
-
 class FtpFileEntryTest {
 
     private static final LocalDateTime NOW = LocalDateTime.of(2024, 3, 15, 10, 30, 0);

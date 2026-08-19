@@ -2,9 +2,7 @@ package ssg.legoflow.rpc.graphql.validation;
 
 import ssg.legoflow.rpc.graphql.language.Document;
 import ssg.legoflow.rpc.graphql.schema.GraphQLSchema;
-
 import java.util.List;
-
 /**
  * Interface for individual validation rules.
  *

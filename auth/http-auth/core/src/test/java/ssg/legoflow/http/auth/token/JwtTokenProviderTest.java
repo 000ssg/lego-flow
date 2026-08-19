@@ -2,14 +2,11 @@ package ssg.legoflow.http.auth.token;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.time.Duration;
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.*;
-
 class JwtTokenProviderTest {
 
     private JwtTokenProvider hmacProvider;

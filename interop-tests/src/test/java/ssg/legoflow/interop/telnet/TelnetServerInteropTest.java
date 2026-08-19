@@ -3,19 +3,15 @@ package ssg.legoflow.interop.telnet;
 import org.junit.jupiter.api.*;
 import ssg.legoflow.network.telnet.base.*;
 import ssg.legoflow.network.telnet.negotiation.*;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Interoperability test: Lego Flow Telnet client ↔ reference Telnet
  * server (Netcat with -t flag for telnet negotiation).

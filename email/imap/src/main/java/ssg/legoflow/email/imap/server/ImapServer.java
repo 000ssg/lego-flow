@@ -2,7 +2,6 @@ package ssg.legoflow.email.imap.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -10,7 +9,6 @@ import java.net.Socket;
 import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
  * IMAP4rev2 server accepting TCP connections and dispatching to per-client sessions.
  *

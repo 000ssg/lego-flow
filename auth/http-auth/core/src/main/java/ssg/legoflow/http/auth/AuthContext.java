@@ -1,10 +1,8 @@
 package ssg.legoflow.http.auth;
 
 import ssg.legoflow.http.auth.session.SessionManager;
-
 import java.util.Objects;
 import java.util.Optional;
-
 /**
  * Authentication context providing the realm, user store lookup, and session management
  * needed by authentication schemes during request processing.

@@ -4,7 +4,6 @@ import ssg.legoflow.blocks.ProcessorState;
 import ssg.legoflow.service.DefaultServiceContext;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.channel.ChannelHandler;
-import ssg.legoflow.service.channel.ChannelPipeline;
 import ssg.legoflow.service.channel.DataChannel;
 import ssg.legoflow.service.demo.combined.ChannelManagerDemo;
 import ssg.legoflow.service.demo.procedural.EchoService;
@@ -12,12 +11,9 @@ import ssg.legoflow.service.user.ServiceUser;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 import static org.assertj.core.api.Assertions.*;
-
 class SelectableChannelManagerTest {
 
     private SelectableChannelManager manager;

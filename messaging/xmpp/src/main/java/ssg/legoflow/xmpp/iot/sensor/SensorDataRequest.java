@@ -1,11 +1,9 @@
 package ssg.legoflow.xmpp.iot.sensor;
 
 import ssg.legoflow.xmpp.core.JID;
-
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
-
 /**
  * Request for IoT sensor data (XEP-0323).
  *

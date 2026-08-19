@@ -1,11 +1,8 @@
 package ssg.legoflow.http3.quic;
 
 import org.junit.jupiter.api.Test;
-
 import java.net.InetSocketAddress;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link QuicConnection} — lifecycle, settings, state transitions,
  * TLS 1.3 handshake phases, and invalid transitions.

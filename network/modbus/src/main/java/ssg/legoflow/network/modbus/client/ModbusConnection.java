@@ -1,13 +1,11 @@
 package ssg.legoflow.network.modbus.client;
 
 import ssg.legoflow.network.modbus.protocol.*;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * Low-level Modbus TCP connection for sending/receiving frames.
  *

@@ -5,11 +5,8 @@ import ssg.legoflow.xmpp.iot.control.ControllableNode;
 import ssg.legoflow.xmpp.iot.control.ControlParameter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link ControlManager}.
  *

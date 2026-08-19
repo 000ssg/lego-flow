@@ -2,9 +2,7 @@ package ssg.legoflow.network.dns.rdata;
 
 import ssg.legoflow.network.dns.protocol.DnsName;
 import ssg.legoflow.network.dns.protocol.RecordType;
-
 import java.util.Objects;
-
 /**
  * MX record RDATA: mail exchange (RFC 1035).
  *

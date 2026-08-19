@@ -2,9 +2,6 @@ package ssg.legoflow.media.rtsp.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Objects;
-
 /**
  * State machine controlling media stream playback transitions.
  *

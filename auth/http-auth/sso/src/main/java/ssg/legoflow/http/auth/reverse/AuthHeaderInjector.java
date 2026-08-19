@@ -4,10 +4,7 @@ import ssg.legoflow.http.auth.AuthPrincipal;
 import ssg.legoflow.http.core.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
 import java.util.Objects;
-
 /**
  * Injects authentication headers into HTTP requests for backend services.
  * Used by reverse proxy SSO to propagate authentication information.

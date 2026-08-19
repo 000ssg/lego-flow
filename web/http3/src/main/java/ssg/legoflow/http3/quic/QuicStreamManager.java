@@ -1,11 +1,9 @@
 package ssg.legoflow.http3.quic;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * Manages QUIC streams for a connection.
  *

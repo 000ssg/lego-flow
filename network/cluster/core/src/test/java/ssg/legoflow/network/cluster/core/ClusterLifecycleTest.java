@@ -1,17 +1,11 @@
 package ssg.legoflow.network.cluster.core;
 
 import org.junit.jupiter.api.Test;
-
 import java.time.Duration;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class ClusterLifecycleTest {
 
     @Test

@@ -2,12 +2,9 @@ package ssg.legoflow.service.cluster.coordination;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.*;
-
 class EtcdKVStoreTest {
 
     private EtcdClient client;

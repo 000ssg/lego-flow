@@ -2,7 +2,6 @@ package ssg.legoflow.database.mysql.server;
 
 import ssg.legoflow.database.mysql.protocol.*;
 import ssg.legoflow.database.mysql.auth.*;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -10,10 +9,8 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 /**
  * Per-client session state and command handler for the MySQL server.
  *

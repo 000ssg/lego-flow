@@ -1,10 +1,7 @@
 package ssg.legoflow.http.content;
 
 import ssg.legoflow.http.header.MediaType;
-
 import java.util.List;
-import java.util.Optional;
-
 public class ContentTypeResolver {
 
     private final MediaTypeRegistry registry;

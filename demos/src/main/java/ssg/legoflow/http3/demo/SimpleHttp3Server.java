@@ -6,12 +6,9 @@ import ssg.legoflow.http3.config.Http3Config;
 import ssg.legoflow.http3.quic.QuicConnection;
 import ssg.legoflow.http3.quic.QuicStream;
 import ssg.legoflow.http3.server.Http3Server;
-
 import java.nio.ByteBuffer;
-import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
-
 /**
  * Simplest HTTP/3 server demo: a single endpoint returning plain text over QUIC.
  *

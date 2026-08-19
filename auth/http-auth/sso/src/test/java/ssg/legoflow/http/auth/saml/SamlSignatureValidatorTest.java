@@ -2,14 +2,11 @@ package ssg.legoflow.http.auth.saml;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.Signature;
 import java.util.Base64;
-
 import static org.assertj.core.api.Assertions.*;
-
 class SamlSignatureValidatorTest {
 
     private KeyPair keyPair;

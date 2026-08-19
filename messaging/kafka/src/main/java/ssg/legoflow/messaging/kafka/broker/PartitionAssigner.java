@@ -1,10 +1,8 @@
 package ssg.legoflow.messaging.kafka.broker;
 
 import ssg.legoflow.messaging.kafka.common.TopicPartition;
-
 import java.util.List;
 import java.util.Map;
-
 /**
  * Strategy for assigning partitions to consumer group members.
  *

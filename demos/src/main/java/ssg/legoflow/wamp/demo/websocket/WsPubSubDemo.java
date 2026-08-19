@@ -7,11 +7,8 @@ import ssg.legoflow.wamp.core.WampSerializer;
 import ssg.legoflow.wamp.core.role.Publisher;
 import ssg.legoflow.wamp.core.role.Subscriber;
 import ssg.legoflow.wamp.core.router.Broker;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
 /**
  * Pub/Sub over WebSocket transport demo.
  * Demonstrates multiple subscribers receiving events from a publisher,

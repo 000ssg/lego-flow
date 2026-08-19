@@ -2,15 +2,11 @@ package ssg.legoflow.interop.http;
 
 import org.junit.jupiter.api.*;
 import ssg.legoflow.http.core.*;
-
 import java.io.*;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.net.Socket;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Interoperability test: Lego Flow HTTP client ↔ real nginx server.
  */

@@ -1,9 +1,7 @@
 package ssg.legoflow.network.ldap.server;
 
 import ssg.legoflow.network.ldap.protocol.*;
-
 import java.util.List;
-
 /**
  * Backend interface for LDAP server operations.
  *

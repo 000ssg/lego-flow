@@ -3,11 +3,8 @@ package ssg.legoflow.email.smtp.server;
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.email.smtp.protocol.EnhancedStatusCode;
 import ssg.legoflow.email.smtp.protocol.SmtpReply;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link SmtpHandler} interface default methods and factory implementations.
  */

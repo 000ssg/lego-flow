@@ -1,19 +1,16 @@
 package ssg.legoflow.http.cluster;
 
 import ssg.legoflow.http.core.HttpRequest;
-import ssg.legoflow.http.core.HttpResponse;
 import ssg.legoflow.http.caching.ResponseCache;
 import ssg.legoflow.http.feature.HttpFeature;
 import ssg.legoflow.http.feature.HttpFeatureCategory;
 import ssg.legoflow.http.feature.HttpFeatureRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-
 /**
  * HTTP feature for cross-node cache coherence in web clusters.
  *

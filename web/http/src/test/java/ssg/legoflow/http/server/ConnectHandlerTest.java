@@ -2,12 +2,9 @@ package ssg.legoflow.http.server;
 
 import ssg.legoflow.http.core.*;
 import org.junit.jupiter.api.Test;
-
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ConnectHandlerTest {
 
     @Test

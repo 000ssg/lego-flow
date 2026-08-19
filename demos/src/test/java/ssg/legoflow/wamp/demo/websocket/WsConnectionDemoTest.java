@@ -8,11 +8,8 @@ import ssg.legoflow.wamp.core.WampSession;
 import ssg.legoflow.wamp.core.realm.Realm;
 import ssg.legoflow.wamp.core.realm.RealmManager;
 import org.junit.jupiter.api.Test;
-
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class WsConnectionDemoTest {
 
     @Test

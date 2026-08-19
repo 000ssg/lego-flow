@@ -2,9 +2,7 @@ package ssg.legoflow.network.telnet.negotiation;
 
 import ssg.legoflow.network.telnet.base.TelnetCommand;
 import ssg.legoflow.network.telnet.base.TelnetOption;
-
 import java.util.Set;
-
 /**
  * Option negotiator for Telnet gateway (server-side).
  *

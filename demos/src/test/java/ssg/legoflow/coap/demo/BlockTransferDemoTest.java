@@ -1,6 +1,5 @@
 package ssg.legoflow.coap.demo;
 
-import ssg.legoflow.coap.block.BlockOption;
 import ssg.legoflow.coap.block.BlockTransfer;
 import ssg.legoflow.coap.protocol.CoapCode;
 import ssg.legoflow.coap.protocol.CoapMessage;
@@ -8,12 +7,9 @@ import ssg.legoflow.coap.protocol.CoapType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for {@link BlockTransferDemo}.
  *

@@ -4,11 +4,8 @@ import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.common.asn1.*;
 import ssg.legoflow.network.common.ber.BerDecoder;
 import ssg.legoflow.network.common.ber.BerEncoder;
-
 import java.nio.ByteBuffer;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link DerEncoder}.
  */

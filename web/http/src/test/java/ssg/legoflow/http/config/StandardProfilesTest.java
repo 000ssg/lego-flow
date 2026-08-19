@@ -2,9 +2,7 @@ package ssg.legoflow.http.config;
 
 import ssg.legoflow.http.feature.HttpFeatureCategory;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class StandardProfilesTest {
 
     @Test

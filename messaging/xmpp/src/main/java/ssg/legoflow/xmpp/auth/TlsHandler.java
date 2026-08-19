@@ -2,7 +2,6 @@ package ssg.legoflow.xmpp.auth;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
@@ -12,7 +11,6 @@ import java.nio.ByteBuffer;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
-
 /**
  * Handles TLS/STARTTLS negotiation for XMPP streams (RFC 6120 section 5).
  *

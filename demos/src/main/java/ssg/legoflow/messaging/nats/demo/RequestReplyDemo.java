@@ -6,11 +6,8 @@ import ssg.legoflow.messaging.nats.protocol.ConnectOptions;
 import ssg.legoflow.messaging.nats.server.NatsServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-
 /**
  * Demonstrates NATS request/reply pattern.
  *

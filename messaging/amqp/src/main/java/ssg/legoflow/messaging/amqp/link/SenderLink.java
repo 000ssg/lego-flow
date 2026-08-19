@@ -7,15 +7,12 @@ import ssg.legoflow.messaging.amqp.message.MessageCodec;
 import ssg.legoflow.messaging.amqp.session.AmqpSession;
 import ssg.legoflow.messaging.amqp.transport.Performative;
 import ssg.legoflow.messaging.amqp.transport.PerformativeCodec;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * An AMQP 1.0 sender link — transfers messages to the remote receiver.
  *

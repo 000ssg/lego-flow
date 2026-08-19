@@ -8,13 +8,10 @@ import ssg.legoflow.coap.protocol.ContentFormat;
 import ssg.legoflow.coap.resource.CoapExchange;
 import ssg.legoflow.coap.resource.CoapResource;
 import org.junit.jupiter.api.*;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Extended tests for {@link CoapServer} covering additional code paths:
  * POST handling, observe registration/deregistration, empty messages (ping),

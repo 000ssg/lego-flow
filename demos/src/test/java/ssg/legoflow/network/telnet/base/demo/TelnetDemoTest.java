@@ -1,15 +1,11 @@
 package ssg.legoflow.network.telnet.base.demo;
 
-import ssg.legoflow.network.telnet.base.TelnetCommand;
 import ssg.legoflow.network.telnet.base.TelnetConnection;
 import ssg.legoflow.network.telnet.base.TelnetOption;
 import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class TelnetDemoTest {
 
     @Test

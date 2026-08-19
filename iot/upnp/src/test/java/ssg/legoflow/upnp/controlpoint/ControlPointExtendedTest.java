@@ -2,15 +2,10 @@ package ssg.legoflow.upnp.controlpoint;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.upnp.mediarenderer.MediaRendererDevice;
-import ssg.legoflow.upnp.mediaserver.ContentItem;
 import ssg.legoflow.upnp.mediaserver.MediaServerDevice;
-
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Extended ControlPoint coverage: device listeners, caching, removeDevice,
  * local-only mode, extractUdn utility, FailedDevice record.

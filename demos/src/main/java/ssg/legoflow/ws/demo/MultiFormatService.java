@@ -9,11 +9,9 @@ import ssg.legoflow.ws.content.ContentNegotiator;
 import ssg.legoflow.ws.content.JsonCodec;
 import ssg.legoflow.ws.content.XmlCodec;
 import ssg.legoflow.ws.request.ResponseMapper;
-
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
-
 public class MultiFormatService implements WebService {
 
     private final WebServiceDescriptor descriptor = new WebServiceDescriptor(

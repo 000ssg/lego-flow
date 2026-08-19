@@ -3,14 +3,9 @@ package ssg.legoflow.network.cluster.dns;
 import ssg.legoflow.network.dns.protocol.DnsCodec;
 import ssg.legoflow.network.dns.protocol.DnsHeader;
 import ssg.legoflow.network.dns.protocol.DnsMessage;
-import ssg.legoflow.network.dns.protocol.OpCode;
 import ssg.legoflow.network.dns.protocol.RecordType;
-import ssg.legoflow.network.dns.protocol.ResponseCode;
-
-import java.nio.ByteBuffer;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
-
 /**
  * Packet codec for Multicast DNS (mDNS) per RFC 6762.
  *
@@ -42,7 +37,6 @@ public final class MdnsPacketCodec {
      * T bit position in the flags (bit 15 of the second 16-bit field).
      * When set in a query, the response should be multicast.
      */
-    private static final int T_BIT = 0x0000; // part of flags already handled by standard codec
 
     private MdnsPacketCodec() {}
 

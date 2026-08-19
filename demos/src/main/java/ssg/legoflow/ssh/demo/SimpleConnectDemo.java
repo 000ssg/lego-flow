@@ -4,9 +4,7 @@ import ssg.legoflow.ssh.auth.AuthResult;
 import ssg.legoflow.ssh.auth.PasswordAuth;
 import ssg.legoflow.ssh.client.SshClient;
 import ssg.legoflow.ssh.connection.SessionChannel;
-
 import java.nio.charset.StandardCharsets;
-
 /**
  * Demo: Connect to SSH server, authenticate, and execute a command.
  *

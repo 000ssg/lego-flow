@@ -3,16 +3,12 @@ package ssg.legoflow.network.cluster.core.hashing;
 import ssg.legoflow.network.cluster.core.ClusterConfig;
 import ssg.legoflow.network.cluster.core.ClusterHealthChecker;
 import ssg.legoflow.network.cluster.core.ClusterManager;
-import ssg.legoflow.network.cluster.core.ClusterMembership;
 import ssg.legoflow.network.cluster.core.ClusterNode;
 import ssg.legoflow.network.cluster.core.InMemoryClusterTransport;
 import org.junit.jupiter.api.Test;
-
 import java.time.Duration;
 import java.util.*;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class ConsistentHasherTest {
 
     @Test

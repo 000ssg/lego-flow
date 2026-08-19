@@ -1,11 +1,9 @@
 package ssg.legoflow.ssh.agent;
 
 import ssg.legoflow.ssh.transport.SshTransportCodec;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * Encoder and decoder for SSH agent protocol messages.
  *

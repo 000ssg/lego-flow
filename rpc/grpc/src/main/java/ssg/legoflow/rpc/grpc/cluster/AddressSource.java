@@ -1,11 +1,9 @@
 package ssg.legoflow.rpc.grpc.cluster;
 
 import ssg.legoflow.network.cluster.core.ClusterNode;
-
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.function.Consumer;
-
 /**
  * Source of backend addresses for gRPC cluster resolution.
  *

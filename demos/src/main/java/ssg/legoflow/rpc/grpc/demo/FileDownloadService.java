@@ -5,9 +5,7 @@ import ssg.legoflow.rpc.grpc.common.StatusException;
 import ssg.legoflow.rpc.grpc.protobuf.*;
 import ssg.legoflow.rpc.grpc.server.GrpcServer;
 import ssg.legoflow.rpc.grpc.transport.GrpcStatus;
-
 import java.util.Arrays;
-
 /**
  * Demo server-streaming service: chunked file download.
  *

@@ -1,9 +1,7 @@
 package ssg.legoflow.rpc.graphql.demo;
 
 import ssg.legoflow.rpc.graphql.schema.*;
-
 import java.util.*;
-
 /**
  * Classic Star Wars example schema for GraphQL demonstrations.
  *

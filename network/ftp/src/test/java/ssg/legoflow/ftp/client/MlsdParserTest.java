@@ -1,13 +1,10 @@
 package ssg.legoflow.ftp.client;
 
 import org.junit.jupiter.api.Test;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link MlsdParser}.
  */

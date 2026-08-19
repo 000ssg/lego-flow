@@ -1,9 +1,7 @@
 package ssg.legoflow.email.smtp.demo;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Runs the comprehensive SMTP demo and verifies all feature sections.
  *

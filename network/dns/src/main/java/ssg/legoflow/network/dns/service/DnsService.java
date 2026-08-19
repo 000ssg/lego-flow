@@ -9,11 +9,9 @@ import ssg.legoflow.service.AbstractService;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
 import ssg.legoflow.service.channel.ChannelHandler;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-
 /**
  * Service-based DNS adapter that wraps the existing DNS protocol implementation
  * as a {@link ssg.legoflow.service.Service} for composition within the service framework.
@@ -36,7 +34,6 @@ import java.nio.ByteBuffer;
  */
 public final class DnsService extends AbstractService<ByteBuffer, ByteBuffer> {
 
-    private static final int DEFAULT_BUFFER_SIZE = 512;
 
     /** Operational mode for the DNS service. */
     public enum Mode {

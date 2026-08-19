@@ -7,10 +7,8 @@ import ssg.legoflow.rpc.graphql.execution.ExecutionResult;
 import ssg.legoflow.rpc.graphql.execution.SubscriptionPublisher;
 import ssg.legoflow.rpc.graphql.schema.GraphQLSchema;
 import ssg.legoflow.rpc.graphql.transport.JsonCodec;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * WebSocket handler implementing the graphql-ws protocol for subscriptions.
  *

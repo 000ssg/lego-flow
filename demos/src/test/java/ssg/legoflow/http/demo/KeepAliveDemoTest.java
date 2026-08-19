@@ -6,9 +6,7 @@ import ssg.legoflow.http.core.*;
 import ssg.legoflow.http.demo.server.MinimalServer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class KeepAliveDemoTest {
 
     private MinimalServer server;

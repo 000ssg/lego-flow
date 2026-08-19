@@ -6,11 +6,9 @@ import ssg.legoflow.database.postgresql.client.PgClient;
 import ssg.legoflow.database.postgresql.client.PgResult;
 import ssg.legoflow.database.postgresql.client.PgStatement;
 import ssg.legoflow.database.postgresql.server.PgServer;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * Demo showing the full lifecycle of a PostgreSQL wire protocol session:
  * connection, simple query, extended query, COPY, and LISTEN/NOTIFY.

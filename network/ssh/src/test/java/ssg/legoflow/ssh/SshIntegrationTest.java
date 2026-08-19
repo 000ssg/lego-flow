@@ -10,15 +10,11 @@ import ssg.legoflow.ssh.hostkey.SshKeyPair;
 import ssg.legoflow.ssh.server.CommandFactory;
 import ssg.legoflow.ssh.server.SshServer;
 import ssg.legoflow.ssh.server.ShellFactory;
-
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Timeout;
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * End-to-end integration tests for SSH client/server using the built-in SshServer.
  */

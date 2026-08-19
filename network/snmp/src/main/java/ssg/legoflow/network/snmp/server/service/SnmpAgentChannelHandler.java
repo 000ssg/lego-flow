@@ -2,9 +2,7 @@ package ssg.legoflow.network.snmp.server.service;
 
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
-
 import java.nio.ByteBuffer;
-
 /** Channel handler for SNMP agent service, routing data between DataChannel and SNMP transport. */
 public final class SnmpAgentChannelHandler implements ChannelHandler {
 

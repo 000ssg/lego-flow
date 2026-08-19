@@ -3,12 +3,9 @@ package ssg.legoflow.service.demo.functional;
 import ssg.legoflow.service.functional.AsyncServicePipeline;
 import ssg.legoflow.service.functional.ServicePipeline;
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import static org.assertj.core.api.Assertions.*;
-
 class AsyncPipelineDemoTest {
 
     @Test

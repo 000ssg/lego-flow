@@ -1,8 +1,6 @@
 package ssg.legoflow.http.auth.basic.demo;
 
 import ssg.legoflow.http.auth.AuthContext;
-import ssg.legoflow.http.auth.AuthCredentials;
-import ssg.legoflow.http.auth.AuthPrincipal;
 import ssg.legoflow.http.auth.AuthResult;
 import ssg.legoflow.http.auth.basic.BasicAuthScheme;
 import ssg.legoflow.http.auth.basic.HashedPasswordStore;
@@ -13,13 +11,9 @@ import ssg.legoflow.http.auth.digest.NonceManager;
 import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpMethod;
 import ssg.legoflow.http.core.HttpRequest;
-import ssg.legoflow.http.core.HttpResponse;
-import ssg.legoflow.http.core.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Set;
-
 /**
  * Comprehensive demo of all HTTP Basic/Digest authentication features.
  *

@@ -6,13 +6,10 @@ import ssg.legoflow.http.proxy.ProxyFilter;
 import ssg.legoflow.http.proxy.ProxyHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
-
 /**
  * HTTP reverse proxy.
  *

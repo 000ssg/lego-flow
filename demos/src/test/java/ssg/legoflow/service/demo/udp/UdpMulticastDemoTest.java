@@ -10,7 +10,6 @@ import ssg.legoflow.service.user.ServiceUser;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -19,9 +18,7 @@ import java.net.StandardProtocolFamily;
 import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
-
 import static org.assertj.core.api.Assertions.*;
-
 class UdpMulticastDemoTest {
 
     private UdpChannelManager manager;

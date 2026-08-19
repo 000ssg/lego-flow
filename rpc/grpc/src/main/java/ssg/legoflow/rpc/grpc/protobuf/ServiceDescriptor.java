@@ -1,9 +1,7 @@
 package ssg.legoflow.rpc.grpc.protobuf;
 
 import ssg.legoflow.rpc.grpc.common.MethodDescriptor;
-
 import java.util.*;
-
 /**
  * Descriptor for a gRPC service, containing method descriptors.
  */

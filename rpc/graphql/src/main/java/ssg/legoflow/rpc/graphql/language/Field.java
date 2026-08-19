@@ -1,10 +1,8 @@
 package ssg.legoflow.rpc.graphql.language;
 
 import ssg.legoflow.rpc.graphql.schema.Directive;
-
 import java.util.List;
 import java.util.Map;
-
 /**
  * Represents a field selection in a GraphQL query.
  *

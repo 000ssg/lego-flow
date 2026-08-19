@@ -2,12 +2,10 @@ package ssg.legoflow.database.redis.client;
 
 import ssg.legoflow.database.redis.protocol.RespCodec;
 import ssg.legoflow.database.redis.protocol.RespType;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * Pipelines multiple Redis commands for batch execution.
  *

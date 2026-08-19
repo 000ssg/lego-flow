@@ -3,12 +3,8 @@ package ssg.legoflow.database.redis.server;
 import org.junit.jupiter.api.*;
 import ssg.legoflow.database.redis.client.RedisClient;
 import ssg.legoflow.database.redis.protocol.RespType;
-
 import java.io.IOException;
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for string commands via client-server round-trip.
  */

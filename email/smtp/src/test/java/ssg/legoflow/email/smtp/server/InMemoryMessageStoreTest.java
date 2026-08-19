@@ -2,12 +2,9 @@ package ssg.legoflow.email.smtp.server;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
-
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Unit tests for {@link InMemoryMessageStore}.
  */

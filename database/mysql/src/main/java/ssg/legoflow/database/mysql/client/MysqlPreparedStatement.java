@@ -3,13 +3,10 @@ package ssg.legoflow.database.mysql.client;
 import ssg.legoflow.database.mysql.protocol.*;
 import ssg.legoflow.database.mysql.server.ColumnDefinition;
 import ssg.legoflow.database.mysql.server.ResultSetWriter;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * MySQL prepared statement with binary protocol.
  *

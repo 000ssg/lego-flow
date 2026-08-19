@@ -6,7 +6,6 @@ import ssg.legoflow.service.channel.ChannelPipeline;
 import ssg.legoflow.service.channel.DataChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.channels.ClosedSelectorException;
@@ -17,7 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 public class SelectableChannelManager extends AbstractServicesManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(SelectableChannelManager.class);

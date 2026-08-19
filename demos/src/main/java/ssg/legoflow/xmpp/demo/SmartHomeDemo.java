@@ -12,11 +12,9 @@ import ssg.legoflow.xmpp.iot.sensor.SensorField;
 import ssg.legoflow.xmpp.iot.sensor.SensorNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 /**
  * Complete smart home demo combining sensors, controllers, discovery, and chat notifications.
  *

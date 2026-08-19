@@ -4,9 +4,7 @@ import org.junit.jupiter.api.Test;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.*;
-
 class PartitionerTest {
 
     @Test

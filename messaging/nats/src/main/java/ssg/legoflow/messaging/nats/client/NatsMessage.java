@@ -1,10 +1,8 @@
 package ssg.legoflow.messaging.nats.client;
 
 import ssg.legoflow.messaging.nats.protocol.NatsHeaders;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-
 /**
  * NATS message model carrying subject, optional reply-to, headers, and payload.
  *

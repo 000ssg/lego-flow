@@ -4,12 +4,9 @@ import org.junit.jupiter.api.*;
 import ssg.legoflow.blocks.Context;
 import ssg.legoflow.service.*;
 import ssg.legoflow.service.user.ServiceUser;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link ConnectionThread}.
  */

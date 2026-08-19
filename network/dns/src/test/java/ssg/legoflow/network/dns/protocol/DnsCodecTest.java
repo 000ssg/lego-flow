@@ -1,16 +1,8 @@
 package ssg.legoflow.network.dns.protocol;
 import org.junit.jupiter.api.Timeout;
-
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.dns.rdata.*;
-
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.Map;
-
 import static org.assertj.core.api.Assertions.*;
 
 @Timeout(10)

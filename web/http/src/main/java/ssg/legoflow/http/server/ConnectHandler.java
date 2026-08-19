@@ -1,11 +1,9 @@
 package ssg.legoflow.http.server;
 
 import ssg.legoflow.http.core.*;
-
 import java.nio.ByteBuffer;
 import java.util.Objects;
 import java.util.Set;
-
 /**
  * HTTP CONNECT method handler per RFC 7231 §4.3.6.
  *

@@ -4,11 +4,7 @@ import ssg.legoflow.http.core.*;
 import ssg.legoflow.http.proxy.forward.ForwardProxy;
 import ssg.legoflow.http.proxy.forward.ForwardProxyConfig;
 import ssg.legoflow.http.proxy.forward.ProxyAccessControl;
-
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.Set;
-
 /**
  * Basic forward proxy demo.
  *

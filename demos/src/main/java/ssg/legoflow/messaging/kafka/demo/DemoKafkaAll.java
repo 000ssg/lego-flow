@@ -14,16 +14,13 @@ import ssg.legoflow.messaging.kafka.common.TopicPartition;
 import ssg.legoflow.messaging.kafka.record.Compression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 /**
  * Comprehensive demo of all Apache Kafka module features.
  *

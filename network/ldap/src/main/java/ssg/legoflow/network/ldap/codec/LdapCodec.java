@@ -8,13 +8,11 @@ import ssg.legoflow.network.common.ber.BerTag;
 import ssg.legoflow.network.ldap.control.LdapControl;
 import ssg.legoflow.network.ldap.filter.SearchFilter;
 import ssg.legoflow.network.ldap.protocol.*;
-
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * BER encoder/decoder for LDAP v3 protocol messages (RFC 4511).
  *

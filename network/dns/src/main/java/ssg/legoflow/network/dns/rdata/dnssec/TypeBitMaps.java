@@ -1,13 +1,11 @@
 package ssg.legoflow.network.dns.rdata.dnssec;
 
 import ssg.legoflow.network.dns.protocol.RecordType;
-
 import java.io.ByteArrayOutputStream;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-
 /**
  * Utility for encoding and decoding NSEC/NSEC3 type bit maps (RFC 4034, Section 4.1.2).
  *

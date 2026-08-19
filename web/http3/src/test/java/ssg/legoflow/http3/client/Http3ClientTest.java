@@ -4,11 +4,8 @@ import ssg.legoflow.http.core.*;
 import ssg.legoflow.http3.config.Http3Config;
 import ssg.legoflow.http3.quic.QuicConnection;
 import org.junit.jupiter.api.Test;
-
 import java.util.concurrent.ExecutionException;
-
 import static org.assertj.core.api.Assertions.*;
-
 class Http3ClientTest {
 
     @Test

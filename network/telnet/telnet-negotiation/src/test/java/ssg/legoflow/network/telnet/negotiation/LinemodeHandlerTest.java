@@ -2,11 +2,8 @@ package ssg.legoflow.network.telnet.negotiation;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for {@link LinemodeHandler} (RFC 1143).
  */

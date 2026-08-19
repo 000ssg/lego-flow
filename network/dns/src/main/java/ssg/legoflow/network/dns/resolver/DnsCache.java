@@ -4,15 +4,12 @@ import ssg.legoflow.network.dns.protocol.DnsMessage;
 import ssg.legoflow.network.dns.protocol.DnsName;
 import ssg.legoflow.network.dns.protocol.DnsRecord;
 import ssg.legoflow.network.dns.protocol.RecordType;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * TTL-based DNS response cache.
  *

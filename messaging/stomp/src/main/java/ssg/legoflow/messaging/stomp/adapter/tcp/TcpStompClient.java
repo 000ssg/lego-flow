@@ -2,10 +2,8 @@ package ssg.legoflow.messaging.stomp.adapter.tcp;
 
 import ssg.legoflow.messaging.stomp.core.StompClient;
 import ssg.legoflow.messaging.stomp.core.StompFrame;
-
 import java.io.IOException;
 import java.net.Socket;
-
 /**
  * TCP client connecting to a STOMP broker.
  *

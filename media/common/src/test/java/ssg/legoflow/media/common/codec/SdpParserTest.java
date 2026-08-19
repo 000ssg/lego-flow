@@ -2,9 +2,7 @@ package ssg.legoflow.media.common.codec;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.media.common.sdp.*;
-
 import static org.assertj.core.api.Assertions.*;
-
 class SdpParserTest {
 
     static final String FULL_SDP = """

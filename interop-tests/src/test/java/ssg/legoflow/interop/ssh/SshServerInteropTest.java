@@ -3,16 +3,13 @@ package ssg.legoflow.interop.ssh;
 import org.junit.jupiter.api.*;
 import ssg.legoflow.ssh.client.SshClient;
 import ssg.legoflow.ssh.transport.SshVersion;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 /**
  * Interoperability test: Lego Flow SSH client ↔ OpenSSH sshd.
  *

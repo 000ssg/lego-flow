@@ -3,14 +3,10 @@ package ssg.legoflow.ftp.client;
 import ssg.legoflow.ftp.protocol.FtpTransferType;
 import ssg.legoflow.ftp.server.*;
 import org.junit.jupiter.api.*;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Integration tests for {@link FtpClient} with a real server.
  */

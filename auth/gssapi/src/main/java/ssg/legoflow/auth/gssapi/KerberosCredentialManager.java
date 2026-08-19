@@ -6,7 +6,6 @@ import org.ietf.jgss.GSSManager;
 import org.ietf.jgss.GSSName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
@@ -19,7 +18,6 @@ import javax.security.auth.login.LoginException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-
 /**
  * Manages Kerberos credential lifecycle — login, credential acquisition, validation,
  * and renewal using JAAS {@link LoginContext} with the Krb5LoginModule.

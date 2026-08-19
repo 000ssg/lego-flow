@@ -3,7 +3,6 @@ package ssg.legoflow.messaging.nats.client;
 import ssg.legoflow.messaging.nats.protocol.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -15,7 +14,6 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
-
 /**
  * NATS client supporting connection, pub/sub, and request/reply.
  *

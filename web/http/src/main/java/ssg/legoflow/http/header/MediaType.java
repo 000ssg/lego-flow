@@ -4,8 +4,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.StringJoiner;
-
 /**
  * Represents an HTTP media type (MIME type) such as "text/html;charset=utf-8".
  */

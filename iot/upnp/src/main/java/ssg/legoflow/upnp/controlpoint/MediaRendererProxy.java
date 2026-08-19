@@ -3,15 +3,12 @@ package ssg.legoflow.upnp.controlpoint;
 import ssg.legoflow.upnp.mediarenderer.*;
 import ssg.legoflow.upnp.mediaserver.ContentItem;
 import ssg.legoflow.upnp.mediaserver.DidlLiteParser;
-
 import java.net.URL;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 /**
  * Proxy for a remote UPnP Media Renderer device.
  *

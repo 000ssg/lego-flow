@@ -3,19 +3,14 @@ package ssg.legoflow.network.cluster.dns;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Disabled;
 import ssg.legoflow.network.cluster.core.*;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Integration tests for DNS-SD based cluster membership.
  *

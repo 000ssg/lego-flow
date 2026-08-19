@@ -9,12 +9,9 @@ import ssg.legoflow.network.cluster.core.ClusterNodeStatus;
 import ssg.legoflow.rpc.grpc.cluster.ClusterSubchannel;
 import ssg.legoflow.rpc.grpc.cluster.GrpcLoadBalancer;
 import ssg.legoflow.rpc.grpc.cluster.HealthStatus;
-
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
  * Demo: gRPC Microservice Cluster with Load Balancing.
  *

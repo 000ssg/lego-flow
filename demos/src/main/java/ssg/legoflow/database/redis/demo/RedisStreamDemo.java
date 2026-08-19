@@ -2,9 +2,7 @@ package ssg.legoflow.database.redis.demo;
 
 import ssg.legoflow.database.redis.client.RedisClient;
 import ssg.legoflow.database.redis.server.RedisServer;
-
 import java.io.IOException;
-
 /**
  * Demonstrates Redis Streams with consumer groups.
  *
@@ -45,5 +43,9 @@ public final class RedisStreamDemo {
             // Acknowledge entries
             // In real usage, you'd extract the IDs from the read response
         }
+    }
+    public static void main(String[] args) throws Exception {
+        var server = new RedisServer();
+        run(server);
     }
 }

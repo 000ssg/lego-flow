@@ -3,12 +3,10 @@ package ssg.legoflow.messaging.stomp.demo;
 import ssg.legoflow.messaging.stomp.core.StompBroker;
 import ssg.legoflow.messaging.stomp.core.StompClient;
 import ssg.legoflow.messaging.stomp.core.StompFrame;
-
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 /**
  * Demonstrates STOMP transactional messaging.
  *

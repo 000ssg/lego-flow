@@ -4,10 +4,8 @@ import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import ssg.legoflow.mqtt.codec.MqttCodec;
 import ssg.legoflow.mqtt.protocol.*;
-
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
-
 /**
  * Benchmarks for MQTT packet encoding and decoding latency.
  *

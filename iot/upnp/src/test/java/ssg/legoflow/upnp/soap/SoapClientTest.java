@@ -4,16 +4,13 @@ import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.Executors;
-
 import static org.assertj.core.api.Assertions.*;
-
 class SoapClientTest {
 
     private static final String SERVICE_TYPE = "urn:schemas-upnp-org:service:AVTransport:1";

@@ -4,11 +4,8 @@ import org.junit.jupiter.api.*;
 import ssg.legoflow.database.mysql.client.MysqlClient;
 import ssg.legoflow.database.mysql.client.MysqlResult;
 import ssg.legoflow.database.mysql.common.Charset;
-
 import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.*;
-
 class MysqlServerIntegrationTest {
 
     private static MysqlServer server;

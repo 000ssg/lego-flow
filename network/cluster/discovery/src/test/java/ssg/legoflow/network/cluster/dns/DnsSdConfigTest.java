@@ -1,11 +1,8 @@
 package ssg.legoflow.network.cluster.dns;
 
 import org.junit.jupiter.api.Test;
-
 import java.time.Duration;
-
 import static org.assertj.core.api.Assertions.*;
-
 class DnsSdConfigTest {
 
     @Test

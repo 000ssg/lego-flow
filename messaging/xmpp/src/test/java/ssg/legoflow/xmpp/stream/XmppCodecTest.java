@@ -3,13 +3,9 @@ package ssg.legoflow.xmpp.stream;
 import ssg.legoflow.xmpp.core.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link XmppCodec}.
  *

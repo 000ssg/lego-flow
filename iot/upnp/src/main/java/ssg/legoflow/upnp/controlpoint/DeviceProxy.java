@@ -4,17 +4,14 @@ import ssg.legoflow.upnp.device.DeviceDescription;
 import ssg.legoflow.upnp.device.ServiceDescription;
 import ssg.legoflow.upnp.soap.SoapClient;
 import ssg.legoflow.upnp.soap.SoapResponse;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.net.URI;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Base proxy for a remote UPnP device discovered on the network.
  *

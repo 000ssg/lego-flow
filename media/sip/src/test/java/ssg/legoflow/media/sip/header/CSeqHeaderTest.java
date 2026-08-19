@@ -2,9 +2,7 @@ package ssg.legoflow.media.sip.header;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.media.sip.protocol.SipMethod;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link CSeqHeader}.
  */

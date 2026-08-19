@@ -1,10 +1,8 @@
 package ssg.legoflow.xmpp.roster;
 
 import ssg.legoflow.xmpp.core.JID;
-
 import java.util.List;
 import java.util.Objects;
-
 /**
  * An item in the XMPP roster (RFC 6121).
  *

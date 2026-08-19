@@ -4,9 +4,7 @@ import ssg.legoflow.messaging.nats.protocol.ConnectOptions;
 import ssg.legoflow.messaging.nats.server.auth.TokenAuthenticator;
 import ssg.legoflow.messaging.nats.server.auth.UserPassAuthenticator;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for authenticator implementations.
  */

@@ -3,14 +3,12 @@ package ssg.legoflow.email.imap.client;
 import ssg.legoflow.email.imap.protocol.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 /**
  * Manages the TCP connection lifecycle for an IMAP client.
  *

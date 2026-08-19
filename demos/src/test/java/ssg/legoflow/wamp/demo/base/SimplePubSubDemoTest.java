@@ -5,13 +5,9 @@ import ssg.legoflow.wamp.core.role.Publisher;
 import ssg.legoflow.wamp.core.role.Subscriber;
 import ssg.legoflow.wamp.core.router.Broker;
 import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class SimplePubSubDemoTest {
 
     @Test

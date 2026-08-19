@@ -15,10 +15,8 @@ import ssg.legoflow.messaging.amqp.sasl.SaslAuthenticator;
 import ssg.legoflow.messaging.amqp.session.AmqpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-
 /**
  * Comprehensive demo of all AMQP 1.0 module features.
  *

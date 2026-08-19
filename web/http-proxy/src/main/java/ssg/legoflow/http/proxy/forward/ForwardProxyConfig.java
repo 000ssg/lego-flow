@@ -1,11 +1,9 @@
 package ssg.legoflow.http.proxy.forward;
 
 import ssg.legoflow.http.core.HttpMethod;
-
 import java.time.Duration;
 import java.util.EnumSet;
 import java.util.Set;
-
 /**
  * Configuration for the forward proxy.
  *

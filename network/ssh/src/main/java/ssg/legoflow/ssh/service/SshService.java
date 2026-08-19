@@ -7,12 +7,9 @@ import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
-import ssg.legoflow.ssh.connection.SessionChannel;
 import ssg.legoflow.ssh.transport.SshTransport;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
-
 /**
  * Service-based SSH adapter that wraps the existing SSH protocol implementation
  * as a {@link ssg.legoflow.service.Service} for composition within the service framework.

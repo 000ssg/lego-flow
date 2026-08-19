@@ -10,11 +10,9 @@ import ssg.legoflow.network.syslog.transport.FramingMode;
 import ssg.legoflow.network.syslog.transport.TcpSender;
 import ssg.legoflow.network.syslog.transport.TlsSender;
 import ssg.legoflow.network.syslog.transport.UdpSender;
-
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
-
 /**
  * High-level syslog sender that abstracts transport details.
  *

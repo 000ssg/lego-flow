@@ -1,11 +1,8 @@
 package ssg.legoflow.messaging.kafka.broker.storage;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 class InMemoryLogStorageTest {
 
     @Test

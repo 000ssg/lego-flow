@@ -6,9 +6,7 @@ import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpResponse;
 import ssg.legoflow.http.core.HttpStatus;
 import ssg.legoflow.http.server.HttpServer;
-
 import java.util.List;
-
 /**
  * Demo running multiple HTTP servers on different ports with different profiles.
  *

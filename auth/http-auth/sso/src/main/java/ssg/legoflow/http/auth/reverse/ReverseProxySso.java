@@ -1,14 +1,11 @@
 package ssg.legoflow.http.auth.reverse;
 
 import ssg.legoflow.http.auth.AuthPrincipal;
-import ssg.legoflow.http.auth.session.SessionCookie;
 import ssg.legoflow.http.auth.session.SessionManager;
 import ssg.legoflow.http.core.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.*;
-
 /**
  * Reverse proxy SSO implementation. Validates authentication at the proxy level
  * and injects authenticated user headers for backend services.

@@ -6,7 +6,6 @@ import ssg.legoflow.upnp.mediarenderer.PlaybackEvent;
 import ssg.legoflow.upnp.mediarenderer.PlaybackListener;
 import ssg.legoflow.upnp.mediarenderer.TransportState;
 import ssg.legoflow.upnp.mediaserver.ContentItem;
-
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import java.awt.*;
@@ -15,7 +14,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.function.Consumer;
-
 /**
  * Transport and volume control panel with circular playback buttons, seek slider,
  * volume slider, mute toggle, and renderer selector, styled with the MCC dark theme.

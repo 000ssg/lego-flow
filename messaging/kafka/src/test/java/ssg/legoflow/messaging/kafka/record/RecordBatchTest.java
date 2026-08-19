@@ -1,13 +1,10 @@
 package ssg.legoflow.messaging.kafka.record;
 
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 class RecordBatchTest {
 
     @Test

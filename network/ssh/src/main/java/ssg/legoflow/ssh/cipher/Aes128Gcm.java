@@ -3,9 +3,7 @@ package ssg.legoflow.ssh.cipher;
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
-
 /**
  * AES-128 in GCM mode for SSH (aes128-gcm@openssh.com).
  *

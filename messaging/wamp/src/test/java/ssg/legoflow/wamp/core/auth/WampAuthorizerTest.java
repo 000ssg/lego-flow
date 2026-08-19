@@ -2,9 +2,7 @@ package ssg.legoflow.wamp.core.auth;
 
 import ssg.legoflow.wamp.core.WampSession;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for WampAuthorizer interface and role-based authorization.
  */

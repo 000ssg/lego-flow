@@ -1,11 +1,8 @@
 package ssg.legoflow.http3.quic;
 
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link QuicStream} — state transitions, flow control,
  * ID type detection, and send/receive operations.

@@ -4,11 +4,9 @@ import ssg.legoflow.ftp.client.FtpClient;
 import ssg.legoflow.ftp.protocol.FtpTransferType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Random;
-
 /**
  * Demonstrates large file transfer with progress tracking.
  *

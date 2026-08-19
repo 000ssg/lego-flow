@@ -3,10 +3,8 @@ package ssg.legoflow.coap.client;
 import ssg.legoflow.coap.protocol.CoapCode;
 import ssg.legoflow.coap.protocol.CoapOption;
 import ssg.legoflow.coap.protocol.CoapType;
-
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
 /**
  * Represents a CoAP response received by a client.
  *

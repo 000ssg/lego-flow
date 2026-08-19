@@ -1,13 +1,10 @@
 package ssg.legoflow.service.demo.combined;
 
 import ssg.legoflow.service.DefaultServiceContext;
-import ssg.legoflow.service.demo.procedural.EchoService;
 import ssg.legoflow.service.scope.*;
 import ssg.legoflow.service.user.ServiceUser;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ScopePropagationDemoTest {
 
     @Test

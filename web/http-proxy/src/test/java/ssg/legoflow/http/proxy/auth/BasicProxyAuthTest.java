@@ -4,12 +4,9 @@ import ssg.legoflow.http.core.*;
 import ssg.legoflow.http.proxy.ProxyHeaders;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class BasicProxyAuthTest {
 
     private BasicProxyAuth auth;

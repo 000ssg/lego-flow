@@ -4,12 +4,10 @@ import ssg.legoflow.http.core.*;
 import ssg.legoflow.http.proxy.ProxyHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * HTTP Basic authentication for proxy (Proxy-Authorization header).
  *

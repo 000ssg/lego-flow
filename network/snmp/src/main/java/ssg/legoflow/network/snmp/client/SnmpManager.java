@@ -5,16 +5,13 @@ import org.slf4j.LoggerFactory;
 import ssg.legoflow.network.common.oid.ObjectIdentifier;
 import ssg.legoflow.network.snmp.protocol.*;
 import ssg.legoflow.network.snmp.security.*;
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-
 /**
  * SNMPv3 manager (client) for sending requests and receiving traps/informs.
  *

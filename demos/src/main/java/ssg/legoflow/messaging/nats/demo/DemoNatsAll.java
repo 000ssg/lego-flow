@@ -9,16 +9,12 @@ import ssg.legoflow.messaging.nats.server.auth.TokenAuthenticator;
 import ssg.legoflow.messaging.nats.server.auth.UserPassAuthenticator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * Comprehensive demo of all NATS module features.
  *

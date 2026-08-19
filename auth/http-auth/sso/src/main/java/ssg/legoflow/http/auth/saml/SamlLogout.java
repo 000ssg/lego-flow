@@ -2,14 +2,12 @@ package ssg.legoflow.http.auth.saml;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-
 /**
  * SAML 2.0 Single Logout support: generates LogoutRequest XML and
  * parses LogoutResponse XML.

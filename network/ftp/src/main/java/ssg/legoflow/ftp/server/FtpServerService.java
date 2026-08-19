@@ -6,11 +6,9 @@ import ssg.legoflow.service.AbstractService;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
 import ssg.legoflow.service.channel.ChannelHandler;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
-
 /** Service-based FTP server adapter for composition within the service framework. */
 public final class FtpServerService extends AbstractService<ByteBuffer, ByteBuffer> {
 

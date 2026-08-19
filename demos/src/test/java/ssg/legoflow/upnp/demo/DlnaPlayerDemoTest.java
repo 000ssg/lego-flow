@@ -1,21 +1,15 @@
 package ssg.legoflow.upnp.demo;
 
-import ssg.legoflow.upnp.controlpoint.MediaRendererProxy;
-import ssg.legoflow.upnp.controlpoint.MediaServerProxy;
 import ssg.legoflow.upnp.dlna.DlnaProtocolInfo;
 import ssg.legoflow.upnp.mediarenderer.PlaybackEvent;
 import ssg.legoflow.upnp.mediarenderer.TransportState;
 import ssg.legoflow.upnp.mediaserver.ContentItem;
-import ssg.legoflow.upnp.mediaserver.ContentItemType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.time.Duration;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link DlnaPlayerDemo}.
  *

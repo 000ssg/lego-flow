@@ -1,9 +1,7 @@
 package ssg.legoflow.messaging.kafka.client;
 
 import ssg.legoflow.messaging.kafka.common.TopicPartition;
-
 import java.util.Collection;
-
 /**
  * Callback interface for consumer group rebalance events.
  *

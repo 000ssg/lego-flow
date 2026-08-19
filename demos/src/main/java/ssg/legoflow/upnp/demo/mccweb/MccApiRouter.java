@@ -1,16 +1,13 @@
 package ssg.legoflow.upnp.demo.mccweb;
 
 import ssg.legoflow.http.core.HttpContext;
-import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpMethod;
 import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpResponse;
 import ssg.legoflow.http.core.HttpStatus;
 import ssg.legoflow.http.server.HttpRouter;
 import ssg.legoflow.upnp.controlpoint.ControlPoint;
-
 import java.util.Objects;
-
 /**
  * REST API route configuration for the Media Control Center.
  *

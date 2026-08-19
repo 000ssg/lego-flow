@@ -1,13 +1,11 @@
 package ssg.legoflow.media.rtp.codec;
 
 import ssg.legoflow.media.rtp.rtcp.*;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 /**
  * Codec for encoding and decoding RTCP packets to/from {@link ByteBuffer} (RFC 3550 Section 6).
  *

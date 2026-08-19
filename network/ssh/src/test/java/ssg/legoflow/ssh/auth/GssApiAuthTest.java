@@ -6,12 +6,8 @@ import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSManager;
 import org.ietf.jgss.GSSName;
 import org.junit.jupiter.api.Test;
-
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link GssApiAuth} — GSSAPI authentication method per RFC 4462.
  */

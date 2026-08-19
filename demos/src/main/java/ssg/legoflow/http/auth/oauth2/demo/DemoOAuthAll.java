@@ -1,11 +1,9 @@
 package ssg.legoflow.http.auth.oauth2.demo;
 
-import ssg.legoflow.http.auth.oauth2.AuthorizationRequest;
 import ssg.legoflow.http.auth.oauth2.OAuth2Config;
 import ssg.legoflow.http.auth.oauth2.OAuth2Error;
 import ssg.legoflow.http.auth.oauth2.OAuth2TokenResponse;
 import ssg.legoflow.http.auth.oauth2.PkceChallenge;
-import ssg.legoflow.http.auth.oauth2.TokenRequest;
 import ssg.legoflow.http.auth.oauth2.server.AuthorizationCodeStore;
 import ssg.legoflow.http.auth.oauth2.server.OAuth2ClientRegistry;
 import ssg.legoflow.http.auth.oauth2.server.TokenStore;
@@ -15,9 +13,7 @@ import ssg.legoflow.http.auth.provider.GoogleOAuth;
 import ssg.legoflow.http.auth.provider.GitHubOAuth;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Set;
-
 /**
  * Comprehensive demo of all OAuth 2.0 / OpenID Connect module features.
  *

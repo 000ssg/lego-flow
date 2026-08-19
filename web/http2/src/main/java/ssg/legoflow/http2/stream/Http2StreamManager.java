@@ -3,8 +3,6 @@ package ssg.legoflow.http2.stream;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-
 public class Http2StreamManager {
 
     private final Map<Integer, Http2Stream> streams = new ConcurrentHashMap<>();

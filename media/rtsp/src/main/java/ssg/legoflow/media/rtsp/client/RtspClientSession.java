@@ -1,11 +1,8 @@
 package ssg.legoflow.media.rtsp.client;
 
 import ssg.legoflow.media.rtsp.protocol.TransportHeader;
-
 import java.time.Instant;
 import java.util.Objects;
-import java.util.Optional;
-
 /**
  * Client-side RTSP session tracking.
  *

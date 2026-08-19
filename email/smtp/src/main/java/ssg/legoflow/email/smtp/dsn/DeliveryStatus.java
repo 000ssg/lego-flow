@@ -1,10 +1,8 @@
 package ssg.legoflow.email.smtp.dsn;
 
 import ssg.legoflow.email.smtp.protocol.EnhancedStatusCode;
-
 import java.time.Instant;
 import java.util.*;
-
 /**
  * Represents a Delivery Status Notification per RFC 3461 and RFC 3464.
  *

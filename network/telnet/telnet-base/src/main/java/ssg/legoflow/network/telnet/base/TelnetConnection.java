@@ -1,10 +1,8 @@
 package ssg.legoflow.network.telnet.base;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-
 /**
  * A single Telnet session over a byte transport.
  *

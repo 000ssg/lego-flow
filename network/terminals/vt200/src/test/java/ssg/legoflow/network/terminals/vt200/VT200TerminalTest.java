@@ -2,11 +2,9 @@ package ssg.legoflow.network.terminals.vt200;
 
 import ssg.legoflow.network.terminals.base.config.TerminalConfig;
 import ssg.legoflow.network.terminals.base.display.TermAttr;
-import ssg.legoflow.network.terminals.base.io.Terminal;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Comprehensive tests for VT200Terminal.
  *

@@ -3,9 +3,7 @@ package ssg.legoflow.database.mysql.server;
 import ssg.legoflow.database.mysql.protocol.ColumnType;
 import ssg.legoflow.database.mysql.protocol.LengthEncodedString;
 import ssg.legoflow.database.mysql.common.Charset;
-
 import java.nio.ByteBuffer;
-
 /**
  * MySQL ColumnDefinition (COM_QUERY response, column metadata).
  *

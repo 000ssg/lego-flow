@@ -6,11 +6,8 @@ import ssg.legoflow.service.DefaultServiceContext;
 import ssg.legoflow.service.user.ServiceUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.concurrent.TimeUnit;
-
 import static org.assertj.core.api.Assertions.*;
-
 class AsyncEchoDemoTest {
 
     private EchoService echo;

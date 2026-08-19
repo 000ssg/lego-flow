@@ -8,11 +8,8 @@ import ssg.legoflow.network.terminals.base.event.TerminalEventListener;
 import ssg.legoflow.network.terminals.base.io.KeyTranslator;
 import ssg.legoflow.network.terminals.base.io.Terminal;
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Functional tests for terminal demo scenarios.
  *

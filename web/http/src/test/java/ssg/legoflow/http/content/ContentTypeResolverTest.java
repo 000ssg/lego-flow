@@ -2,9 +2,7 @@ package ssg.legoflow.http.content;
 
 import ssg.legoflow.http.header.MediaType;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ContentTypeResolverTest {
 
     @Test

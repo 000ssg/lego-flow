@@ -3,9 +3,7 @@ package ssg.legoflow.ftp.demo;
 import ssg.legoflow.ftp.server.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
-
 /**
  * Demonstrates starting an FTP server with in-memory filesystem.
  *
@@ -55,5 +53,8 @@ public final class FtpServerDemo {
             LOG.info("Server running. Press Ctrl+C to stop.");
             Thread.sleep(60_000);
         }
+    }
+    public static void main(String[] args) throws Exception {
+        run(2121);
     }
 }

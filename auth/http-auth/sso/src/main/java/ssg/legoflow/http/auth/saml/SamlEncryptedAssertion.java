@@ -2,7 +2,6 @@ package ssg.legoflow.http.auth.saml;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
@@ -11,7 +10,6 @@ import java.security.PrivateKey;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.Optional;
-
 /**
  * Decrypts SAML 2.0 EncryptedAssertion elements using the SP's private key.
  * Supports RSA-OAEP key unwrap with AES-128-CBC or AES-256-CBC content encryption.

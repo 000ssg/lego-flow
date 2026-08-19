@@ -4,15 +4,12 @@ import ssg.legoflow.mqtt.broker.MqttBroker;
 import ssg.legoflow.mqtt.broker.MqttBrokerConfig;
 import ssg.legoflow.mqtt.client.MqttClient;
 import ssg.legoflow.mqtt.client.MqttClientConfig;
-import ssg.legoflow.mqtt.protocol.MqttVersion;
 import ssg.legoflow.mqtt.protocol.QoS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 /**
  * Demo demonstrating clean session vs persistent session: offline message queuing.
  *

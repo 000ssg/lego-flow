@@ -6,7 +6,6 @@ import ssg.legoflow.ftp.security.FtpsConfig;
 import ssg.legoflow.ftp.security.FtpsHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -18,7 +17,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
 /**
  * Full FTP client implementation supporting RFC 959 and RFC 4217 (FTPS).
  *

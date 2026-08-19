@@ -6,11 +6,9 @@ import ssg.legoflow.service.AbstractService;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
 import ssg.legoflow.service.channel.ChannelHandler;
-
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.function.Consumer;
-
 /** Service-based RTSP server adapter for DP/DF composition. */
 public final class RtspServerService extends AbstractService<ByteBuffer, ByteBuffer> {
 

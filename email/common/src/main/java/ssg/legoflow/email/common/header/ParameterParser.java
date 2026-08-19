@@ -1,14 +1,11 @@
 package ssg.legoflow.email.common.header;
 
 import ssg.legoflow.email.common.encoding.CharsetUtils;
-
-import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeMap;
-
 /**
  * Parses structured header parameters ({@code ;key=value} pairs).
  *

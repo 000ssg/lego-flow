@@ -4,13 +4,10 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Timeout;
 import ssg.legoflow.network.dns.protocol.DnsMessage;
 import ssg.legoflow.network.dns.protocol.RecordType;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Duration;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Extended TCP transport tests for additional coverage.
  */

@@ -1,15 +1,11 @@
 package ssg.legoflow.network.dns.demo;
 
-import ssg.legoflow.network.dns.client.DnsClient;
 import ssg.legoflow.network.dns.client.DnsLookup;
-import ssg.legoflow.network.dns.protocol.RecordType;
 import ssg.legoflow.network.dns.server.AuthoritativeZone;
 import ssg.legoflow.network.dns.server.DnsServer;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Duration;
-
 /**
  * Demonstrates a DNS server with authoritative zones and a client performing lookups.
  *
@@ -66,5 +62,8 @@ public final class DnsServerDemo {
             System.out.println("Queries received: " + server.queriesReceived());
             System.out.println("Responses sent: " + server.responsesSent());
         }
+    }
+    public static void main(String[] args) throws IOException {
+        run();
     }
 }

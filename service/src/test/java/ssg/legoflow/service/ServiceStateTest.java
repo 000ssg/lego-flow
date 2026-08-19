@@ -2,9 +2,7 @@ package ssg.legoflow.service;
 
 import ssg.legoflow.blocks.ProcessorState;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ServiceStateTest {
 
     // ── Enum values ────────────────────────────────────────

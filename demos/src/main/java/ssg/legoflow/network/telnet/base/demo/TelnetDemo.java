@@ -1,10 +1,8 @@
 package ssg.legoflow.network.telnet.base.demo;
 
 import ssg.legoflow.network.telnet.base.*;
-
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * Demonstrates Telnet protocol parsing and connection handling.
  *
@@ -207,5 +205,8 @@ public final class TelnetDemo {
         StringBuilder sb = new StringBuilder();
         for (byte x : b) sb.append(String.format("%02X ", x & 0xFF));
         return sb.toString().trim();
+    }
+    public static void main(String[] args) {
+        demonstrate();
     }
 }

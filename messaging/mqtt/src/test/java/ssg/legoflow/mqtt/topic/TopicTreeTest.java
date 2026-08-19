@@ -1,14 +1,11 @@
 package ssg.legoflow.mqtt.topic;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for {@link TopicTree}.
  *

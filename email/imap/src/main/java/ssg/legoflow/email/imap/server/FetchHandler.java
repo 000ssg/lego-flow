@@ -1,11 +1,9 @@
 package ssg.legoflow.email.imap.server;
 
 import ssg.legoflow.email.imap.protocol.FetchDataItem;
-
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-
 /**
  * Handles FETCH command processing, extracting requested data items from messages.
  *

@@ -2,11 +2,9 @@ package ssg.legoflow.wamp.core.role;
 
 import ssg.legoflow.wamp.core.WampMessage;
 import ssg.legoflow.wamp.core.transport.WampTransport;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * WAMP Publisher role — publishes events to topics.
  *

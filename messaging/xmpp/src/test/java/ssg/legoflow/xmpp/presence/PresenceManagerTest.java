@@ -6,13 +6,10 @@ import ssg.legoflow.xmpp.core.PresenceStanza.PresenceShow;
 import ssg.legoflow.xmpp.core.PresenceStanza.PresenceType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link PresenceManager}.
  *

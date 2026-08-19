@@ -1,9 +1,7 @@
 package ssg.legoflow.http.auth.provider;
 
 import ssg.legoflow.http.auth.oauth2.OAuth2Config;
-
 import java.util.Set;
-
 /**
  * Abstract base for pre-configured OAuth provider templates. Each provider supplies
  * its authorization, token, and userinfo endpoint URLs so that consumers only need

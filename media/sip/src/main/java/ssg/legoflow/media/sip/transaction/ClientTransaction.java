@@ -5,10 +5,8 @@ import org.slf4j.LoggerFactory;
 import ssg.legoflow.media.sip.protocol.SipMethod;
 import ssg.legoflow.media.sip.protocol.SipRequest;
 import ssg.legoflow.media.sip.protocol.SipResponse;
-
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-
 /**
  * SIP client transaction per RFC 3261 section 17.1.
  *

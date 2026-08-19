@@ -4,9 +4,7 @@ import ssg.legoflow.http2.config.Http2Config;
 import ssg.legoflow.http2.frame.Http2FrameType;
 import ssg.legoflow.http2.stream.Http2FlowControl;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class FlowControlDemoTest {
 
     @Test

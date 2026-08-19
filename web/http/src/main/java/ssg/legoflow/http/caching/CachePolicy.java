@@ -1,10 +1,7 @@
 package ssg.legoflow.http.caching;
 
 import ssg.legoflow.http.core.HttpMethod;
-import ssg.legoflow.http.core.HttpStatus;
-
 import java.util.Set;
-
 public class CachePolicy {
 
     private int defaultMaxAge = 3600;

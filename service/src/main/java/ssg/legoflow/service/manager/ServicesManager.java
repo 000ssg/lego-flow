@@ -2,10 +2,8 @@ package ssg.legoflow.service.manager;
 
 import ssg.legoflow.blocks.ProcessorState;
 import ssg.legoflow.service.Service;
-
 import java.util.List;
 import java.util.Map;
-
 public interface ServicesManager extends AutoCloseable {
 
     void register(Service<?, ?> service);

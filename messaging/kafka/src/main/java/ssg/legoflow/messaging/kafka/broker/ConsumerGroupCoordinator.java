@@ -4,13 +4,11 @@ import ssg.legoflow.messaging.kafka.common.KafkaErrors;
 import ssg.legoflow.messaging.kafka.common.TopicPartition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * Manages consumer group membership, rebalancing, and offset storage.
  *

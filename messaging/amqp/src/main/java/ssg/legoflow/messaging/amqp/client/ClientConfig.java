@@ -2,11 +2,9 @@ package ssg.legoflow.messaging.amqp.client;
 
 import ssg.legoflow.messaging.amqp.common.AmqpConstants;
 import ssg.legoflow.messaging.amqp.sasl.SaslMechanism;
-
 import java.time.Duration;
 import java.util.Objects;
 import java.util.UUID;
-
 /**
  * Configuration for {@link AmqpClient} with a fluent builder API.
  *

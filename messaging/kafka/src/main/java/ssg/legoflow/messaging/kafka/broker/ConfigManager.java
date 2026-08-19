@@ -1,10 +1,8 @@
 package ssg.legoflow.messaging.kafka.broker;
 
 import ssg.legoflow.messaging.kafka.common.KafkaErrors;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Manages broker-level and per-topic configurations.
  *

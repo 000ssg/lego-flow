@@ -3,9 +3,7 @@ package ssg.legoflow.http.auth.saml;
 import ssg.legoflow.http.auth.AuthPrincipal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.*;
-
 /**
  * SAML 2.0 assertion parser. Parses SAML Response/Assertion XML to extract
  * attributes and NameID. This is NOT a full SAML implementation -- it handles

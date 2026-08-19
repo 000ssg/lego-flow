@@ -5,15 +5,12 @@ import ssg.legoflow.mqtt.protocol.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.time.Duration;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for broker-side keep-alive timeout enforcement (Section 3.1.2.10).
  *

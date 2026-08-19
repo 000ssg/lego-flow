@@ -5,9 +5,7 @@ import ssg.legoflow.ssh.client.SshClient;
 import ssg.legoflow.ssh.connection.SessionChannel;
 import ssg.legoflow.ssh.sftp.SftpClient;
 import ssg.legoflow.ssh.sftp.SftpPacket;
-
 import java.util.List;
-
 /**
  * Demo: SFTP directory listing and file operations.
  *

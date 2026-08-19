@@ -2,10 +2,8 @@ package ssg.legoflow.service;
 
 import ssg.legoflow.blocks.AbstractDataProcessor;
 import ssg.legoflow.blocks.ProcessorState;
-
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 public abstract class AbstractService<I, O> extends AbstractDataProcessor<I, O> implements Service<I, O> {
 
     private final ServiceDescriptor descriptor;

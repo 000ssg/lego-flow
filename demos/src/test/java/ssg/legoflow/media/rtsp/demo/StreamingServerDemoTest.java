@@ -2,9 +2,7 @@ package ssg.legoflow.media.rtsp.demo;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.media.rtsp.protocol.*;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link StreamingServerDemo}.
  */

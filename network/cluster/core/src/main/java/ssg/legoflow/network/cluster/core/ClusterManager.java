@@ -4,7 +4,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -14,13 +13,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
-
 import ssg.legoflow.blocks.Context;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ssg.legoflow.blocks.DefaultContext;
-
 /**
  * Default cluster manager that coordinates discovery, state, messaging,
  * and health checking for a single node.

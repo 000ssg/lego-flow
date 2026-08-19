@@ -1,6 +1,5 @@
 package ssg.legoflow.database.redis.server;
 
-import java.nio.charset.StandardCharsets;
 
 /**
  * HyperLogLog probabilistic cardinality estimator.

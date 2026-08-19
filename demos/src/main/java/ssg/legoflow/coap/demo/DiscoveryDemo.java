@@ -6,10 +6,8 @@ import ssg.legoflow.coap.resource.CoapExchange;
 import ssg.legoflow.coap.resource.CoapResource;
 import ssg.legoflow.coap.server.CoapServer;
 import ssg.legoflow.coap.server.CoapServerConfig;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
 /**
  * Demonstrates CoAP resource discovery using the {@code /.well-known/core} endpoint.
  *

@@ -7,12 +7,10 @@ import ssg.legoflow.wamp.core.role.Callee;
 import ssg.legoflow.wamp.core.role.Caller;
 import ssg.legoflow.wamp.core.role.Publisher;
 import ssg.legoflow.wamp.core.role.Subscriber;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Multi-realm demo: creates multiple WAMP realms and demonstrates that
  * procedures and topics in one realm are isolated from another.

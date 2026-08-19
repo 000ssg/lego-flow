@@ -2,9 +2,7 @@ package ssg.legoflow.media.sip.server.service;
 
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
-
 import java.nio.ByteBuffer;
-
 /** Channel handler for SIP server service. */
 public final class SipServerChannelHandler implements ChannelHandler {
     private final SipServerService sipService;

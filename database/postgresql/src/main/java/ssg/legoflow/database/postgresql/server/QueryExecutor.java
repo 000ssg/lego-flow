@@ -3,11 +3,9 @@ package ssg.legoflow.database.postgresql.server;
 import ssg.legoflow.database.postgresql.common.PgSeverity;
 import ssg.legoflow.database.postgresql.common.SqlState;
 import ssg.legoflow.database.postgresql.protocol.BackendMessage;
-
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 /**
  * Executes queries against the in-memory database and produces backend messages.
  *

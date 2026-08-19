@@ -4,12 +4,9 @@ import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.cluster.core.ClusterNode;
 import ssg.legoflow.network.cluster.core.ClusterRole;
 import ssg.legoflow.network.cluster.core.ClusterNodeStatus;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 class StickySessionHasherTest {
 
     private ClusterNode node(String id, int port) {

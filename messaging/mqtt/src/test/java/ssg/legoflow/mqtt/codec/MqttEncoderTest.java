@@ -2,12 +2,9 @@ package ssg.legoflow.mqtt.codec;
 
 import ssg.legoflow.mqtt.protocol.*;
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for {@link MqttEncoder}.
  *

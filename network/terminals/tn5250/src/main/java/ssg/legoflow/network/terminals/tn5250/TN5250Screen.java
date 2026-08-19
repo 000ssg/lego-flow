@@ -1,11 +1,8 @@
 package ssg.legoflow.network.terminals.tn5250;
 
 import ssg.legoflow.network.terminals.base.config.TerminalConfig;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-
 /**
  * TN5250 (5250) screen model.
  *

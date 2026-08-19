@@ -1,11 +1,8 @@
 package ssg.legoflow.upnp.device;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 class DeviceDescriptionTest {
 
     private static final String DEVICE_XML = """

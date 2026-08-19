@@ -1,8 +1,6 @@
 package ssg.legoflow.messaging.kafka.common;
 
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * Partitioner that uses murmur2 hash of the key.
  * Falls back to round-robin if key is null.

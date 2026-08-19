@@ -4,11 +4,8 @@ import ssg.legoflow.wamp.core.WampMessage;
 import ssg.legoflow.wamp.core.role.Publisher;
 import ssg.legoflow.wamp.core.role.Subscriber;
 import ssg.legoflow.wamp.core.router.Broker;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
 /**
  * Simple pub/sub demo: creates a Publisher and Subscriber, wires them through a Broker
  * via InMemoryTransport, subscribes to a topic, and publishes an event.

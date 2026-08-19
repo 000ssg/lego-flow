@@ -2,9 +2,7 @@ package ssg.legoflow.http3.quic;
 
 import ssg.legoflow.http3.quic.QuicCongestionController.Phase;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class QuicCongestionControllerTest {
 
     @Test

@@ -9,13 +9,9 @@ import ssg.legoflow.media.sip.dialog.DialogState;
 import ssg.legoflow.media.sip.header.SipHeaders;
 import ssg.legoflow.media.sip.protocol.SipMethod;
 import ssg.legoflow.media.sip.protocol.SipRequest;
-import ssg.legoflow.media.sip.protocol.SipResponse;
-import ssg.legoflow.media.sip.protocol.SipStatus;
 import ssg.legoflow.media.sip.registration.SipRegistrar;
 import ssg.legoflow.media.sip.transaction.ClientTransaction;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link SipUserAgent}.
  */

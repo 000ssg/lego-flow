@@ -2,21 +2,16 @@ package ssg.legoflow.network.cluster.dns;
 
 import ssg.legoflow.network.dns.protocol.DnsName;
 import ssg.legoflow.network.dns.protocol.DnsRecord;
-import ssg.legoflow.network.dns.protocol.RecordClass;
-import ssg.legoflow.network.dns.protocol.RecordType;
 import ssg.legoflow.network.dns.rdata.ARecord;
 import ssg.legoflow.network.dns.rdata.PtrRecord;
 import ssg.legoflow.network.dns.rdata.SrvRecord;
 import ssg.legoflow.network.dns.rdata.TxtRecord;
-
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.time.Duration;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
-
 /**
  * A DNS-SD service record as defined in RFC 8305.
  *

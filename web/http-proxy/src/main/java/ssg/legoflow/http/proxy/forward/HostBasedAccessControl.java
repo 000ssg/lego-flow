@@ -1,9 +1,7 @@
 package ssg.legoflow.http.proxy.forward;
 
 import ssg.legoflow.http.core.HttpRequest;
-
 import java.util.Set;
-
 /**
  * Host-based access control implementation for the forward proxy.
  *

@@ -1,13 +1,11 @@
 package ssg.legoflow.database.postgresql.server;
 
 import ssg.legoflow.database.postgresql.protocol.BackendMessage;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Consumer;
-
 /**
  * Manages LISTEN/NOTIFY pub/sub channels.
  *

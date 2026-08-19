@@ -1,11 +1,8 @@
 package ssg.legoflow.email.smtp.server;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 class InMemoryMessageStoreExtendedTest {
 
     @Test void storeAndGetMessages() {

@@ -6,7 +6,6 @@ import ssg.legoflow.database.postgresql.auth.*;
 import ssg.legoflow.database.postgresql.common.PgSeverity;
 import ssg.legoflow.database.postgresql.common.SqlState;
 import ssg.legoflow.database.postgresql.protocol.*;
-
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -15,7 +14,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 /**
  * Manages a single client connection on the server side.
  *

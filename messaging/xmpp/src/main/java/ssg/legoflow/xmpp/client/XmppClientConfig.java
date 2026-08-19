@@ -1,10 +1,8 @@
 package ssg.legoflow.xmpp.client;
 
 import ssg.legoflow.xmpp.auth.SaslMechanism;
-
 import java.time.Duration;
 import java.util.Objects;
-
 /**
  * Configuration for an XMPP client connection.
  *

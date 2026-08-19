@@ -3,13 +3,11 @@ package ssg.legoflow.coap.resource;
 import ssg.legoflow.coap.protocol.CoapCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-
 /**
  * Represents a CoAP resource that can handle requests.
  *

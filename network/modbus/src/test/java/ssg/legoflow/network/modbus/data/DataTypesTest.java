@@ -1,10 +1,8 @@
 package ssg.legoflow.network.modbus.data;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 class DataTypesTest {
 
     @Test

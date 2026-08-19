@@ -2,13 +2,10 @@ package ssg.legoflow.ssh.hostkey;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.security.KeyPair;
 import java.time.Instant;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 class CertificateHostKeyAlgorithmTest {
 
     private Ed25519 underlyingAlg;

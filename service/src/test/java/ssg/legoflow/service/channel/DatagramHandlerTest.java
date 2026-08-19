@@ -1,15 +1,12 @@
 package ssg.legoflow.service.channel;
 
 import org.junit.jupiter.api.Test;
-
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-
 import static org.assertj.core.api.Assertions.*;
-
 class DatagramHandlerTest {
 
     @Test

@@ -1,11 +1,8 @@
 package ssg.legoflow.network.cluster.core.hashing;
 
 import org.junit.jupiter.api.Test;
-
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class MurmurHash3Test {
 
     private static final MurmurHash3 HASH = MurmurHash3.INSTANCE;

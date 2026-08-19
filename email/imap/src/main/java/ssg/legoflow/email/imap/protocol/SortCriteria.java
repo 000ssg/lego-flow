@@ -1,6 +1,5 @@
 package ssg.legoflow.email.imap.protocol;
 
-import java.util.Objects;
 
 /**
  * IMAP SORT criteria per RFC 5256.

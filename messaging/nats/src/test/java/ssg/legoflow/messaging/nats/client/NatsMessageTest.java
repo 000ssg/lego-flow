@@ -2,9 +2,7 @@ package ssg.legoflow.messaging.nats.client;
 
 import ssg.legoflow.messaging.nats.protocol.NatsHeaders;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link NatsMessage}.
  */

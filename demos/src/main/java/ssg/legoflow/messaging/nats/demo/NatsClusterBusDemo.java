@@ -10,18 +10,12 @@ import ssg.legoflow.messaging.nats.cluster.NatsDistributedPubSub;
 import ssg.legoflow.network.cluster.core.ClusterNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * Demonstrates NATS-based cluster messaging patterns.
  *

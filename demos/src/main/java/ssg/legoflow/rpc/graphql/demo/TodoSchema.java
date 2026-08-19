@@ -1,11 +1,9 @@
 package ssg.legoflow.rpc.graphql.demo;
 
 import ssg.legoflow.rpc.graphql.schema.*;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * Todo CRUD application schema with mutations.
  *

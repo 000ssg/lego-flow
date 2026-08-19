@@ -2,13 +2,10 @@ package ssg.legoflow.media.rtp.codec;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.media.rtp.rtcp.*;
-
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link RtcpCodec}.
  */

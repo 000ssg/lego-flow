@@ -1,10 +1,8 @@
 package ssg.legoflow.messaging.amqp.delivery;
 
 import ssg.legoflow.messaging.amqp.message.AmqpMessage;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * Tracks the state of a message delivery through its lifecycle.
  *

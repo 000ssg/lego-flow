@@ -1,9 +1,7 @@
 package ssg.legoflow.network.common.ber;
 
 import ssg.legoflow.network.common.asn1.Asn1Tag;
-
 import java.nio.ByteBuffer;
-
 /**
  * BER tag encoding and decoding.
  *

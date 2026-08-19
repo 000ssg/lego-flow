@@ -2,13 +2,11 @@ package ssg.legoflow.upnp.controlpoint;
 
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 /**
  * Tests for UpnpMessageLog covering message capture, filtering, and listeners.
  */

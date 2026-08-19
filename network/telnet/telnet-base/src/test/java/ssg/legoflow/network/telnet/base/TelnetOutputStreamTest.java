@@ -1,12 +1,9 @@
 package ssg.legoflow.network.telnet.base;
 
 import org.junit.jupiter.api.Test;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class TelnetOutputStreamTest {
 
     @Test

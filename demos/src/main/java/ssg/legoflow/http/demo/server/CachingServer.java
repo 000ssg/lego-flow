@@ -7,13 +7,10 @@ import ssg.legoflow.http.config.StandardProfiles;
 import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpResponse;
 import ssg.legoflow.http.core.HttpStatus;
-import ssg.legoflow.http.header.EntityTag;
 import ssg.legoflow.http.server.HttpServer;
-
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-
 /**
  * HTTP server demo with response caching using ETags and If-Modified-Since.
  *

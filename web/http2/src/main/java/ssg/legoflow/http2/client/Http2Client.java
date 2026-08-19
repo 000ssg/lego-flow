@@ -7,14 +7,12 @@ import ssg.legoflow.http2.connection.Http2Settings;
 import ssg.legoflow.http2.frame.*;
 import ssg.legoflow.http2.stream.Http2Stream;
 import ssg.legoflow.http2.stream.Http2StreamState;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CompletableFuture;
-
 public class Http2Client {
 
     private final Http2Config config;

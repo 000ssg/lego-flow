@@ -5,10 +5,8 @@ import ssg.legoflow.service.AbstractService;
 import ssg.legoflow.service.Service;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
-
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-
 public class ServiceBuilder<I, O> {
 
     private final Class<I> inputType;

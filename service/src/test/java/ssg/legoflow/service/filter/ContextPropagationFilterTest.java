@@ -1,13 +1,10 @@
 package ssg.legoflow.service.filter;
 
-import ssg.legoflow.blocks.Context;
 import ssg.legoflow.service.DefaultServiceContext;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.user.ServiceUser;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ContextPropagationFilterTest {
 
     @Test

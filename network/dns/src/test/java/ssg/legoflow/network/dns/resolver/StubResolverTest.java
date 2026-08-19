@@ -2,12 +2,9 @@ package ssg.legoflow.network.dns.resolver;
 
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Timeout;
-
 import java.net.InetSocketAddress;
 import java.time.Duration;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for StubResolver covering constructor validation and cache access.
  */

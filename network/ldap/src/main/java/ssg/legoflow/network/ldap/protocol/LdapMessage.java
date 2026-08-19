@@ -1,9 +1,7 @@
 package ssg.legoflow.network.ldap.protocol;
 
 import ssg.legoflow.network.ldap.control.LdapControl;
-
 import java.util.List;
-
 /**
  * LDAP message envelope as defined in RFC 4511 Section 4.1.1.
  *

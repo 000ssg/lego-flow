@@ -4,11 +4,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.rpc.graphql.language.GraphQLParser;
 import ssg.legoflow.rpc.graphql.schema.*;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class QueryValidatorTest {
 
     private GraphQLSchema schema;

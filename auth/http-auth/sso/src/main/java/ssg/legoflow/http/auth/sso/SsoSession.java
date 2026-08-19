@@ -1,11 +1,9 @@
 package ssg.legoflow.http.auth.sso;
 
 import ssg.legoflow.http.auth.AuthPrincipal;
-
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Federated SSO session that spans multiple services. Tracks which services
  * the user has authenticated with and propagates login/logout across them.

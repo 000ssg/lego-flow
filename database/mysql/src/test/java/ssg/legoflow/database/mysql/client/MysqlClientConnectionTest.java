@@ -2,10 +2,8 @@ package ssg.legoflow.database.mysql.client;
 
 import org.junit.jupiter.api.*;
 import ssg.legoflow.database.mysql.server.MysqlServer;
-
 import java.io.IOException;
 import static org.assertj.core.api.Assertions.*;
-
 class MysqlClientConnectionTest {
 
     private static MysqlServer server;

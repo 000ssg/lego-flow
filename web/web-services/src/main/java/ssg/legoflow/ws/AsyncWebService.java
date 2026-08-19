@@ -2,11 +2,9 @@ package ssg.legoflow.ws;
 
 import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpResponse;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 /**
  * Asynchronous wrapper around a synchronous {@link WebService}.
  *

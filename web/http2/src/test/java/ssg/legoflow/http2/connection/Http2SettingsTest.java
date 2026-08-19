@@ -1,9 +1,7 @@
 package ssg.legoflow.http2.connection;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class Http2SettingsTest {
 
     @Test

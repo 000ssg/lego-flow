@@ -1,9 +1,7 @@
 package ssg.legoflow.coap.protocol;
 
 import org.junit.jupiter.api.*;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link CoapOptionRegistry} covering registry lookup, option metadata,
  * Format enum, and option classification helpers.

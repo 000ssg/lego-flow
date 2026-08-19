@@ -1,9 +1,7 @@
 package ssg.legoflow.network.snmp.protocol;
 
 import ssg.legoflow.network.common.oid.ObjectIdentifier;
-
 import java.util.Arrays;
-
 /**
  * Sealed interface representing all SNMP data value types.
  *

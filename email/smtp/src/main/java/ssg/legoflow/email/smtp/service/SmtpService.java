@@ -7,10 +7,8 @@ import ssg.legoflow.service.AbstractService;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
 import ssg.legoflow.service.channel.ChannelHandler;
-
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-
 /** Service-based SMTP adapter for composition within the service framework. */
 public final class SmtpService extends AbstractService<ByteBuffer, ByteBuffer> {
 

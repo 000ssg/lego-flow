@@ -2,9 +2,7 @@ package ssg.legoflow.network.syslog.service;
 
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
-
 import java.nio.ByteBuffer;
-
 /** Channel handler for Syslog service. */
 public final class SyslogChannelHandler implements ChannelHandler {
     private final SyslogService syslogService;

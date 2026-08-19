@@ -1,10 +1,8 @@
 package ssg.legoflow.ssh.scp;
 
 import ssg.legoflow.ssh.connection.SessionChannel;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -12,7 +10,6 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.util.Objects;
-
 /**
  * SCP file transfer client for uploading and downloading files.
  *

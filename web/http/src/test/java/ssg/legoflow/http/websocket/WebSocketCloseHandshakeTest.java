@@ -2,12 +2,9 @@ package ssg.legoflow.http.websocket;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
-
 import static org.assertj.core.api.Assertions.*;
-
 class WebSocketCloseHandshakeTest {
 
     private WebSocketSession session;

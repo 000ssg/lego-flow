@@ -2,12 +2,10 @@ package ssg.legoflow.http.auth.basic;
 
 import ssg.legoflow.http.auth.AuthContext;
 import ssg.legoflow.http.auth.AuthPrincipal;
-
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * In-memory user store for testing and demos. Stores usernames, passwords, and roles
  * in a thread-safe map.

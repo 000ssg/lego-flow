@@ -3,12 +3,10 @@ package ssg.legoflow.http.websocket;
 import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpResponse;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
 /**
  * WebSocket subprotocol negotiation per RFC 6455 §11.5.
  *

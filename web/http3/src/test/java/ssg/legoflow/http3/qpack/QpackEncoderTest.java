@@ -1,13 +1,10 @@
 package ssg.legoflow.http3.qpack;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.*;
-
 class QpackEncoderTest {
 
     @Test

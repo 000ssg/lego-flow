@@ -1,11 +1,9 @@
 package ssg.legoflow.http.content;
 
 import ssg.legoflow.http.header.MediaType;
-
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-
 public class MediaTypeRegistry {
 
     private final Map<String, MediaType> extensionMap = new ConcurrentHashMap<>();

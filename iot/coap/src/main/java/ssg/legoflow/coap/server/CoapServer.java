@@ -1,7 +1,5 @@
 package ssg.legoflow.coap.server;
 
-import ssg.legoflow.coap.block.BlockOption;
-import ssg.legoflow.coap.block.BlockTransfer;
 import ssg.legoflow.coap.codec.CoapCodec;
 import ssg.legoflow.coap.observe.ObserveRegistry;
 import ssg.legoflow.coap.protocol.CoapCode;
@@ -13,13 +11,11 @@ import ssg.legoflow.coap.resource.CoapResource;
 import ssg.legoflow.coap.resource.WellKnownCoreResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.SocketAddress;
-import java.net.StandardProtocolFamily;
 import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
@@ -31,11 +27,9 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * CoAP server that binds to a UDP port and routes incoming requests to registered resources.
  *

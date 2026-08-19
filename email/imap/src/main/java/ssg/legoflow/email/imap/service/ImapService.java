@@ -6,10 +6,8 @@ import ssg.legoflow.service.AbstractService;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
 import ssg.legoflow.service.channel.ChannelHandler;
-
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-
 /**
  * Service-based IMAP adapter that wraps the existing IMAP protocol implementation
  * as a {@link ssg.legoflow.service.Service} for composition within the service framework.

@@ -1,15 +1,12 @@
 package ssg.legoflow.ssh.sftp;
 
 import ssg.legoflow.ssh.connection.SessionChannel;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * SFTP client implementing version 3 of the SFTP protocol.
  *

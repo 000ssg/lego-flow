@@ -1,12 +1,9 @@
 package ssg.legoflow.http.transfer;
 
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.*;
-
 class CloseDelimitedCodecTest {
 
     @Test

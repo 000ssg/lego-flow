@@ -4,9 +4,7 @@ import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Retry-based assertion utilities for timing-sensitive tests.
  * Replaces blind {@code Thread.sleep()} with proper synchronization primitives

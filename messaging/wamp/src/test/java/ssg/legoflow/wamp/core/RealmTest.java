@@ -4,9 +4,7 @@ import ssg.legoflow.wamp.core.realm.Realm;
 import ssg.legoflow.wamp.core.realm.RealmManager;
 import ssg.legoflow.wamp.core.transport.InMemoryTransport;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class RealmTest {
 
     @Test

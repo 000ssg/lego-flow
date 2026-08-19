@@ -3,12 +3,10 @@ package ssg.legoflow.upnp.demo.mcc;
 import ssg.legoflow.upnp.controlpoint.ControlPoint;
 import ssg.legoflow.upnp.controlpoint.MediaRendererProxy;
 import ssg.legoflow.upnp.controlpoint.MediaServerProxy;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-
 /**
  * Main Swing application frame for the Media Control Center.
  *

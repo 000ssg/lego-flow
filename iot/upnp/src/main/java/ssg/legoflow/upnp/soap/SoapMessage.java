@@ -3,15 +3,12 @@ package ssg.legoflow.upnp.soap;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
-
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.StringReader;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
-
 /**
  * Represents a UPnP SOAP message (request or response envelope).
  *

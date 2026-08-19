@@ -1,13 +1,9 @@
 package ssg.legoflow.ssh.kex;
 
 import ssg.legoflow.ssh.transport.SshTransportCodec;
-
 import java.nio.ByteBuffer;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-
 /**
  * SSH_MSG_KEXINIT message (type 20) for algorithm negotiation per RFC 4253 section 7.1.
  *

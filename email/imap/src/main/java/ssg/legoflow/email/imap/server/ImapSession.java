@@ -2,20 +2,15 @@ package ssg.legoflow.email.imap.server;
 
 import ssg.legoflow.email.imap.protocol.*;
 import ssg.legoflow.email.imap.protocol.ImapCommand.ImapState;
-import ssg.legoflow.email.imap.condstore.ModSequence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
-
 /**
  * Per-client IMAP session managing connection state, command processing,
  * and mailbox operations.

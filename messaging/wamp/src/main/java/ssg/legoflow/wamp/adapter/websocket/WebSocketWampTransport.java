@@ -5,11 +5,9 @@ import ssg.legoflow.http.websocket.WebSocketSession;
 import ssg.legoflow.wamp.core.WampMessage;
 import ssg.legoflow.wamp.core.WampSerializer;
 import ssg.legoflow.wamp.core.transport.WampTransport;
-
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
-
 /**
  * Implements {@link WampTransport} over WebSocket text frames.
  * Uses {@link WampSerializer} to convert between WAMP messages and JSON text,

@@ -3,11 +3,8 @@ package ssg.legoflow.http.proxy.forward;
 import ssg.legoflow.http.core.HttpMethod;
 import ssg.legoflow.http.core.HttpRequest;
 import org.junit.jupiter.api.Test;
-
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class ProxyAccessControlTest {
 
     @Test

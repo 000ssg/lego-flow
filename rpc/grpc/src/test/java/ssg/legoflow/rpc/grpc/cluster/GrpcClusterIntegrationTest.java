@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.cluster.core.ClusterNode;
 import ssg.legoflow.network.cluster.core.ClusterNodeStatus;
 import ssg.legoflow.network.cluster.core.ClusterRole;
-
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -12,13 +11,9 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Integration tests combining AddressSource, GrpcHealthChecker, and load balancers.
  *

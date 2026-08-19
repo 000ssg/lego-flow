@@ -7,13 +7,11 @@ import ssg.legoflow.network.terminals.base.display.TermAttr;
 import ssg.legoflow.network.terminals.base.escape.EscapeParser;
 import ssg.legoflow.network.terminals.base.escape.CSIParams;
 import ssg.legoflow.network.terminals.base.event.TerminalEventListener;
-
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-
 /**
  * Base class for terminal emulator implementations.
  *

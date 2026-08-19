@@ -3,9 +3,7 @@ package ssg.legoflow.email.smtp.client;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import ssg.legoflow.email.smtp.protocol.SmtpReply;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Unit tests for {@link SmtpClient}, {@link SmtpConnection}, and related client classes.
  */

@@ -1,14 +1,11 @@
 package ssg.legoflow.database.redis.client;
 
 import ssg.legoflow.database.redis.protocol.RespType;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
-
 /**
  * Pub/Sub subscriber that listens for messages on channels and patterns.
  *

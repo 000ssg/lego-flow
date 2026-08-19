@@ -2,13 +2,11 @@ package ssg.legoflow.network.common.ber;
 
 import ssg.legoflow.network.common.asn1.*;
 import ssg.legoflow.network.common.oid.ObjectIdentifier;
-
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * Decodes BER (Basic Encoding Rules) encoded bytes into ASN.1 types.
  *

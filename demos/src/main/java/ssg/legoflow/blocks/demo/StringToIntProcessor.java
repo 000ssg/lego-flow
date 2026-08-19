@@ -2,7 +2,6 @@ package ssg.legoflow.blocks.demo;
 
 import ssg.legoflow.blocks.AbstractDataProcessor;
 import ssg.legoflow.blocks.Context;
-
 import java.util.Arrays;
 
 @SuppressWarnings("unchecked")

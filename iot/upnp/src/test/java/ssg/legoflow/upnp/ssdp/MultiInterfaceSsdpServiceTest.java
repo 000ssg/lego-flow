@@ -3,11 +3,8 @@ package ssg.legoflow.upnp.ssdp;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link MultiInterfaceSsdpService} — multi-NIC SSDP discovery.
  *

@@ -1,12 +1,10 @@
 package ssg.legoflow.http2.hpack;
 
 import ssg.legoflow.http.core.HttpHeaders;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-
 public class HpackDecoder {
 
     private final HpackDynamicTable dynamicTable;

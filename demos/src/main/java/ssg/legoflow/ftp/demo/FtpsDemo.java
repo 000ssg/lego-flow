@@ -5,9 +5,7 @@ import ssg.legoflow.ftp.security.FtpsHandler;
 import ssg.legoflow.ftp.security.FtpsMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.net.ssl.SSLContext;
-
 /**
  * Demonstrates FTPS (FTP over TLS) configuration and handshake.
  *
@@ -62,5 +60,8 @@ public final class FtpsDemo {
         LOG.info("After PROT C: dataProtected={}", handler.isDataProtected());
 
         LOG.info("FTPS demo completed");
+    }
+    public static void main(String[] args) throws Exception {
+        run();
     }
 }

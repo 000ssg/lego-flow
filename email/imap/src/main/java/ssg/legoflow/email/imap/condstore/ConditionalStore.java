@@ -2,9 +2,7 @@ package ssg.legoflow.email.imap.condstore;
 
 import ssg.legoflow.email.imap.server.Mailbox;
 import ssg.legoflow.email.imap.server.StoredMessage;
-
 import java.util.*;
-
 /**
  * CONDSTORE extension support (RFC 7162).
  *

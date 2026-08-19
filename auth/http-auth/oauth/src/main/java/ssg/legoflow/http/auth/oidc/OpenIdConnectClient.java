@@ -2,17 +2,13 @@ package ssg.legoflow.http.auth.oidc;
 
 import ssg.legoflow.http.auth.oauth2.AuthorizationRequest;
 import ssg.legoflow.http.auth.oauth2.OAuth2Client;
-import ssg.legoflow.http.auth.oauth2.OAuth2Config;
-import ssg.legoflow.http.auth.oauth2.PkceChallenge;
 import ssg.legoflow.http.auth.token.JwtTokenProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
-
 /**
  * OpenID Connect client layered on top of OAuth 2.0. Provides discovery,
  * ID Token validation, and UserInfo endpoint support.

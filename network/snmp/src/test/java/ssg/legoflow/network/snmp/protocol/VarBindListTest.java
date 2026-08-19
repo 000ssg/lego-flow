@@ -2,10 +2,8 @@ package ssg.legoflow.network.snmp.protocol;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.common.oid.ObjectIdentifier;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 /**
  * Tests for {@link VarBindList} and its builder.
  *

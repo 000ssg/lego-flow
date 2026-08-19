@@ -1,9 +1,7 @@
 package ssg.legoflow.email.common.header;
 
 import ssg.legoflow.email.common.encoding.EncodedWordCodec;
-
 import java.util.Objects;
-
 /**
  * A single header field consisting of a name and value.
  *

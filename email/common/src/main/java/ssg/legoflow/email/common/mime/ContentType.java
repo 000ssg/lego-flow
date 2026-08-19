@@ -1,14 +1,12 @@
 package ssg.legoflow.email.common.mime;
 
 import ssg.legoflow.email.common.header.ParameterParser;
-
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
-
 /**
  * Content-Type header parsing per RFC 2045.
  *

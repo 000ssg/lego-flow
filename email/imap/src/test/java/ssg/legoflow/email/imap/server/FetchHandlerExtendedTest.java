@@ -2,12 +2,10 @@ package ssg.legoflow.email.imap.server;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.email.imap.protocol.FetchDataItem;
-
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import static org.assertj.core.api.Assertions.*;
-
 class FetchHandlerExtendedTest {
 
     private StoredMessage makeMessage(int uid) {

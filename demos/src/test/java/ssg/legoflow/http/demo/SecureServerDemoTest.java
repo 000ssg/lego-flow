@@ -9,11 +9,8 @@ import ssg.legoflow.http.security.SslFilter;
 import ssg.legoflow.http.security.SslHandshakeHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 class SecureServerDemoTest {
 
     private SecureServer secureServer;

@@ -2,9 +2,7 @@ package ssg.legoflow.database.postgresql.server;
 
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
-
 import java.nio.ByteBuffer;
-
 /** Channel handler for PostgreSQL server service. */
 public final class PgServerChannelHandler implements ChannelHandler {
     private final PgServerService pgService;

@@ -5,10 +5,8 @@ import ssg.legoflow.blocks.demo.TransformFilter;
 import ssg.legoflow.blocks.demo.ValidationFilter;
 import ssg.legoflow.blocks.exceptions.StateTransitionException;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 class DataFilterTest {
 
     private final Context ctx = new DefaultContext();

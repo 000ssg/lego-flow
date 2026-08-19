@@ -3,9 +3,7 @@ package ssg.legoflow.wamp.core;
 import ssg.legoflow.wamp.core.realm.Realm;
 import ssg.legoflow.wamp.core.transport.InMemoryTransport;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class RealmActiveSessionsTest {
 
     @Test

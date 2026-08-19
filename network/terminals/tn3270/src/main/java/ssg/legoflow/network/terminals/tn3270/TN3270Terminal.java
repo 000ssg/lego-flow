@@ -4,15 +4,12 @@ import ssg.legoflow.network.terminals.base.config.TerminalConfig;
 import ssg.legoflow.network.terminals.base.display.Cursor;
 import ssg.legoflow.network.terminals.base.display.DisplayModel;
 import ssg.legoflow.network.terminals.base.display.TermAttr;
-import ssg.legoflow.network.terminals.base.event.TerminalEvent;
 import ssg.legoflow.network.terminals.base.event.TerminalEventListener;
 import ssg.legoflow.network.terminals.base.io.Terminal;
 import ssg.legoflow.network.terminals.base.io.TerminalFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
 /**
  * TN3270 terminal emulator.
  *

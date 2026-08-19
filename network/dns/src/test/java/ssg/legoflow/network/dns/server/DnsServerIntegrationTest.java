@@ -3,16 +3,12 @@ package ssg.legoflow.network.dns.server;
 import ssg.legoflow.network.dns.client.DnsClient;
 import ssg.legoflow.network.dns.protocol.*;
 import ssg.legoflow.network.dns.rdata.ARecord;
-import ssg.legoflow.network.dns.rdata.NsRecord;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Timeout;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Duration;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Integration tests for DnsServer covering server lifecycle,
  * zone management, and query handling via UDP.

@@ -12,9 +12,7 @@ import ssg.legoflow.http.demo.multi.ClientServerPairDemo;
 import ssg.legoflow.http.server.HttpServer;
 import ssg.legoflow.http.websocket.WebSocketHandshake;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ClientAdaptationDemoTest {
 
     @Test

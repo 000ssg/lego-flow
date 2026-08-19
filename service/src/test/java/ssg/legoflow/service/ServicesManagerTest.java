@@ -6,9 +6,7 @@ import ssg.legoflow.service.manager.AbstractServicesManager;
 import ssg.legoflow.service.user.ServiceUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ServicesManagerTest {
 
     private AbstractServicesManager manager;

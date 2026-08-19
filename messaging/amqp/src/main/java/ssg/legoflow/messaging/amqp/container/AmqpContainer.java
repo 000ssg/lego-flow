@@ -1,9 +1,7 @@
 package ssg.legoflow.messaging.amqp.container;
 
 import ssg.legoflow.messaging.amqp.common.AmqpConstants;
-import ssg.legoflow.messaging.amqp.common.AmqpError;
 import ssg.legoflow.messaging.amqp.common.ConnectionState;
-import ssg.legoflow.messaging.amqp.delivery.Delivery;
 import ssg.legoflow.messaging.amqp.delivery.DeliveryState;
 import ssg.legoflow.messaging.amqp.delivery.DeliveryStateCodec;
 import ssg.legoflow.messaging.amqp.link.ReceiverLink;
@@ -17,10 +15,8 @@ import ssg.legoflow.messaging.amqp.transport.*;
 import ssg.legoflow.messaging.amqp.types.AmqpType;
 import ssg.legoflow.messaging.amqp.types.Descriptors;
 import ssg.legoflow.messaging.amqp.types.TypeCodec;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -29,7 +25,6 @@ import java.nio.channels.SocketChannel;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
  * AMQP 1.0 container (server) that accepts connections and routes messages.
  *

@@ -5,12 +5,9 @@ import ssg.legoflow.http.auth.token.JwtTokenProvider;
 import ssg.legoflow.http.core.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.time.Duration;
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.*;
-
 class SsoManagerTest {
 
     private SsoManager manager;

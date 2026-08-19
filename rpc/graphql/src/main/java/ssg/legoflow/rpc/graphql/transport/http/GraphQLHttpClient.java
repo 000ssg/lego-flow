@@ -3,14 +3,12 @@ package ssg.legoflow.rpc.graphql.transport.http;
 import ssg.legoflow.rpc.graphql.execution.ExecutionResult;
 import ssg.legoflow.rpc.graphql.transport.GraphQLTransport;
 import ssg.legoflow.rpc.graphql.transport.JsonCodec;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.*;
-
 /**
  * HTTP client for executing GraphQL queries against a remote server.
  *

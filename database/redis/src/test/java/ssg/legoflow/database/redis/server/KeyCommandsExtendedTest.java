@@ -3,10 +3,8 @@ package ssg.legoflow.database.redis.server;
 import org.junit.jupiter.api.*;
 import ssg.legoflow.database.redis.client.RedisClient;
 import ssg.legoflow.database.redis.protocol.RespType;
-
 import java.io.IOException;
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Extended tests for Key commands (DEL, EXISTS, EXPIRE, KEYS, SCAN, RENAME, etc.)
  * covering uncovered code paths in KeyCommands implementation.

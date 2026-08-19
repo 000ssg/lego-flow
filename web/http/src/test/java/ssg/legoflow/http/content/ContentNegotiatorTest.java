@@ -3,11 +3,8 @@ package ssg.legoflow.http.content;
 import ssg.legoflow.http.header.ContentEncoding;
 import ssg.legoflow.http.header.MediaType;
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ContentNegotiatorTest {
 
     private final ContentNegotiator negotiator = new ContentNegotiator();

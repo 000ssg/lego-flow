@@ -2,9 +2,7 @@ package ssg.legoflow.media.rtp.buffer;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.media.rtp.packet.RtpPacket;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link JitterBuffer}.
  */

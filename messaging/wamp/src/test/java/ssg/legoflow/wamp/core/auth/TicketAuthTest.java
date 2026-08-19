@@ -1,9 +1,7 @@
 package ssg.legoflow.wamp.core.auth;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for Ticket authentication.
  */

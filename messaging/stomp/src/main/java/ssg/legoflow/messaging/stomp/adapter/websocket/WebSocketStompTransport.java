@@ -5,11 +5,9 @@ import ssg.legoflow.http.websocket.WebSocketSession;
 import ssg.legoflow.messaging.stomp.core.StompCodec;
 import ssg.legoflow.messaging.stomp.core.StompFrame;
 import ssg.legoflow.messaging.stomp.core.transport.StompTransport;
-
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
-
 /**
  * STOMP transport over WebSocket text frames.
  *

@@ -1,11 +1,8 @@
 package ssg.legoflow.database.mysql.auth;
 
 import org.junit.jupiter.api.Test;
-
 import java.security.SecureRandom;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link CachingSha2Password}.
  */

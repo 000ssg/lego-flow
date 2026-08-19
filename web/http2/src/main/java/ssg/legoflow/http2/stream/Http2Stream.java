@@ -1,11 +1,9 @@
 package ssg.legoflow.http2.stream;
 
 import ssg.legoflow.http.core.HttpHeaders;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-
 public class Http2Stream {
 
     /** Default stream weight per RFC 7540 Section 5.3.5 (1-256, default 16). */

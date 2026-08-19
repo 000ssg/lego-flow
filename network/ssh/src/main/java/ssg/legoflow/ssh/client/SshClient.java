@@ -7,17 +7,14 @@ import ssg.legoflow.ssh.kex.KexInit;
 import ssg.legoflow.ssh.transport.SshTransport;
 import ssg.legoflow.ssh.transport.SshTransportCodec;
 import ssg.legoflow.ssh.transport.SshVersion;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Objects;
-
 /**
  * SSH client implementation providing connect, authenticate, and session management.
  *

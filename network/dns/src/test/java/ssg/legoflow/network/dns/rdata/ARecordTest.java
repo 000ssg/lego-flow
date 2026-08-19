@@ -1,6 +1,5 @@
 package ssg.legoflow.network.dns.rdata;
 import org.junit.jupiter.api.Timeout;
-
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.dns.protocol.RecordType;
 import static org.assertj.core.api.Assertions.*;

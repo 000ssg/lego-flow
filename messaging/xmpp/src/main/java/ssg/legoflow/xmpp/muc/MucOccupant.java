@@ -1,9 +1,7 @@
 package ssg.legoflow.xmpp.muc;
 
 import ssg.legoflow.xmpp.core.JID;
-
 import java.util.Objects;
-
 /**
  * Represents an occupant in a Multi-User Chat room (XEP-0045).
  *

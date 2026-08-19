@@ -1,10 +1,8 @@
 package ssg.legoflow.network.dns.rdata;
 import org.junit.jupiter.api.Timeout;
-
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.dns.protocol.*;
 import ssg.legoflow.network.dns.rdata.dnssec.TypeBitMaps;
-
 import java.time.Instant;
 import java.util.Set;
 import static org.assertj.core.api.Assertions.*;

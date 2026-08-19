@@ -1,9 +1,7 @@
 package ssg.legoflow.network.terminals.tn5250;
 
 import org.junit.jupiter.api.*;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for TN5250 field attributes.
  */

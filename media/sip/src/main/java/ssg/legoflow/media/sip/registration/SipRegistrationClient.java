@@ -1,13 +1,10 @@
 package ssg.legoflow.media.sip.registration;
 
-import ssg.legoflow.media.sip.header.SipHeaders;
 import ssg.legoflow.media.sip.protocol.SipMethod;
 import ssg.legoflow.media.sip.protocol.SipRequest;
-
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * SIP registration client per RFC 3261 section 10.2.
  *

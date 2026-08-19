@@ -2,12 +2,8 @@ package ssg.legoflow.messaging.stomp.demo;
 
 import ssg.legoflow.messaging.stomp.core.StompBroker;
 import ssg.legoflow.messaging.stomp.core.StompClient;
-import ssg.legoflow.messaging.stomp.core.StompFrame;
-
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
-
 /**
  * Demonstrates request-reply messaging pattern over STOMP.
  *

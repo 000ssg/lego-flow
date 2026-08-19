@@ -4,15 +4,10 @@ import ssg.legoflow.messaging.amqp.client.AmqpClient;
 import ssg.legoflow.messaging.amqp.client.ClientConfig;
 import ssg.legoflow.messaging.amqp.container.AmqpContainer;
 import ssg.legoflow.messaging.amqp.container.ContainerConfig;
-import ssg.legoflow.messaging.amqp.delivery.Delivery;
 import ssg.legoflow.messaging.amqp.message.AmqpMessage;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * Publish/subscribe demo with multiple subscribers on the same address.
  *

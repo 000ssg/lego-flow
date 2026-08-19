@@ -1,13 +1,10 @@
 package ssg.legoflow.service.cluster.coordination;
 
 import org.junit.jupiter.api.Test;
-
 import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 class EtcdConfigTest {
 
     @Test

@@ -3,9 +3,7 @@ package ssg.legoflow.ws;
 import ssg.legoflow.blocks.AbstractDataFilter;
 import ssg.legoflow.blocks.Context;
 import ssg.legoflow.http.core.HttpRequest;
-
 import java.util.function.Predicate;
-
 public class WebServiceFilter extends AbstractDataFilter<HttpRequest> {
 
     private final Predicate<HttpRequest> predicate;

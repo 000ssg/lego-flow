@@ -2,13 +2,10 @@ package ssg.legoflow.wamp.demo.base;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.concurrent.ExecutionException;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
-
 class CalculatorDemoTest {
 
     private CalculatorServiceDemo calc;

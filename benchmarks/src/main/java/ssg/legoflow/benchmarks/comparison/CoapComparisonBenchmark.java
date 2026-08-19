@@ -4,10 +4,8 @@ import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import ssg.legoflow.blocks.Context;
 import ssg.legoflow.blocks.DefaultContext;
-
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
-
 /**
  * Benchmarks comparing standalone CoAP operations vs service-pipeline CoAP operations.
  *

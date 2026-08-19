@@ -2,14 +2,12 @@ package ssg.legoflow.media.rtp.transport;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.util.Objects;
-
 /**
  * UDP transport for paired RTP/RTCP channels (RFC 3550 Section 11).
  *

@@ -3,19 +3,14 @@ package ssg.legoflow.network.common.demo;
 import ssg.legoflow.network.common.asn1.*;
 import ssg.legoflow.network.common.ber.BerDecoder;
 import ssg.legoflow.network.common.ber.BerEncoder;
-import ssg.legoflow.network.common.ber.BerLength;
-import ssg.legoflow.network.common.ber.BerTag;
 import ssg.legoflow.network.common.der.DerEncoder;
 import ssg.legoflow.network.common.oid.ObjectIdentifier;
 import ssg.legoflow.network.common.oid.OidRegistry;
 import ssg.legoflow.network.common.oid.StandardOids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.List;
-
 /**
  * Comprehensive demo of all network-common (BER/ASN.1) module features.
  *

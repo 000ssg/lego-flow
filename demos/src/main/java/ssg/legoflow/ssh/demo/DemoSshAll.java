@@ -14,14 +14,11 @@ import ssg.legoflow.ssh.sftp.SftpFileAttributes;
 import ssg.legoflow.ssh.sftp.SftpPacket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-
 /**
  * Comprehensive demo of all SSH module features.
  *

@@ -3,11 +3,9 @@ package ssg.legoflow.service.functional;
 import ssg.legoflow.blocks.Context;
 import ssg.legoflow.service.Service;
 import ssg.legoflow.service.ServiceContext;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
-
 public class ServiceComposer {
 
     private final List<Service<?, ?>> chain = new ArrayList<>();

@@ -1,11 +1,8 @@
 package ssg.legoflow.messaging.nats.client;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.concurrent.atomic.AtomicInteger;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link Subscription}.
  */

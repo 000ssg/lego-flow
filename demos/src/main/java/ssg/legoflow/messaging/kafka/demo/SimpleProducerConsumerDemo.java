@@ -6,10 +6,8 @@ import ssg.legoflow.messaging.kafka.client.KafkaConsumer;
 import ssg.legoflow.messaging.kafka.client.KafkaProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.List;
-
 /**
  * Simple demo: start broker, produce messages, consume them.
  *

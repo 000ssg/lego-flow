@@ -1,9 +1,7 @@
 package ssg.legoflow.http.proxy.demo;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Runs the comprehensive HTTP proxy demo and verifies all feature sections.
  *

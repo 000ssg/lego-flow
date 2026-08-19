@@ -4,14 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ssg.legoflow.network.syslog.protocol.SyslogCodec;
 import ssg.legoflow.network.syslog.protocol.SyslogMessage;
-
-import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-
 /**
  * Syslog message sender using TLS transport (RFC 5425).
  *

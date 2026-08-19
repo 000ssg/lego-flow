@@ -1,13 +1,10 @@
 package ssg.legoflow.messaging.kafka.codec;
 
-import ssg.legoflow.messaging.kafka.common.ApiKey;
 import ssg.legoflow.messaging.kafka.protocol.*;
-
 import java.nio.ByteBuffer;
 import ssg.legoflow.service.util.BufferPool;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-
 /**
  * Binary codec for the Kafka wire protocol.
  *

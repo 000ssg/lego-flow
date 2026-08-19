@@ -1,6 +1,5 @@
 package ssg.legoflow.ssh.kex;
 
-import java.security.KeyPair;
 
 /**
  * Interface for SSH key exchange algorithms.

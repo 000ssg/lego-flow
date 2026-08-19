@@ -3,9 +3,7 @@ package ssg.legoflow.rpc.grpc.client;
 import ssg.legoflow.rpc.grpc.metadata.Metadata;
 import ssg.legoflow.rpc.grpc.transport.GrpcEncoding;
 import ssg.legoflow.rpc.grpc.transport.GrpcTimeout;
-
 import java.time.Duration;
-
 /**
  * Options for a gRPC client call: deadline, compression, and custom metadata.
  */

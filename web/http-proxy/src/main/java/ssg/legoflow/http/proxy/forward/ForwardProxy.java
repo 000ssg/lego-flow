@@ -7,7 +7,6 @@ import ssg.legoflow.http.proxy.ProxyHeaders;
 import ssg.legoflow.http.proxy.auth.ProxyAuthenticator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
@@ -21,7 +20,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * HTTP forward proxy server.
  *

@@ -7,9 +7,7 @@ import ssg.legoflow.email.smtp.server.SmtpHandler;
 import ssg.legoflow.email.smtp.server.SmtpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.List;
-
 /**
  * Simple SMTP demo: local server and client exchanging a single message.
  *

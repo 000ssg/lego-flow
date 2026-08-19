@@ -2,13 +2,10 @@ package ssg.legoflow.service.cluster.coordination;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Key-value store backed by etcd.
  *

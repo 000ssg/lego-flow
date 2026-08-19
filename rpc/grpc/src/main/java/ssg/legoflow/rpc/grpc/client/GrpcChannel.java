@@ -3,9 +3,7 @@ package ssg.legoflow.rpc.grpc.client;
 import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http2.connection.Http2Connection;
 import ssg.legoflow.http2.connection.Http2Settings;
-import ssg.legoflow.http2.frame.Http2Flags;
 import ssg.legoflow.http2.frame.Http2Frame;
-import ssg.legoflow.http2.stream.Http2Stream;
 import ssg.legoflow.http2.stream.Http2StreamState;
 import ssg.legoflow.rpc.grpc.common.MethodDescriptor;
 import ssg.legoflow.rpc.grpc.common.StatusException;
@@ -15,11 +13,9 @@ import ssg.legoflow.rpc.grpc.server.GrpcServer;
 import ssg.legoflow.rpc.grpc.transport.GrpcEncoding;
 import ssg.legoflow.rpc.grpc.transport.GrpcHeaders;
 import ssg.legoflow.rpc.grpc.transport.GrpcStatus;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * A connection to a gRPC server over HTTP/2.
  *

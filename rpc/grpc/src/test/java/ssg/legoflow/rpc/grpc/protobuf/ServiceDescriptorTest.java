@@ -2,9 +2,7 @@ package ssg.legoflow.rpc.grpc.protobuf;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.rpc.grpc.common.MethodDescriptor;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ServiceDescriptorTest {
 
     @Test

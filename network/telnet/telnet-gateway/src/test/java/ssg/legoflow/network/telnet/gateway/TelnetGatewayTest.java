@@ -1,7 +1,6 @@
 package ssg.legoflow.network.telnet.gateway;
 
 import ssg.legoflow.network.telnet.base.TelnetCommand;
-import ssg.legoflow.network.telnet.base.TelnetOption;
 import ssg.legoflow.network.telnet.negotiation.BinaryHandler;
 import ssg.legoflow.network.telnet.negotiation.LinemodeHandler;
 import ssg.legoflow.network.telnet.negotiation.NewEnvHandler;
@@ -11,14 +10,11 @@ import ssg.legoflow.network.terminals.base.io.Terminal;
 import ssg.legoflow.network.terminals.vt100.VT100Terminal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 /**
  * Comprehensive tests for {@link TelnetGateway}.
  */

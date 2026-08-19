@@ -1,9 +1,7 @@
 package ssg.legoflow.email.common.demo;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Runs the comprehensive email/common MIME demo and verifies all feature sections.
  *

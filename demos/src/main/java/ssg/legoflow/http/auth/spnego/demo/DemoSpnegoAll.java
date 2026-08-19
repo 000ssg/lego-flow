@@ -14,9 +14,7 @@ import ssg.legoflow.http.core.HttpResponse;
 import ssg.legoflow.http.core.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Base64;
-
 /**
  * Comprehensive demo of all HTTP SPNEGO module features.
  *

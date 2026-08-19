@@ -2,11 +2,8 @@ package ssg.legoflow.ftp.demo;
 
 import ssg.legoflow.ftp.server.*;
 import org.junit.jupiter.api.*;
-
 import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Functional tests for {@link FileTransferDemo}.
  */

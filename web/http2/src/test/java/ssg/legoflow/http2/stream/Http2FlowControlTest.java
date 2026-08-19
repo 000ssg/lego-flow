@@ -2,9 +2,7 @@ package ssg.legoflow.http2.stream;
 
 import ssg.legoflow.http2.frame.Http2Frame;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class Http2FlowControlTest {
 
     @Test

@@ -1,9 +1,7 @@
 package ssg.legoflow.network.modbus.demo;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Runs the comprehensive Modbus demo and verifies all feature sections.
  *

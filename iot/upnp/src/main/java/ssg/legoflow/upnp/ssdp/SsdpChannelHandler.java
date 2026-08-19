@@ -5,10 +5,8 @@ import ssg.legoflow.service.channel.DatagramHandler;
 import ssg.legoflow.service.channel.DatagramPacketInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-
 /**
  * A {@link DatagramHandler} that bridges {@link ssg.legoflow.service.manager.ServiceGroup}
  * pipeline events to {@link SsdpService#processMessage(SsdpMessage)}.

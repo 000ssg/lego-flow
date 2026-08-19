@@ -1,9 +1,7 @@
 package ssg.legoflow.media.sip.protocol;
 
 import ssg.legoflow.media.sip.header.SipHeaders;
-
 import java.util.Objects;
-
 /**
  * SIP request message per RFC 3261.
  *

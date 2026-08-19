@@ -2,13 +2,11 @@ package ssg.legoflow.email.imap.server;
 
 import ssg.legoflow.email.imap.protocol.SearchCriteria;
 import ssg.legoflow.email.imap.protocol.SearchCriteria.*;
-
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * Evaluates IMAP SEARCH criteria against stored messages.
  *

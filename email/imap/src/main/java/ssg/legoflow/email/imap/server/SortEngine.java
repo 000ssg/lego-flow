@@ -4,10 +4,8 @@ import ssg.legoflow.email.imap.protocol.SearchCriteria;
 import ssg.legoflow.email.imap.protocol.SortCriteria;
 import ssg.legoflow.email.imap.protocol.SortCriteria.SortKey;
 import ssg.legoflow.email.imap.protocol.SortCriteria.ThreadAlgorithm;
-
 import java.util.*;
 import java.util.stream.Collectors;
-
 /**
  * Server-side SORT and THREAD engine per RFC 5256.
  *

@@ -1,10 +1,7 @@
 package ssg.legoflow.database.mysql.server;
 
-import ssg.legoflow.database.mysql.protocol.ColumnType;
-
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * Server-side prepared statement.
  *

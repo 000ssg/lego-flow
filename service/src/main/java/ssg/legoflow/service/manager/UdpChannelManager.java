@@ -9,16 +9,12 @@ import ssg.legoflow.service.channel.DatagramPacketInfo;
 import ssg.legoflow.service.channel.UdpDataChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.SocketAddress;
 import java.nio.channels.DatagramChannel;
-import java.nio.channels.SelectionKey;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 /**
  * A UDP-aware channel manager that extends {@link SelectableChannelManager} with
  * datagram-specific registration, binding, and event dispatching.

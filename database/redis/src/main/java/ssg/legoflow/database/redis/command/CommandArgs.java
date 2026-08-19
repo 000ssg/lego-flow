@@ -1,11 +1,9 @@
 package ssg.legoflow.database.redis.command;
 
 import ssg.legoflow.database.redis.protocol.RespType;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
-
 /**
  * Parsed command arguments extracted from a RESP array.
  *

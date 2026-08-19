@@ -1,23 +1,17 @@
 package ssg.legoflow.demos.cluster;
 
 import ssg.legoflow.network.cluster.core.ClusterEvent;
-import ssg.legoflow.network.cluster.core.ClusterNode;
 import ssg.legoflow.network.cluster.core.ClusterStatus;
-import ssg.legoflow.network.cluster.core.ClusterHealthChecker;
 import ssg.legoflow.network.cluster.dns.DnsSdBrowser;
 import ssg.legoflow.network.cluster.dns.DnsSdConfig;
 import ssg.legoflow.network.cluster.dns.DnsSdDiscovery;
 import ssg.legoflow.network.cluster.dns.DnsSdServiceRecord;
-import ssg.legoflow.network.cluster.dns.MdnsResponder;
-import ssg.legoflow.network.cluster.dns.MdnsQuerier;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
-
 /**
  * Demo: DNS-SD / mDNS Service Discovery for cluster membership.
  *

@@ -1,12 +1,8 @@
 package ssg.legoflow.email.smtp.protocol;
 
 import org.junit.jupiter.api.Test;
-
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link SmtpCodec}.
  */

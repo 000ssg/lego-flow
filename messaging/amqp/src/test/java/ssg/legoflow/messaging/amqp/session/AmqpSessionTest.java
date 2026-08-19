@@ -5,9 +5,7 @@ import ssg.legoflow.messaging.amqp.common.AmqpConstants;
 import ssg.legoflow.messaging.amqp.link.ReceiverLink;
 import ssg.legoflow.messaging.amqp.link.SenderLink;
 import ssg.legoflow.messaging.amqp.transport.Performative;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link AmqpSession} — session management and flow control.
  */

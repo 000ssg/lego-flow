@@ -1,11 +1,9 @@
 package ssg.legoflow.network.syslog.protocol;
 
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
-
 /**
  * RFC 5424 syslog message.
  *

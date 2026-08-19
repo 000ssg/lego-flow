@@ -6,11 +6,8 @@ import ssg.legoflow.messaging.amqp.delivery.DeliveryState;
 import ssg.legoflow.messaging.amqp.message.AmqpMessage;
 import ssg.legoflow.messaging.amqp.session.AmqpSession;
 import ssg.legoflow.messaging.amqp.transport.Performative;
-
 import java.util.concurrent.TimeUnit;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link ReceiverLink} — receiver link and credit management.
  */

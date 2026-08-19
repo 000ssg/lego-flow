@@ -1,19 +1,13 @@
 package ssg.legoflow.wamp.core.auth;
 
-import java.nio.charset.StandardCharsets;
-import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
-import java.security.spec.EdECPrivateKeySpec;
-import java.security.spec.EdECPublicKeySpec;
-import java.security.spec.NamedParameterSpec;
 import java.util.HexFormat;
 import java.util.Map;
-
 /**
  * WAMP Cryptosign Authentication using Ed25519 digital signatures.
  *

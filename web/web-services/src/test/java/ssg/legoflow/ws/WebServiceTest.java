@@ -6,9 +6,7 @@ import ssg.legoflow.ws.demo.HelloWorldService;
 import ssg.legoflow.ws.demo.EchoWebService;
 import ssg.legoflow.ws.demo.TodoApiService;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class WebServiceTest {
 
     @Test

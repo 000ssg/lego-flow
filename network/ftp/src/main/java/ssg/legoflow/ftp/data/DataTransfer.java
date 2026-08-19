@@ -3,10 +3,8 @@ package ssg.legoflow.ftp.data;
 import ssg.legoflow.ftp.protocol.FtpTransferType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.*;
 import java.util.Objects;
-
 /**
  * Handles actual data transfer over an FTP data connection.
  *

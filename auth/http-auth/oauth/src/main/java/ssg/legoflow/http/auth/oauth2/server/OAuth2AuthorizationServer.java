@@ -5,14 +5,11 @@ import ssg.legoflow.http.auth.oauth2.*;
 import ssg.legoflow.http.core.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Collectors;
-
 /**
  * OAuth 2.0 authorization server implementing /authorize, /token, and /revoke endpoints.
  * Supports authorization code, client credentials, password, and refresh token grants.

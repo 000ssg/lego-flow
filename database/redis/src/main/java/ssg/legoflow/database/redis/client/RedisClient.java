@@ -3,14 +3,12 @@ package ssg.legoflow.database.redis.client;
 import ssg.legoflow.database.redis.protocol.RespCodec;
 import ssg.legoflow.database.redis.protocol.RespParser;
 import ssg.legoflow.database.redis.protocol.RespType;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
 /**
  * Redis client for connecting to a Redis server.
  *

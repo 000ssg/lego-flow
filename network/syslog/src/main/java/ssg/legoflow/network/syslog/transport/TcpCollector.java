@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ssg.legoflow.network.syslog.protocol.SyslogCodec;
 import ssg.legoflow.network.syslog.protocol.SyslogMessage;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,7 +12,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
-
 /**
  * Syslog message collector using TCP transport (RFC 6587).
  *

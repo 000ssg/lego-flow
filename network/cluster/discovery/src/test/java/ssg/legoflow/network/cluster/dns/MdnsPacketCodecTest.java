@@ -8,17 +8,10 @@ import ssg.legoflow.network.dns.protocol.DnsRecord;
 import ssg.legoflow.network.dns.protocol.RecordType;
 import ssg.legoflow.network.dns.protocol.ResponseCode;
 import ssg.legoflow.network.dns.rdata.PtrRecord;
-import ssg.legoflow.network.dns.rdata.SrvRecord;
-import ssg.legoflow.network.dns.rdata.TxtRecord;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
-
 import static org.assertj.core.api.Assertions.*;
-
 class MdnsPacketCodecTest {
 
     private static final InetAddress LOCAL_ADDR;
