@@ -30,7 +30,78 @@ services:
       test: ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
       interval: 5s
       timeout: 3s
+
+  # ── AMQP reference broker (RabbitMQ) ──────────
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: legoflow-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+  # ── NATS reference broker ──────────────────────
+  nats:
+    image: nats:latest
+    container_name: legoflow-nats
+    ports:
+      - "4222:4222"
+    command: ["-js", "-DV"]
+    healthcheck:
+      test: ["CMD-SHELL", "nats -s nats://localhost:4222 info || exit 1"]
+      interval: 5s
+      timeout: 3s
       retries: 10
+
+  # ── XMPP reference server (ejabberd) ──────────
+  ejabberd:
+    image: processone/ejabberd:latest
+    container_name: legoflow-ejabberd
+    ports:
+      - "5222:5222"
+      - "5443:5443"
+    environment:
+      MAM_ENABLED: false
+    healthcheck:
+      test: ["CMD-SHELL", "ejabberdctl status || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  # ── STOMP reference broker (ActiveMQ) ──────────
+  activemq:
+    image: apache/activemq:latest
+    container_name: legoflow-activemq
+    ports:
+      - "61613:61613"
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/61613; echo -e '\x01\x00\x01\x00 CONNECT\nlogin:guest\npasscode:guest\n\n\u0003' >&3; cat <&3 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+  # ── LDAP reference server (OpenLDAP) ───────────
+  openldap:
+    image: osixia/openldap:latest
+    container_name: legoflow-openldap
+    ports:
+      - "389:389"
+    environment:
+      LDAP_ADMIN_PASSWORD: admin
+      LDAP_BASE_DN: dc=example,dc=com
+    healthcheck:
+      test: ["CMD-SHELL", "ldapsearch -x -H ldap://localhost:389 -b dc=example,dc=com -D cn=admin,dc=example,dc=com -w admin || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
 
   # ── MQTT reference broker ───────────────────────
   mosquitto:

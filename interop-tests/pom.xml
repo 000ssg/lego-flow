@@ -14,7 +14,8 @@
     <description>
         Integration tests that connect Lego Flow protocol implementations to real
         reference server implementations (nginx, Mosquitto, Redis, PostgreSQL,
-        OpenSSH sshd, Telnet echo server, and terminal emulator sequence validation).
+        OpenSSH sshd, Telnet echo server, terminal emulator sequence validation,
+        RabbitMQ, NATS, ejabberd, ActiveMQ, and OpenLDAP).
         Excluded from install/deploy lifecycle — this module is for testing only.
     </description>
 
@@ -116,6 +117,38 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- New protocol modules (P2/P3 interop tests) -->
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-amqp</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-nats</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-xmpp</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-stomp</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-ldap</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Testing -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -182,6 +215,32 @@
                         <interop.sshd.password>${user.name}</interop.sshd.password>
                         <interop.telnet.host>localhost</interop.telnet.host>
                         <interop.telnet.port>2223</interop.telnet.port>
+                        <!-- P2 protocols -->
+                        <interop.amqp.host>localhost</interop.amqp.host>
+                        <interop.amqp.port>5672</interop.amqp.port>
+                        <interop.amqp.username>guest</interop.amqp.username>
+                        <interop.amqp.password>guest</interop.amqp.password>
+                        <interop.amqp.vhost>/</interop.amqp.vhost>
+                        <interop.amqp.queue>interop-test-queue</interop.amqp.queue>
+                        <interop.nats.host>localhost</interop.nats.host>
+                        <interop.nats.port>4222</interop.nats.port>
+                        <interop.xmpp.host>localhost</interop.xmpp.host>
+                        <interop.xmpp.port>5222</interop.xmpp.port>
+                        <interop.xmpp.domain>localhost</interop.xmpp.domain>
+                        <interop.xmpp.username>test</interop.xmpp.username>
+                        <interop.xmpp.password>test</interop.xmpp.password>
+                        <!-- P3 protocols -->
+                        <interop.stomp.host>localhost</interop.stomp.host>
+                        <interop.stomp.port>61613</interop.stomp.port>
+                        <interop.stomp.vhost>/</interop.stomp.vhost>
+                        <interop.stomp.login>guest</interop.stomp.login>
+                        <interop.stomp.passcode>guest</interop.stomp.passcode>
+                        <interop.ldap.host>localhost</interop.ldap.host>
+                        <interop.ldap.port>389</interop.ldap.port>
+                        <interop.ldap.bindDn>cn=admin,dc=example,dc=com</interop.ldap.bindDn>
+                        <interop.ldap.bindPassword>admin</interop.ldap.bindPassword>
+                        <interop.ldap.baseDn>dc=example,dc=com</interop.ldap.baseDn>
+                        <interop.ldap.timeout>10000</interop.ldap.timeout>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
@@ -210,6 +269,32 @@
                         <interop.sshd.password>${user.name}</interop.sshd.password>
                         <interop.telnet.host>localhost</interop.telnet.host>
                         <interop.telnet.port>2223</interop.telnet.port>
+                        <!-- P2 protocols -->
+                        <interop.amqp.host>localhost</interop.amqp.host>
+                        <interop.amqp.port>5672</interop.amqp.port>
+                        <interop.amqp.username>guest</interop.amqp.username>
+                        <interop.amqp.password>guest</interop.amqp.password>
+                        <interop.amqp.vhost>/</interop.amqp.vhost>
+                        <interop.amqp.queue>interop-test-queue</interop.amqp.queue>
+                        <interop.nats.host>localhost</interop.nats.host>
+                        <interop.nats.port>4222</interop.nats.port>
+                        <interop.xmpp.host>localhost</interop.xmpp.host>
+                        <interop.xmpp.port>5222</interop.xmpp.port>
+                        <interop.xmpp.domain>localhost</interop.xmpp.domain>
+                        <interop.xmpp.username>test</interop.xmpp.username>
+                        <interop.xmpp.password>test</interop.xmpp.password>
+                        <!-- P3 protocols -->
+                        <interop.stomp.host>localhost</interop.stomp.host>
+                        <interop.stomp.port>61613</interop.stomp.port>
+                        <interop.stomp.vhost>/</interop.stomp.vhost>
+                        <interop.stomp.login>guest</interop.stomp.login>
+                        <interop.stomp.passcode>guest</interop.stomp.passcode>
+                        <interop.ldap.host>localhost</interop.ldap.host>
+                        <interop.ldap.port>389</interop.ldap.port>
+                        <interop.ldap.bindDn>cn=admin,dc=example,dc=com</interop.ldap.bindDn>
+                        <interop.ldap.bindPassword>admin</interop.ldap.bindPassword>
+                        <interop.ldap.baseDn>dc=example,dc=com</interop.ldap.baseDn>
+                        <interop.ldap.timeout>10000</interop.ldap.timeout>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
