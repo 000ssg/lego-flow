@@ -1140,6 +1140,36 @@ headerBuf.clear();  // position=0, limit=8
 readFully(headerBuf);
 ```
 
+
+### Anti-Pattern ❌: Windows TCP Connect Timeout to Closed Port
+
+On Windows, connecting to a TCP port that has nothing listening (closed port)
+does **not** receive an immediate RST like Linux does. Instead, the TCP stack
+may hang for 30+ seconds before the connection attempt fails. This causes
+intermittent test failures when tests expect an immediate `IOException`.
+
+On Ubuntu/CI Linux, the kernel sends RST immediately → `IOException` right away.
+On Windows, the connection attempt hangs → test times out or assertion fails.
+
+**Always set a connect timeout on sockets used in tests or production code:**
+
+```java
+// BAD: Default socket uses OS timeout (30+ seconds on Windows for closed ports)
+Socket socket = new Socket(host, port);  // hangs on Windows if port is closed
+
+// GOOD: Explicit connect timeout
+Socket socket = new Socket();
+socket.connect(new InetSocketAddress(host, port), 5_000);  // fails in 5s
+
+// Alternatively, use a connected socket with timeout:
+var socket = new Socket();
+socket.setSoTimeout(5_000);
+socket.connect(new InetSocketAddress(host, port), 5_000);
+```
+
+This is especially critical for **negative tests** that expect a connection
+to fail (e.g., "connect to non-existent server"), and for any CI test that
+must run deterministically on both Linux and Windows.
 ### Rule
 **All interop test assertions must be verified against the actual RFC or
 specification document, not guessed from implementation. When in doubt,

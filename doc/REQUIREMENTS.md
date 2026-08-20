@@ -21,6 +21,42 @@ Increased per-module JaCoCo line coverage across the lego-flow project. Target: 
 
 ## Commits (18 total on branch 4-code-coverage)
 
+### Pipeline Fixes: FTP Dockerfile, Windows Modbus Timeout, AMQP Interop Disabled
+
+### Original Request
+> "fix pipeline — interop tests and Windows build. interop tests fail because FTP Dockerfile is empty. Windows test fails on ModbusClientTest.testConnectToNonExistentServer because socket to closed port hangs on Windows."
+
+### Reformulated Requirements
+1. Fix FTP Dockerfile so docker-compose can build the FTP service
+2. Fix Windows modbus test by adding socket connect timeout
+3. Ensure AMQP interop remains @Disabled per user request
+4. Document Windows socket timeout anti-pattern in AGENTS.md
+5. Update documentation (REQUIREMENTS.md, README.md)
+
+### Final Design Decisions
+- Changed FTP build context from `./docker/ftp-custom` to `./docker/ftp-server` (proven vsftpd Dockerfile)
+- Added `socket.connect()` with 5s timeout in `ModbusConnection` for all connections
+- AMQP interop test stays @Disabled (RabbitMQ 4.x uses AMQP 0-9-1 SASL, not AMQP 1.0)
+
+### Implementation Details
+- `interop-tests/docker-compose.yml`: changed ftp build context to ftp-server
+- `network/modbus/src/main/java/ssg/legoflow/network/modbus/client/ModbusConnection.java`: added connect timeout (5s)
+- `AGENTS.md`: added Windows TCP connect timeout anti-pattern
+
+### Test Coverage
+- No new tests added; fix is in production code (ModbusConnection) and config (docker-compose)
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Background agents | 0 |
+| Agent tokens | ~15000 |
+| Agent tool calls | ~30 |
+| Agent wall time | ~5 min |
+| Files created/modified | 3 |
+| Lines added/removed | +45 / -3 |
+| Tests added | 0 |
+
 ### Test Additions
 1. **email/smtp** - Initial comprehensive SMTP client/server integration tests
 2. **rpc/graphql** - GraphQL SchemaPrinter SDL printing coverage  

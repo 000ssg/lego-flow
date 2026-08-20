@@ -179,7 +179,7 @@ services:
 
   # ── FTP reference server (Custom Pure-FTPd with pre-built PureDB) ──
   ftp:
-    build: ./docker/ftp-custom
+    build: ./docker/ftp-server
     container_name: legoflow-ftp
     ports:
       - "21:21"

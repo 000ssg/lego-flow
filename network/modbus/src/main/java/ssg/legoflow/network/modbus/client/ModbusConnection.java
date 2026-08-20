@@ -4,6 +4,7 @@ import ssg.legoflow.network.modbus.protocol.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicInteger;
 /**
@@ -12,6 +13,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @since 0.1.0
  */
 public final class ModbusConnection implements AutoCloseable {
+
+    private static final int CONNECT_TIMEOUT_MS = 5_000;
 
     private final Socket socket;
     private final InputStream in;
@@ -26,7 +29,8 @@ public final class ModbusConnection implements AutoCloseable {
      * @throws IOException if connection fails
      */
     public ModbusConnection(String host, int port) throws IOException {
-        this.socket = new Socket(host, port);
+        this.socket = new Socket();
+        this.socket.connect(new InetSocketAddress(host, port), CONNECT_TIMEOUT_MS);
         this.in = socket.getInputStream();
         this.out = socket.getOutputStream();
     }
