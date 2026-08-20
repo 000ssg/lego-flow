@@ -60,7 +60,7 @@ services:
       - "4222:4222"
     command: ["-js", "-DV"]
     healthcheck:
-      test: ["CMD-SHELL", "nats -s nats://localhost:4222 info || exit 1"]
+      test: ["CMD-SHELL", "nc -z localhost 4222 || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -90,7 +90,7 @@ services:
         wait $PROSODY_PID
       "
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/5222; exec 3<&-; exit 0"]
+      test: ["CMD-SHELL", "nc -z localhost 5222 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 15
@@ -102,7 +102,7 @@ services:
     ports:
       - "61613:61613"
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/61613; echo -e '\x01\x00\x01\x00 CONNECT\nlogin:guest\npasscode:guest\n\n\u0003' >&3; cat <&3 || exit 1"]
+      test: ["CMD-SHELL", "nc -z localhost 61613 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 15
