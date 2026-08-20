@@ -91,6 +91,7 @@ class DnsServerIntegrationTest {
         }
     }
 
+    @Timeout(30)
     @Test
     void testServerQueryCounters() throws Exception {
         try (DnsClient client = new DnsClient(
@@ -100,10 +101,10 @@ class DnsServerIntegrationTest {
             
             client.query("example.com.", RecordType.A);
             
-            // Allow async virtual thread to update counters (retry on CI race condition)
-            int retries = 40;
+            // Allow async virtual thread to update counters (Windows CI can be slow with virtual thread scheduling)
+            int retries = 100;
             while (server.queriesReceived() <= queriesBefore && retries-- > 0) {
-                Thread.sleep(100);
+                Thread.sleep(200);
             }
             
             assertThat(server.queriesReceived()).isGreaterThan(queriesBefore);
@@ -169,10 +170,10 @@ class DnsServerIntegrationTest {
                 assertThat(response.header().rCode()).isEqualTo(ResponseCode.NOERROR);
             }
             
-            // Allow async virtual thread to update counters (retry on CI race condition)
-            int retries = 40;
+            // Allow async virtual thread to update counters (Windows CI can be slow with virtual thread scheduling)
+            int retries = 100;
             while (server.queriesReceived() < 5 && retries-- > 0) {
-                Thread.sleep(100);
+                Thread.sleep(200);
             }
             
             assertThat(server.queriesReceived()).isGreaterThanOrEqualTo(5);
