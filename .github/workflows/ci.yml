@@ -239,7 +239,7 @@ jobs:
           interval=5
           while [ $elapsed -lt $timeout ]; do
             all_healthy=true
-            for svc in nginx rabbitmq nats activemq openldap prosody mosquitto redis postgresql; do
+            for svc in nginx nats rabbitmq activemq openldap prosody mosquitto redis postgresql mailhog ftp; do
               status=$(docker inspect --format='{{.State.Health.Status}}' "legoflow-${svc}" 2>/dev/null || echo "not_found")
               if [ "$status" != "healthy" ]; then
                 all_healthy=false
@@ -256,7 +256,7 @@ jobs:
             sleep $interval
           done
           # Final verification
-          for svc in nginx rabbitmq nats activemq openldap prosody mosquitto redis postgresql; do
+          for svc in nginx nats rabbitmq activemq openldap prosody mosquitto redis postgresql mailhog ftp; do
             status=$(docker inspect --format='{{.State.Health.Status}}' "legoflow-${svc}" 2>/dev/null || echo "not_found")
             if [ "$status" != "healthy" ]; then
               echo "ERROR: ${svc} is not healthy (status: ${status})"
@@ -265,8 +265,15 @@ jobs:
             fi
           done
 
+      - name: Register XMPP test user (Prosody)
+        run: docker exec legoflow-prosody prosodyctl register test localhost test 2>/dev/null || true
+
       - name: Run interoperability tests (Docker services are running)
-        run: ./gradlew :interop-tests:test --no-daemon -PskipInteropTests=false -Pinterop.nginx.host=localhost -Pinterop.nginx.port=8080 -Pinterop.mosquitto.host=localhost -Pinterop.mosquitto.port=1883 -Pinterop.redis.host=localhost -Pinterop.redis.port=6379 -Pinterop.pg.host=localhost -Pinterop.pg.port=5432 -Pinterop.pg.user=legoflow -Pinterop.pg.password=legoflow -Pinterop.pg.db=legoflow_test
+        run: |
+          # Build and install protocol modules to local Maven repo first
+          mvn install -DskipTests -pl interop-tests -am -q
+          # Run interop tests with Maven
+          mvn verify -pl interop-tests -am -DskipInteropTests=false
         env:
           CI: true
 

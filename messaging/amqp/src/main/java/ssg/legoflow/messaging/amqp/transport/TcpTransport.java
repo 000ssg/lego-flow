@@ -44,7 +44,8 @@ public final class TcpTransport implements AmqpTransport {
     @Override
     public int receive(ByteBuffer buffer) {
         try {
-            return channel.read(buffer);
+            int n = channel.read(buffer);
+            return n;
         } catch (IOException e) {
             LOG.debug("Error receiving data", e);
             close();

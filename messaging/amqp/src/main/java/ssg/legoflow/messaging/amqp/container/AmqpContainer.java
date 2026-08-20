@@ -126,6 +126,7 @@ public final class AmqpContainer implements AutoCloseable {
             // Protocol header negotiation
             if (config.requireSasl()) {
                 handleSaslNegotiation(ctx);
+                doSaslExchange(ctx);
             }
             handleProtocolHeader(ctx);
             handleConnectionLifecycle(ctx);
@@ -139,22 +140,33 @@ public final class AmqpContainer implements AutoCloseable {
     }
 
     private void handleSaslNegotiation(ConnectionContext ctx) {
-        // Receive SASL header
+        // Receive client's initial header (always AMQP_HEADER from client)
         ByteBuffer headerBuf = ByteBuffer.allocate(8);
         readFully(ctx.transport, headerBuf);
         headerBuf.flip();
 
-        // Verify SASL header
         byte[] header = new byte[8];
         headerBuf.get(header);
-        if (!Arrays.equals(header, AmqpConstants.SASL_HEADER)) {
-            throw new IllegalStateException("Invalid SASL header");
+        if (!Arrays.equals(header, AmqpConstants.AMQP_HEADER)) {
+            throw new IllegalStateException("Invalid AMQP header");
         }
 
-        // Send SASL header back
+        // Send SASL_HEADER to client to indicate SASL is required
         ctx.transport.send(ByteBuffer.wrap(AmqpConstants.SASL_HEADER));
 
-        // Send mechanisms
+        // Read client's SASL_HEADER response (per AMQP 1.0 spec section 3.2.4.1)
+        ByteBuffer saslHeaderBuf = ByteBuffer.allocate(8);
+        readFully(ctx.transport, saslHeaderBuf);
+        saslHeaderBuf.flip();
+        byte[] saslHeader = new byte[8];
+        saslHeaderBuf.get(saslHeader);
+        if (!Arrays.equals(saslHeader, AmqpConstants.SASL_HEADER)) {
+            throw new IllegalStateException("Client did not respond with SASL_HEADER");
+        }
+    }
+
+    private void doSaslExchange(ConnectionContext ctx) {
+        // Send SASL mechanisms frame
         var mechanisms = SaslCodec.encodeMechanisms(authenticator.mechanisms());
         var mechFrame = new AmqpFrame(0, AmqpConstants.FRAME_TYPE_SASL, mechanisms);
         ctx.transport.send(FrameCodec.encode(mechFrame, config.maxFrameSize()));

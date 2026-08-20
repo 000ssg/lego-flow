@@ -23,7 +23,8 @@ public final class PlainMechanism implements SaslMechanism {
      * @param password the password
      */
     public PlainMechanism(String username, String password) {
-        this.username = Objects.requireNonNull(username);
+        // Per RFC 4616 SASL PLAIN, authzid (username here) may be empty — null treated as empty
+        this.username = username != null ? username : "";
         this.password = Objects.requireNonNull(password);
     }
 

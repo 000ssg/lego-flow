@@ -1119,6 +1119,27 @@ NatsMessage reply = client.request(subject, data, Duration.ofSeconds(5));
 assertThat(reply).isNotNull();
 ```
 
+
+### Anti-Pattern ❌: AMQP ByteBuffer Reuse Without Clear
+AMQP protocol handlers reuse `ByteBuffer` instances for multiple reads.
+After `flip()` and reading into the buffer, `position` and `limit` must
+be reset with `clear()` before re-use. Otherwise `readFully()` sees
+`hasRemaining() == false` and reads zero bytes:
+
+```java
+// BAD: buffer already flipped, position at limit
+ByteBuffer buf = ByteBuffer.allocate(8);
+readFully(buf);  // reads 8 bytes
+buf.flip();
+byte[] header = new byte[8];
+buf.get(header);  // position=8, limit=8
+readFully(buf);   // does nothing! hasRemaining() == false
+
+// GOOD: clear before re-use
+headerBuf.clear();  // position=0, limit=8
+readFully(headerBuf);
+```
+
 ### Rule
 **All interop test assertions must be verified against the actual RFC or
 specification document, not guessed from implementation. When in doubt,

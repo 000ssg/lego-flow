@@ -118,7 +118,11 @@ class StompInteropTest {
 
     @Test
     void testCloseGracefully() throws Exception {
-        client.close();
-        assertThat(client.isConnected()).isFalse();
+        // Use a dedicated client to avoid disrupting the shared connection
+        var testClient = new TcpStompClient(host, port);
+        testClient.connect(virtualHost, login, passcode);
+        assertThat(testClient.isConnected()).isTrue();
+        testClient.close();
+        assertThat(testClient.isConnected()).isFalse();
     }
 }

@@ -182,7 +182,7 @@ public final class DemoNatsAll {
 
             // Give subscriber's virtual thread time to process delivered messages
             Thread.sleep(100);
-            latch.await(5, TimeUnit.SECONDS);
+            latch.await(10, TimeUnit.SECONDS);
         }
 
         LOG.info("Pub/sub received {} messages", received.get());
@@ -296,7 +296,7 @@ public final class DemoNatsAll {
 
             // Give queue workers' virtual threads time to process messages
             Thread.sleep(100);
-            latch.await(5, TimeUnit.SECONDS);
+            latch.await(10, TimeUnit.SECONDS);
 
         } finally {
             for (var worker : workers) {

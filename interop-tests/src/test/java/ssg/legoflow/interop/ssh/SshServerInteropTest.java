@@ -37,9 +37,17 @@ class SshServerInteropTest {
     private final String sshdUser = System.getProperty("interop.sshd.user", "");
     private final String sshdPassword = System.getProperty("interop.sshd.password", "");
 
-    /** Skip if user/password not configured — sshd needs valid credentials. */
+    /** Skip if no sshd available — checks credentials and port availability. */
     private boolean shouldRun() {
-        return !sshdUser.isBlank() && !sshdPassword.isBlank();
+        if (sshdUser.isBlank() || sshdPassword.isBlank()) {
+            return false;
+        }
+        // Also verify sshd is actually listening
+        try (var socket = new java.net.Socket(sshdHost, sshdPort)) {
+            return true;
+        } catch (java.io.IOException e) {
+            return false;
+        }
     }
 
     @Test
@@ -138,6 +146,11 @@ class SshServerInteropTest {
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
             String serverVersionStr = reader.readLine();
+            // If no server responds, skip the test
+            if (serverVersionStr == null) {
+                throw new org.opentest4j.TestAbortedException(
+                        "sshd not responding at " + sshdHost + ":" + sshdPort);
+            }
             SshVersion serverVersion = SshVersion.parse(serverVersionStr);
 
             // Verify OpenSSH is SSH-2.0 compatible
@@ -150,6 +163,9 @@ class SshServerInteropTest {
             // Protocol versions match
             assertThat(serverVersion.protocolVersion())
                     .isEqualTo(ourVersion.protocolVersion());
+        } catch (java.net.ConnectException e) {
+            throw new org.opentest4j.TestAbortedException(
+                    "sshd not available at " + sshdHost + ":" + sshdPort, e);
         }
     }
 }

@@ -211,8 +211,8 @@
                         <interop.pg.db>legoflow_test</interop.pg.db>
                         <interop.sshd.host>localhost</interop.sshd.host>
                         <interop.sshd.port>2222</interop.sshd.port>
-                        <interop.sshd.user>${user.name}</interop.sshd.user>
-                        <interop.sshd.password>${user.name}</interop.sshd.password>
+                        <interop.sshd.user></interop.sshd.user>
+                        <interop.sshd.password></interop.sshd.password>
                         <interop.telnet.host>localhost</interop.telnet.host>
                         <interop.telnet.port>2223</interop.telnet.port>
                         <!-- P2 protocols -->
@@ -241,6 +241,11 @@
                         <interop.ldap.bindPassword>admin</interop.ldap.bindPassword>
                         <interop.ldap.baseDn>dc=example,dc=com</interop.ldap.baseDn>
                         <interop.ldap.timeout>10000</interop.ldap.timeout>
+                        <interop.ftp.host>localhost</interop.ftp.host>
+                        <interop.ftp.port>21</interop.ftp.port>
+                        <interop.smtp.host>localhost</interop.smtp.host>
+                        <interop.smtp.port>25</interop.smtp.port>
+
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
@@ -265,8 +270,8 @@
                         <interop.pg.db>legoflow_test</interop.pg.db>
                         <interop.sshd.host>localhost</interop.sshd.host>
                         <interop.sshd.port>2222</interop.sshd.port>
-                        <interop.sshd.user>${user.name}</interop.sshd.user>
-                        <interop.sshd.password>${user.name}</interop.sshd.password>
+                        <interop.sshd.user></interop.sshd.user>
+                        <interop.sshd.password></interop.sshd.password>
                         <interop.telnet.host>localhost</interop.telnet.host>
                         <interop.telnet.port>2223</interop.telnet.port>
                         <!-- P2 protocols -->
@@ -295,6 +300,11 @@
                         <interop.ldap.bindPassword>admin</interop.ldap.bindPassword>
                         <interop.ldap.baseDn>dc=example,dc=com</interop.ldap.baseDn>
                         <interop.ldap.timeout>10000</interop.ldap.timeout>
+                        <interop.ftp.host>localhost</interop.ftp.host>
+                        <interop.ftp.port>21</interop.ftp.port>
+                        <interop.smtp.host>localhost</interop.smtp.host>
+                        <interop.smtp.port>25</interop.smtp.port>
+
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

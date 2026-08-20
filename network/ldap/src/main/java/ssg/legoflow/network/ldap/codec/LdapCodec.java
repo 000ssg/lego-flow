@@ -288,18 +288,19 @@ public final class LdapCodec {
         inner.add(Asn1Integer.of(req.version()));
         inner.add(Asn1OctetString.of(req.name()));
 
-        switch (req.authentication()) {
-            case BindRequest.AuthenticationChoice.Simple s ->
-                    inner.add(Asn1ContextSpecific.implicit(0,
-                            s.password().getBytes(StandardCharsets.UTF_8)));
-            case BindRequest.AuthenticationChoice.Sasl s -> {
-                Asn1Sequence.Builder sasl = Asn1Sequence.builder();
-                sasl.add(Asn1OctetString.of(s.mechanism()));
-                if (s.credentials() != null) {
-                    sasl.add(new Asn1OctetString(s.credentials()));
-                }
-                inner.add(Asn1ContextSpecific.explicit(3, sasl.build()));
+        var auth = req.authentication();
+        if (auth instanceof BindRequest.AuthenticationChoice.Simple s) {
+            inner.add(Asn1ContextSpecific.implicit(0,
+                    s.password().getBytes(StandardCharsets.UTF_8)));
+        } else if (auth instanceof BindRequest.AuthenticationChoice.Sasl s) {
+            Asn1Sequence.Builder sasl = Asn1Sequence.builder();
+            sasl.add(Asn1OctetString.of(s.mechanism()));
+            if (s.credentials() != null) {
+                sasl.add(new Asn1OctetString(s.credentials()));
             }
+            inner.add(Asn1ContextSpecific.explicit(3, sasl.build()));
+        } else if (auth instanceof BindRequest.AuthenticationChoice.Anonymous) {
+            inner.add(Asn1Null.INSTANCE);
         }
 
         return applicationConstructed(BindRequest.TAG, inner.build());
@@ -505,6 +506,10 @@ public final class LdapCodec {
     }
 
     private static BindRequest.AuthenticationChoice decodeAuthChoice(Asn1Type element) {
+        if (element instanceof Asn1Null) {
+            // NULL authentication — anonymous bind
+            return new BindRequest.AuthenticationChoice.Anonymous();
+        }
         if (element instanceof Asn1ContextSpecific ctx) {
             if (ctx.tagNumber() == 0 && !ctx.constructed()) {
                 return new BindRequest.AuthenticationChoice.Simple(

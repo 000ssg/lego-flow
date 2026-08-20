@@ -170,6 +170,15 @@ fun Project.setupInteropTestsModule() {
         "testImplementation"(project(":lego-flow-xterm"))
         "testImplementation"(project(":lego-flow-tn3270"))
         "testImplementation"(project(":lego-flow-tn5250"))
+        // P2/P3 protocol modules (P2: AMQP, NATS, XMPP; P3: STOMP, LDAP)
+        "testImplementation"(project(":lego-flow-amqp"))
+        "testImplementation"(project(":lego-flow-nats"))
+        "testImplementation"(project(":lego-flow-xmpp"))
+        "testImplementation"(project(":lego-flow-stomp"))
+        "testImplementation"(project(":lego-flow-dns"))
+        "testImplementation"(project(":lego-flow-smtp"))
+        "testImplementation"(project(":lego-flow-ftp"))
+        "testImplementation"(project(":lego-flow-ldap"))
     }
 
     // Read skipInteropTests once at configuration time
@@ -221,6 +230,15 @@ fun Project.setupInteropTestsModule() {
         systemProperty("interop.stomp.port", findProperty("interop.stomp.port") ?: "61613")
         systemProperty("interop.ldap.host", findProperty("interop.ldap.host") ?: "localhost")
         systemProperty("interop.ldap.port", findProperty("interop.ldap.port") ?: "389")
+        systemProperty("interop.ldap.bindDn", findProperty("interop.ldap.bindDn") ?: "cn=admin,dc=example,dc=com")
+        systemProperty("interop.ldap.bindPassword", findProperty("interop.ldap.bindPassword") ?: "admin")
+        systemProperty("interop.ldap.baseDn", findProperty("interop.ldap.baseDn") ?: "dc=example,dc=com")
+        systemProperty("interop.ldap.timeout", findProperty("interop.ldap.timeout") ?: "10000")
+        systemProperty("interop.stomp.vhost", findProperty("interop.stomp.vhost") ?: "/")
+        systemProperty("interop.stomp.login", findProperty("interop.stomp.login") ?: "guest")
+        systemProperty("interop.stomp.passcode", findProperty("interop.stomp.passcode") ?: "guest")
+        systemProperty("interop.amqp.vhost", findProperty("interop.amqp.vhost") ?: "/")
+        systemProperty("interop.amqp.queue", findProperty("interop.amqp.queue") ?: "interop-test-queue")
     }
 
     // Exclude from publish lifecycle (mirrors Maven install/deploy skip config)

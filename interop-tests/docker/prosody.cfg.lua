@@ -29,7 +29,6 @@ modules_disabled = {
 
 -- General config
 admins = {}
-pidfile = "/prosody/data/prosody.pid"
 
 -- Internal admin port (for prosodyctl registration)
 admin = {
@@ -38,6 +37,13 @@ admin = {
 
 -- Networking
 interface = "0.0.0.0"
+
+-- Virtual hosts
+VirtualHost "localhost"
+    ssl = {
+        key = "/etc/prosody/certs/localhost.key";
+        certificate = "/etc/prosody/certs/localhost.crt";
+    }
 
 -- Component config
 Component "conference.localhost" "muc"

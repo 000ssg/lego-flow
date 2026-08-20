@@ -52,9 +52,13 @@ public final class InMemoryDirectoryBackend implements DirectoryBackend {
 
     @Override
     public LdapResult bind(BindRequest request) {
+        if (request.authentication() instanceof BindRequest.AuthenticationChoice.Anonymous) {
+            // Anonymous bind (RFC 4511)
+            return LdapResult.success();
+        }
         if (request.authentication() instanceof BindRequest.AuthenticationChoice.Simple simple) {
             if (request.name().isEmpty() && simple.password().isEmpty()) {
-                // Anonymous bind
+                // Anonymous bind (simple mode with empty credentials)
                 return LdapResult.success();
             }
             String expected = credentials.get(normalizeDn(request.name()));

@@ -123,9 +123,12 @@ public final class LdapClient implements AutoCloseable {
      * @throws IOException if an I/O error occurs
      */
     public BindResponse bindAnonymous() throws IOException {
-        LdapMessage request = LdapMessage.of(nextMessageId(), BindRequest.anonymous());
+        // Use simple bind with empty DN/credentials — most compatible with OpenLDAP servers
+        // (NULL authentication is often rejected by real LDAP servers)
+        LdapMessage request = LdapMessage.of(nextMessageId(), BindRequest.simple("", ""));
         LdapMessage response = sendAndReceive(request);
         if (response.protocolOp() instanceof BindResponse bindResp) {
+            LOG.debug("Anonymous bind result: {}", bindResp.result().resultCode());
             return bindResp;
         }
         throw new LdapClientException("Unexpected response to anonymous bind");

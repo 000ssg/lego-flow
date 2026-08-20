@@ -128,7 +128,11 @@ class NatsInteropTest {
 
     @Test
     void testCloseGracefully() throws Exception {
-        client.close();
-        assertThat(client.isConnected()).isFalse();
+        // Use a dedicated client to avoid disrupting the shared connection
+        var testClient = new NatsClient(host, port, connectOptions);
+        testClient.connect();
+        assertThat(testClient.isConnected()).isTrue();
+        testClient.close();
+        assertThat(testClient.isConnected()).isFalse();
     }
 }

@@ -4,7 +4,7 @@
 [![Java](https://img.shields.io/badge/Java-25+-orange.svg)](https://www.oracle.com/java/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-12641-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-430-brightgreen.svg)]()
 [![Version](https://img.shields.io/badge/Version-0.2.0-SNAPSHOT-blue.svg)]()
 
 A composable data processing framework for Java built on JDK 25, providing layered abstractions from low-level data blocks to high-level protocol implementations.
@@ -461,7 +461,7 @@ Each module includes:
 - **API style tests** covering procedural sync, procedural async, functional sync, functional async
 - **Interoperability integration tests** validating protocols against real servers (requires Docker)
 
-Current test count: **8136+** across 42 leaf modules in 9 categories + interop-tests
+Current test count: **430** across 42 leaf modules in 9 categories + interop-tests
 
 ---
 
