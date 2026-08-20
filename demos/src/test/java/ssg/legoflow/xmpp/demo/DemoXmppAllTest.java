@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Runs the comprehensive XMPP demo and verifies all feature sections.
  *
  * <p>By default, uses in-memory transport. To test against an external
- * XMPP server (ejabberd, Prosody), set {@code DemoXmppAll.USE_EXTERNAL = true}
+ * XMPP server (Prosody), set {@code DemoXmppAll.USE_EXTERNAL = true}
  * and configure the domain before running.</p>
  *
  * @since 0.1.0

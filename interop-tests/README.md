@@ -13,7 +13,7 @@ server implementations for protocol compliance validation.
 | postgresql   | `postgres:17-alpine`         | 5432  | PostgreSQL database server           |
 | rabbitmq     | `rabbitmq:4-management`      | 5672  | AMQP 1.0 broker                      |
 | nats         | `nats:latest`                 | 4222  | NATS message broker                  |
-| ejabberd     | `processone/ejabberd:latest`  | 5222  | XMPP server                          |
+| prosody      | `prosody/prosody:latest`      | 5222  | XMPP server                          |
 | activemq     | `apache/activemq:latest`      | 61613 | STOMP broker                         |
 | openldap     | `osixia/openldap:latest`      | 389   | LDAP v3 server                       |
 

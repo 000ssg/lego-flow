@@ -14,7 +14,7 @@ import java.util.Map;
  * Runs anywhere without an XMPP server. Uses the built-in {@link XmppClient}
  * with loopback message delivery for deterministic demos.</p>
  *
- * <p><b>Alternative: External XMPP server (ejabberd, Prosody)</b> -- Set
+ * <p><b>Alternative: External XMPP server (Prosody)</b> -- Set
  * {@link #USE_EXTERNAL}{@code =true} and configure host/domain.
  * Required for TLS/STARTTLS testing, federation, and server-to-server flows.</p>
  *

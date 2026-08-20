@@ -180,6 +180,8 @@ public final class DemoNatsAll {
             publisher.publish("demo.user.logout", "user=bob");
             publisher.publish("demo.system.restart", "node=1");
 
+            // Give subscriber's virtual thread time to process delivered messages
+            Thread.sleep(100);
             latch.await(5, TimeUnit.SECONDS);
         }
 
@@ -292,6 +294,8 @@ public final class DemoNatsAll {
                 }
             }
 
+            // Give queue workers' virtual threads time to process messages
+            Thread.sleep(100);
             latch.await(5, TimeUnit.SECONDS);
 
         } finally {

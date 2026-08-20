@@ -2,9 +2,14 @@
 #
 # Spins up reference implementations for testing protocol compliance:
 #   nginx        → HTTP/HTTPS server (port 8080)
+#   rabbitmq     → AMQP broker           (port 5672)
+#   nats         → NATS broker           (port 4222)
 #   mosquitto    → MQTT broker (port 1883)
+#   activemq     → STOMP broker          (port 61613)
 #   redis        → Redis in-memory store (port 6379)
-#   postgresql   → PostgreSQL database (port 5432)
+#   openldap     → LDAP server           (port 389)
+#   prosody      → XMPP server           (port 5222)
+#   postgresql   → PostgreSQL database   (port 5432)
 #
 # Usage:
 #   docker compose up -d
@@ -60,20 +65,35 @@ services:
       timeout: 3s
       retries: 10
 
-  # ── XMPP reference server (ejabberd) ──────────
-  ejabberd:
-    image: processone/ejabberd:latest
-    container_name: legoflow-ejabberd
+  # ── XMPP reference server (Prosody) ──────────
+  prosody:
+    image: prosody/prosody:latest
+    container_name: legoflow-prosody
     ports:
       - "5222:5222"
-      - "5443:5443"
-    environment:
-      MAM_ENABLED: false
+      - "5269:5269"
+    volumes:
+      - ./docker/prosody.cfg.lua:/prosody/prosody.cfg.lua:ro
+      - ./docker/localhost.crt:/prosody/certs/localhost.crt:ro
+      - ./docker/localhost.key:/prosody/certs/localhost.key:ro
+    command: >
+      sh -c "
+        mkdir -p /prosody/data &&
+        prosody --config /prosody/prosody.cfg.lua &
+        PROSODY_PID=$!
+        for i in $(seq 1 30); do
+          exec 3<>/dev/tcp/localhost/5570 2>/dev/null && break
+          sleep 1
+        done
+        exec 3<&-
+        prosodyctl --config /prosody/prosody.cfg.lua register test localhost test
+        wait $PROSODY_PID
+      "
     healthcheck:
-      test: ["CMD-SHELL", "ejabberdctl status || exit 1"]
-      interval: 15s
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/5222; exec 3<&-; exit 0"]
+      interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 15
 
   # ── STOMP reference broker (ActiveMQ) ──────────
   activemq:

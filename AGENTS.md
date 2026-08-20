@@ -1087,6 +1087,38 @@ while (counter <= before && retries-- > 0) {
 }
 ```
 
+
+### Anti-Pattern ❌: NATS Virtual Thread Delivery Race
+When a NATS demo or test uses an in-house `NatsServer` with virtual threads for
+client connections, the `publish()` call completes as soon as the PUB command is
+written to the server — it does **not** wait for subscribers to receive and
+process the message. The subscriber's virtual thread must read the data from the
+TCP socket and invoke the callback. On Windows CI (slower thread scheduling),
+this window is large enough to cause `CountDownLatch` timeouts.
+
+Always add a small synchronization delay after the last publish and before the
+latch/counter assertion. Or better yet, use request/reply (which blocks until
+the reply arrives) instead of fire-and-forget pub/sub in tests:
+
+```java
+// BAD — publish completes before subscriber processes messages
+publisher.publish("demo.user.login", "user=alice");
+publisher.publish("demo.user.logout", "user=bob");
+publisher.publish("demo.system.restart", "node=1");
+latch.await(5, TimeUnit.SECONDS);  // may time out on Windows
+
+// GOOD — give subscriber virtual thread time to deliver messages
+publisher.publish("demo.user.login", "user=alice");
+publisher.publish("demo.user.logout", "user=bob");
+publisher.publish("demo.system.restart", "node=1");
+Thread.sleep(100);  // synchronization barrier
+latch.await(5, TimeUnit.SECONDS);
+
+// BEST — use request/reply which blocks until the reply arrives
+NatsMessage reply = client.request(subject, data, Duration.ofSeconds(5));
+assertThat(reply).isNotNull();
+```
+
 ### Rule
 **All interop test assertions must be verified against the actual RFC or
 specification document, not guessed from implementation. When in doubt,

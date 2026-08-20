@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Interoperability test: Lego Flow XMPP client to real XMPP server.
  *
- * <p>Connects to a real ejabberd or Prosody XMPP server to verify
+ * <p>Connects to a real Prosody XMPP server to verify
  * that the Lego Flow client can establish connections, send messages,
  * and manage presence.
  *
@@ -25,8 +25,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   interop.xmpp.username (default: test)
  *   interop.xmpp.password (default: test)
  *
- * <p>To run against ejabberd:
- *   docker run -d --rm -p 5222:5222 -p 5443:5443 -e MAM_ENABLED=false processone/ejabberd:latest
+ * <p>To run against Prosody:
+ *   docker compose -f interop-tests/docker-compose.yml up -d
  *   mvn verify -Dinterop.xmpp.host=localhost -DskipInteropTests=false
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -45,6 +45,7 @@ class XmppInteropTest {
         XmppClientConfig config = XmppClientConfig.builder(host, domain)
                 .port(port)
                 .connectTimeout(Duration.ofSeconds(10))
+                .trustAllCerts(true)
                 .build();
         this.client = new XmppClient();
         client.connect(config).get(10, TimeUnit.SECONDS);

@@ -15,7 +15,7 @@
         Integration tests that connect Lego Flow protocol implementations to real
         reference server implementations (nginx, Mosquitto, Redis, PostgreSQL,
         OpenSSH sshd, Telnet echo server, terminal emulator sequence validation,
-        RabbitMQ, NATS, ejabberd, ActiveMQ, and OpenLDAP).
+        RabbitMQ, NATS, Prosody, ActiveMQ, and OpenLDAP).
         Excluded from install/deploy lifecycle — this module is for testing only.
     </description>
 

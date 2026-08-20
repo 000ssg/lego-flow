@@ -234,12 +234,12 @@ jobs:
         run: |
           docker compose -f interop-tests/docker-compose.yml up -d
           echo "Waiting for all services to become healthy..."
-          timeout=120
+          timeout=180
           elapsed=0
           interval=5
           while [ $elapsed -lt $timeout ]; do
             all_healthy=true
-            for svc in nginx mosquitto redis postgresql; do
+            for svc in nginx rabbitmq nats activemq openldap prosody mosquitto redis postgresql; do
               status=$(docker inspect --format='{{.State.Health.Status}}' "legoflow-${svc}" 2>/dev/null || echo "not_found")
               if [ "$status" != "healthy" ]; then
                 all_healthy=false
@@ -256,7 +256,7 @@ jobs:
             sleep $interval
           done
           # Final verification
-          for svc in nginx mosquitto redis postgresql; do
+          for svc in nginx rabbitmq nats activemq openldap prosody mosquitto redis postgresql; do
             status=$(docker inspect --format='{{.State.Health.Status}}' "legoflow-${svc}" 2>/dev/null || echo "not_found")
             if [ "$status" != "healthy" ]; then
               echo "ERROR: ${svc} is not healthy (status: ${status})"
