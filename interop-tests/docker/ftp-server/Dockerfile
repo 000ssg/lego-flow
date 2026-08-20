@@ -36,4 +36,5 @@ RUN printf '%s\n' \
   > /etc/vsftpd.conf
 
 EXPOSE 21 30000-30009
-CMD ["/usr/sbin/vsftpd", "/etc/vsftpd.conf"]
+ENTRYPOINT ["/bin/sh", "-c"]
+CMD ["/usr/sbin/vsftpd /etc/vsftpd.conf; exec tail -f /dev/null"]

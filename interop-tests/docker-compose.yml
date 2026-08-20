@@ -172,20 +172,21 @@ services:
       - "25:1025"
       - "8025:8025"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8025/ || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8025/ > /dev/null 2>&1 || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 10
 
-  # ── FTP reference server (Custom Pure-FTPd with pre-built PureDB) ──
+  # ── FTP reference server (Python pyftpdlib — supports anonymous) ──
   ftp:
-    build: ./docker/ftp-server
+    build: docker/ftp-python
     container_name: legoflow-ftp
     ports:
       - "21:21"
       - "30000-30009:30000-30009"
     healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 21 || exit 1"]
+      test: ["CMD-SHELL", "python3 -c 'import socket; socket.create_connection((\"localhost\", 21)).close()' || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 10
+
