@@ -196,10 +196,13 @@ public final class SshService extends AbstractService<ByteBuffer, ByteBuffer> {
         
         byte[] remoteKexPayload = transport.readPacket();
         var remoteKexInit = ssg.legoflow.ssh.kex.KexInit.decode(remoteKexPayload);
+        transport.setRemoteKexInitBytes(remoteKexPayload);
         
         transport.negotiateAlgorithms(localKexInit, remoteKexInit);
-        transport.sendNewKeys();
-        transport.readPacket(); // NEWKEYS acknowledgment
+        // Perform key exchange (DH exchange + applyNewKeys + NEWKEYS)
+        transport.performKeyExchange(
+            transport.localVersion().format(),
+            remoteVersion.format());
     }
 
     private void authenticate() throws IOException {

@@ -52,8 +52,16 @@ public final class EcdhSha2Nistp521 implements KexAlgorithm {
             ka.init(keyPair.getPrivate());
             ka.doPhase(remotePub, true);
             byte[] secret = ka.generateSecret();
+            // Return raw big-endian bytes for use in exchange hash.
+            // computeExchangeHash wraps with writeBinary → correct mpint [4-len][raw-bytes]
             BigInteger K = new BigInteger(1, secret);
-            return DiffieHellmanGroup14.toMpint(K);
+            byte[] rawBytes = K.toByteArray();
+            if (rawBytes.length > 0 && rawBytes[0] == 0) {
+                byte[] trimmed = new byte[rawBytes.length - 1];
+                System.arraycopy(rawBytes, 1, trimmed, 0, trimmed.length);
+                return trimmed;
+            }
+            return rawBytes;
         } catch (GeneralSecurityException e) {
             throw new RuntimeException("ECDH computation failed", e);
         }

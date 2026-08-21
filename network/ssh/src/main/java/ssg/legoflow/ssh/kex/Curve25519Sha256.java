@@ -75,8 +75,16 @@ public final class Curve25519Sha256 implements KexAlgorithm {
                 throw new IllegalArgumentException("X25519 shared secret is all zeros");
             }
 
+            // Return raw big-endian bytes for use in exchange hash.
+            // computeExchangeHash wraps with writeBinary → correct mpint [4-len][raw-bytes]
             BigInteger K = new BigInteger(1, secret);
-            return DiffieHellmanGroup14.toMpint(K);
+            byte[] rawBytes = K.toByteArray();
+            if (rawBytes.length > 0 && rawBytes[0] == 0) {
+                byte[] trimmed = new byte[rawBytes.length - 1];
+                System.arraycopy(rawBytes, 1, trimmed, 0, trimmed.length);
+                return trimmed;
+            }
+            return rawBytes;
         } catch (GeneralSecurityException e) {
             throw new RuntimeException("X25519 computation failed", e);
         }
@@ -88,6 +96,9 @@ public final class Curve25519Sha256 implements KexAlgorithm {
             byte[] clientKexInit, byte[] serverKexInit,
             byte[] hostKey, byte[] e, byte[] f, byte[] sharedSecret) {
         try {
+            System.out.println("[HASH] clientVersion=" + clientVersion + " serverVersion=" + serverVersion);
+            System.out.println("[HASH] clientKexInit=" + clientKexInit.length + "B serverKexInit=" + serverKexInit.length + "B");
+            System.out.println("[HASH] hostKey=" + hostKey.length + "B e=" + e.length + "B f=" + f.length + "B sharedSecret=" + sharedSecret.length + "B");
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             ByteBuffer buf = ByteBuffer.allocate(
                     4 + clientVersion.length() + 4 + serverVersion.length()
@@ -117,7 +128,8 @@ public final class Curve25519Sha256 implements KexAlgorithm {
         // X.509 SubjectPublicKeyInfo wrapping for X25519
         // 30 2A 30 05 06 03 2B 65 6E 03 21 00 <32 bytes>
         byte[] prefix = new byte[]{
-            0x30, 0x2A, 0x30, 0x05, 0x06, 0x03, 0x2B, 0x65, 0x6E, 0x03, 0x21, 0x00
+            (byte) 0x30, (byte) 0x2A, (byte) 0x30, (byte) 0x05, (byte) 0x06, (byte) 0x03,
+            (byte) 0x2B, (byte) 0x65, (byte) 0x6E, (byte) 0x03, (byte) 0x21, (byte) 0x00
         };
         byte[] encoded = new byte[prefix.length + 32];
         System.arraycopy(prefix, 0, encoded, 0, prefix.length);

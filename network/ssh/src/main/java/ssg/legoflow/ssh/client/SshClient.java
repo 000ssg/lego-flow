@@ -83,17 +83,16 @@ public final class SshClient implements AutoCloseable {
         // Read remote KEXINIT
         byte[] remoteKexPayload = transport.readPacket();
         KexInit remoteKexInit = KexInit.decode(remoteKexPayload);
+        transport.setRemoteKexInitBytes(remoteKexPayload);
 
         // Negotiate algorithms
         transport.negotiateAlgorithms(localKexInit, remoteKexInit);
 
-        // Send NEWKEYS
-        transport.sendNewKeys();
-
-        // Read NEWKEYS
-        byte[] newKeysPayload = transport.readPacket();
+        // Perform key exchange (DH exchange + applyNewKeys + NEWKEYS)
+        transport.performKeyExchange(
+            transport.localVersion().format(),
+            remoteVersion.format());
         LOG.debug("Key exchange completed");
-
         // Request ssh-userauth service
         transport.sendServiceRequest("ssh-userauth");
         byte[] serviceAccept = transport.readPacket();
