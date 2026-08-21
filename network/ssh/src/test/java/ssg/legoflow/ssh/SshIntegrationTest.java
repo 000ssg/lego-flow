@@ -116,8 +116,11 @@ class SshIntegrationTest {
 
     @Test @Order(1)
     void testConnectAndDisconnect() throws Exception {
+        System.out.println("[TEST] Starting testConnectAndDisconnect, port=" + port);
         try (SshClient client = new SshClient()) {
+            System.out.println("[TEST] Calling client.connect");
             client.connect("localhost", port);
+            System.out.println("[TEST] client.connect returned, isConnected=" + client.isConnected());
             assertThat(client.isConnected()).isTrue();
             
             AuthResult authResult = client.authenticate(TEST_USER, new PasswordAuth(TEST_PASS));
