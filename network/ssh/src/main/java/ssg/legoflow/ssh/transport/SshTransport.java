@@ -1,14 +1,21 @@
 package ssg.legoflow.ssh.transport;
 
+import ssg.legoflow.ssh.cipher.CipherFactory;
+import ssg.legoflow.ssh.cipher.SshCipher;
+import ssg.legoflow.ssh.mac.MacFactory;
 import ssg.legoflow.ssh.kex.*;
+import ssg.legoflow.ssh.hostkey.SshKeyPair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * SSH transport layer implementation per RFC 4253.
  *
@@ -21,6 +28,12 @@ import java.util.concurrent.locks.ReentrantLock;
 public final class SshTransport implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(SshTransport.class);
+    // SSH message types
+    private static final byte MSG_KEX_ECDH_INIT = 30;
+    private static final byte MSG_KEX_ECDH_REPLY = 31;
+    private static final byte MSG_KEXDH_INIT = 34;
+    private static final byte MSG_KEXDH_REPLY = 33;
+    private static final byte MSG_NEWKEYS = 21;
 
     private final Socket socket;
     private final InputStream in;
@@ -33,9 +46,12 @@ public final class SshTransport implements AutoCloseable {
 
     private SshVersion localVersion;
     private SshVersion remoteVersion;
+    private byte[] localKexInitBytes;
+    private byte[] remoteKexInitBytes;
     private byte[] sessionId;
     private KexInit localKexInit;
     private KexInit remoteKexInit;
+    private SshKeyPair serverHostKey;
 
     // Negotiated algorithms
     private String kexAlgorithm;
@@ -47,17 +63,19 @@ public final class SshTransport implements AutoCloseable {
     private String compressionClientToServer;
     private String compressionServerToClient;
 
+    // Sequence numbers for cipher
+    private long cipherSequenceClientToServer = 0;
+    private long cipherSequenceServerToClient = 0;
+
     /**
      * Creates a new SSH transport layer over an existing socket.
-     *
-     * @param socket   the underlying TCP socket
-     * @param isServer true if this is the server side
-     * @throws IOException if an I/O error occurs
      */
     public SshTransport(Socket socket, boolean isServer) throws IOException {
         this.socket = Objects.requireNonNull(socket, "socket");
-        this.in = new BufferedInputStream(socket.getInputStream());
-        this.out = new BufferedOutputStream(socket.getOutputStream());
+        socket.setTcpNoDelay(true);
+        socket.setSoTimeout(10000);
+        this.in = socket.getInputStream();
+        this.out = socket.getOutputStream();
         this.codec = new SshTransportCodec();
         this.isServer = isServer;
         this.localVersion = SshVersion.defaultVersion();
@@ -65,19 +83,12 @@ public final class SshTransport implements AutoCloseable {
 
     /**
      * Performs the SSH version exchange.
-     *
-     * @return the remote peer's version
-     * @throws IOException if an I/O error occurs
-     * @throws IllegalArgumentException if the remote version is incompatible
      */
     public SshVersion exchangeVersions() throws IOException {
-        // Send our version
         byte[] versionBytes = localVersion.toBytes();
         out.write(versionBytes);
         out.flush();
         LOG.debug("Sent version: {}", localVersion);
-
-        // Read remote version (skip lines not starting with SSH-)
         String remoteLine = readLine();
         while (remoteLine != null && !remoteLine.startsWith("SSH-")) {
             remoteLine = readLine();
@@ -85,79 +96,83 @@ public final class SshTransport implements AutoCloseable {
         if (remoteLine == null) {
             throw new IOException("Connection closed before version exchange");
         }
-
         remoteVersion = SshVersion.parse(remoteLine);
         LOG.debug("Received version: {}", remoteVersion);
-
         if (!remoteVersion.isCompatible()) {
             throw new IllegalArgumentException("Incompatible SSH version: " + remoteVersion);
         }
-
         return remoteVersion;
     }
 
-    /**
-     * Sends an SSH_MSG_KEXINIT message.
-     *
-     * @param kexInit the KEXINIT message to send
-     * @throws IOException if an I/O error occurs
-     */
+    public void setServerHostKey(SshKeyPair hostKey) {
+        this.serverHostKey = hostKey;
+    }
+
     public void sendKexInit(KexInit kexInit) throws IOException {
         this.localKexInit = kexInit;
         byte[] payload = kexInit.encode();
+        this.localKexInitBytes = payload;
         sendPacket(payload);
         LOG.debug("Sent KEXINIT");
     }
 
+    public void setRemoteKexInitBytes(byte[] rawBytes) {
+        this.remoteKexInitBytes = rawBytes;
+    }
+
     /**
      * Reads and returns the next SSH packet payload.
-     *
-     * @return the payload bytes
-     * @throws IOException if an I/O error occurs
      */
     public byte[] readPacket() throws IOException {
+        LOG.debug("FLUSH! [readPacket ENTER]"); 
         readLock.lock();
         try {
-            // Read the first block (or 4 bytes for packet length if unencrypted)
-            int blockSize = 8; // minimum block size
-            byte[] firstBlock = readExact(blockSize);
+            int aeadTagLen = codec.aeadTagLength();
+            int macLen = codec.macLength();
+            boolean isPayloadOnly = decodeCipherIsPayloadOnly();
+            boolean isAead = codec.getDecodeCipher() != null && codec.getDecodeCipher().isAead();
 
-            ByteBuffer fb = ByteBuffer.wrap(firstBlock);
-            int packetLength = fb.getInt();
+            // All ciphers use wire format: [plaintext_pktLen:4][encrypted_data][mac/tag]
+            // read 4-byte prefix to get packetLength, then calculate wire size
+            byte[] prefix = readExact(4);
+            int packetLength = ByteBuffer.wrap(prefix).getInt();
+            LOG.debug("[READ-PACKET] pktLen=" + packetLength
+                + " cipher=" + (codec.getDecodeCipher() != null ? codec.getDecodeCipher().name() : "none")
+                + " AEAD=" + isAead + " payloadOnly=" + isPayloadOnly);
 
-            if (packetLength < 1 || packetLength > SshTransportCodec.MAX_PACKET_SIZE) {
-                throw new IOException("Invalid packet length: " + packetLength);
+            // Total wire size includes prefix + encrypted data + mac/tag
+            int wireSize;
+            if (isPayloadOnly) {
+                // ChaCha20: wire = [prefix:4][encPayloadWithTag]
+                // packetLength = padLen + payload + padding (excludes pktLen prefix)
+                wireSize = 4 + packetLength + aeadTagLen;
+            } else if (isAead) {
+                // AES-GCM: wire = [prefix:4][encFullPacket][tag]
+                // packetLength already includes the pktLen field inside the encrypted packet
+                wireSize = 4 + packetLength + aeadTagLen;
+            } else {
+                // Non-AEAD: wire = [prefix:4][packet:packetLength][mac]
+                // packetLength already includes the pktLen field inside the packet
+                wireSize = 4 + packetLength + macLen;
             }
-
-            // Read the rest: packetLength - (blockSize - 4) bytes + MAC
-            int remaining = packetLength - (blockSize - 4);
-            int macLength = 0; // MAC handled by codec
-
-            byte[] restData = remaining > 0 ? readExact(remaining) : new byte[0];
-
-            // Combine into full packet
-            byte[] fullPacket = new byte[4 + packetLength];
-            System.arraycopy(firstBlock, 0, fullPacket, 0, blockSize);
-            if (remaining > 0) {
-                System.arraycopy(restData, 0, fullPacket, blockSize, remaining);
-            }
-
+            byte[] fullPacket = new byte[wireSize];
+            System.arraycopy(prefix, 0, fullPacket, 0, 4);
+            System.arraycopy(readExact(wireSize - 4), 0, fullPacket, 4, wireSize - 4);
+            LOG.debug("[READ-PACKET] wireSize=" + wireSize + " read OK "
+                + fullPacket.length + "B, first4=" + bytesToHex2(fullPacket, 4)
+                + " passing to codec.decode()");
             return codec.decode(fullPacket);
         } finally {
             readLock.unlock();
         }
     }
 
-    /**
-     * Sends a raw payload as an SSH binary packet.
-     *
-     * @param payload the payload bytes
-     * @throws IOException if an I/O error occurs
-     */
     public void sendPacket(byte[] payload) throws IOException {
         writeLock.lock();
         try {
             byte[] packet = codec.encode(payload);
+            LOG.debug("[TRANSPORT-SEND " + (isServer ? "S" : "C") + "] " + payload.length + "B -> " + packet.length + "B wire, first8="
+                + bytesToHex2(packet, 8));
             out.write(packet);
             out.flush();
         } finally {
@@ -165,13 +180,6 @@ public final class SshTransport implements AutoCloseable {
         }
     }
 
-    /**
-     * Sends a disconnect message and closes the connection.
-     *
-     * @param reasonCode  the disconnect reason code
-     * @param description the disconnect description
-     * @throws IOException if an I/O error occurs
-     */
     public void disconnect(int reasonCode, String description) throws IOException {
         ByteBuffer buf = ByteBuffer.allocate(256);
         buf.put((byte) SshMessageType.SSH_MSG_DISCONNECT.code());
@@ -188,58 +196,342 @@ public final class SshTransport implements AutoCloseable {
         }
     }
 
-    /**
-     * Sends a service request message.
-     *
-     * @param serviceName the service name (e.g., "ssh-userauth", "ssh-connection")
-     * @throws IOException if an I/O error occurs
-     */
     public void sendServiceRequest(String serviceName) throws IOException {
-        ByteBuffer buf = ByteBuffer.allocate(256);
+        ByteBuffer buf = ByteBuffer.allocate(64 + serviceName.length());
         buf.put((byte) SshMessageType.SSH_MSG_SERVICE_REQUEST.code());
         SshTransportCodec.writeString(buf, serviceName);
         buf.flip();
         byte[] payload = new byte[buf.remaining()];
         buf.get(payload);
         sendPacket(payload);
-        LOG.debug("Sent service request: {}", serviceName);
     }
 
-    /**
-     * Sends a service accept message.
-     *
-     * @param serviceName the service name
-     * @throws IOException if an I/O error occurs
-     */
-    public void sendServiceAccept(String serviceName) throws IOException {
-        ByteBuffer buf = ByteBuffer.allocate(256);
-        buf.put((byte) SshMessageType.SSH_MSG_SERVICE_ACCEPT.code());
-        SshTransportCodec.writeString(buf, serviceName);
+    public byte[] readServiceAccept() throws IOException {
+        byte[] packet = readPacket();
+        if (packet.length == 0 || packet[0] != SshMessageType.SSH_MSG_SERVICE_ACCEPT.code()) {
+            throw new IOException("Expected SSH_MSG_SERVICE_ACCEPT, got " + (packet.length > 0 ? packet[0] : "empty"));
+        }
+        return packet;
+    }
+
+    public void sendNewKeys() throws IOException {
+        ByteBuffer buf = ByteBuffer.allocate(2);
+        buf.put(MSG_NEWKEYS);
         buf.flip();
         byte[] payload = new byte[buf.remaining()];
         buf.get(payload);
         sendPacket(payload);
-        LOG.debug("Sent service accept: {}", serviceName);
     }
 
     /**
-     * Sends SSH_MSG_NEWKEYS to signal switch to new encryption.
-     *
-     * @throws IOException if an I/O error occurs
+     * Performs key exchange. Dispatches to client or server flow.
      */
-    public void sendNewKeys() throws IOException {
-        sendPacket(new byte[]{(byte) SshMessageType.SSH_MSG_NEWKEYS.code()});
-        LOG.debug("Sent NEWKEYS");
+    public void performKeyExchange(String clientVersion, String serverVersion) throws IOException {
+        try {
+            if (isServer) {
+                serverKexInit(clientVersion, serverVersion);
+            } else {
+                clientKexInit();
+            }
+        } catch (Throwable t) {
+            LOG.debug("[KEX] FATAL: " + t.getClass().getName() + ": " + t.getMessage());
+            t.printStackTrace();
+            throw new RuntimeException("Key exchange failed", t);
+        }
     }
 
+    /** Client-side: send KEXDH_INIT, read KEXDH_REPLY, apply keys, send NEWKEYS. */
+    private void clientKexInit() throws IOException {
+        LOG.debug("Client: performing key exchange");
+        try {
+            KexAlgorithm kexAlgo = createKexAlgorithm();
+            kexAlgo.init();
+
+            byte[] e = kexAlgo.localPublicValue();
+            LOG.debug("[CLIENT] generated local public value, e=" + e.length + "B");
+
+            // Build and send KEXDH_INIT
+            LOG.debug("[CLIENT] local public value e=" + e.length + "B, e=" + bytesToHex(Arrays.copyOf(e, Math.min(e.length, 32))));
+            byte[] kexInitMsg = buildKexInitMessage(kexAlgo, e);
+            sendPacket(kexInitMsg);
+            LOG.debug("[CLIENT] sent KEXDH_INIT, waiting for server reply");
+
+            // Read KEXDH_REPLY: [MSG][hostKey][serverPublicValue][signature]
+            byte[] serverReply = readPacket();
+            LOG.debug("[CLIENT] received KEXDH_REPLY, " + serverReply.length + "B");
+            int msgType = serverReply[0] & 0xFF;
+            LOG.debug("[CLIENT] KEXDH reply message type=" + msgType);
+
+            // Parse server reply
+            ByteBuffer replyBuf = ByteBuffer.wrap(serverReply);
+            replyBuf.get(); // skip message type
+            byte[] hostKeyBlob = SshTransportCodec.readBinary(replyBuf);
+            byte[] f = SshTransportCodec.readBinary(replyBuf);
+            byte[] signature = SshTransportCodec.readBinary(replyBuf);
+
+            LOG.debug("[CLIENT] parsed hostKey=" + hostKeyBlob.length + " f=" + f.length + " sig=" + signature.length);
+
+            // Compute shared secret
+            byte[] sharedSecret = kexAlgo.computeSharedSecret(f);
+            LOG.debug("[CLIENT] computed shared secret, K=" + sharedSecret.length + "B, K=" + bytesToHex(Arrays.copyOf(sharedSecret, 16)));
+
+            // Compute exchange hash H
+            byte[] exchangeHash = kexAlgo.computeExchangeHash(
+                    localVersion().format(), remoteVersion().format(),
+                    localKexInitBytes, remoteKexInitBytes,
+                    hostKeyBlob, e, f, sharedSecret);
+            LOG.debug("[CLIENT] computed exchange hash, H=" + exchangeHash.length + "B, H=" + bytesToHex(Arrays.copyOf(exchangeHash, 16)));
+
+            // Apply keys
+            applyNewKeys(new KexResult(sharedSecret, exchangeHash, exchangeHash));
+            LOG.info("Client: appliedNewKeys, cipher_s2c={}", cipherServerToClient);
+
+            // Send NEWKEYS
+            codec.resetSequenceNumbers();
+            cipherSequenceClientToServer = 0;
+            cipherSequenceServerToClient = 0;
+            sendNewKeys();
+            LOG.debug("[CLIENT] sent NEWKEYS, reading server NEWKEYS");
+            readPacket();
+            LOG.debug("Client: key exchange completed");
+        } catch (Exception e) {
+            LOG.debug("[CLIENT-KEX] ERROR: " + e.getClass().getSimpleName() + ": " + e.getMessage());
+            e.printStackTrace();
+            disconnect(11, "key exchange failed: " + e.getMessage());
+            throw new IOException("Key exchange failed", e);
+        }
+    }
+
+    /** Server-side: read KEXDH_INIT, send KEXDH_REPLY, apply keys, send NEWKEYS. */
+    private void serverKexInit(String clientVersion, String serverVersion) throws IOException {
+        LOG.info("Server: waiting for KEXDH_INIT");
+        try {
+            KexAlgorithm kexAlgo = createKexAlgorithm();
+            kexAlgo.init();
+
+            // Read KEXDH_INIT: [MSG][clientPublicValue][extensions]
+            byte[] clientInit = readPacket();
+            LOG.debug("[SERVER] received KEXDH_INIT, " + clientInit.length + "B");
+            int msgType = clientInit[0] & 0xFF;
+            LOG.debug("[SERVER] KEXDH init message type=" + msgType);
+
+            ByteBuffer initBuf = ByteBuffer.wrap(clientInit);
+            initBuf.get(); // skip message type
+            byte[] e = SshTransportCodec.readBinary(initBuf);
+            LOG.debug("[SERVER] parsed client public value, e=" + e.length + "B, e=" + bytesToHex(Arrays.copyOf(e, Math.min(e.length, 32))));
+            // Skip extensions if present
+            int extLen = initBuf.remaining() > 0 ? initBuf.getInt() : 0;
+            LOG.debug("[SERVER] extensions remaining=" + initBuf.remaining() + " extLen=" + extLen);
+
+            // Generate server's public value
+            byte[] f = kexAlgo.localPublicValue();
+            LOG.debug("[SERVER] generated server public value, f=" + f.length + "B");
+
+            // Compute shared secret
+            byte[] sharedSecret = kexAlgo.computeSharedSecret(e);
+            LOG.debug("[SERVER] computed shared secret, K=" + sharedSecret.length + "B, K=" + bytesToHex(Arrays.copyOf(sharedSecret, 16)));
+
+            // Get host key
+            byte[] hostKeyBlob = serverHostKey != null ? serverHostKey.publicKeyBlob() : new byte[0];
+            LOG.debug("[SERVER] hostKey=" + hostKeyBlob.length + "B");
+
+            // Compute exchange hash
+            byte[] exchangeHash = kexAlgo.computeExchangeHash(
+                    localVersion().format(), remoteVersion().format(),
+                    remoteKexInitBytes, localKexInitBytes,
+                    hostKeyBlob, e, f, sharedSecret);
+            LOG.debug("[SERVER] computed exchange hash, H=" + exchangeHash.length + "B, H=" + bytesToHex(Arrays.copyOf(exchangeHash, 16)));
+
+            // Build KEXDH_REPLY: [MSG][hostKey][f][signature]
+            byte[] kexReply = buildKexReplyMessage(kexAlgo, hostKeyBlob, f);
+            sendPacket(kexReply);
+            LOG.debug("[SERVER] sent KEXDH_REPLY, " + kexReply.length + "B wire");
+
+            // Apply keys
+            applyNewKeys(new KexResult(sharedSecret, exchangeHash, exchangeHash));
+            LOG.info("Server: appliedNewKeys, cipher={}", cipherServerToClient);
+
+            // Send NEWKEYS
+            codec.resetSequenceNumbers();
+            cipherSequenceClientToServer = 0;
+            cipherSequenceServerToClient = 0;
+            sendNewKeys();
+            LOG.debug("[SERVER] sent NEWKEYS");
+            readPacket();
+            LOG.debug("Server: key exchange completed");
+        } catch (Exception e) {
+            LOG.debug("[SERVER-KEX] ERROR: " + e.getClass().getSimpleName() + ": " + e.getMessage());
+            e.printStackTrace();
+            disconnect(11, "key exchange failed: " + e.getMessage());
+            throw new IOException("Key exchange failed", e);
+        }
+    }
+
+    /** Builds KEXDH_INIT or KEXECDH_INIT message with the client's public value. */
+    private byte[] buildKexInitMessage(KexAlgorithm kexAlgo, byte[] localPublicKey) {
+        ByteBuffer buf = ByteBuffer.allocate(128 + localPublicKey.length);
+        byte[] clientVer = "SSH-2.0-LegoFlow".getBytes(StandardCharsets.UTF_8);
+        if (kexAlgo.name().contains("ecdh")) {
+            buf.put(MSG_KEX_ECDH_INIT);
+        } else if (kexAlgo.name().contains("curve25519")) {
+            buf.put(MSG_KEX_ECDH_INIT); // OpenSSH uses type 30 for both
+        } else {
+            buf.put(MSG_KEXDH_INIT);
+        }
+        SshTransportCodec.writeBinary(buf, localPublicKey);
+        // Extensions (empty)
+        buf.putInt(0);
+        buf.flip();
+        byte[] result = new byte[buf.remaining()];
+        buf.get(result);
+        return result;
+    }
+
+    /** Builds KEXDH_REPLY or KEXECDH_REPLY message with host key, server public value. */
+    private byte[] buildKexReplyMessage(KexAlgorithm kexAlgo, byte[] hostKeyBlob, byte[] serverPublicKey) {
+        ByteBuffer buf = ByteBuffer.allocate(256 + hostKeyBlob.length + serverPublicKey.length);
+        if (kexAlgo.name().contains("ecdh")) {
+            buf.put(MSG_KEX_ECDH_REPLY);
+        } else if (kexAlgo.name().contains("curve25519")) {
+            buf.put(MSG_KEX_ECDH_REPLY);
+        } else {
+            buf.put(MSG_KEXDH_REPLY);
+        }
+        SshTransportCodec.writeBinary(buf, hostKeyBlob);
+        SshTransportCodec.writeBinary(buf, serverPublicKey);
+        // Signature placeholder (empty for testing)
+        byte[] emptySig = new byte[0];
+        SshTransportCodec.writeBinary(buf, emptySig);
+        buf.flip();
+        byte[] result = new byte[buf.remaining()];
+        buf.get(result);
+        return result;
+    }
+
+    private KexAlgorithm createKexAlgorithm() {
+        return switch (kexAlgorithm) {
+            case "ecdh-sha2-nistp256", "ecdh-sha2-nistp256@openssh.com" -> new EcdhSha2Nistp256();
+            case "ecdh-sha2-nistp384", "ecdh-sha2-nistp384@openssh.com" -> new EcdhSha2Nistp384();
+            case "ecdh-sha2-nistp521", "ecdh-sha2-nistp521@openssh.com" -> new EcdhSha2Nistp521();
+            case "curve25519-sha256", "curve25519-sha256@libssh.org", "curve25519-sha256@openssh.com" -> new Curve25519Sha256();
+            case "diffie-hellman-group14-sha256" -> new DiffieHellmanGroup14();
+            case "diffie-hellman-group14-sha1" -> new DiffieHellmanGroup14();
+            case "diffie-hellman-group16-sha512" -> new DiffieHellmanGroup16();
+            default -> throw new IllegalStateException("Unsupported KEX algorithm: " + kexAlgorithm);
+        };
+    }
+
+    public byte[] sessionId() { return sessionId != null ? sessionId.clone() : null; }
+    public SshVersion localVersion() { return localVersion; }
+    public SshVersion remoteVersion() { return remoteVersion; }
+    public boolean isServer() { return isServer; }
+    public SshTransportCodec codec() { return codec; }
+    public boolean isClosed() { return closed.get(); }
+    public String kexAlgorithm() { return kexAlgorithm; }
+
     /**
-     * Negotiates algorithms from local and remote KEXINIT messages.
-     *
-     * @param local  local KEXINIT message
-     * @param remote remote KEXINIT message
-     * @return map of algorithm type to negotiated algorithm name
-     * @throws IllegalStateException if no common algorithm is found
+     * Applies new keys derived from key exchange.
+     * Per RFC 4253 §7.2 key derivation.
      */
+    public void applyNewKeys(KexResult kexResult) {
+        if (sessionId == null) {
+            sessionId = kexResult.exchangeHash().clone();
+        }
+        byte[] k = kexResult.sharedSecret();
+        byte[] h = kexResult.exchangeHash();
+        codec.setSessionKeyMaterial(k, h);
+
+        LOG.info("Applied new keys: cipher_c2s={}, cipher_s2c={}, mac_c2s={}, mac_s2c={}",
+                cipherClientToServer, cipherServerToClient, macClientToServer, macServerToClient);
+
+        // Create cipher instances first so we know their key/iv sizes per RFC 4253 \u00a77.2
+        if (cipherClientToServer != null && !cipherClientToServer.equals("none")) {
+            try {
+                SshCipher c2sCipher = CipherFactory.create(cipherClientToServer);
+                SshCipher s2cCipher = CipherFactory.create(cipherServerToClient);
+
+                // Cipher-specific key derivation per RFC 4253 \u00a77.2:
+                // 'A' = cipher key C->S (keySize bytes per cipher spec)
+                // 'C' = cipher key S->C
+                // 'E' = MAC key C->S
+                // 'F' = MAC key S->C
+                // 'B' = IV C->S (8 bytes, used as nonce suffix for AEAD)
+                // 'D' = IV S->C
+                // 'I' = AEAD IV C->S (8 bytes)
+                // 'J' = AEAD IV S->C (8 bytes)
+                byte[] keyC2S = SshTransportCodec.deriveKey(k, h, 'A', c2sCipher.keySize());
+                byte[] keyS2C = SshTransportCodec.deriveKey(k, h, 'C', s2cCipher.keySize());
+                byte[] macC2S = SshTransportCodec.deriveKey(k, h, 'E', macKeyLength(macClientToServer));
+                byte[] macS2C = SshTransportCodec.deriveKey(k, h, 'F', macKeyLength(macServerToClient));
+
+                // IV derivation: AEAD ciphers use 8-byte 'I'/'J' (nonce suffix), non-AEAD use 8-byte 'B'/'D'
+                byte[] c2sIv;
+                byte[] s2cIv;
+                if (c2sCipher.isAead()) {
+                    c2sIv = SshTransportCodec.deriveKey(k, h, 'I', 8);
+                    s2cIv = SshTransportCodec.deriveKey(k, h, 'J', 8);
+                } else {
+                    c2sIv = SshTransportCodec.deriveKey(k, h, 'B', 8);
+                    s2cIv = SshTransportCodec.deriveKey(k, h, 'D', 8);
+                }
+
+                LOG.debug("[KEY-derive]KEY-derive] C2S key=" + bytesToHex(keyC2S) + " IV=" + bytesToHex(c2sIv));
+                LOG.debug("[KEY-derive]KEY-derive] S2C key=" + bytesToHex(keyS2C) + " IV=" + bytesToHex(s2cIv));
+                LOG.debug("Key derivation: keyC2S={}B keyS2C={}B ivC2S={}B ivS2C={}B macC2S={}B macS2C={}B",
+                    keyC2S.length, keyS2C.length, c2sIv.length, s2cIv.length,
+                    macC2S.length, macS2C.length);
+
+                c2sCipher.init(keyC2S, c2sIv, true);
+                s2cCipher.init(keyS2C, s2cIv, true);
+
+                if (isServer) {
+                    codec.setEncodeCipher(s2cCipher);
+                    codec.setDecodeCipher(c2sCipher);
+                    codec.setDecodeKeyAndIV(keyC2S, c2sIv);
+                } else {
+                    codec.setEncodeCipher(c2sCipher);
+                    codec.setDecodeCipher(s2cCipher);
+                    codec.setDecodeKeyAndIV(keyS2C, c2sIv);
+                }
+
+                LOG.info("Cipher/MAC setup: c2s={}, s2c={}, AEAD={}, keyC2S={}B, encodeCipher={} decodeCipher={}",
+                        cipherClientToServer, cipherServerToClient, c2sCipher.isAead(), keyC2S.length,
+                        codec.getEncodeCipher() != null ? codec.getEncodeCipher().name() + "@" + System.identityHashCode(codec.getEncodeCipher()) : "null",
+                        codec.getDecodeCipher() != null ? codec.getDecodeCipher().name() + "@" + System.identityHashCode(codec.getDecodeCipher()) : "null");
+            } catch (Exception e) {
+                LOG.error("Failed to setup cipher/MAC", e);
+                throw new RuntimeException("Failed to setup cipher/MAC", e);
+            }
+        }
+
+        // Create and configure MACs \u2014 skip for AEAD ciphers
+        boolean isAead = false;
+        SshCipher s2c = codec.getDecodeCipher();
+        if (s2c != null && s2c.isAead()) isAead = true;
+
+        if (macClientToServer != null && !macClientToServer.equals("none") && !isAead) {
+            codec.setEncodeMac(MacFactory.create(macClientToServer));
+            codec.setDecodeMac(MacFactory.create(macServerToClient));
+        } else if (macClientToServer != null && !macClientToServer.equals("none") && isAead) {
+            LOG.info("AEAD cipher detected, MAC handled by cipher");
+        } else {
+            LOG.debug("MAC: none or null");
+        }
+
+        // Reset sequence numbers (critical for AEAD ciphers)
+        codec.resetSequenceNumbers();
+        cipherSequenceClientToServer = 0;
+        cipherSequenceServerToClient = 0;
+        LOG.debug("Cipher/MAC setup complete, seq nums reset");
+    }
+
+    private static int macKeyLength(String macName) {
+        if (macName == null) return 0;
+        if (macName.contains("sha256")) return 32;
+        if (macName.contains("sha512")) return 64;
+        return 20; /* default for sha1 and unknown */
+    }
+
     public Map<String, String> negotiateAlgorithms(KexInit local, KexInit remote) {
         Map<String, String> result = new LinkedHashMap<>();
         result.put("kex", negotiate(local.kexAlgorithms(), remote.kexAlgorithms(), "kex"));
@@ -264,86 +556,22 @@ public final class SshTransport implements AutoCloseable {
         return result;
     }
 
-    /**
-     * Applies new keys derived from key exchange.
-     *
-     * @param kexResult the key exchange result containing shared secret and exchange hash
-     */
-    public void applyNewKeys(KexResult kexResult) {
-        if (sessionId == null) {
-            sessionId = kexResult.exchangeHash().clone();
-        }
-        // Keys would be derived here using the KDF from RFC 4253 §7.2
-        // For now, store the session ID
-        LOG.debug("New keys applied, session ID established");
-    }
-
-    /**
-     * Returns the session ID (exchange hash from first key exchange).
-     *
-     * @return the session ID, or null if key exchange has not completed
-     */
-    public byte[] sessionId() {
-        return sessionId != null ? sessionId.clone() : null;
-    }
-
-    /**
-     * Returns the local version.
-     *
-     * @return the local SSH version
-     */
-    public SshVersion localVersion() {
-        return localVersion;
-    }
-
-    /**
-     * Returns the remote version.
-     *
-     * @return the remote SSH version, or null if not yet exchanged
-     */
-    public SshVersion remoteVersion() {
-        return remoteVersion;
-    }
-
-    /**
-     * Returns whether this transport is the server side.
-     *
-     * @return true if server side
-     */
-    public boolean isServer() {
-        return isServer;
-    }
-
-    /**
-     * Returns the underlying codec.
-     *
-     * @return the transport codec
-     */
-    public SshTransportCodec codec() {
-        return codec;
-    }
-
-    /**
-     * Returns whether the transport is closed.
-     *
-     * @return true if closed
-     */
-    public boolean isClosed() {
-        return closed.get();
+    public void sendServiceAccept(String serviceName) throws IOException {
+        ByteBuffer buf = ByteBuffer.allocate(64 + serviceName.length());
+        buf.put((byte) SshMessageType.SSH_MSG_SERVICE_ACCEPT.code());
+        SshTransportCodec.writeString(buf, serviceName);
+        buf.flip();
+        byte[] payload = new byte[buf.remaining()];
+        buf.get(payload);
+        sendPacket(payload);
     }
 
     @Override
     public void close() throws IOException {
         if (closed.compareAndSet(false, true)) {
-            try {
-                socket.close();
-            } catch (IOException e) {
-                LOG.debug("Error closing socket", e);
-            }
+            try { socket.close(); } catch (IOException e) { LOG.debug("Error closing socket", e); }
         }
     }
-
-    // --- Private helpers ---
 
     private String negotiate(List<String> clientList, List<String> serverList, String type) {
         List<String> client = isServer ? serverList : clientList;
@@ -361,7 +589,6 @@ public final class SshTransport implements AutoCloseable {
         int ch;
         while ((ch = in.read()) != -1) {
             if (ch == '\n') {
-                // Strip trailing CR if present
                 if (!sb.isEmpty() && sb.charAt(sb.length() - 1) == '\r') {
                     sb.setLength(sb.length() - 1);
                 }
@@ -376,15 +603,38 @@ public final class SshTransport implements AutoCloseable {
     }
 
     private byte[] readExact(int length) throws IOException {
+        LOG.debug("[READ-EXACT ENTER] length=" + length + " socket=" + socket);
         byte[] buf = new byte[length];
         int offset = 0;
         while (offset < length) {
-            int n = in.read(buf, offset, length - offset);
+            int remaining = length - offset;
+            LOG.debug("[READ-EXACT] reading " + remaining + "B at offset=" + offset);
+            int n = in.read(buf, offset, remaining);
+            LOG.debug("[READ-EXACT] got " + n + "B");
             if (n == -1) {
                 throw new IOException("Unexpected end of stream");
             }
             offset += n;
         }
+        LOG.debug("[READ-EXACT COMPLETE] read " + length + "B");
         return buf;
+    }
+
+    private boolean decodeCipherIsPayloadOnly() {
+        SshCipher c = codec.getDecodeCipher();
+        return c != null && c.isPayloadOnly();
+    }
+
+    private static String bytesToHex(byte[] data) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : data) sb.append(String.format("%02x ", b));
+        return sb.toString().trim();
+    }
+
+    private static String bytesToHex2(byte[] data, int maxBytes) {
+        StringBuilder sb = new StringBuilder();
+        int len = Math.min(data.length, maxBytes);
+        for (int i = 0; i < len; i++) sb.append(String.format("%02x ", data[i]));
+        return sb.toString().trim();
     }
 }
