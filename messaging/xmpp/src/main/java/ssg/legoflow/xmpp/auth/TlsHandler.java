@@ -2,17 +2,19 @@ package ssg.legoflow.xmpp.auth;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Objects;
-
 /**
  * Handles TLS/STARTTLS negotiation for XMPP streams (RFC 6120 section 5).
  *
@@ -76,16 +78,43 @@ public class TlsHandler {
      * @throws RuntimeException if SSLContext initialization fails
      */
     public TlsHandler(String hostname, int port) {
+        this(hostname, port, false);
+    }
+
+    /**
+     * Creates a TLS handler for the specified host and port.
+     *
+     * @param hostname     the target hostname
+     * @param port         the target port
+     * @param trustAllCerts if true, accept all server certificates (self-signed, etc.)
+     * @throws RuntimeException if SSLContext initialization fails
+     */
+    public TlsHandler(String hostname, int port, boolean trustAllCerts) {
         this.hostname = Objects.requireNonNull(hostname, "hostname must not be null");
         this.port = port;
         this.state = TlsState.NOT_STARTED;
 
         try {
             SSLContext sslContext = SSLContext.getInstance("TLS");
-            TrustManagerFactory tmf = TrustManagerFactory.getInstance(
-                    TrustManagerFactory.getDefaultAlgorithm());
-            tmf.init((KeyStore) null); // use default trust store
-            sslContext.init(null, tmf.getTrustManagers(), null);
+            TrustManager[] trustManagers;
+
+            if (trustAllCerts) {
+                trustManagers = new TrustManager[]{
+                    new X509TrustManager() {
+                        @Override public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {}
+                        @Override public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {}
+                        @Override public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+                    }
+                };
+                LOG.info("TlsHandler created with trustAllCerts=true (self-signed certs accepted)");
+            } else {
+                TrustManagerFactory tmf = TrustManagerFactory.getInstance(
+                        TrustManagerFactory.getDefaultAlgorithm());
+                tmf.init((KeyStore) null); // use default trust store
+                trustManagers = tmf.getTrustManagers();
+            }
+
+            sslContext.init(null, trustManagers, null);
 
             this.sslEngine = sslContext.createSSLEngine(hostname, port);
             sslEngine.setUseClientMode(true);
@@ -139,43 +168,39 @@ public class TlsHandler {
      */
     public ByteBuffer beginHandshake() throws IOException {
         if (state != TlsState.PROCEED_RECEIVED && state != TlsState.NOT_STARTED) {
-            throw new IllegalStateException("Cannot begin handshake in state: " + state);
+            throw new IllegalStateException("Unexpected proceed in state: " + state);
         }
         state = TlsState.HANDSHAKING;
-        sslEngine.beginHandshake();
-        LOG.info("TLS handshake initiated with {}:{}", hostname, port);
+        LOG.info("Starting TLS handshake for {}:{}", hostname, port);
 
-        return drainHandshakeOutput();
+        runDelegatedTasks();
+
+        var hsStatus = sslEngine.getHandshakeStatus();
+        if (hsStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP) {
+            return drainHandshakeOutput();
+        }
+        return ByteBuffer.allocate(0);
     }
 
     /**
-     * Processes incoming handshake data and produces outgoing handshake data.
+     * Drives the TLS handshake with the provided server data.
      *
-     * @param incomingData the incoming network data from the peer
-     * @return outgoing network data to send to the peer (may be empty)
-     * @throws IOException if a handshake error occurs
+     * @param serverData the data received from the server during handshake
+     * @return handshake output to send to the server
+     * @throws IOException if the handshake fails
      */
-    public ByteBuffer processHandshake(ByteBuffer incomingData) throws IOException {
+    public ByteBuffer processHandshake(ByteBuffer serverData) throws IOException {
         if (state != TlsState.HANDSHAKING) {
-            throw new IllegalStateException("Not in handshaking state: " + state);
+            throw new IllegalStateException("Not handshaking in state: " + state);
         }
 
-        if (incomingData != null && incomingData.hasRemaining()) {
-            netInBuffer.put(incomingData);
-            netInBuffer.flip();
-
-            SSLEngineResult result;
-            do {
-                result = sslEngine.unwrap(netInBuffer, appInBuffer);
-                LOG.debug("Handshake unwrap: status={}, hsStatus={}",
-                        result.getStatus(), result.getHandshakeStatus());
-            } while (result.getStatus() == SSLEngineResult.Status.OK &&
-                    result.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_UNWRAP);
-
-            netInBuffer.compact();
+        if (serverData != null && serverData.hasRemaining()) {
+            appInBuffer.clear();
+            SSLEngineResult result = sslEngine.unwrap(serverData, appInBuffer);
+            LOG.debug("Handshake unwrap: status={}, hsStatus={}",
+                    result.getStatus(), result.getHandshakeStatus());
         }
 
-        // Run delegated tasks
         runDelegatedTasks();
 
         // Check if handshake is complete

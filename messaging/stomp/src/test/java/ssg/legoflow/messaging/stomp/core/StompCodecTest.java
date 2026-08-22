@@ -1,11 +1,8 @@
 package ssg.legoflow.messaging.stomp.core;
 
 import org.junit.jupiter.api.Test;
-
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link StompCodec} — frame parsing, serialization, and header escaping.
  *

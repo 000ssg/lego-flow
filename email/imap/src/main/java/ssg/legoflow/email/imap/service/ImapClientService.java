@@ -7,10 +7,8 @@ import ssg.legoflow.email.imap.client.ImapClientConfig;
 import ssg.legoflow.service.AbstractService;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
-
 /** Service-based IMAP client adapter for composition within the service framework. */
 public final class ImapClientService extends AbstractService<ByteBuffer, ByteBuffer> {
 

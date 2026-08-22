@@ -2,9 +2,7 @@ package ssg.legoflow.blocks.demo;
 
 import ssg.legoflow.blocks.DefaultContext;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class StatisticsAggregationDemoTest {
 
     @Test

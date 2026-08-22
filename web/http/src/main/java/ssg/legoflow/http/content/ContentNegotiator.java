@@ -4,9 +4,7 @@ import ssg.legoflow.http.header.ContentEncoding;
 import ssg.legoflow.http.header.LanguageTag;
 import ssg.legoflow.http.header.MediaType;
 import ssg.legoflow.http.header.QualityValue;
-
 import java.util.*;
-
 public class ContentNegotiator {
 
     public Optional<MediaType> negotiateMediaType(String acceptHeader, List<MediaType> available) {

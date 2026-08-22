@@ -1,20 +1,14 @@
 package ssg.legoflow.http.proxy.cache;
 
 import ssg.legoflow.http.core.*;
-import ssg.legoflow.http.proxy.reverse.BackendServer;
-import ssg.legoflow.http.proxy.reverse.ProxyRoute;
 import ssg.legoflow.http.proxy.reverse.ReverseProxy;
-import ssg.legoflow.http.proxy.reverse.ReverseProxyConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * Caching reverse proxy.
  *

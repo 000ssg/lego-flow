@@ -4,17 +4,13 @@ import ssg.legoflow.network.cluster.core.ClusterNode;
 import ssg.legoflow.network.cluster.core.ClusterNodeStatus;
 import ssg.legoflow.network.cluster.core.ClusterRole;
 import ssg.legoflow.service.cluster.coordination.*;
-import ssg.legoflow.service.cluster.coordination.raft.RaftLeaderElection;
 import ssg.legoflow.service.cluster.coordination.raft.RaftLogEntry;
-
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 /**
  * Demo: etcd-backed cluster coordination.
  *

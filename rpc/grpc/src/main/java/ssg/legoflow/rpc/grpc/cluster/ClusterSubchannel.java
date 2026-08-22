@@ -1,10 +1,6 @@
 package ssg.legoflow.rpc.grpc.cluster;
 
 import ssg.legoflow.network.cluster.core.ClusterNode;
-
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * A subchannel represents a connection to one gRPC backend.
  *

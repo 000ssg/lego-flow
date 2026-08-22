@@ -1,9 +1,7 @@
 package ssg.legoflow.ws.endpoint;
 
 import ssg.legoflow.http.core.*;
-
 import java.util.List;
-
 public class EndpointInvoker {
 
     private final List<Endpoint> endpoints;

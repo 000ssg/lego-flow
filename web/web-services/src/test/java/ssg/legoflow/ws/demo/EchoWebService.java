@@ -4,10 +4,8 @@ import ssg.legoflow.http.core.*;
 import ssg.legoflow.ws.WebService;
 import ssg.legoflow.ws.WebServiceContext;
 import ssg.legoflow.ws.WebServiceDescriptor;
-
 import java.nio.ByteBuffer;
 import java.util.Set;
-
 public class EchoWebService implements WebService {
 
     private final WebServiceDescriptor descriptor = new WebServiceDescriptor(

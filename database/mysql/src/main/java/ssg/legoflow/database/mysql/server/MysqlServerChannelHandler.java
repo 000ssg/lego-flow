@@ -2,9 +2,7 @@ package ssg.legoflow.database.mysql.server;
 
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
-
 import java.nio.ByteBuffer;
-
 /** Channel handler for MySQL server service. */
 public final class MysqlServerChannelHandler implements ChannelHandler {
     private final MysqlServerService mysqlService;

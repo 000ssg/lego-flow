@@ -3,15 +3,12 @@ package ssg.legoflow.http2.demo;
 import ssg.legoflow.http.core.*;
 import ssg.legoflow.http2.config.Http2Config;
 import ssg.legoflow.http2.connection.Http2Connection;
-import ssg.legoflow.http2.connection.Http2ConnectionPreface;
 import ssg.legoflow.http2.frame.*;
 import ssg.legoflow.http2.server.Http2Server;
 import ssg.legoflow.http2.stream.Http2Stream;
 import ssg.legoflow.http2.stream.Http2StreamState;
-
 import java.util.ArrayList;
 import java.util.List;
-
 public class SimpleHttp2Server {
 
     private final Http2Server server;

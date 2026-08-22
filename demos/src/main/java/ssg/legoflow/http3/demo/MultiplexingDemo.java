@@ -2,18 +2,13 @@ package ssg.legoflow.http3.demo;
 
 import ssg.legoflow.http.core.*;
 import ssg.legoflow.http3.Http3Connection;
-import ssg.legoflow.http3.client.Http3Client;
 import ssg.legoflow.http3.config.Http3Config;
-import ssg.legoflow.http3.quic.QuicConnection;
 import ssg.legoflow.http3.quic.QuicStream;
 import ssg.legoflow.http3.server.Http3Server;
-
-import java.nio.ByteBuffer;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 /**
  * Demonstrates concurrent requests over multiplexed QUIC streams.
  *

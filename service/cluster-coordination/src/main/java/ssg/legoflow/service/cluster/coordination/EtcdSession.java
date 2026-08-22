@@ -2,7 +2,6 @@ package ssg.legoflow.service.cluster.coordination;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
@@ -13,7 +12,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
 /**
  * A session that maintains a lease with automatic keep-alive.
  *

@@ -4,12 +4,10 @@ import ssg.legoflow.rpc.grpc.common.MethodDescriptor;
 import ssg.legoflow.rpc.grpc.metadata.Metadata;
 import ssg.legoflow.rpc.grpc.protobuf.ProtoMessage;
 import ssg.legoflow.rpc.grpc.transport.GrpcStatus;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
-
 /**
  * Represents a server-side gRPC call, holding the method descriptor,
  * request metadata, and providing access to response messages and trailers.

@@ -3,13 +3,10 @@ package ssg.legoflow.http2.demo;
 import ssg.legoflow.http.core.*;
 import ssg.legoflow.http2.client.Http2Client;
 import ssg.legoflow.http2.config.Http2Config;
-import ssg.legoflow.http2.connection.Http2Connection;
 import ssg.legoflow.http2.frame.Http2Frame;
 import ssg.legoflow.http2.server.Http2Server;
-
 import java.util.ArrayList;
 import java.util.List;
-
 public class MultiplexingDemo {
 
     private final Http2Server server;

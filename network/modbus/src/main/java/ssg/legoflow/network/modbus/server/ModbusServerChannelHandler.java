@@ -2,9 +2,7 @@ package ssg.legoflow.network.modbus.server;
 
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
-
 import java.nio.ByteBuffer;
-
 /** Channel handler for Modbus server service, routing data between DataChannel and Modbus transport. */
 public final class ModbusServerChannelHandler implements ChannelHandler {
 

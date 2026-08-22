@@ -1,11 +1,8 @@
 package ssg.legoflow.ftp.security;
 
 import org.junit.jupiter.api.Test;
-
 import java.nio.file.Path;
-
 import static org.assertj.core.api.Assertions.*;
-
 class FtpsConfigTest {
 
     @Test

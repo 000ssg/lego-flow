@@ -7,13 +7,11 @@ import ssg.legoflow.mqtt.client.MqttClientConfig;
 import ssg.legoflow.mqtt.protocol.QoS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.charset.StandardCharsets;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 /**
  * Demo demonstrating MQTT QoS 0, 1, and 2 delivery guarantees.
  *

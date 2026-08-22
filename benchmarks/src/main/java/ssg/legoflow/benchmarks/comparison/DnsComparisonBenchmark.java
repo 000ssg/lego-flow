@@ -7,10 +7,8 @@ import ssg.legoflow.blocks.DefaultContext;
 import ssg.legoflow.network.dns.protocol.DnsCodec;
 import ssg.legoflow.network.dns.protocol.DnsMessage;
 import ssg.legoflow.network.dns.protocol.RecordType;
-
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
-
 /**
  * Benchmarks comparing standalone DNS operations vs service-pipeline DNS operations.
  *

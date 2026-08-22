@@ -1,10 +1,8 @@
 package ssg.legoflow.coap.protocol;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 /**
  * Tests for {@link ContentFormat}.
  *

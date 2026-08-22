@@ -7,13 +7,11 @@ import ssg.legoflow.coap.resource.CoapExchange;
 import ssg.legoflow.coap.resource.CoapResource;
 import ssg.legoflow.coap.server.CoapServer;
 import ssg.legoflow.coap.server.CoapServerConfig;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * Demonstrates RESTful CRUD operations over CoAP, similar to HTTP REST
  * but designed for constrained environments.

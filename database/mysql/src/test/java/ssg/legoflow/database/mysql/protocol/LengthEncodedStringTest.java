@@ -1,11 +1,8 @@
 package ssg.legoflow.database.mysql.protocol;
 
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link LengthEncodedString}.
  */

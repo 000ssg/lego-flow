@@ -1,9 +1,7 @@
 package ssg.legoflow.network.modbus.server;
 
 import org.junit.jupiter.api.*;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ModbusServerTest {
 
     private ModbusServer server;

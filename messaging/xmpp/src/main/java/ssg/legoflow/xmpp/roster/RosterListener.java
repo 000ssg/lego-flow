@@ -1,9 +1,7 @@
 package ssg.legoflow.xmpp.roster;
 
 import ssg.legoflow.xmpp.core.JID;
-
 import java.util.List;
-
 /**
  * Listener for roster change events.
  *

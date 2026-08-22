@@ -1,12 +1,9 @@
 package ssg.legoflow.email.common.address;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 /**
  * Tests for {@link AddressParser}, {@link Mailbox}, and {@link AddressGroup}.
  */

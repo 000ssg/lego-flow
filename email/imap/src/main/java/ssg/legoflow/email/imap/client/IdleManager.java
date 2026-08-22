@@ -3,12 +3,10 @@ package ssg.legoflow.email.imap.client;
 import ssg.legoflow.email.imap.protocol.ImapResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
-
 /**
  * Manages IMAP IDLE mode for receiving push notifications.
  *

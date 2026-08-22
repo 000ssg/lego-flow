@@ -4,14 +4,10 @@ import org.junit.jupiter.api.*;
 import ssg.legoflow.database.postgresql.protocol.BackendMessage;
 import ssg.legoflow.database.postgresql.protocol.TransactionStatus;
 import ssg.legoflow.database.postgresql.server.PgServer;
-
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Integration tests for {@link PgClient} against {@link PgServer}.
  */

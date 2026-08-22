@@ -2,13 +2,10 @@ package ssg.legoflow.http.cluster;
 
 import ssg.legoflow.http.core.HttpMethod;
 import org.junit.jupiter.api.Test;
-
 import java.time.Duration;
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 /**
  * Tests for {@link CacheCoherenceConfig} builder and defaults.
  */

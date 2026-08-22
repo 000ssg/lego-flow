@@ -3,12 +3,9 @@ package ssg.legoflow.network.snmp.protocol;
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.common.asn1.Asn1BitString;
 import ssg.legoflow.network.common.oid.ObjectIdentifier;
-
 import java.net.InetAddress;
 import java.util.Base64;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Extended tests for {@link SnmpCodec} covering individual SNMP value encoding/decoding,
  * unsigned byte helpers, and edge cases in encodeSnmpValue/decodeSnmpValue.

@@ -4,10 +4,8 @@ import ssg.legoflow.http.core.*;
 import ssg.legoflow.http2.connection.Http2Connection;
 import ssg.legoflow.http2.connection.Http2ConnectionPreface;
 import ssg.legoflow.http2.connection.Http2Settings;
-
 import java.nio.ByteBuffer;
 import java.util.Base64;
-
 public class Http2UpgradeHandler {
 
     public static final String H2C_PROTOCOL = "h2c";

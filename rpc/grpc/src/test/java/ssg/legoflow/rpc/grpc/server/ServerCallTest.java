@@ -6,9 +6,7 @@ import ssg.legoflow.rpc.grpc.metadata.Metadata;
 import ssg.legoflow.rpc.grpc.protobuf.MessageDescriptor;
 import ssg.legoflow.rpc.grpc.protobuf.ProtoMessage;
 import ssg.legoflow.rpc.grpc.transport.GrpcStatus;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ServerCallTest {
 
     private final MethodDescriptor method = MethodDescriptor.unary(

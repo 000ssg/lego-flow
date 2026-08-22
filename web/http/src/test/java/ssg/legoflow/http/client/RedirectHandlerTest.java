@@ -2,11 +2,8 @@ package ssg.legoflow.http.client;
 
 import ssg.legoflow.http.core.*;
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 class RedirectHandlerTest {
 
     private final RedirectHandler handler = new RedirectHandler(5);

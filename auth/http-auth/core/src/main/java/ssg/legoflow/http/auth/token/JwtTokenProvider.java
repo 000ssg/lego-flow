@@ -2,7 +2,6 @@ package ssg.legoflow.http.auth.token;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
@@ -12,7 +11,6 @@ import java.security.spec.X509EncodedKeySpec;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-
 /**
  * JWT token provider implementing token generation and validation from scratch.
  * Supports HMAC-SHA256 (HS256) and RSA-SHA256 (RS256) signing algorithms.

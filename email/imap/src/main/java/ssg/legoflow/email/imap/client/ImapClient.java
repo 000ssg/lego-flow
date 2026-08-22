@@ -3,12 +3,8 @@ package ssg.legoflow.email.imap.client;
 import ssg.legoflow.email.imap.protocol.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
 /**
  * IMAP4rev2 client providing high-level mailbox operations.
  *

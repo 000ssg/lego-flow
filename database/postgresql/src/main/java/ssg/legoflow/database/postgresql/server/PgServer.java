@@ -3,14 +3,12 @@ package ssg.legoflow.database.postgresql.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ssg.legoflow.database.postgresql.auth.PgAuthenticator;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * PostgreSQL v3 wire protocol server using virtual threads.
  *

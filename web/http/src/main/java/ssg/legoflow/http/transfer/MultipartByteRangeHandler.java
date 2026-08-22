@@ -3,13 +3,11 @@ package ssg.legoflow.http.transfer;
 import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpResponse;
 import ssg.legoflow.http.core.HttpStatus;
-
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
-
 /**
  * Handles multipart/byteranges responses per RFC 7233 §4.3.
  *

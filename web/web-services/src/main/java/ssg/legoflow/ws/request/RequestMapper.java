@@ -2,9 +2,7 @@ package ssg.legoflow.ws.request;
 
 import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpRequest;
-
 import java.util.Map;
-
 public class RequestMapper {
 
     public String getBody(HttpRequest request) {

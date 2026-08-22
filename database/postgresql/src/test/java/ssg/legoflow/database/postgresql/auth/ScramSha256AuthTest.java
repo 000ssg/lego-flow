@@ -4,11 +4,8 @@ import org.junit.jupiter.api.Test;
 import ssg.legoflow.database.postgresql.client.PgClient;
 import ssg.legoflow.database.postgresql.client.PgResult;
 import ssg.legoflow.database.postgresql.server.PgServer;
-
 import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Integration tests for SCRAM-SHA-256 authentication via full client/server handshake.
  */

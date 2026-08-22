@@ -3,13 +3,9 @@ package ssg.legoflow.email.smtp.server;
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.email.smtp.client.SmtpClient;
 import ssg.legoflow.email.smtp.client.SmtpClientConfig;
-import ssg.legoflow.email.smtp.protocol.SmtpReply;
-
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for SmtpSession state machine by exercising all command handlers
  * through the client connection.

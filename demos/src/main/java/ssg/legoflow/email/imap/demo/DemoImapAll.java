@@ -9,7 +9,6 @@ import ssg.legoflow.email.imap.server.InMemoryMailStore;
 import ssg.legoflow.email.imap.server.Mailbox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -17,7 +16,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 /**
  * Comprehensive demo of all IMAP module features.
  *

@@ -2,9 +2,7 @@ package ssg.legoflow.messaging.amqp.container;
 
 import ssg.legoflow.messaging.amqp.common.AmqpConstants;
 import ssg.legoflow.messaging.amqp.sasl.SaslAuthenticator;
-
 import java.util.UUID;
-
 /**
  * Configuration for {@link AmqpContainer}.
  *

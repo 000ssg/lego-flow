@@ -5,10 +5,8 @@ import ssg.legoflow.database.redis.command.CommandRegistry;
 import ssg.legoflow.database.redis.protocol.RespType;
 import ssg.legoflow.database.redis.server.ClientConnection;
 import ssg.legoflow.database.redis.server.Database;
-
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-
 /**
  * Implements Redis list commands: LPUSH, RPUSH, LPOP, RPOP, LLEN, LRANGE,
  * LINDEX, LSET, LREM, LINSERT, LTRIM, BLPOP, BRPOP, LMOVE, BLMOVE.

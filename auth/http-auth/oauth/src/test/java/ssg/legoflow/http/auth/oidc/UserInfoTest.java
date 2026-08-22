@@ -1,11 +1,8 @@
 package ssg.legoflow.http.auth.oidc;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.*;
-
 class UserInfoTest {
 
     @Test

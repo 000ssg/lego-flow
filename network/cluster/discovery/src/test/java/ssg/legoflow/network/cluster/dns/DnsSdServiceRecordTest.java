@@ -7,15 +7,12 @@ import ssg.legoflow.network.dns.rdata.ARecord;
 import ssg.legoflow.network.dns.rdata.PtrRecord;
 import ssg.legoflow.network.dns.rdata.SrvRecord;
 import ssg.legoflow.network.dns.rdata.TxtRecord;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.*;
-
 class DnsSdServiceRecordTest {
 
     private static final Duration TTL = Duration.ofSeconds(120);

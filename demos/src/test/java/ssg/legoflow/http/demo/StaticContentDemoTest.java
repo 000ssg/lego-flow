@@ -7,13 +7,10 @@ import ssg.legoflow.http.staticcontent.ContentResolver;
 import ssg.legoflow.http.staticcontent.StaticContentConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.*;
-
 class StaticContentDemoTest {
 
     private StaticFileServer fileServer;

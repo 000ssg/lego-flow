@@ -1,11 +1,8 @@
 package ssg.legoflow.email.smtp.auth;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.Base64;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link CramMd5Auth}.
  */

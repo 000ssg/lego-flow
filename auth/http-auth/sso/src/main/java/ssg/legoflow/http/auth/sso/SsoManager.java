@@ -2,16 +2,13 @@ package ssg.legoflow.http.auth.sso;
 
 import ssg.legoflow.http.auth.AuthPrincipal;
 import ssg.legoflow.http.auth.token.JwtTokenProvider;
-import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Single Sign-On orchestrator managing federated sessions across services.
  * Uses JWT tokens for session federation and cookie-based session tracking.

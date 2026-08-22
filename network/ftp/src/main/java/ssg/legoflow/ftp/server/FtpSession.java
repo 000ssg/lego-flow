@@ -1,9 +1,7 @@
 package ssg.legoflow.ftp.server;
 
 import ssg.legoflow.ftp.protocol.FtpTransferType;
-
 import java.net.InetAddress;
-
 /**
  * Per-client FTP session state.
  *

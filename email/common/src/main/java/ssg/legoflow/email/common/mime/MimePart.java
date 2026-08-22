@@ -2,11 +2,9 @@ package ssg.legoflow.email.common.mime;
 
 import ssg.legoflow.email.common.encoding.Base64Codec;
 import ssg.legoflow.email.common.encoding.QuotedPrintableCodec;
-
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-
 /**
  * A single MIME part consisting of headers and content.
  *

@@ -4,11 +4,9 @@ import ssg.legoflow.mqtt.protocol.MqttProperties;
 import ssg.legoflow.mqtt.protocol.PublishPacket;
 import ssg.legoflow.mqtt.protocol.QoS;
 import ssg.legoflow.mqtt.topic.TopicFilter;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Thread-safe retained message storage.
  *

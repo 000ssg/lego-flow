@@ -8,12 +8,9 @@ import ssg.legoflow.messaging.kafka.record.Header;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 class KafkaProducerTest {
 
     private KafkaBroker broker;

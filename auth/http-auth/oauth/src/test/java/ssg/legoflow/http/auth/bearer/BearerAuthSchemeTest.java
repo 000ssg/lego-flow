@@ -5,13 +5,9 @@ import ssg.legoflow.http.auth.oauth2.server.TokenStore;
 import ssg.legoflow.http.auth.token.JwtTokenProvider;
 import ssg.legoflow.http.core.*;
 import org.junit.jupiter.api.Test;
-
 import java.time.Duration;
-import java.util.Map;
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.*;
-
 class BearerAuthSchemeTest {
 
     private final JwtTokenProvider jwtProvider = JwtTokenProvider.hmac256(

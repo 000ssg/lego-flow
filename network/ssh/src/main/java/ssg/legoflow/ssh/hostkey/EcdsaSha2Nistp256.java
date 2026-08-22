@@ -1,12 +1,10 @@
 package ssg.legoflow.ssh.hostkey;
 
 import ssg.legoflow.ssh.kex.EcdhSha2Nistp256;
-
 import java.nio.ByteBuffer;
 import java.security.*;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
-
 /**
  * ECDSA host key algorithm with nistp256 curve (ecdsa-sha2-nistp256).
  *

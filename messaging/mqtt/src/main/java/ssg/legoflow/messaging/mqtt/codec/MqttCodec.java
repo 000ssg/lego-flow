@@ -1,12 +1,10 @@
 package ssg.legoflow.messaging.mqtt.codec;
 
 import ssg.legoflow.messaging.mqtt.MqttMessage;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
 /**
  * Codec for encoding and decoding MQTT (Message Queuing Telemetry Transport) messages.
  * 

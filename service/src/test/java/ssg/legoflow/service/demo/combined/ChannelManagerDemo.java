@@ -9,12 +9,10 @@ import ssg.legoflow.service.manager.SelectableChannelManager;
 import ssg.legoflow.service.user.ServiceUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 public class ChannelManagerDemo {
 
     private static final Logger LOG = LoggerFactory.getLogger(ChannelManagerDemo.class);

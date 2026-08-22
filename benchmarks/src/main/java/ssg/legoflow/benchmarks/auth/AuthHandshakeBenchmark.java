@@ -7,12 +7,10 @@ import ssg.legoflow.http.auth.AuthCredentials;
 import ssg.legoflow.http.auth.AuthResult;
 import ssg.legoflow.http.auth.basic.BasicAuthScheme;
 import ssg.legoflow.http.auth.basic.InMemoryUserStore;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
 /**
  * Benchmarks for authentication handshake performance.
  *

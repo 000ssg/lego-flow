@@ -6,11 +6,8 @@ import ssg.legoflow.http.core.HttpResponse;
 import ssg.legoflow.http.core.HttpStatus;
 import ssg.legoflow.upnp.controlpoint.ControlPoint;
 import ssg.legoflow.upnp.controlpoint.MediaRendererProxy;
-
 import java.util.Objects;
-
 import static ssg.legoflow.upnp.demo.mccweb.MccDeviceHandler.jsonResponse;
-
 /**
  * Handles volume control REST API requests for the Media Control Center.
  *

@@ -1,10 +1,8 @@
 package ssg.legoflow.messaging.amqp.transport;
 
 import ssg.legoflow.messaging.amqp.types.AmqpType;
-
 import java.util.List;
 import java.util.Map;
-
 /**
  * Sealed interface for all AMQP 1.0 transport performatives.
  *

@@ -6,14 +6,10 @@ import ssg.legoflow.http3.quic.QuicConnection;
 import ssg.legoflow.http3.quic.QuicSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.net.InetSocketAddress;
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.*;
-
 class Http3ServerTest {
 
     private Http3Server server;

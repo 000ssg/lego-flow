@@ -3,14 +3,23 @@ package ssg.legoflow.ssh.kex;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import javax.crypto.KeyAgreement;
+import javax.crypto.interfaces.DHPrivateKey;
+import javax.crypto.interfaces.DHPublicKey;
+import javax.crypto.spec.DHParameterSpec;
+import javax.crypto.spec.DHPublicKeySpec;
 
 /**
  * Diffie-Hellman Group 14 key exchange with SHA-256 (RFC 4253, RFC 8268).
  *
  * <p>Uses the 2048-bit MODP group from RFC 3526 section 3.
+ * Relies on Java JCE for all DH crypto operations.
  *
  * @since 0.1.0
  */
@@ -33,9 +42,7 @@ public final class DiffieHellmanGroup14 implements KexAlgorithm {
     /** The generator g = 2. */
     public static final BigInteger G = BigInteger.TWO;
 
-    private final SecureRandom random = new SecureRandom();
-    private BigInteger privateKey;
-    private BigInteger publicKey;
+    private KeyPair keyPair;
 
     @Override
     public String name() {
@@ -49,20 +56,19 @@ public final class DiffieHellmanGroup14 implements KexAlgorithm {
 
     @Override
     public void init() {
-        // Generate random private key x, 1 < x < (p-1)/2
-        int bitLength = P.bitLength() - 1;
-        do {
-            privateKey = new BigInteger(bitLength, random);
-        } while (privateKey.compareTo(BigInteger.ONE) <= 0
-                || privateKey.compareTo(P.subtract(BigInteger.ONE)) >= 0);
-
-        // Compute e = g^x mod p
-        publicKey = G.modPow(privateKey, P);
+        try {
+            KeyPairGenerator kpg = KeyPairGenerator.getInstance("DH");
+            kpg.initialize(new DHParameterSpec(P, G));
+            keyPair = kpg.generateKeyPair();
+        } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
+            throw new RuntimeException("DH algorithm not available", e);
+        }
     }
 
     @Override
     public byte[] localPublicValue() {
-        return toMpint(publicKey);
+        DHPublicKey pub = (DHPublicKey) keyPair.getPublic();
+        return toMpint(pub.getY());
     }
 
     @Override
@@ -70,12 +76,32 @@ public final class DiffieHellmanGroup14 implements KexAlgorithm {
         BigInteger f = fromMpint(remotePublicValue);
 
         // Validate: 1 < f < p - 1
-        if (f.compareTo(BigInteger.ONE) <= 0 || f.compareTo(P.subtract(BigInteger.ONE)) >= 0) {
+        DHPrivateKey priv = (DHPrivateKey) keyPair.getPrivate();
+        DHParameterSpec param = priv.getParams();
+        if (f.compareTo(BigInteger.ONE) <= 0
+                || f.compareTo(param.getP().subtract(BigInteger.ONE)) >= 0) {
             throw new IllegalArgumentException("Invalid DH public value");
         }
 
-        BigInteger K = f.modPow(privateKey, P);
-        return toMpint(K);
+        try {
+            DHPublicKeySpec pubSpec = new DHPublicKeySpec(f, param.getP(), param.getG());
+            KeyFactory kf = KeyFactory.getInstance("DH");
+            KeyAgreement ka = KeyAgreement.getInstance("DH");
+            ka.init(keyPair.getPrivate());
+            ka.doPhase(kf.generatePublic(pubSpec), true);
+            byte[] rawSecret = ka.generateSecret();
+            // Return raw big-endian bytes (not mpint)
+            // computeExchangeHash wraps with writeBuf → correct mpint [4-len][raw-bytes]
+            byte[] rawBytes = new BigInteger(1, rawSecret).toByteArray();
+            if (rawBytes.length > 0 && rawBytes[0] == 0) {
+                byte[] trimmed = new byte[rawBytes.length - 1];
+                System.arraycopy(rawBytes, 1, trimmed, 0, trimmed.length);
+                return trimmed;
+            }
+            return rawBytes;
+        } catch (Exception e) {
+            throw new RuntimeException("DH key agreement failed", e);
+        }
     }
 
     @Override

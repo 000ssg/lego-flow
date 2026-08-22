@@ -2,13 +2,10 @@ package ssg.legoflow.messaging.kafka.codec;
 
 import ssg.legoflow.messaging.kafka.protocol.*;
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Round-trip encode/decode tests for every API key request and response.
  */

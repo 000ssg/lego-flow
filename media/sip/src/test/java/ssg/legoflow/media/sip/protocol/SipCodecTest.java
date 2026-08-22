@@ -2,11 +2,8 @@ package ssg.legoflow.media.sip.protocol;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.media.sip.header.SipHeaders;
-
 import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link SipCodec}.
  */

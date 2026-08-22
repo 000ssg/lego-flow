@@ -3,11 +3,8 @@ package ssg.legoflow.rpc.grpc.client;
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.rpc.grpc.transport.GrpcEncoding;
 import ssg.legoflow.rpc.grpc.transport.GrpcTimeout;
-
 import java.time.Duration;
-
 import static org.assertj.core.api.Assertions.*;
-
 class CallOptionsTest {
 
     @Test

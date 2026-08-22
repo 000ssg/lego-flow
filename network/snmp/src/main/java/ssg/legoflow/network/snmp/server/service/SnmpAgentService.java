@@ -9,11 +9,9 @@ import ssg.legoflow.service.AbstractService;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
 import ssg.legoflow.service.channel.ChannelHandler;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
-
 /** Service-based SNMP agent adapter for composition within the service framework. */
 public final class SnmpAgentService extends AbstractService<ByteBuffer, ByteBuffer> {
 

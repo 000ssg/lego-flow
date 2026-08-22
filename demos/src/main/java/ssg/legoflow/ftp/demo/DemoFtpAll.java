@@ -10,13 +10,11 @@ import ssg.legoflow.ftp.security.FtpsMode;
 import ssg.legoflow.ftp.server.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
 /**
  * Comprehensive demo of all FTP module features.
  *

@@ -2,14 +2,10 @@ package ssg.legoflow.interop.terminal;
 
 import org.junit.jupiter.api.*;
 import ssg.legoflow.network.terminals.base.config.TerminalConfig;
-import ssg.legoflow.network.terminals.base.display.TermAttr;
 import ssg.legoflow.network.terminals.vt100.VT100Terminal;
 import ssg.legoflow.network.terminals.xterm.XTERMTerminal;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Interoperability test: Lego Flow terminal emulators against reference
  * terminal behavior documented in DEC VT100 manuals, xterm ctlseqs, and

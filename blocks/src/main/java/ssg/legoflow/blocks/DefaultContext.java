@@ -2,9 +2,7 @@ package ssg.legoflow.blocks;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.concurrent.ConcurrentHashMap;
-
 public class DefaultContext implements Context {
 
     private final Logger logger;

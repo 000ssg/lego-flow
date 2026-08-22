@@ -1,11 +1,9 @@
 package ssg.legoflow.http.proxy.cluster;
 
 import ssg.legoflow.http.proxy.reverse.BackendServer;
-
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
-
 /**
  * Configuration for the proxy cluster backend group.
  *

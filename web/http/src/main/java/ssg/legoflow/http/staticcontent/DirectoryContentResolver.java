@@ -2,13 +2,11 @@ package ssg.legoflow.http.staticcontent;
 
 import ssg.legoflow.http.content.MediaTypeRegistry;
 import ssg.legoflow.http.header.MediaType;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
-
 public class DirectoryContentResolver implements ContentResolver {
 
     private final Path root;

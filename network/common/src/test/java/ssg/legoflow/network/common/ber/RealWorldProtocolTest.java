@@ -4,11 +4,8 @@ import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.common.asn1.*;
 import ssg.legoflow.network.common.oid.ObjectIdentifier;
 import ssg.legoflow.network.common.oid.StandardOids;
-
 import java.nio.ByteBuffer;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests encoding/decoding real-world protocol structures (LDAP, SNMP).
  */

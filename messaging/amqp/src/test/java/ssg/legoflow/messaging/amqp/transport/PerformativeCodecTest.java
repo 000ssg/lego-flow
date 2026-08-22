@@ -4,12 +4,9 @@ import org.junit.jupiter.api.Test;
 import ssg.legoflow.messaging.amqp.types.AmqpType;
 import ssg.legoflow.messaging.amqp.types.Descriptors;
 import ssg.legoflow.messaging.amqp.types.TypeCodec;
-
 import java.util.List;
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link PerformativeCodec} — performative encoding/decoding.
  */

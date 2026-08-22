@@ -7,13 +7,10 @@ import ssg.legoflow.coap.protocol.CoapType;
 import ssg.legoflow.coap.protocol.CoapVersion;
 import ssg.legoflow.coap.protocol.ContentFormat;
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 /**
  * Tests for {@link CoapCodec}.
  *

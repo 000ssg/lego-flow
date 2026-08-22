@@ -1,11 +1,7 @@
 package ssg.legoflow.database.postgresql.protocol;
 
-import ssg.legoflow.database.postgresql.common.PgSeverity;
-import ssg.legoflow.database.postgresql.common.SqlState;
-
 import java.util.List;
 import java.util.Map;
-
 /**
  * Sealed interface for all backend (server to client) messages.
  *

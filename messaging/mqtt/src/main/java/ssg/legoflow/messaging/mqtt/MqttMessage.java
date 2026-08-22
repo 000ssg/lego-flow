@@ -1,7 +1,5 @@
 package ssg.legoflow.messaging.mqtt;
 
-import java.util.Map;
-import java.util.HashMap;
 
 /**
  * Represents an MQTT message.

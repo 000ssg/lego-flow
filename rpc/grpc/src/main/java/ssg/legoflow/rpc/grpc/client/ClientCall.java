@@ -6,12 +6,10 @@ import ssg.legoflow.rpc.grpc.metadata.Metadata;
 import ssg.legoflow.rpc.grpc.protobuf.ProtoMessage;
 import ssg.legoflow.rpc.grpc.protobuf.ProtobufCodec;
 import ssg.legoflow.rpc.grpc.transport.*;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 /**
  * Client-side representation of a gRPC call.
  * Builds request frames and parses response frames.

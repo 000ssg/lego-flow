@@ -2,9 +2,7 @@ package ssg.legoflow.messaging.amqp.server.service;
 
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
-
 import java.nio.ByteBuffer;
-
 /** Channel handler for AMQP container service. */
 public final class AmqpContainerChannelHandler implements ChannelHandler {
     private final AmqpContainerService amqpService;

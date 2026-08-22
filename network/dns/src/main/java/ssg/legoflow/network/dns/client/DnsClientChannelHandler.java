@@ -2,9 +2,7 @@ package ssg.legoflow.network.dns.client;
 
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
-
 import java.nio.ByteBuffer;
-
 /** Channel handler for DNS client service, routing data between DataChannel and DNS transport. */
 public final class DnsClientChannelHandler implements ChannelHandler {
 

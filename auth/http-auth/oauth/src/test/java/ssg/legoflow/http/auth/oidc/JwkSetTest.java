@@ -1,13 +1,10 @@
 package ssg.legoflow.http.auth.oidc;
 
 import org.junit.jupiter.api.Test;
-
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Base64;
-
 import static org.assertj.core.api.Assertions.*;
-
 class JwkSetTest {
 
     @Test

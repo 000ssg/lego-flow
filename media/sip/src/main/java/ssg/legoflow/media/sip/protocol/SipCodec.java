@@ -1,16 +1,12 @@
 package ssg.legoflow.media.sip.protocol;
 
 import ssg.legoflow.media.sip.header.SipHeaders;
-
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
 /**
  * SIP message codec for encoding and decoding requests and responses.
  *

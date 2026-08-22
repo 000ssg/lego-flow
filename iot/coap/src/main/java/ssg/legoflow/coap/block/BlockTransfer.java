@@ -2,13 +2,11 @@ package ssg.legoflow.coap.block;
 
 import ssg.legoflow.coap.protocol.CoapMessage;
 import ssg.legoflow.coap.protocol.CoapOption;
-
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-
 /**
  * Manages blockwise transfers as defined in RFC 7959.
  *

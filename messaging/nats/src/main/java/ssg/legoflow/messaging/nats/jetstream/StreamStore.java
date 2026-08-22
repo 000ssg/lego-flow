@@ -1,14 +1,11 @@
 package ssg.legoflow.messaging.nats.jetstream;
 
 import ssg.legoflow.messaging.nats.protocol.NatsHeaders;
-
-import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * In-memory message store with retention policies for JetStream streams.
  *

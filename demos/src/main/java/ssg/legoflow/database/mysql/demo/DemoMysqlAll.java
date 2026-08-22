@@ -3,14 +3,11 @@ package ssg.legoflow.database.mysql.demo;
 import ssg.legoflow.database.mysql.auth.CachingSha2Password;
 import ssg.legoflow.database.mysql.auth.MysqlNativePassword;
 import ssg.legoflow.database.mysql.client.MysqlClient;
-import ssg.legoflow.database.mysql.client.MysqlPreparedStatement;
 import ssg.legoflow.database.mysql.client.MysqlResult;
 import ssg.legoflow.database.mysql.server.MysqlServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
-
 /**
  * Comprehensive demo of all MySQL module features.
  *

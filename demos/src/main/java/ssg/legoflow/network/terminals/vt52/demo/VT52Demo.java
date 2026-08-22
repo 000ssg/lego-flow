@@ -3,9 +3,7 @@ package ssg.legoflow.network.terminals.vt52.demo;
 import ssg.legoflow.network.terminals.base.config.TerminalConfig;
 import ssg.legoflow.network.terminals.base.io.Terminal;
 import ssg.legoflow.network.terminals.vt52.VT52Terminal;
-
 import java.util.List;
-
 /**
  * Demonstrates VT52 terminal emulation.
  *
@@ -32,5 +30,8 @@ public final class VT52Demo {
         System.out.println("Type: " + terminal.type());
         System.out.println("Cursor: " + terminal.cursor().row() + "," + terminal.cursor().col());
         System.out.println("Lines: " + lines.size());
+    }
+    public static void main(String[] args) {
+        demonstrate();
     }
 }

@@ -4,9 +4,7 @@ import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.cluster.core.ClusterNode;
 import ssg.legoflow.network.cluster.core.ClusterNodeStatus;
 import ssg.legoflow.network.cluster.core.ClusterRole;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class ClusterSubchannelTest {
 
     private final ClusterNode node = ClusterNode.builder()

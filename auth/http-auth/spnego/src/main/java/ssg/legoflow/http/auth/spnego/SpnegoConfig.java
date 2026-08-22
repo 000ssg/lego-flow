@@ -1,9 +1,7 @@
 package ssg.legoflow.http.auth.spnego;
 
 import ssg.legoflow.auth.gssapi.GssConfig;
-
 import java.util.Objects;
-
 /**
  * Configuration for SPNEGO (Negotiate) HTTP authentication.
  *

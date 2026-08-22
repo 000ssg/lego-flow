@@ -9,14 +9,12 @@ import ssg.legoflow.coap.server.CoapServer;
 import ssg.legoflow.coap.server.CoapServerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * Comprehensive demo of all CoAP module features.
  *

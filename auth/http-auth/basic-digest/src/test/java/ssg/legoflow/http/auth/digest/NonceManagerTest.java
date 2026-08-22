@@ -2,11 +2,8 @@ package ssg.legoflow.http.auth.digest;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.time.Duration;
-
 import static org.assertj.core.api.Assertions.*;
-
 class NonceManagerTest {
 
     private NonceManager manager;

@@ -1,9 +1,7 @@
 package ssg.legoflow.email.common.mime;
 
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-
 /**
  * Parses raw bytes into a {@link MimeMessage}.
  *

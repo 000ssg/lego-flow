@@ -1,16 +1,12 @@
 package ssg.legoflow.rpc.grpc.client;
 
 import ssg.legoflow.rpc.grpc.common.MethodDescriptor;
-import ssg.legoflow.rpc.grpc.metadata.Metadata;
 import ssg.legoflow.rpc.grpc.protobuf.ProtoMessage;
 import ssg.legoflow.rpc.grpc.protobuf.ServiceDescriptor;
 import ssg.legoflow.rpc.grpc.transport.GrpcEncoding;
-import ssg.legoflow.rpc.grpc.transport.GrpcTimeout;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * Dynamic stub for making gRPC calls. Wraps a channel and provides
  * convenient methods for all four call types.

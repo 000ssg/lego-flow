@@ -1,11 +1,9 @@
 package ssg.legoflow.messaging.amqp.message;
 
 import ssg.legoflow.messaging.amqp.types.AmqpType;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
-
 /**
  * Represents a complete AMQP 1.0 message with all sections.
  *

@@ -1,12 +1,10 @@
 package ssg.legoflow.http2.hpack;
 
 import ssg.legoflow.http.core.HttpHeaders;
-
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
-
 public class HpackEncoder {
 
     private static final Set<String> DEFAULT_SENSITIVE_HEADERS = Set.of(

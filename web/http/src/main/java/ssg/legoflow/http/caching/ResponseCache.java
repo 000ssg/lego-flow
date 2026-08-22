@@ -1,9 +1,7 @@
 package ssg.legoflow.http.caching;
 
 import ssg.legoflow.http.core.HttpResponse;
-
 import java.util.Optional;
-
 public interface ResponseCache {
 
     Optional<CachedResponse> get(String key);

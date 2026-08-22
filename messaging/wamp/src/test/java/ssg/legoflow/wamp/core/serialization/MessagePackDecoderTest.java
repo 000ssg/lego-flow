@@ -1,13 +1,10 @@
 package ssg.legoflow.wamp.core.serialization;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 /**
  * Tests for MessagePack decoding, verifying correct interpretation of binary formats.
  */

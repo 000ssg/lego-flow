@@ -1,9 +1,7 @@
 package ssg.legoflow.messaging.nats.subject;
 
 import ssg.legoflow.messaging.nats.protocol.NatsProtocol;
-
 import java.util.Objects;
-
 /**
  * NATS subject model with token splitting.
  *

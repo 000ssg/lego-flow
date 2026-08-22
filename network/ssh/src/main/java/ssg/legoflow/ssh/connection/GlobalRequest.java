@@ -1,9 +1,7 @@
 package ssg.legoflow.ssh.connection;
 
 import ssg.legoflow.ssh.transport.SshTransportCodec;
-
 import java.nio.ByteBuffer;
-
 /**
  * SSH global requests per RFC 4254 section 4.
  *

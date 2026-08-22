@@ -2,16 +2,12 @@ package ssg.legoflow.rpc.grpc.demo;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ssg.legoflow.rpc.grpc.client.CallOptions;
 import ssg.legoflow.rpc.grpc.client.GrpcChannel;
 import ssg.legoflow.rpc.grpc.client.GrpcStub;
 import ssg.legoflow.rpc.grpc.protobuf.ProtoMessage;
 import ssg.legoflow.rpc.grpc.server.GrpcServer;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ChatServiceTest {
 
     private GrpcStub stub;

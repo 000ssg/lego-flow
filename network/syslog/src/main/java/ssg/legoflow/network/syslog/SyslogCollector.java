@@ -5,10 +5,8 @@ import org.slf4j.LoggerFactory;
 import ssg.legoflow.network.syslog.protocol.SyslogMessage;
 import ssg.legoflow.network.syslog.transport.TcpCollector;
 import ssg.legoflow.network.syslog.transport.UdpCollector;
-
 import java.io.IOException;
 import java.util.function.Consumer;
-
 /**
  * High-level syslog collector that can listen on multiple transports.
  *

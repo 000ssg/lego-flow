@@ -4,15 +4,11 @@ import ssg.legoflow.upnp.controlpoint.ControlPoint;
 import ssg.legoflow.upnp.controlpoint.MediaRendererProxy;
 import ssg.legoflow.upnp.controlpoint.MediaServerProxy;
 import ssg.legoflow.upnp.mediarenderer.PlaybackEvent;
-import ssg.legoflow.upnp.mediarenderer.PlaybackListener;
-import ssg.legoflow.upnp.mediarenderer.TransportState;
 import ssg.legoflow.upnp.mediaserver.ContentItem;
 import ssg.legoflow.upnp.mediaserver.ContentItemType;
-
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 /**
  * Full end-to-end DLNA playback demo.
  *

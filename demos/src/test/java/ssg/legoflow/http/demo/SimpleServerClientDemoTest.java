@@ -6,9 +6,7 @@ import ssg.legoflow.http.demo.server.MinimalServer;
 import ssg.legoflow.http.server.HttpRouter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Demonstrates creating a MinimalServer and dispatching requests through
  * the router directly (no socket). Verifies request handling, status codes,

@@ -1,9 +1,7 @@
 package ssg.legoflow.media.rtsp.server;
 
 import ssg.legoflow.media.common.sdp.SessionDescription;
-
 import java.util.Optional;
-
 /**
  * Abstraction for a media source that can be streamed via RTSP.
  *

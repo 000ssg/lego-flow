@@ -10,14 +10,11 @@ import ssg.legoflow.upnp.mediaserver.MediaServerDevice;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link ContentTreeModel}.
  *

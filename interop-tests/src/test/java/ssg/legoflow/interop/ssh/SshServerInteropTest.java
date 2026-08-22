@@ -3,16 +3,13 @@ package ssg.legoflow.interop.ssh;
 import org.junit.jupiter.api.*;
 import ssg.legoflow.ssh.client.SshClient;
 import ssg.legoflow.ssh.transport.SshVersion;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 /**
  * Interoperability test: Lego Flow SSH client ↔ OpenSSH sshd.
  *
@@ -40,9 +37,17 @@ class SshServerInteropTest {
     private final String sshdUser = System.getProperty("interop.sshd.user", "");
     private final String sshdPassword = System.getProperty("interop.sshd.password", "");
 
-    /** Skip if user/password not configured — sshd needs valid credentials. */
+    /** Skip if no sshd available — checks credentials and port availability. */
     private boolean shouldRun() {
-        return !sshdUser.isBlank() && !sshdPassword.isBlank();
+        if (sshdUser.isBlank() || sshdPassword.isBlank()) {
+            return false;
+        }
+        // Also verify sshd is actually listening
+        try (var socket = new java.net.Socket(sshdHost, sshdPort)) {
+            return true;
+        } catch (java.io.IOException e) {
+            return false;
+        }
     }
 
     @Test
@@ -141,6 +146,11 @@ class SshServerInteropTest {
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
             String serverVersionStr = reader.readLine();
+            // If no server responds, skip the test
+            if (serverVersionStr == null) {
+                throw new org.opentest4j.TestAbortedException(
+                        "sshd not responding at " + sshdHost + ":" + sshdPort);
+            }
             SshVersion serverVersion = SshVersion.parse(serverVersionStr);
 
             // Verify OpenSSH is SSH-2.0 compatible
@@ -153,6 +163,9 @@ class SshServerInteropTest {
             // Protocol versions match
             assertThat(serverVersion.protocolVersion())
                     .isEqualTo(ourVersion.protocolVersion());
+        } catch (java.net.ConnectException e) {
+            throw new org.opentest4j.TestAbortedException(
+                    "sshd not available at " + sshdHost + ":" + sshdPort, e);
         }
     }
 }

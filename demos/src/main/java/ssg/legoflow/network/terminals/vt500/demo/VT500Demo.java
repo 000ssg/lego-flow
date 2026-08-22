@@ -31,4 +31,7 @@ public final class VT500Demo {
         vt.selectG1();
         System.out.println("After SI: " + vt.activeCharset());
     }
+    public static void main(String[] args) {
+        demonstrate();
+    }
 }

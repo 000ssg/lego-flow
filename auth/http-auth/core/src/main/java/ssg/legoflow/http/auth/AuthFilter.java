@@ -3,10 +3,8 @@ package ssg.legoflow.http.auth;
 import ssg.legoflow.http.core.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Locale;
 import java.util.Objects;
-
 /**
  * HTTP request filter that runs authentication schemes against incoming requests.
  * Examines the Authorization header, finds the matching scheme in the registry,

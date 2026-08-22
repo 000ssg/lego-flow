@@ -2,16 +2,11 @@ package ssg.legoflow.rpc.grpc.demo;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ssg.legoflow.rpc.grpc.client.CallOptions;
 import ssg.legoflow.rpc.grpc.client.GrpcChannel;
 import ssg.legoflow.rpc.grpc.client.GrpcStub;
-import ssg.legoflow.rpc.grpc.common.StatusException;
 import ssg.legoflow.rpc.grpc.protobuf.ProtoMessage;
 import ssg.legoflow.rpc.grpc.server.GrpcServer;
-import ssg.legoflow.rpc.grpc.transport.GrpcStatus;
-
 import static org.assertj.core.api.Assertions.*;
-
 class FileDownloadServiceTest {
 
     private GrpcStub stub;

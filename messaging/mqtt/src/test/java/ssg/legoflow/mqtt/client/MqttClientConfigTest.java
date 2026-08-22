@@ -4,12 +4,9 @@ import ssg.legoflow.mqtt.protocol.MqttVersion;
 import ssg.legoflow.mqtt.protocol.QoS;
 import ssg.legoflow.mqtt.protocol.WillMessage;
 import org.junit.jupiter.api.Test;
-
 import java.time.Duration;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 /**
  * Tests for {@link MqttClientConfig}.
  *

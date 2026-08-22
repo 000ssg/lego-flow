@@ -8,11 +8,8 @@ import ssg.legoflow.rpc.grpc.protobuf.*;
 import ssg.legoflow.rpc.grpc.transport.GrpcEncoding;
 import ssg.legoflow.rpc.grpc.transport.GrpcFrameCodec;
 import ssg.legoflow.rpc.grpc.transport.GrpcStatus;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ClientCallTest {
 
     private static final MessageDescriptor REQ_DESC = MessageDescriptor.builder("Req")

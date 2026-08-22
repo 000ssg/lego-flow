@@ -3,11 +3,9 @@ package ssg.legoflow.http.cluster;
 import ssg.legoflow.network.cluster.core.ClusterNode;
 import ssg.legoflow.network.cluster.core.hashing.ConsistentHashRing;
 import ssg.legoflow.network.cluster.core.hashing.MurmurHash3;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-
 /**
  * Consistent-hash based router for sticky session fallback.
  *

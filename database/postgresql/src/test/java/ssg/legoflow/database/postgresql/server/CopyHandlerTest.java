@@ -2,12 +2,9 @@ package ssg.legoflow.database.postgresql.server;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link CopyHandler}.
  */

@@ -2,7 +2,6 @@ package ssg.legoflow.network.dns.client;
 
 import ssg.legoflow.network.dns.protocol.*;
 import ssg.legoflow.network.dns.rdata.*;
-
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -13,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 /**
  * High-level DNS lookup utility for common resolution tasks.
  *

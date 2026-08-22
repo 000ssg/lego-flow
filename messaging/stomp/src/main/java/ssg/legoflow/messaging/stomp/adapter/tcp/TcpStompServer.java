@@ -3,11 +3,9 @@ package ssg.legoflow.messaging.stomp.adapter.tcp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ssg.legoflow.messaging.stomp.core.StompBroker;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-
 /**
  * TCP server accepting STOMP connections and dispatching them to a broker.
  *

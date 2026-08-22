@@ -6,10 +6,8 @@ import ssg.legoflow.network.ldap.client.LdapClient;
 import ssg.legoflow.service.AbstractService;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
-
 /** Service-based LDAP client adapter for composition within the service framework. */
 public final class LdapClientService extends AbstractService<ByteBuffer, ByteBuffer> {
 

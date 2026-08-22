@@ -5,14 +5,11 @@ import ssg.legoflow.ftp.client.FtpFileEntry;
 import ssg.legoflow.ftp.protocol.FtpTransferType;
 import ssg.legoflow.ftp.server.*;
 import org.junit.jupiter.api.*;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Full client-server integration tests exercising realistic FTP workflows.
  */

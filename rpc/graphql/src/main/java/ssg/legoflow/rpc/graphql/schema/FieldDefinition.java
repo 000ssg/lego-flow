@@ -1,11 +1,8 @@
 package ssg.legoflow.rpc.graphql.schema;
 
 import ssg.legoflow.rpc.graphql.execution.DataFetcher;
-
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-
 /**
  * Defines a field on an object or interface type.
  *

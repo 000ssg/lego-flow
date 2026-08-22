@@ -1,10 +1,8 @@
 package ssg.legoflow.xmpp.iot.discovery;
 
 import ssg.legoflow.xmpp.core.JID;
-
 import java.util.Map;
 import java.util.Objects;
-
 /**
  * Description of an IoT thing for discovery (XEP-0347).
  *

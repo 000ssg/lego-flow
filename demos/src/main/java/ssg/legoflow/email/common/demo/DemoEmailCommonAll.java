@@ -1,6 +1,5 @@
 package ssg.legoflow.email.common.demo;
 
-import ssg.legoflow.email.common.address.AddressParser;
 import ssg.legoflow.email.common.address.EmailAddress;
 import ssg.legoflow.email.common.address.Mailbox;
 import ssg.legoflow.email.common.builder.MimeMessageBuilder;
@@ -10,10 +9,8 @@ import ssg.legoflow.email.common.encoding.QuotedPrintableCodec;
 import ssg.legoflow.email.common.mime.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-
 /**
  * Comprehensive demo of all email/common (MIME) module features.
  *

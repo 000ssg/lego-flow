@@ -4,11 +4,8 @@ import ssg.legoflow.messaging.nats.server.NatsServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link JetStreamManager}.
  */

@@ -2,11 +2,8 @@ package ssg.legoflow.ftp.server;
 
 import ssg.legoflow.ftp.protocol.FtpTransferType;
 import org.junit.jupiter.api.Test;
-
 import java.net.InetAddress;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link FtpSession}.
  */

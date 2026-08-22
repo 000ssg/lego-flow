@@ -9,16 +9,12 @@ import ssg.legoflow.messaging.nats.server.auth.TokenAuthenticator;
 import ssg.legoflow.messaging.nats.server.auth.UserPassAuthenticator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * Comprehensive demo of all NATS module features.
  *
@@ -184,7 +180,9 @@ public final class DemoNatsAll {
             publisher.publish("demo.user.logout", "user=bob");
             publisher.publish("demo.system.restart", "node=1");
 
-            latch.await(5, TimeUnit.SECONDS);
+            // Give subscriber's virtual thread time to process delivered messages
+            Thread.sleep(100);
+            latch.await(10, TimeUnit.SECONDS);
         }
 
         LOG.info("Pub/sub received {} messages", received.get());
@@ -296,7 +294,9 @@ public final class DemoNatsAll {
                 }
             }
 
-            latch.await(5, TimeUnit.SECONDS);
+            // Give queue workers' virtual threads time to process messages
+            Thread.sleep(100);
+            latch.await(10, TimeUnit.SECONDS);
 
         } finally {
             for (var worker : workers) {

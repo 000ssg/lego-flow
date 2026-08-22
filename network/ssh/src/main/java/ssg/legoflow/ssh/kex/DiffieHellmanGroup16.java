@@ -3,20 +3,33 @@ package ssg.legoflow.ssh.kex;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import javax.crypto.KeyAgreement;
+import javax.crypto.interfaces.DHPrivateKey;
+import javax.crypto.interfaces.DHPublicKey;
+import javax.crypto.spec.DHParameterSpec;
+import javax.crypto.spec.DHPublicKeySpec;
 
 /**
  * Diffie-Hellman Group 16 key exchange with SHA-512 (RFC 8268).
  *
  * <p>Uses the 4096-bit MODP group from RFC 3526 section 5.
+ * Relies on Java JCE for all DH crypto operations.
+ * P constant verified from Java JCE KeyPairGenerator(DH, 4096).
  *
  * @since 0.1.0
  */
 public final class DiffieHellmanGroup16 implements KexAlgorithm {
 
-    /** The 4096-bit MODP prime from RFC 3526 section 5. */
+    /**
+     * The 4096-bit MODP prime from RFC 3526 section 5.
+     * Verified from Java JCE KeyPairGenerator(DH, 4096) and matches RFC 3526 exactly.
+     */
     public static final BigInteger P = new BigInteger(
             "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" +
             "29024E088A67CC74020BBEA63B139B22514A08798E3404DD" +
@@ -31,25 +44,20 @@ public final class DiffieHellmanGroup16 implements KexAlgorithm {
             "15728E5A8AAAC42DAD33170D04507A33A85521ABDF1CBA64" +
             "ECFB850458DBEF0A8AEA71575D060C7DB3970F85A6E1E4C7" +
             "ABF5AE8CDB0933D71E8C94E04A25619DCEE3D2261AD2EE6B" +
-            "F12FFA06D98A0864D87602733EC86A64521F2B18177B200CB" +
-            "BE117577A615D6C770988C0BAD946E208E24FA074E5AB3143" +
-            "DB5BFCE0FD108E4B82D120A92108011A723C12A787E6D7888" +
-            "11A71A49F9B48C8B2C05D74ADEECB5BA16BEF905BFBC5BA8" +
-            "3DFCE5DCDD8DF0C000C7F88A13EDDC4D09CABC1942F5823" +
-            "06551BDCCA42ABDC4FCB5C8F4D2B511C47B3D36AB8D1BDE4" +
-            "B7813E0F1E79E5FA2FE28EAEE3682816A3C7C2D11C62F15" +
-            "1CCF42A19E9F0F4850D83F8405F1DD85E5ACBAC6D8FB5F63" +
-            "4F4D02C2872AE62DAC97B46C5A78631F3D9FA9B56D73E357" +
-            "AB75DDC0ACA78CCECF6BE1F849B39BCDFBACEA70F7F5CE09" +
-            "4CC3068F96B11ABFE67D6E78EFCE3CABDA5C37EEFFFFFFFFFFFF" +
-            "FFFF", 16);
+            "F12FFA06D98A0864D87602733EC86A64521F2B18177B200C" +
+            "BBE117577A615D6C770988C0BAD946E208E24FA074E5AB31" +
+            "43DB5BFCE0FD108E4B82D120A92108011A723C12A787E6D7" +
+            "88719A10BDBA5B2699C327186AF4E23C1A946834B6150BDA" +
+            "2583E9CA2AD44CE8DBBBC2DB04DE8EF92E8EFC141FBECAA6" +
+            "287C59474E6BC05D99B2964FA090C3A2233BA186515BE7ED" +
+            "1F612970CEE2D7AFB81BDD762170481CD0069127D5B05AA9" +
+            "93B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199" +
+            "FFFFFFFFFFFFFFFF", 16);
 
     /** The generator g = 2. */
     public static final BigInteger G = BigInteger.TWO;
 
-    private final SecureRandom random = new SecureRandom();
-    private BigInteger privateKey;
-    private BigInteger publicKey;
+    private KeyPair keyPair;
 
     @Override
     public String name() {
@@ -63,27 +71,52 @@ public final class DiffieHellmanGroup16 implements KexAlgorithm {
 
     @Override
     public void init() {
-        int bitLength = P.bitLength() - 1;
-        do {
-            privateKey = new BigInteger(bitLength, random);
-        } while (privateKey.compareTo(BigInteger.ONE) <= 0
-                || privateKey.compareTo(P.subtract(BigInteger.ONE)) >= 0);
-        publicKey = G.modPow(privateKey, P);
+        try {
+            KeyPairGenerator kpg = KeyPairGenerator.getInstance("DH");
+            kpg.initialize(new DHParameterSpec(P, G));
+            keyPair = kpg.generateKeyPair();
+        } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
+            throw new RuntimeException("DH algorithm not available", e);
+        }
     }
 
     @Override
     public byte[] localPublicValue() {
-        return DiffieHellmanGroup14.toMpint(publicKey);
+        DHPublicKey pub = (DHPublicKey) keyPair.getPublic();
+        return toMpint(pub.getY());
     }
 
     @Override
     public byte[] computeSharedSecret(byte[] remotePublicValue) {
-        BigInteger f = DiffieHellmanGroup14.fromMpint(remotePublicValue);
-        if (f.compareTo(BigInteger.ONE) <= 0 || f.compareTo(P.subtract(BigInteger.ONE)) >= 0) {
+        BigInteger f = fromMpint(remotePublicValue);
+
+        // Validate: 1 < f < p - 1
+        DHPrivateKey priv = (DHPrivateKey) keyPair.getPrivate();
+        DHParameterSpec param = priv.getParams();
+        if (f.compareTo(BigInteger.ONE) <= 0
+                || f.compareTo(param.getP().subtract(BigInteger.ONE)) >= 0) {
             throw new IllegalArgumentException("Invalid DH public value");
         }
-        BigInteger K = f.modPow(privateKey, P);
-        return DiffieHellmanGroup14.toMpint(K);
+
+        try {
+            DHPublicKeySpec pubSpec = new DHPublicKeySpec(f, param.getP(), param.getG());
+            KeyFactory kf = KeyFactory.getInstance("DH");
+            KeyAgreement ka = KeyAgreement.getInstance("DH");
+            ka.init(keyPair.getPrivate());
+            ka.doPhase(kf.generatePublic(pubSpec), true);
+            byte[] rawSecret = ka.generateSecret();
+            // Return raw big-endian bytes (not mpint)
+            // computeExchangeHash wraps with writeBuf → correct mpint [4-len][raw-bytes]
+            byte[] rawBytes = new BigInteger(1, rawSecret).toByteArray();
+            if (rawBytes.length > 0 && rawBytes[0] == 0) {
+                byte[] trimmed = new byte[rawBytes.length - 1];
+                System.arraycopy(rawBytes, 1, trimmed, 0, trimmed.length);
+                return trimmed;
+            }
+            return rawBytes;
+        } catch (Exception e) {
+            throw new RuntimeException("DH key agreement failed", e);
+        }
     }
 
     @Override
@@ -117,5 +150,27 @@ public final class DiffieHellmanGroup16 implements KexAlgorithm {
     private static void writeBuf(ByteBuffer buf, byte[] data) {
         buf.putInt(data.length);
         buf.put(data);
+    }
+
+    /**
+     * Converts a BigInteger to SSH mpint format.
+     */
+    static byte[] toMpint(BigInteger value) {
+        byte[] bytes = value.toByteArray();
+        ByteBuffer buf = ByteBuffer.allocate(4 + bytes.length);
+        buf.putInt(bytes.length);
+        buf.put(bytes);
+        return buf.array();
+    }
+
+    /**
+     * Converts SSH mpint bytes to BigInteger.
+     */
+    static BigInteger fromMpint(byte[] mpint) {
+        ByteBuffer buf = ByteBuffer.wrap(mpint);
+        int len = buf.getInt();
+        byte[] data = new byte[len];
+        buf.get(data);
+        return new BigInteger(data);
     }
 }

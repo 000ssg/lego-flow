@@ -5,16 +5,13 @@ import ssg.legoflow.blocks.Context;
 import ssg.legoflow.xmpp.core.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.ByteBuffer;
-import ssg.legoflow.service.util.BufferPool;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 /**
  * XMPP codec that encodes stanzas to XML and decodes XML to stanzas.
  *

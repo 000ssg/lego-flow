@@ -3,10 +3,8 @@ package ssg.legoflow.network.snmp.protocol;
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.snmp.protocol.SnmpPdu.GetRequest;
 import ssg.legoflow.network.snmp.protocol.SecurityLevel;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 /**
  * Tests for {@link SnmpMessage} and its builder.
  *

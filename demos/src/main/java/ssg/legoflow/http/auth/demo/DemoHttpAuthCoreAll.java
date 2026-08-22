@@ -11,21 +11,17 @@ import ssg.legoflow.http.auth.session.InMemorySessionStore;
 import ssg.legoflow.http.auth.session.SessionCookie;
 import ssg.legoflow.http.auth.session.SessionManager;
 import ssg.legoflow.http.auth.token.JwtClaims;
-import ssg.legoflow.http.auth.token.JwtHeader;
 import ssg.legoflow.http.auth.token.JwtTokenProvider;
-import ssg.legoflow.http.core.HttpMethod;
 import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpResponse;
 import ssg.legoflow.http.core.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
-
 /**
  * Comprehensive demo of all HTTP Auth Core module features.
  *

@@ -8,14 +8,12 @@ import ssg.legoflow.network.cluster.core.ClusterNode;
 import ssg.legoflow.network.cluster.core.ClusterRole;
 import ssg.legoflow.network.cluster.core.ClusterNodeStatus;
 import ssg.legoflow.network.cluster.core.ClusterTransport;
-
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * Demo: Partition Tolerance in a 5-Node Cluster.
  *

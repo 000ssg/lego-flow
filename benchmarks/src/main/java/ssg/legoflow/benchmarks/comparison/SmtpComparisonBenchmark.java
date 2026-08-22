@@ -4,11 +4,9 @@ import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import ssg.legoflow.blocks.Context;
 import ssg.legoflow.blocks.DefaultContext;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
-
 /**
  * Benchmarks comparing standalone SMTP operations vs service-pipeline SMTP operations.
  *
@@ -26,8 +24,6 @@ import java.util.concurrent.TimeUnit;
 public class SmtpComparisonBenchmark {
 
     private static final String HELLO_CMD = "EHLO bench.example.com\r\n";
-    private static final String MAIL_FROM_CMD = "MAIL FROM:<sender@example.com>\r\n";
-    private static final String RCPT_TO_CMD = "RCPT TO:<recipient@example.org>\r\n";
     private static final String DATA_HEADER = "DATA\r\n";
     private static final int BODY_SIZE = 4096;
 

@@ -6,14 +6,11 @@ import ssg.legoflow.xmpp.iot.sensor.SensorField;
 import ssg.legoflow.xmpp.iot.sensor.SensorNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link SensorManager}.
  *

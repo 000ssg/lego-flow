@@ -1,8 +1,5 @@
 package ssg.legoflow.coap.resource;
 
-import ssg.legoflow.coap.protocol.ContentFormat;
-
-import java.util.Objects;
 
 /**
  * CoRE Link Format resource attributes as defined in RFC 6690.

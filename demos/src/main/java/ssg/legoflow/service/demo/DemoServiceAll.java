@@ -4,7 +4,6 @@ import ssg.legoflow.blocks.Context;
 import ssg.legoflow.service.AbstractService;
 import ssg.legoflow.service.DefaultServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
-import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.ChannelPipeline;
 import ssg.legoflow.service.channel.DataChannel;
 import ssg.legoflow.service.channel.DatagramHandler;
@@ -18,7 +17,6 @@ import ssg.legoflow.service.manager.ServiceGroupStatistics;
 import ssg.legoflow.service.user.ServiceUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -28,9 +26,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * Comprehensive demo exercising all ServiceGroup features: lifecycle, UDP echo,
  * multicast, statistics, multi-selector distribution, channel manager basics,

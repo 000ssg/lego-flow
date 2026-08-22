@@ -2,11 +2,8 @@ package ssg.legoflow.network.common.ber;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.common.asn1.Asn1Tag;
-
 import java.nio.ByteBuffer;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link BerTag} encoding and decoding.
  */

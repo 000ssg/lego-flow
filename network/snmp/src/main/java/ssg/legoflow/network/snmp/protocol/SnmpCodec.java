@@ -3,16 +3,11 @@ package ssg.legoflow.network.snmp.protocol;
 import ssg.legoflow.network.common.asn1.*;
 import ssg.legoflow.network.common.ber.BerDecoder;
 import ssg.legoflow.network.common.ber.BerEncoder;
-import ssg.legoflow.network.common.ber.BerLength;
-import ssg.legoflow.network.common.ber.BerTag;
 import ssg.legoflow.network.common.oid.ObjectIdentifier;
-
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * BER codec for SNMP messages, PDUs, and variable bindings.
  *

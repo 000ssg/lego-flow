@@ -1,11 +1,8 @@
 package ssg.legoflow.ssh.auth;
 
 import ssg.legoflow.ssh.transport.SshTransportCodec;
-
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-
 /**
  * Password authentication method per RFC 4252 section 8.
  *

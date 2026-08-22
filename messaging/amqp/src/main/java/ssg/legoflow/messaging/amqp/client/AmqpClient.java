@@ -12,16 +12,14 @@ import ssg.legoflow.messaging.amqp.link.SenderLink;
 import ssg.legoflow.messaging.amqp.message.AmqpMessage;
 import ssg.legoflow.messaging.amqp.message.MessageCodec;
 import ssg.legoflow.messaging.amqp.sasl.SaslCodec;
+import ssg.legoflow.messaging.amqp.sasl.AnonymousMechanism;
+import ssg.legoflow.messaging.amqp.sasl.PlainMechanism;
 import ssg.legoflow.messaging.amqp.sasl.SaslMechanism;
 import ssg.legoflow.messaging.amqp.session.AmqpSession;
 import ssg.legoflow.messaging.amqp.transport.*;
 import ssg.legoflow.messaging.amqp.types.AmqpType;
-import ssg.legoflow.messaging.amqp.types.Descriptors;
-import ssg.legoflow.messaging.amqp.types.TypeCodec;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -30,7 +28,6 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * AMQP 1.0 client for connecting to containers and exchanging messages.
  *
@@ -91,20 +88,41 @@ public final class AmqpClient implements AutoCloseable {
 
         executor = Executors.newVirtualThreadPerTaskExecutor();
 
-        // SASL negotiation
-        if (config.saslMechanism() != null) {
-            performSasl(config.saslMechanism());
-        }
-
         // Protocol header exchange
         transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
         ByteBuffer headerBuf = ByteBuffer.allocate(8);
         readFully(headerBuf);
         headerBuf.flip();
-        byte[] header = new byte[8];
-        headerBuf.get(header);
-        if (!Arrays.equals(header, AmqpConstants.AMQP_HEADER)) {
-            throw new IOException("Invalid AMQP header response");
+        byte[] serverHeader = new byte[8];
+        headerBuf.get(serverHeader);
+
+        boolean saslRequired = Arrays.equals(serverHeader, AmqpConstants.SASL_HEADER);
+
+        if (saslRequired) {
+            // SASL negotiation first (per AMQP 1.0 spec), then AMQP header exchange
+            SaslMechanism mechanism;
+            if (config.saslMechanism() != null) {
+                mechanism = config.saslMechanism();
+            } else if (config.username() != null && !config.username().isBlank()) {
+                mechanism = new PlainMechanism(config.username(), config.password());
+            } else {
+                mechanism = new AnonymousMechanism();
+            }
+            doSaslNegotiation(mechanism);
+            // After SASL completes, client re-sends AMQP header to establish connection
+            transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
+            headerBuf.clear();
+            readFully(headerBuf);
+            headerBuf.flip();
+            byte[] amqpHeader = new byte[8];
+            headerBuf.get(amqpHeader);
+            if (!Arrays.equals(amqpHeader, AmqpConstants.AMQP_HEADER)) {
+                throw new IOException("Invalid AMQP header after SASL negotiation");
+            }
+        } else {
+            if (!Arrays.equals(serverHeader, AmqpConstants.AMQP_HEADER)) {
+                throw new IOException("Invalid AMQP header response: " + Arrays.toString(serverHeader));
+            }
         }
         state = ConnectionState.HDR_EXCH;
 
@@ -131,35 +149,37 @@ public final class AmqpClient implements AutoCloseable {
         readerFuture = executor.submit(this::readLoop);
     }
 
-    private void performSasl(SaslMechanism mechanism) {
+    private void doSaslNegotiation(SaslMechanism mechanism) throws IOException {
         // Send SASL header
         transport.send(ByteBuffer.wrap(AmqpConstants.SASL_HEADER));
 
-        // Receive SASL header
-        ByteBuffer headerBuf = ByteBuffer.allocate(8);
-        readFully(headerBuf);
-        headerBuf.flip();
-        byte[] header = new byte[8];
-        headerBuf.get(header);
-
-        // Receive mechanisms
+        // Read SASL mechanisms frame
         AmqpFrame mechFrame = readFrame();
+        if (mechFrame != null) {
+            List<String> mechanisms = SaslCodec.decodeMechanisms((AmqpType.Described) mechFrame.performative());
+        } else {
+        }
 
-        // Send init
+        // Send SASL init
         var init = SaslCodec.encodeInit(mechanism.name(), mechanism.initialResponse(), config.host());
         var initFrame = new AmqpFrame(0, AmqpConstants.FRAME_TYPE_SASL, init);
-        transport.send(FrameCodec.encode(initFrame, config.maxFrameSize()));
+        ByteBuffer initBuf = FrameCodec.encode(initFrame, maxFrameSize);
+        transport.send(initBuf);
 
-        // Receive outcome
+        // Read SASL outcome
         AmqpFrame outcomeFrame = readFrame();
-        if (outcomeFrame.performative() instanceof AmqpType.Described desc) {
-            int code = SaslCodec.decodeOutcomeCode(desc);
+        if (outcomeFrame.performative() instanceof AmqpType.Described outcomeDesc) {
+            int code = SaslCodec.decodeOutcomeCode(outcomeDesc);
             if (code != 0) {
                 throw new AmqpException(AmqpError.UNAUTHORIZED_ACCESS,
                         "SASL authentication failed with code: " + code);
             }
         }
-        LOG.debug("SASL {} authentication successful", mechanism.name());
+    }
+
+    private void performSasl(SaslMechanism mechanism) {
+        // Deprecated: use doSaslNegotiation instead (called after header exchange)
+        throw new UnsupportedOperationException("Use connect() which handles SASL automatically");
     }
 
     /**

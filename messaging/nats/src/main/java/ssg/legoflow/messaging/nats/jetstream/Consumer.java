@@ -1,10 +1,8 @@
 package ssg.legoflow.messaging.nats.jetstream;
 
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * JetStream consumer tracking delivery position and acknowledgements.
  *

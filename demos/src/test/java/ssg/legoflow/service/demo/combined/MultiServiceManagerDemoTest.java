@@ -1,6 +1,5 @@
 package ssg.legoflow.service.demo.combined;
 
-import ssg.legoflow.blocks.Context;
 import ssg.legoflow.blocks.ProcessorState;
 import ssg.legoflow.service.*;
 import ssg.legoflow.service.demo.procedural.EchoService;
@@ -9,11 +8,8 @@ import ssg.legoflow.service.manager.AbstractServicesManager;
 import ssg.legoflow.service.user.ServiceUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 class MultiServiceManagerDemoTest {
 
     private AbstractServicesManager manager;

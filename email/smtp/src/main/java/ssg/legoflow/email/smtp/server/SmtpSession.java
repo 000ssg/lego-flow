@@ -7,7 +7,6 @@ import ssg.legoflow.email.smtp.auth.SmtpAuthException;
 import ssg.legoflow.email.smtp.protocol.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import java.io.*;
@@ -15,7 +14,6 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * Per-client SMTP session state machine.
  *

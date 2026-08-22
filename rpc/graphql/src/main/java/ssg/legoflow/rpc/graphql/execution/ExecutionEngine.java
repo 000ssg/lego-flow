@@ -3,11 +3,8 @@ package ssg.legoflow.rpc.graphql.execution;
 import ssg.legoflow.rpc.graphql.language.*;
 import ssg.legoflow.rpc.graphql.schema.*;
 import ssg.legoflow.rpc.graphql.validation.QueryValidator;
-import ssg.legoflow.rpc.graphql.validation.ValidationError;
-
 import java.util.*;
 import java.util.concurrent.*;
-
 /**
  * Executes validated GraphQL documents against a schema.
  *

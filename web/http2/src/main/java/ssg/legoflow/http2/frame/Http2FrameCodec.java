@@ -2,11 +2,9 @@ package ssg.legoflow.http2.frame;
 
 import ssg.legoflow.blocks.AbstractDataFilter;
 import ssg.legoflow.blocks.Context;
-
 import java.nio.ByteBuffer;
 import ssg.legoflow.service.util.BufferPool;
 import java.util.ArrayList;
-
 public class Http2FrameCodec extends AbstractDataFilter<ByteBuffer> {
 
     private final Mode mode;

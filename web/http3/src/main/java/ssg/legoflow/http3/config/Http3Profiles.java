@@ -5,9 +5,7 @@ import ssg.legoflow.http.feature.HttpFeatureCategory;
 import ssg.legoflow.http.feature.HttpFeatureRegistry;
 import ssg.legoflow.http.feature.HttpFeatureSet;
 import ssg.legoflow.http3.feature.Http3Feature;
-
 import java.util.Map;
-
 /**
  * Standard HTTP/3 feature profiles for server and client configurations.
  *

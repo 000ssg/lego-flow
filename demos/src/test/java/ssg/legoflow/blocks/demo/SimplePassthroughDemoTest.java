@@ -4,12 +4,9 @@ import ssg.legoflow.blocks.Context;
 import ssg.legoflow.blocks.DefaultContext;
 import ssg.legoflow.blocks.ProcessorState;
 import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class SimplePassthroughDemoTest {
 
     @Test

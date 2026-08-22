@@ -3,11 +3,8 @@ package ssg.legoflow.messaging.kafka.broker;
 import ssg.legoflow.messaging.kafka.record.Record;
 import ssg.legoflow.messaging.kafka.record.RecordBatch;
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 class PartitionLogTest {
 
     private byte[] makeBatch(int recordCount) {

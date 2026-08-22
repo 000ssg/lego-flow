@@ -6,9 +6,7 @@ import org.junit.jupiter.api.Test;
 import ssg.legoflow.media.rtsp.fixture.StreamingServerDemo;
 import ssg.legoflow.media.rtsp.protocol.RtspStatus;
 import ssg.legoflow.media.rtsp.server.RtspServer;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link RtspClient}.
  */

@@ -2,13 +2,10 @@ package ssg.legoflow.messaging.kafka.client;
 
 import ssg.legoflow.messaging.kafka.common.TopicPartition;
 import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 class RebalanceListenerTest {
 
     @Test

@@ -4,14 +4,11 @@ import ssg.legoflow.messaging.amqp.common.AmqpConstants;
 import ssg.legoflow.messaging.amqp.link.ReceiverLink;
 import ssg.legoflow.messaging.amqp.link.SenderLink;
 import ssg.legoflow.messaging.amqp.transport.Performative;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * Represents an AMQP 1.0 session multiplexed over a connection.
  *

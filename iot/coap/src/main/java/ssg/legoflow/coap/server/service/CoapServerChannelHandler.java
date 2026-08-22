@@ -2,9 +2,7 @@ package ssg.legoflow.coap.server.service;
 
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
-
 import java.nio.ByteBuffer;
-
 /** Channel handler for CoAP server service. */
 public final class CoapServerChannelHandler implements ChannelHandler {
     private final CoapServerService coapService;

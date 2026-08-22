@@ -2,14 +2,11 @@ package ssg.legoflow.service.passthrough;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
 import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.*;
-
 class PassThroughEventTest {
 
     @Test

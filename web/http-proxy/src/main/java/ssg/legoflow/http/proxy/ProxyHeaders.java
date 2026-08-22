@@ -1,9 +1,6 @@
 package ssg.legoflow.http.proxy;
 
 import ssg.legoflow.http.core.HttpHeaders;
-import ssg.legoflow.http.core.HttpRequest;
-import ssg.legoflow.http.core.HttpResponse;
-
 /**
  * Standard proxy headers: X-Forwarded-For, X-Forwarded-Proto, X-Forwarded-Host, Via, X-Real-IP.
  *

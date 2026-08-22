@@ -2,10 +2,8 @@ package ssg.legoflow.ssh.auth;
 
 import ssg.legoflow.ssh.hostkey.SshKeyPair;
 import ssg.legoflow.ssh.transport.SshTransportCodec;
-
 import java.nio.ByteBuffer;
 import java.util.Objects;
-
 /**
  * Public key authentication method per RFC 4252 section 7.
  *

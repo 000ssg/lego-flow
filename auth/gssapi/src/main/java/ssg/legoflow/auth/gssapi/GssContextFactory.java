@@ -7,9 +7,7 @@ import org.ietf.jgss.GSSManager;
 import org.ietf.jgss.GSSName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Objects;
-
 /**
  * Factory for creating {@link GssContextWrapper} instances for client-initiated
  * and server-accept GSS-API contexts.

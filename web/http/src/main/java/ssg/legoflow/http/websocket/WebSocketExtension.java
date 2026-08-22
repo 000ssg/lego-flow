@@ -3,9 +3,7 @@ package ssg.legoflow.http.websocket;
 import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpResponse;
-
 import java.util.*;
-
 /**
  * WebSocket extension negotiation per RFC 6455 §11.6.
  *

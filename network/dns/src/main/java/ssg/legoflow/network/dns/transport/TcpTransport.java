@@ -4,14 +4,12 @@ import ssg.legoflow.network.dns.protocol.DnsCodec;
 import ssg.legoflow.network.dns.protocol.DnsMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.time.Duration;
-
 /**
  * DNS transport over TCP with 2-byte length prefix (RFC 1035, Section 4.2.2).
  *

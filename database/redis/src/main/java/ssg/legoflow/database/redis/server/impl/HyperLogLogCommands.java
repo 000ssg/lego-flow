@@ -6,9 +6,7 @@ import ssg.legoflow.database.redis.protocol.RespType;
 import ssg.legoflow.database.redis.server.ClientConnection;
 import ssg.legoflow.database.redis.server.Database;
 import ssg.legoflow.database.redis.server.HyperLogLog;
-
 import java.nio.charset.StandardCharsets;
-
 /**
  * Implements Redis HyperLogLog commands: PFADD, PFCOUNT, PFMERGE.
  *

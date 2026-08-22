@@ -1,9 +1,7 @@
 package ssg.legoflow.ftp.demo;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Runs the comprehensive FTP demo and verifies all feature sections.
  *

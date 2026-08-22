@@ -1,9 +1,7 @@
 package ssg.legoflow.messaging.stomp.server.service;
 
 import org.junit.jupiter.api.*;
-
 import static org.assertj.core.api.Assertions.*;
-
 /** Tests for STOMP server service DP/DF compliance. */
 class StompServerServiceTest {
 

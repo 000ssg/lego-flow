@@ -3,13 +3,9 @@ package ssg.legoflow.wamp.core;
 import ssg.legoflow.wamp.core.realm.Realm;
 import ssg.legoflow.wamp.core.router.WampRouter;
 import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for virtual session creation and session lifecycle hooks.
  */

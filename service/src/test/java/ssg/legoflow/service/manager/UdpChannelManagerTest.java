@@ -11,7 +11,6 @@ import ssg.legoflow.service.user.ServiceUser;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -20,9 +19,7 @@ import java.nio.channels.DatagramChannel;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 import static org.assertj.core.api.Assertions.*;
-
 class UdpChannelManagerTest {
 
     private UdpChannelManager manager;

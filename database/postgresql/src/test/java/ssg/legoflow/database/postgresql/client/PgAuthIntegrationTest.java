@@ -5,11 +5,8 @@ import ssg.legoflow.database.postgresql.auth.CleartextAuth;
 import ssg.legoflow.database.postgresql.auth.Md5Auth;
 import ssg.legoflow.database.postgresql.auth.ScramSha256;
 import ssg.legoflow.database.postgresql.server.PgServer;
-
 import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Integration tests for authentication methods.
  */

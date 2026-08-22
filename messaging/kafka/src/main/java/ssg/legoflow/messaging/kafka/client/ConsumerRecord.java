@@ -1,10 +1,8 @@
 package ssg.legoflow.messaging.kafka.client;
 
 import ssg.legoflow.messaging.kafka.record.Header;
-
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
 /**
  * A record consumed from Kafka.
  *

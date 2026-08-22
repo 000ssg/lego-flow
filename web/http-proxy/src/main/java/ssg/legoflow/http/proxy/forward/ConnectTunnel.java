@@ -2,14 +2,12 @@ package ssg.legoflow.http.proxy.forward;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * HTTPS CONNECT tunnel implementation providing bidirectional byte relay.
  *

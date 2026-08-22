@@ -2,10 +2,8 @@ package ssg.legoflow.http.auth;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Registry of available authentication schemes. Thread-safe — schemes can be registered
  * and looked up concurrently.

@@ -1,9 +1,7 @@
 package ssg.legoflow.rpc.graphql.sdl;
 
 import ssg.legoflow.rpc.graphql.schema.*;
-
 import java.util.stream.Collectors;
-
 /**
  * Prints a GraphQL schema as Schema Definition Language (SDL).
  *

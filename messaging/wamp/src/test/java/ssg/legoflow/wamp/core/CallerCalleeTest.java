@@ -5,14 +5,11 @@ import ssg.legoflow.wamp.core.role.Caller;
 import ssg.legoflow.wamp.core.router.Dealer;
 import ssg.legoflow.wamp.core.transport.InMemoryTransport;
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 class CallerCalleeTest {
 
     @Test

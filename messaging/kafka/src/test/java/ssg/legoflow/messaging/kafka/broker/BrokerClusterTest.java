@@ -2,12 +2,9 @@ package ssg.legoflow.messaging.kafka.broker;
 
 import ssg.legoflow.messaging.kafka.common.TopicPartition;
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link BrokerCluster}.
  */

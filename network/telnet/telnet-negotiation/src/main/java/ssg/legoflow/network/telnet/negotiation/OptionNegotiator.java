@@ -1,9 +1,7 @@
 package ssg.legoflow.network.telnet.negotiation;
 
 import ssg.legoflow.network.telnet.base.TelnetCommand;
-
 import java.util.Map;
-
 /**
  * Manages Telnet option negotiation state (RFC 855).
  *

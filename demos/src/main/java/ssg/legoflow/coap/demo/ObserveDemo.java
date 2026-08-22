@@ -6,14 +6,12 @@ import ssg.legoflow.coap.resource.CoapExchange;
 import ssg.legoflow.coap.resource.CoapResource;
 import ssg.legoflow.coap.server.CoapServer;
 import ssg.legoflow.coap.server.CoapServerConfig;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * Demonstrates CoAP observe functionality where a server pushes periodic
  * temperature updates to observing clients.

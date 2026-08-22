@@ -8,6 +8,9 @@ import java.security.GeneralSecurityException;
 /**
  * AES-256 in CTR mode cipher for SSH (aes256-ctr).
  *
+ * <p>Cipher handles ONLY encrypt/decrypt of packet data. No MAC or packet
+ * format awareness — these are handled by the codec layer.
+ *
  * @since 0.1.0
  */
 public final class Aes256Ctr implements SshCipher {
@@ -20,6 +23,7 @@ public final class Aes256Ctr implements SshCipher {
     @Override public int ivSize() { return 16; }
     @Override public boolean isAead() { return false; }
     @Override public int authTagLength() { return 0; }
+    @Override public int nonceLen() { return 16; }
 
     @Override
     public void init(byte[] key, byte[] iv, boolean encrypt) {
@@ -35,14 +39,32 @@ public final class Aes256Ctr implements SshCipher {
 
     @Override
     public byte[] encrypt(byte[] data) {
-        try { return cipher.update(data); } catch (Exception e) {
+        try {
+            byte[] partial = cipher.update(data);
+            byte[] last = cipher.doFinal();
+            // Combine partial and final output
+            if (last.length == 0) return partial;
+            byte[] result = new byte[partial.length + last.length];
+            System.arraycopy(partial, 0, result, 0, partial.length);
+            System.arraycopy(last, 0, result, partial.length, last.length);
+            return result;
+        } catch (Exception e) {
             throw new RuntimeException("AES-256-CTR encryption failed", e);
         }
     }
 
     @Override
     public byte[] decrypt(byte[] data) {
-        try { return cipher.update(data); } catch (Exception e) {
+        try {
+            byte[] partial = cipher.update(data);
+            byte[] last = cipher.doFinal();
+            // Combine partial and final output
+            if (last.length == 0) return partial;
+            byte[] result = new byte[partial.length + last.length];
+            System.arraycopy(partial, 0, result, 0, partial.length);
+            System.arraycopy(last, 0, result, partial.length, last.length);
+            return result;
+        } catch (Exception e) {
             throw new RuntimeException("AES-256-CTR decryption failed", e);
         }
     }

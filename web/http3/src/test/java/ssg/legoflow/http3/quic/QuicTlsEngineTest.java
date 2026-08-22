@@ -2,13 +2,10 @@ package ssg.legoflow.http3.quic;
 
 import ssg.legoflow.http3.quic.QuicTlsEngine.HandshakeState;
 import org.junit.jupiter.api.Test;
-
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngineResult;
 import java.security.NoSuchAlgorithmException;
-
 import static org.assertj.core.api.Assertions.*;
-
 class QuicTlsEngineTest {
 
     @Test

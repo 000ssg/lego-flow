@@ -3,17 +3,14 @@ package ssg.legoflow.database.postgresql.client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ssg.legoflow.database.postgresql.protocol.*;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-
 /**
  * PostgreSQL client supporting simple query, extended query, COPY, and LISTEN/NOTIFY.
  *

@@ -4,12 +4,9 @@ import ssg.legoflow.blocks.Context;
 import ssg.legoflow.blocks.DefaultContext;
 import ssg.legoflow.http.header.ContentEncoding;
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ContentEncodingCodecTest {
 
     private final Context ctx = new DefaultContext();

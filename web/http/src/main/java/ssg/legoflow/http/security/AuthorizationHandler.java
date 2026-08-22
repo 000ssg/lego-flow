@@ -4,11 +4,9 @@ import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpResponse;
 import ssg.legoflow.http.core.HttpStatus;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Objects;
-
 /**
  * Handles Authorization header parsing and authentication per RFC 7235 §4.1.
  *

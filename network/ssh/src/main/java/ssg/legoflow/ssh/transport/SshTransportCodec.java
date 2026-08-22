@@ -3,11 +3,12 @@ package ssg.legoflow.ssh.transport;
 import ssg.legoflow.ssh.cipher.SshCipher;
 import ssg.legoflow.ssh.mac.SshMac;
 import ssg.legoflow.ssh.compression.SshCompression;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -15,241 +16,492 @@ import java.util.Objects;
 /**
  * SSH binary packet encoding and decoding per RFC 4253 section 6.
  *
- * <p>The binary packet format is:
- * <pre>
- *   uint32    packet_length
- *   byte      padding_length
- *   byte[n1]  payload; n1 = packet_length - padding_length - 1
- *   byte[n2]  random padding; n2 = padding_length
- *   byte[m]   mac (Message Authentication Code)
- * </pre>
+ * <p>Handles packet format (pktLen, padLen, padding) and delegates
+ * encryption/decryption to cipher implementations. The codec constructs
+ * the full packet structure before passing it to ciphers.
  *
- * <p>Before encryption, packet_length is cleartext. After encryption,
- * everything is encrypted (unless using AEAD ciphers like GCM).
+ * <p>Cipher modes (dispatched via {@code SshCipher.isPayloadOnly()}):
+ * <ul>
+ *   <li>AES-CTR: cipher receives full packet, returns encrypted packet (same length)</li>
+ *   <li>AES-GCM: cipher receives full packet with pktLen as AAD, returns [ciphertext][16-byte tag]</li>
+ *       Codec prepends plaintext pktLen to wire format: [pktLen][ct][tag]</li>
+ *   <li>ChaCha20-Poly1305: cipher receives payload only, returns [encPayload][16-byte tag]</li>
+ *       Codec prepends plaintext pktLen to wire format: [pktLen][encPayload][tag]</li>
+ * </ul>
  *
  * @since 0.1.0
  */
 public final class SshTransportCodec {
 
-    /** Maximum allowed packet size per RFC 4253 (35000 bytes). */
+    private static final Logger LOG = LoggerFactory.getLogger(SshTransportCodec.class);
+
     public static final int MAX_PACKET_SIZE = 35000;
-
-    /** Minimum padding length per RFC 4253. */
     public static final int MIN_PADDING = 4;
-
-    /** Maximum padding length. */
     public static final int MAX_PADDING = 255;
 
     private final SecureRandom random;
-    private SshCipher cipher;
-    private SshMac mac;
+    private SshCipher encodeCipher;
+    private SshCipher decodeCipher;
+    private SshMac encodeMac;
+    private SshMac decodeMac;
     private SshCompression compression;
     private long inputSequenceNumber;
+    private long blocksProcessed;
     private long outputSequenceNumber;
+    private byte[] sessionKeyMaterial;
+    private byte[] exchangeHash;
+    private byte[] decodeKey;
+    private byte[] decodeIV;
+    private int wirePktLen = 0;  // pktLen from wire prefix (for no-cipher path)
 
-    /**
-     * Creates a new transport codec with no encryption.
-     */
     public SshTransportCodec() {
         this.random = new SecureRandom();
-        this.inputSequenceNumber = 0;
-        this.outputSequenceNumber = 0;
     }
 
-    /**
-     * Sets the cipher for encryption/decryption.
-     *
-     * @param cipher the cipher to use, or null for no encryption
-     */
     public void setCipher(SshCipher cipher) {
-        this.cipher = cipher;
+        this.encodeCipher = cipher;
+        this.decodeCipher = cipher;
+    }
+
+    public void setEncodeCipher(SshCipher cipher) {
+        this.encodeCipher = cipher;
+    }
+
+    public void setDecodeCipher(SshCipher cipher) {
+        this.decodeCipher = cipher;
+    }
+
+    public void setEncodeMac(SshMac mac) { this.encodeMac = mac; }
+    public void setDecodeMac(SshMac mac) { this.decodeMac = mac; }
+    public void setCompression(SshCompression compression) { this.compression = compression; }
+
+    public long outputSequenceNumber() { return outputSequenceNumber; }
+    public long inputSequenceNumber() { return inputSequenceNumber; }
+    public long blocksProcessed() { return blocksProcessed; }
+    public byte[] getSessionKeyMaterial() { return sessionKeyMaterial; }
+    public byte[] getExchangeHash() { return exchangeHash; }
+    public SshCipher getEncodeCipher() { return encodeCipher; }
+    public SshCipher getDecodeCipher() { return decodeCipher; }
+    public SshMac getDecodeMac() { return decodeMac; }
+
+    /** Derives key material per RFC 4253 §7.2, defaulting to 20 bytes. */
+    public static byte[] deriveKey(byte[] km, byte[] h, char c) {
+        return deriveKey(km, h, c, 20);
+    }
+
+    /** Derives key material per RFC 4253 §7.2. */
+    public static byte[] deriveKey(byte[] km, byte[] h, char c, int length) {
+        int offset = 0;
+        int count = 1;
+        byte[] key = new byte[length];
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            while (offset < length) {
+                md.reset();
+                md.update(km);
+                md.update(h);
+                md.update((byte) c);
+                md.update(km.length >= 20 ? Arrays.copyOfRange(km, 0, 20) : pad(km, 20));
+                md.update(ByteBuffer.allocate(4).putInt(count++).array());
+                byte[] hash = md.digest();
+                int copy = Math.min(hash.length, length - offset);
+                System.arraycopy(hash, 0, key, offset, copy);
+                offset += copy;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Key derivation failed", e);
+        }
+        return key;
+    }
+
+    private static byte[] pad(byte[] src, int len) {
+        byte[] result = new byte[len];
+        System.arraycopy(src, 0, result, 0, Math.min(src.length, len));
+        return result;
+    }
+
+    public void setSessionKeyMaterial(byte[] km, byte[] h) {
+        this.sessionKeyMaterial = km;
+        this.exchangeHash = h;
+    }
+
+    public void setDecodeKeyAndIV(byte[] key, byte[] iv) {
+        this.decodeKey = key;
+        this.decodeIV = iv;
+    }
+
+    public String getDecodeCipherName() {
+        return decodeCipher != null ? decodeCipher.name() : null;
+    }
+
+    public byte[] getDecodeKey() { return decodeKey; }
+    public byte[] getDecodeIV() { return decodeIV; }
+
+    /** Returns block size for cipher (16 default for AEAD, 8 for ChaCha20). */
+    public int blockSize() {
+        if (encodeCipher != null) return encodeCipher.blockSize();
+        return 16;
+    }
+
+    /** Returns MAC length for non-AEAD modes. */
+    public int macLength() {
+        if (decodeMac != null && !decodeMac.isEncryptThenMac()) {
+            return decodeMac.macLength();
+        }
+        return 0;
+    }
+
+    /** Returns AEAD tag length. */
+    public int aeadTagLength() {
+        if (decodeCipher != null && decodeCipher.isAead()) {
+            return decodeCipher.authTagLength();
+        }
+        return 0;
     }
 
     /**
-     * Sets the MAC algorithm.
+     * Encodes a payload into SSH wire format.
      *
-     * @param mac the MAC algorithm, or null for no MAC
-     */
-    public void setMac(SshMac mac) {
-        this.mac = mac;
-    }
-
-    /**
-     * Sets the compression algorithm.
-     *
-     * @param compression the compression algorithm, or null for no compression
-     */
-    public void setCompression(SshCompression compression) {
-        this.compression = compression;
-    }
-
-    /**
-     * Returns the current output sequence number.
-     *
-     * @return the output sequence number
-     */
-    public long outputSequenceNumber() {
-        return outputSequenceNumber;
-    }
-
-    /**
-     * Returns the current input sequence number.
-     *
-     * @return the input sequence number
-     */
-    public long inputSequenceNumber() {
-        return inputSequenceNumber;
-    }
-
-    /**
-     * Encodes a payload into an SSH binary packet.
-     *
-     * @param payload the payload bytes (message type + message data)
-     * @return the encoded packet ready for transmission
-     * @throws IllegalArgumentException if the payload exceeds maximum size
+     * <p>Codec responsibilities:
+     * <ul>
+     *   <li>Compression</li>
+     *   <li>Packet formatting ([pktLen][padLen][payload][padding])</li>
+     *   <li>Padding alignment to block boundary</li>
+     *   <li>Cipher dispatch (full-packet or payload-only mode)</li>
+     *   <li>MAC computation (non-AEAD or ETM)</li>
+     *   <li>AEAD wire format: plaintext pktLen prefix for all AEAD ciphers</li>
+     * </ul>
      */
     public byte[] encode(byte[] payload) {
-        Objects.requireNonNull(payload, "payload");
+        Objects.requireNonNull(payload);
 
-        // Compress if enabled
-        byte[] compressedPayload = payload;
-        if (compression != null) {
-            compressedPayload = compression.compress(payload);
+        // 1. Compress
+        byte[] cp = payload;
+        if (compression != null) cp = compression.compress(payload);
+
+        // 2. Calculate padding
+        int bs = encodeCipher != null ? encodeCipher.blockSize() : 8;
+        if (bs < 8) bs = 8;
+
+        int plen = 4 + 1 + cp.length;
+        int padLen = bs - (plen % bs);
+        if (padLen < MIN_PADDING) padLen += bs;
+
+        int packetLen = 1 + padLen + cp.length;
+        if (packetLen > MAX_PACKET_SIZE) {
+            throw new IllegalArgumentException("Packet too large: " + packetLen);
         }
 
-        int blockSize = cipher != null ? cipher.blockSize() : 8;
-        if (blockSize < 8) blockSize = 8;
-
-        // Calculate padding: packet_length + padding_length + payload must be multiple of blockSize
-        // minimum 4 bytes of padding
-        int packetLengthFieldSize = 4;
-        int paddingLengthFieldSize = 1;
-        int unpadded = paddingLengthFieldSize + compressedPayload.length;
-        int paddingLength = blockSize - ((unpadded + packetLengthFieldSize) % blockSize);
-        if (paddingLength < MIN_PADDING) {
-            paddingLength += blockSize;
-        }
-
-        int packetLength = paddingLengthFieldSize + compressedPayload.length + paddingLength;
-
-        if (packetLength + packetLengthFieldSize > MAX_PACKET_SIZE) {
-            throw new IllegalArgumentException("Packet too large: " + (packetLength + packetLengthFieldSize));
-        }
-
-        // Build the packet
-        ByteBuffer packet = ByteBuffer.allocate(packetLengthFieldSize + packetLength);
-        packet.putInt(packetLength);
-        packet.put((byte) paddingLength);
-        packet.put(compressedPayload);
-
-        // Random padding
-        byte[] padding = new byte[paddingLength];
+        // 3. Build full packet: [pktLen][padLen][payload][padding]
+        ByteBuffer buf = ByteBuffer.allocate(4 + packetLen);
+        buf.putInt(packetLen);
+        buf.put((byte) padLen);
+        buf.put(cp);
+        byte[] padding = new byte[padLen];
         random.nextBytes(padding);
-        packet.put(padding);
+        buf.put(padding);
 
-        byte[] packetBytes = packet.array();
+        byte[] packetBytes = buf.array();
+        byte[] encPktLenBytes = ByteBuffer.allocate(4).putInt(packetLen).array();
 
-        // Compute MAC before encryption (for non-ETM modes)
+        LOG.debug("[CODEC-ENC] seq=" + outputSequenceNumber + " cipher="
+            + (encodeCipher != null ? encodeCipher.name() : "none")
+            + " mac=" + (encodeMac != null ? encodeMac.name() : "none")
+            + " AEAD=" + (encodeCipher != null && encodeCipher.isAead())
+            + " payloadOnly=" + (encodeCipher != null && encodeCipher.isPayloadOnly())
+            + " ETM=" + (encodeMac != null && encodeMac.isEncryptThenMac())
+            + " pktBytes=" + packetBytes.length
+            + " pktLen=" + packetLen);
+
+        // 4. Compute non-AEAD MAC (before encryption, over plaintext packet)
         byte[] macBytes = new byte[0];
-        if (mac != null && !mac.isEncryptThenMac()) {
-            macBytes = mac.compute(outputSequenceNumber, packetBytes);
+        if (encodeMac != null && !encodeMac.isEncryptThenMac()) {
+            macBytes = encodeMac.compute(outputSequenceNumber, packetBytes);
+            LOG.debug("[CODEC-MAC] non-ETM seq=" + outputSequenceNumber);
         }
 
-        // Encrypt
+        // 5. Encrypt — cipher dispatch
         byte[] encrypted;
-        if (cipher != null) {
-            encrypted = cipher.encrypt(packetBytes);
+        if (encodeCipher != null) {
+            if (encodeCipher.isAead()) {
+                encodeCipher.setSequenceNumber(outputSequenceNumber);
+            }
+
+            if (encodeCipher.isAead() && encodeCipher.isPayloadOnly()) {
+                // ChaCha20-Poly1305: payload-only mode
+                LOG.debug("[CODEC-ENC-PKT] fullPacketHex=" + bytesToHex(packetBytes, Math.min(64, packetBytes.length)) + " pktLenField=" + packetLen);
+                // Packet format: [pktLen:4][padLen:1][payload][padding]
+                // Cipher receives: [padLen:1][payload][padding] (pktLen sent in clear)
+                byte[] payloadOnly = Arrays.copyOfRange(packetBytes, 4, packetBytes.length);
+                LOG.debug("[CODEC-ENC] ChaCha20 payloadOnly=" + payloadOnly.length + " pktLen=" + packetLen);
+                encrypted = encodeCipher.encryptPayload(payloadOnly);
+                LOG.debug("[CODEC-ENC] ChaCha20 encrypted payload+tag=" + encrypted.length);
+            } else if (encodeCipher.isAead()) {
+                // AES-GCM: payload mode (per OpenSSH convention)
+                // Packet format: [pktLen:4][padLen:1][payload][padding]
+                // Cipher receives: [padLen:1][payload][padding] (skip pktLen prefix)
+                // AAD = plaintext pktLen
+                LOG.debug("[CODEC-ENC] AES-GCM encrypt pktLen=" + packetLen + " payloadLen=" + (packetBytes.length - 4) + " aad=" + bytesToHex(encPktLenBytes, 4));
+                encodeCipher.setAad(encPktLenBytes);
+                byte[] payloadOnly = Arrays.copyOfRange(packetBytes, 4, packetBytes.length);
+                LOG.debug("[CODEC-ENC] AES-GCM payloadOnlyLen=" + payloadOnly.length + " payloadOnly=" + bytesToHex(payloadOnly, Math.min(64, payloadOnly.length)));
+                encrypted = encodeCipher.encryptWithAad(payloadOnly, encPktLenBytes);
+                LOG.debug("[CODEC-ENC] AES-GCM encrypted=" + encrypted.length
+                    + " (payload=" + payloadOnly.length + ", tag=" + (encrypted.length - payloadOnly.length) + ")");
+            } else {
+                // AES-CTR: full packet mode, no AAD
+                encrypted = encodeCipher.encrypt(packetBytes);
+                LOG.debug("[CODEC-ENC] AES-CTR encrypted=" + encrypted.length);
+            }
         } else {
-            encrypted = packetBytes;
+            // No cipher — send plaintext packet as-is
+            encrypted = Arrays.copyOfRange(packetBytes, 4, packetBytes.length);
         }
 
-        // Compute MAC after encryption (for ETM modes)
-        if (mac != null && mac.isEncryptThenMac()) {
-            macBytes = mac.compute(outputSequenceNumber, encrypted);
+        // 6. Compute ETM MAC (over encrypted data)
+        if (encodeMac != null && encodeMac.isEncryptThenMac()) {
+            LOG.debug("[CODEC-MAC] ETM-ENC seq=" + outputSequenceNumber);
+            macBytes = encodeMac.compute(outputSequenceNumber, encrypted);
+            LOG.debug("[CODEC-MAC] ETM computed=" + bytesToHex(macBytes, 16));
         }
 
+        LOG.debug("[CODEC-SEQ] outputSequenceNumber: " + outputSequenceNumber + " -> " + (outputSequenceNumber + 1));
         outputSequenceNumber++;
 
-        // Concatenate encrypted packet + MAC
-        byte[] result = new byte[encrypted.length + macBytes.length];
-        System.arraycopy(encrypted, 0, result, 0, encrypted.length);
-        System.arraycopy(macBytes, 0, result, encrypted.length, macBytes.length);
-
+        // 7. Build wire format
+        // ChaCha20 (AEAD payload-only): wire = [unenc_pktLen:4][encrypted_payload][tag]
+        //   encrypted.length = pktLen + tagLen, wire = 4 + encrypted.length + macLen
+        // AES-GCM (AEAD full-packet): wire = [unenc_pktLen:4][encrypted_full_packet][tag]
+        //   encrypted.length = packetBytes.length + tagLen, wire = 4 + encrypted.length + macLen
+        // Non-AEAD (AES-CTR, no-cipher): wire = [pktLen:4][padLen:1][payload][padding][mac]
+        //   encrypted = packetBytes (includes pktLen), wire = encrypted.length + macLen
+        int macLen = macBytes.length;
+        boolean hasWirePrefix = (encodeCipher != null && encodeCipher.isAead());
+        byte[] result;
+        if (hasWirePrefix) {
+            // AEAD: prepend plaintext pktLen
+            result = new byte[4 + encrypted.length + macLen];
+            System.arraycopy(encPktLenBytes, 0, result, 0, 4);
+            System.arraycopy(encrypted, 0, result, 4, encrypted.length);
+            if (macLen > 0) {
+                System.arraycopy(macBytes, 0, result, 4 + encrypted.length, macLen);
+            }
+        } else {
+            // Non-AEAD: [plaintext_pktLen:4][encPacket:packetLen][mac]
+            // The packetLen already includes the pktLen field (pktLen = packetLen from the spec)
+            result = new byte[4 + encrypted.length + macLen];
+            System.arraycopy(encPktLenBytes, 0, result, 0, 4);
+            System.arraycopy(encrypted, 0, result, 4, encrypted.length);
+            if (macLen > 0) {
+                System.arraycopy(macBytes, 0, result, 4 + encrypted.length, macLen);
+            }
+        }
+        LOG.debug("[CODEC-ENC] wire total=" + result.length + " (prefix=" + (hasWirePrefix ? "yes" : "no") + ")");
         return result;
     }
 
     /**
-     * Decodes an SSH binary packet from raw bytes.
+     * Decodes SSH wire format back to payload.
      *
-     * @param data the raw bytes including packet_length, payload, padding, and MAC
-     * @return the decoded payload bytes
-     * @throws IllegalArgumentException if the packet is malformed
+     * <p>Codec responsibilities:
+     * <ul>
+     *   <li>MAC/Tag verification</li>
+     *   <li>Cipher dispatch (full-packet or payload-only mode)</li>
+     *   <li>Packet format parsing ([pktLen][padLen][payload][padding])</li>
+     *   <li>Padding removal</li>
+     *   <li>Decompression</li>
+     * </ul>
      */
     public byte[] decode(byte[] data) {
-        Objects.requireNonNull(data, "data");
+        LOG.debug("[CODEC-DEC] data.length=" + data.length
+            + " cipher=" + (decodeCipher != null ? decodeCipher.name() : "none")
+            + " mac=" + (decodeMac != null ? decodeMac.name() : "none")
+            + " AEAD=" + (decodeCipher != null && decodeCipher.isAead())
+            + " payloadOnly=" + (decodeCipher != null && decodeCipher.isPayloadOnly())
+            + " seq=" + inputSequenceNumber
+            + " decodeCipherPresent=" + (decodeCipher != null));
+        LOG.debug("[CODEC DECODE] data.length={} AEAD tag={} mac={}",
+            data.length, aeadTagLength(), decodeMac != null ? decodeMac.macLength() : 0);
 
-        int macLength = mac != null ? mac.macLength() : 0;
+        Objects.requireNonNull(data);
 
-        byte[] packetBytes;
-        byte[] macBytes;
+        // Determine overhead (MAC tag or AEAD tag) and split
+        int aeadTagLen = (decodeCipher != null && decodeCipher.isAead()) ? decodeCipher.authTagLength() : 0;
+        int macLen = (decodeCipher != null && !decodeCipher.isAead() && decodeMac != null && !decodeMac.isEncryptThenMac()) ? decodeMac.macLength() : 0;
 
-        if (mac != null && mac.isEncryptThenMac()) {
-            // For ETM: verify MAC on encrypted data, then decrypt
-            int encLen = data.length - macLength;
-            byte[] encrypted = Arrays.copyOfRange(data, 0, encLen);
-            macBytes = Arrays.copyOfRange(data, encLen, data.length);
-
-            byte[] expectedMac = mac.compute(inputSequenceNumber, encrypted);
-            if (!constantTimeEquals(expectedMac, macBytes)) {
-                throw new IllegalArgumentException("MAC verification failed");
+        // Wire format:
+        // ChaCha20 (AEAD): [unenc_pktLen:4][encrypted_payload][tag]
+        // AES-GCM (AEAD): [unenc_pktLen:4][encrypted_full_packet][tag]
+        // Non-AEAD (AES-CTR, no-cipher): [pktLen:4][encrypted_data][mac]
+        
+        boolean hasWirePrefix = (decodeCipher != null && decodeCipher.isAead());
+        int pktLen;
+        byte[] encrypted;
+        byte[] authData; // MAC only (tag is inside encrypted for AEAD)
+        int tagLen = (decodeCipher != null && decodeCipher.isAead()) ? decodeCipher.authTagLength() : 0;
+        if (hasWirePrefix) {
+            // AEAD wire format: [unenc_pktLen:4][encrypted_payload_or_full_packet][tag]
+            // The plaintext pktLen is sent in clear at the wire prefix.
+            // Codec receives full wire with prefix — strip prefix, compute pktLen from encrypted data.
+            int wirePktLen = ByteBuffer.wrap(data, 0, 4).getInt();
+            this.wirePktLen = wirePktLen;  // stored in field for no-cipher path
+            // Strip the plaintext pktLen prefix: encrypted = data[4:]
+            encrypted = Arrays.copyOfRange(data, 4, data.length);
+            // pktLen is the plaintext packet length (padLen + payload + padding).
+            // AEAD cipher outputs (pktLen) ciphertext + tagLen.
+            // So encrypted.length = pktLen + tagLen, meaning pktLen = encrypted.length - tagLen.
+            pktLen = encrypted.length - tagLen;
+            if (pktLen != wirePktLen) {
+                LOG.warn("[CODEC-DEC-AEAD-LEN-MISMATCH] wirePktLen=" + wirePktLen + " computedPktLen=" + pktLen + " encryptedLen=" + encrypted.length + " tagLen=" + tagLen);
             }
-
-            packetBytes = cipher != null ? cipher.decrypt(encrypted) : encrypted;
+            authData = new byte[0];
+            LOG.debug("[CODEC-DEC] AEAD wirePktLen=" + wirePktLen + " computedPktLen=" + pktLen
+                + " encryptedLen=" + encrypted.length + " tagLen=" + tagLen);
         } else {
-            // For non-ETM: decrypt, then verify MAC
-            int encLen = data.length - macLength;
-            byte[] encrypted = Arrays.copyOfRange(data, 0, encLen);
-            macBytes = macLength > 0 ? Arrays.copyOfRange(data, encLen, data.length) : new byte[0];
+            // Non-AEAD: data may include plaintext prefix or not
+            // Wire: [prefix:4][packet:packetLen][mac] or [packet:packetLen][mac]
+            // Detect: if data.length == pktLen + macLen → no prefix; if data.length == 4 + pktLen + macLen → has prefix
+            pktLen = ByteBuffer.wrap(data, 0, 4).getInt();
+            wirePktLen = pktLen;
+            LOG.debug("[CODEC-DEC] Non-AEAD pktLen=" + pktLen + " dataLen=" + data.length);
+            int packetStart = (data.length == pktLen + macLen) ? 0 : 4;
+            LOG.debug("[CODEC-DEC] Non-AEAD packetStart=" + packetStart);
+            int packetEnd = data.length - macLen;
+            encrypted = Arrays.copyOfRange(data, packetStart, packetEnd);
+            authData = macLen > 0 ? Arrays.copyOfRange(data, packetEnd, data.length) : new byte[0];
+            LOG.debug("[CODEC-DEC] Non-AEAD encrypted=" + encrypted.length + " (from " + packetStart + " to " + packetEnd + ")");
+        }
 
-            packetBytes = cipher != null ? cipher.decrypt(encrypted) : encrypted;
+        LOG.debug("[CODEC-DEC PARSE] pktLen=" + pktLen + " encryptedLen=" + encrypted.length
+            + " aead=" + aeadTagLen + " mac=" + macLen);
 
-            if (mac != null) {
-                byte[] expectedMac = mac.compute(inputSequenceNumber, packetBytes);
-                if (!constantTimeEquals(expectedMac, macBytes)) {
+        // 2. Decrypt — cipher dispatch
+        byte[] packetBytes;
+        if (decodeCipher != null) {
+            LOG.debug("[CODEC-DEC] Before setSequenceNumber: seq=" + inputSequenceNumber);
+            decodeCipher.setSequenceNumber(inputSequenceNumber);
+            LOG.debug("[CODEC-DEC] After setSequenceNumber: seq=" + inputSequenceNumber);
+
+            if (decodeCipher.isAead() && decodeCipher.isPayloadOnly()) {
+                // ChaCha20-Poly1305: payload-only mode
+                // Wire: [unenc_pktLen:4][encPayloadWithTag]
+                // Cipher receives only the encrypted payload (pktLen NOT encrypted)
+                byte[] encPayloadWithTag = encrypted;
+                LOG.debug("[CODEC-DEC] ChaCha20 encPayloadWithTag=" + encPayloadWithTag.length);
+                packetBytes = decodeCipher.decryptPayload(encPayloadWithTag);
+                LOG.debug("[CODEC-DEC] ChaCha20 decrypted (payload-only)=" + packetBytes.length);
+                // packetBytes = [padLen:1][payload][padding] — NO pktLen prefix
+            } else if (decodeCipher.isAead()) {
+                // AES-GCM: payload mode (per OpenSSH convention)
+                // Wire: [unenc_pktLen:4][encrypted_payload_with_tag]
+                // Decrypted = [padLen:1][payload][padding] (no pktLen prefix)
+                // pktLen was already computed in the AEAD branch — use it for AAD.
+                LOG.debug("[CODEC-DEC-PKT] dataHex=" + bytesToHex(data, Math.min(64, data.length)) + " encryptedHex=" + bytesToHex(encrypted, Math.min(64, encrypted.length)));
+                byte[] pktLenBytes = ByteBuffer.allocate(4).putInt(pktLen).array();
+                LOG.debug("[CODEC-DEC] AES-GCM using pktLenFromAEAD=" + pktLen 
+                    + " encryptedLen=" + encrypted.length + " tagLen=" + tagLen
+                    + " seq=" + inputSequenceNumber);
+                decodeCipher.setAad(pktLenBytes);
+                LOG.debug("[CODEC-DEC] AES-GCM encryptedOnly=" + bytesToHex(encrypted, Math.min(64, encrypted.length)) + " encryptedLen=" + encrypted.length);
+                byte[] decrypted = decodeCipher.decryptWithAad(encrypted, pktLenBytes);
+                LOG.debug("[CODEC-DEC CIPHER] AES-GCM seq=" + inputSequenceNumber
+                    + " decLen=" + decrypted.length);
+                // Reconstruct: [pktLen:4][padLen:1][payload][padding]
+                packetBytes = new byte[4 + decrypted.length];
+                System.arraycopy(pktLenBytes, 0, packetBytes, 0, 4);
+                System.arraycopy(decrypted, 0, packetBytes, 4, decrypted.length);
+                LOG.debug("[CODEC-DEC RECONSTRUCT] pktLen=" + pktLen + " total=" + packetBytes.length);
+            } else {
+                // AES-CTR: standard full-packet mode
+                packetBytes = decodeCipher.decrypt(encrypted);
+                LOG.debug("[CODEC-DEC CIPHER] AES-CTR seq=" + inputSequenceNumber
+                    + " plainLen=" + packetBytes.length);
+                // packetBytes = [pktLen:4][padLen:1][payload][padding]
+            }
+        } else {
+            // No cipher — encrypted is plaintext packet bytes
+            packetBytes = encrypted;
+            LOG.debug("[CODEC-DEC NO-CIPHER] pktLen=" + pktLen + " packetBytesLen=" + packetBytes.length
+                + " first4=" + bytesToHex(Arrays.copyOf(packetBytes, Math.min(16, packetBytes.length)), 16));
+        }
+
+        // 3. Verify MAC / tag
+        if (decodeMac != null) {
+            byte[] expectedMac;
+            if (decodeMac.isEncryptThenMac()) {
+                expectedMac = decodeMac.compute(inputSequenceNumber, encrypted);
+            } else if (!decodeCipher.isAead()) {
+                expectedMac = decodeMac.compute(inputSequenceNumber, packetBytes);
+            } else {
+                expectedMac = null;
+            }
+            if (expectedMac != null) {
+                if (!constantTimeEquals(expectedMac, authData)) {
+                    LOG.debug("[CODEC-MAC] MISMATCH seq=" + inputSequenceNumber
+                        + " expected=" + bytesToHex(expectedMac, 16)
+                        + " got=" + bytesToHex(authData, 16));
                     throw new IllegalArgumentException("MAC verification failed");
                 }
             }
+            LOG.debug("[CODEC-MAC] OK seq=" + inputSequenceNumber);
         }
+
+        // 4. Track blocks for CTR counter sync
+        int bs = decodeCipher != null ? decodeCipher.blockSize() : 16;
+        if (bs < 8) bs = 8;
+        blocksProcessed += (encrypted.length / bs);
+        LOG.debug("[CODEC-DEC BLOCKS] seq=" + inputSequenceNumber
+            + " encBlocks=" + (encrypted.length / bs) + " total=" + blocksProcessed);
 
         inputSequenceNumber++;
 
-        // Parse the decrypted packet
+        // 5. Parse packet format
+        // ChaCha20: [padLen:1][payload][padding] — no pktLen prefix
+        // AES-GCM/AES-CTR/no-cipher: [pktLen:4][padLen:1][payload][padding]
         ByteBuffer buf = ByteBuffer.wrap(packetBytes);
-        int packetLength = buf.getInt();
-        int paddingLength = buf.get() & 0xFF;
-        int payloadLength = packetLength - paddingLength - 1;
-
-        if (payloadLength < 0 || payloadLength > MAX_PACKET_SIZE) {
-            throw new IllegalArgumentException("Invalid payload length: " + payloadLength);
+        if (decodeCipher != null && decodeCipher.isPayloadOnly()) {
+            // ChaCha20: parse payload-only format
+            int paddingLength = buf.get() & 0xFF;
+            int payloadLength = packetBytes.length - 1 - paddingLength;
+            LOG.debug("[CODEC-DEC] ChaCha20 padLen=" + paddingLength + " payloadLen=" + payloadLength);
+            if (payloadLength < 0 || payloadLength > MAX_PACKET_SIZE) {
+                throw new IllegalArgumentException("Invalid payload length: " + payloadLength);
+            }
+            byte[] payload = new byte[payloadLength];
+            buf.get(payload);
+            if (compression != null) payload = compression.decompress(payload);
+            LOG.debug("[CODEC-DEC] ChaCha20 payloadLen=" + payload.length + " msgType="
+                + (payload.length > 0 ? (payload[0] & 0xFF) : -1));
+            return payload;
+        } else {
+            // Standard: parse packet format
+            // AES-CTR (cipher present): packetBytes includes pktLen prefix
+            // No-cipher: packetBytes starts with padLen, wirePktLen from prefix
+            int packetLength;
+            int paddingLength;
+            if (decodeCipher != null) {
+                // AES-CTR: pktLen inside decrypted packet data
+                packetLength = buf.getInt();
+                paddingLength = buf.get() & 0xFF;
+            } else {
+                // No-cipher: use wire pktLen (prefix), read padLen next
+                packetLength = wirePktLen;
+                paddingLength = buf.get() & 0xFF;
+            }
+            int payloadLength = packetLength - paddingLength - 1;
+            LOG.debug("[CODEC-DEC] pktLen=" + packetLength + " padLen=" + paddingLength + " payloadLen=" + payloadLength);
+            if (payloadLength < 0 || payloadLength > MAX_PACKET_SIZE) {
+                throw new IllegalArgumentException("Invalid payload length: " + payloadLength);
+            }
+            byte[] payload = new byte[payloadLength];
+            buf.get(payload);
+            if (compression != null) payload = compression.decompress(payload);
+            LOG.debug("[CODEC-DEC] payloadLen=" + payload.length + " msgType="
+                + (payload.length > 0 ? (payload[0] & 0xFF) : -1));
+            return payload;
         }
-
-        byte[] payload = new byte[payloadLength];
-        buf.get(payload);
-
-        // Decompress if enabled
-        if (compression != null) {
-            payload = compression.decompress(payload);
-        }
-
-        return payload;
     }
 
-    /**
-     * Reads SSH string (uint32 length + data) from a ByteBuffer.
-     *
-     * @param buf the buffer to read from
-     * @return the string value
-     */
     public static String readString(ByteBuffer buf) {
         int length = buf.getInt();
         if (length < 0 || length > MAX_PACKET_SIZE) {
@@ -260,24 +512,12 @@ public final class SshTransportCodec {
         return new String(data, StandardCharsets.UTF_8);
     }
 
-    /**
-     * Writes an SSH string (uint32 length + data) to a ByteBuffer.
-     *
-     * @param buf   the buffer to write to
-     * @param value the string value
-     */
     public static void writeString(ByteBuffer buf, String value) {
         byte[] data = value.getBytes(StandardCharsets.UTF_8);
         buf.putInt(data.length);
         buf.put(data);
     }
 
-    /**
-     * Reads SSH binary data (uint32 length + data) from a ByteBuffer.
-     *
-     * @param buf the buffer to read from
-     * @return the binary data
-     */
     public static byte[] readBinary(ByteBuffer buf) {
         int length = buf.getInt();
         if (length < 0 || length > MAX_PACKET_SIZE) {
@@ -288,102 +528,56 @@ public final class SshTransportCodec {
         return data;
     }
 
-    /**
-     * Writes SSH binary data (uint32 length + data) to a ByteBuffer.
-     *
-     * @param buf  the buffer to write to
-     * @param data the binary data
-     */
     public static void writeBinary(ByteBuffer buf, byte[] data) {
         buf.putInt(data.length);
         buf.put(data);
     }
 
-    /**
-     * Reads a name-list (comma-separated) from a ByteBuffer.
-     *
-     * @param buf the buffer to read from
-     * @return the list of names
-     */
     public static List<String> readNameList(ByteBuffer buf) {
-        String nameList = readString(buf);
-        if (nameList.isEmpty()) {
-            return List.of();
-        }
-        return List.of(nameList.split(","));
+        String nl = readString(buf);
+        if (nl.isEmpty()) return List.of();
+        return List.of(nl.split(","));
     }
 
-    /**
-     * Writes a name-list (comma-separated) to a ByteBuffer.
-     *
-     * @param buf   the buffer to write to
-     * @param names the list of names
-     */
     public static void writeNameList(ByteBuffer buf, List<String> names) {
         writeString(buf, String.join(",", names));
     }
 
-    /**
-     * Reads a boolean from a ByteBuffer.
-     *
-     * @param buf the buffer to read from
-     * @return the boolean value
-     */
     public static boolean readBoolean(ByteBuffer buf) {
         return buf.get() != 0;
     }
 
-    /**
-     * Writes a boolean to a ByteBuffer.
-     *
-     * @param buf   the buffer to write to
-     * @param value the boolean value
-     */
     public static void writeBoolean(ByteBuffer buf, boolean value) {
         buf.put(value ? (byte) 1 : (byte) 0);
     }
 
-    /**
-     * Reads an unsigned 32-bit integer from a ByteBuffer.
-     *
-     * @param buf the buffer to read from
-     * @return the value as a long
-     */
     public static long readUint32(ByteBuffer buf) {
         return buf.getInt() & 0xFFFFFFFFL;
     }
 
-    /**
-     * Writes an unsigned 32-bit integer to a ByteBuffer.
-     *
-     * @param buf   the buffer to write to
-     * @param value the value (must be in range 0 to 2^32-1)
-     */
     public static void writeUint32(ByteBuffer buf, long value) {
         buf.putInt((int) (value & 0xFFFFFFFFL));
     }
 
-    /**
-     * Constant-time byte array comparison to prevent timing attacks.
-     *
-     * @param a first array
-     * @param b second array
-     * @return true if arrays are equal
-     */
     private static boolean constantTimeEquals(byte[] a, byte[] b) {
         if (a.length != b.length) return false;
-        int result = 0;
-        for (int i = 0; i < a.length; i++) {
-            result |= a[i] ^ b[i];
-        }
-        return result == 0;
+        int r = 0;
+        for (int i = 0; i < a.length; i++) r |= a[i] ^ b[i];
+        return r == 0;
     }
 
-    /**
-     * Resets the sequence numbers (used during key re-exchange).
-     */
     public void resetSequenceNumbers() {
         this.inputSequenceNumber = 0;
         this.outputSequenceNumber = 0;
+        this.blocksProcessed = 0;
+    }
+
+    private static String bytesToHex(byte[] data, int maxBytes) {
+        StringBuilder sb = new StringBuilder();
+        int len = Math.min(data.length, maxBytes);
+        for (int i = 0; i < len; i++) {
+            sb.append(String.format("%02x ", data[i]));
+        }
+        return sb.toString().trim();
     }
 }

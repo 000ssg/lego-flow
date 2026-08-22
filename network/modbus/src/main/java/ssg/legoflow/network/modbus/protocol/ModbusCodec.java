@@ -4,9 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import ssg.legoflow.service.util.BufferPool;
-import java.util.Arrays;
-
 /**
  * Codec for encoding and decoding Modbus TCP frames.
  *

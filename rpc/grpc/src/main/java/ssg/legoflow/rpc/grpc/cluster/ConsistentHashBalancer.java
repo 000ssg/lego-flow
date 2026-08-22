@@ -3,12 +3,10 @@ package ssg.legoflow.rpc.grpc.cluster;
 import ssg.legoflow.network.cluster.core.ClusterNode;
 import ssg.legoflow.network.cluster.core.hashing.ConsistentHashRing;
 import ssg.legoflow.network.cluster.core.hashing.MurmurHash3;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Consistent-hash load balancer.
  *

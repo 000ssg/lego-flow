@@ -4,12 +4,9 @@ import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.cluster.core.ClusterNode;
 import ssg.legoflow.network.cluster.core.ClusterNodeStatus;
 import ssg.legoflow.network.cluster.core.ClusterRole;
-
 import java.util.List;
 import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class LeastRequestBalancerTest {
 
     private final ClusterNode node1 = ClusterNode.builder()

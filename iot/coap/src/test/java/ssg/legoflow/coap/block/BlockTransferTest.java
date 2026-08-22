@@ -4,9 +4,7 @@ import org.junit.jupiter.api.*;
 import ssg.legoflow.coap.protocol.CoapMessage;
 import ssg.legoflow.coap.protocol.CoapType;
 import ssg.legoflow.coap.protocol.CoapCode;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link BlockOption} and block transfer covering block option construction,
  * encoding/decoding round trip, size calculations, validation, and edge cases.

@@ -1,9 +1,7 @@
 package ssg.legoflow.database.mysql.protocol;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-
 /**
  * MySQL HandshakeV10 packet — the initial server greeting.
  *

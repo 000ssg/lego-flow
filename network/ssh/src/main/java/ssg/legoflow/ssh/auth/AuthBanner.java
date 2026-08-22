@@ -1,10 +1,8 @@
 package ssg.legoflow.ssh.auth;
 
 import ssg.legoflow.ssh.transport.SshTransportCodec;
-
 import java.nio.ByteBuffer;
 import java.util.Objects;
-
 /**
  * SSH_MSG_USERAUTH_BANNER (type 53) for displaying messages to the user
  * before authentication completes.

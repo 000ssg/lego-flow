@@ -1,9 +1,7 @@
 package ssg.legoflow.email.imap.protocol;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ImapStatusTest {
 
     @Test

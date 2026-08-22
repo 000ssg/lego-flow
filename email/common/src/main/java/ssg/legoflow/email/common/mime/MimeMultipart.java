@@ -1,11 +1,9 @@
 package ssg.legoflow.email.common.mime;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-
 /**
  * Multipart MIME container with boundary-delimited parts.
  *

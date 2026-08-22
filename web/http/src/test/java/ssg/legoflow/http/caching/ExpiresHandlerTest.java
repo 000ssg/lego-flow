@@ -4,15 +4,11 @@ import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpResponse;
 import ssg.legoflow.http.core.HttpStatus;
 import org.junit.jupiter.api.Test;
-
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ExpiresHandlerTest {
 
     private final ExpiresHandler handler = new ExpiresHandler();

@@ -2,16 +2,13 @@ package ssg.legoflow.http3.quic;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngineResult;
 import java.net.SocketAddress;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
-
 /**
  * Central coordinator for a single QUIC connection.
  *

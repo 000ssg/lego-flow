@@ -7,11 +7,9 @@ import ssg.legoflow.email.smtp.client.SmtpClientConfig;
 import ssg.legoflow.service.AbstractService;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
 /** Service-based SMTP client adapter for sending emails through the DP/DF pipeline. */
 public final class SmtpClientService extends AbstractService<ByteBuffer, ByteBuffer> {
 

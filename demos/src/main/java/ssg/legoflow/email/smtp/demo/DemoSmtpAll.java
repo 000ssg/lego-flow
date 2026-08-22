@@ -2,7 +2,6 @@ package ssg.legoflow.email.smtp.demo;
 
 import ssg.legoflow.email.smtp.client.SmtpClient;
 import ssg.legoflow.email.smtp.client.SmtpClientConfig;
-import ssg.legoflow.email.smtp.protocol.SmtpExtension;
 import ssg.legoflow.email.smtp.protocol.SmtpReply;
 import ssg.legoflow.email.smtp.server.InMemoryMessageStore;
 import ssg.legoflow.email.smtp.server.RelayConfig;
@@ -10,9 +9,7 @@ import ssg.legoflow.email.smtp.server.SmtpHandler;
 import ssg.legoflow.email.smtp.server.SmtpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.List;
-
 /**
  * Comprehensive demo of all SMTP module features.
  *

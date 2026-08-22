@@ -1,12 +1,10 @@
 package ssg.legoflow.coap.observe;
 
-import ssg.legoflow.coap.protocol.CoapCode;
 import ssg.legoflow.coap.protocol.CoapMessage;
 import ssg.legoflow.coap.protocol.CoapOption;
 import ssg.legoflow.coap.protocol.CoapType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,7 +14,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 /**
  * Thread-safe registry for managing CoAP observe relationships (RFC 7641).
  *

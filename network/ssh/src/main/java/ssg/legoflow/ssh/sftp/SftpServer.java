@@ -2,7 +2,6 @@ package ssg.legoflow.ssh.sftp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -12,7 +11,6 @@ import ssg.legoflow.ssh.transport.SshTransportCodec;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * SFTP server subsystem handler.
  *

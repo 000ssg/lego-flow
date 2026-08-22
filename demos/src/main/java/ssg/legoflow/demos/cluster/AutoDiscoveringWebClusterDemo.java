@@ -21,7 +21,6 @@ import ssg.legoflow.network.cluster.core.ClusterNodeStatus;
 import ssg.legoflow.network.cluster.core.ClusterTransport;
 import ssg.legoflow.network.cluster.core.hashing.ConsistentHashRing;
 import ssg.legoflow.network.cluster.core.hashing.MurmurHash3;
-
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -29,8 +28,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * Demo: Auto-Discovering Web Server Cluster.
  *

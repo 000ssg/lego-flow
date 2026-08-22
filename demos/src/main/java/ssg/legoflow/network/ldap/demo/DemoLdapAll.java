@@ -8,10 +8,8 @@ import ssg.legoflow.network.ldap.server.InMemoryDirectoryBackend;
 import ssg.legoflow.network.ldap.server.LdapServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.List;
-
 /**
  * Comprehensive demo of all LDAP module features.
  *

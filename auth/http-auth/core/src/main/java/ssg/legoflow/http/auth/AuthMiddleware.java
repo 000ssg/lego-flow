@@ -3,10 +3,8 @@ package ssg.legoflow.http.auth;
 import ssg.legoflow.http.core.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Objects;
 import java.util.Set;
-
 /**
  * HTTP request handler wrapper that enforces authentication before delegating
  * to the wrapped handler. Supports path exclusions (e.g., for health checks)

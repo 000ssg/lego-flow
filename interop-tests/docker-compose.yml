@@ -2,9 +2,15 @@
 #
 # Spins up reference implementations for testing protocol compliance:
 #   nginx        → HTTP/HTTPS server (port 8080)
+#   activemq     → AMQP 1.0 + STOMP broker (ports 5672, 61613)
+#   nats         → NATS broker           (port 4222)
 #   mosquitto    → MQTT broker (port 1883)
 #   redis        → Redis in-memory store (port 6379)
-#   postgresql   → PostgreSQL database (port 5432)
+#   openldap     → LDAP server           (port 389)
+#   prosody      → XMPP server           (port 5222)
+#   postgresql   → PostgreSQL database   (port 5432)
+#   mailhog      → SMTP server           (port 25)
+#   ftp          → FTP server            (port 21)
 #
 # Usage:
 #   docker compose up -d
@@ -30,7 +36,90 @@ services:
       test: ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
       interval: 5s
       timeout: 3s
+
+  # ── AMQP reference broker (RabbitMQ) ──────────
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: legoflow-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+  # ──AMQP 1.0 + STOMP reference broker (ActiveMQ) ──
+  activemq:
+    image: apache/activemq:latest
+    container_name: legoflow-activemq
+    ports:
+      - "5673:5672"
+      - "61613:61613"
+    volumes:
+      - ./docker/activemq/activemq.xml:/opt/apache-activemq/conf/activemq.xml:ro
+      - ./docker/activemq/users.properties:/opt/apache-activemq/conf/users.properties:ro
+      - ./docker/activemq/groups.properties:/opt/apache-activemq/conf/groups.properties:ro
+    healthcheck:
+      test: ["CMD-SHELL", "perl -e 'use IO::Socket::INET; my $$s = IO::Socket::INET->new(PeerAddr => \"localhost\", PeerPort => 61613, Proto => \"tcp\"); exit(defined($$s) ? 0 : 1)' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  # ── NATS reference broker ──────────────────────
+  nats:
+    image: nats:2.10-alpine
+    container_name: legoflow-nats
+    ports:
+      - "4222:4222"
+    command: ["-js", "-DV"]
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 4222 || exit 1"]
+      interval: 5s
+      timeout: 3s
       retries: 10
+
+  # ── XMPP reference server (Prosody) ──────────
+  prosody:
+    image: prosody/prosody:latest
+    container_name: legoflow-prosody
+    ports:
+      - "5222:5222"
+      - "5269:5269"
+    volumes:
+      - ./docker/prosody.cfg.lua:/etc/prosody/prosody.cfg.lua:ro
+      - ./docker/localhost.crt:/etc/prosody/certs/localhost.crt:ro
+      - ./docker/localhost.key:/etc/prosody/certs/localhost.key:ro
+    environment:
+      LOCAL: test
+      PASSWORD: test
+      DOMAIN: localhost
+    healthcheck:
+      test: ["CMD-SHELL", "perl -e 'use IO::Socket::INET; my $$s = IO::Socket::INET->new(PeerAddr => \"localhost\", PeerPort => 5222, Proto => \"tcp\"); exit(defined($$s) ? 0 : 1)' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+  # ── LDAP reference server (OpenLDAP) ───────────
+  openldap:
+    image: osixia/openldap:latest
+    container_name: legoflow-openldap
+    ports:
+      - "389:389"
+    environment:
+      LDAP_ADMIN_PASSWORD: admin
+      LDAP_BASE_DN: dc=example,dc=com
+      LDAP_DOMAIN: example.com
+    healthcheck:
+      test: ["CMD-SHELL", "ldapsearch -x -H ldap://localhost:389 -b dc=example,dc=com -D cn=admin,dc=example,dc=com -w admin || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
 
   # ── MQTT reference broker ───────────────────────
   mosquitto:
@@ -71,6 +160,57 @@ services:
       POSTGRES_DB: legoflow_test
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U legoflow || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── SMTP reference server (MailHog) ─────────────
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: legoflow-mailhog
+    ports:
+      - "25:1025"
+      - "8025:8025"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8025/ > /dev/null 2>&1 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── FTP reference server (Python pyftpdlib — supports anonymous) ──
+  ftp:
+    build: docker/ftp-python
+    container_name: legoflow-ftp
+    ports:
+      - "21:21"
+      - "30000-30009:30000-30009"
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c 'import socket; socket.create_connection((\"localhost\", 21)).close()' || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+
+  # ── SSH reference server (OpenSSH) ────────────
+  sshd:
+    build: docker/sshd
+    container_name: legoflow-sshd
+    ports:
+      - "2222:22"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 22 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── Telnet reference server ───────────────────
+  telnetd:
+    build: docker/telnetd
+    container_name: legoflow-telnetd
+    ports:
+      - "2223:23"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 23 || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 10

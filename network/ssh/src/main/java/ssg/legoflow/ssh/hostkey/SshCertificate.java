@@ -1,14 +1,12 @@
 package ssg.legoflow.ssh.hostkey;
 
 import ssg.legoflow.ssh.transport.SshTransportCodec;
-
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
 /**
  * OpenSSH certificate structure per PROTOCOL.certkeys.
  *

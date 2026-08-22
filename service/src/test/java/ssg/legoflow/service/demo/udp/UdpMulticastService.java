@@ -8,12 +8,10 @@ import ssg.legoflow.service.channel.DatagramHandler;
 import ssg.legoflow.service.channel.DatagramPacketInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.net.SocketAddress;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * A multicast demo service that joins a multicast group and processes group messages.
  *

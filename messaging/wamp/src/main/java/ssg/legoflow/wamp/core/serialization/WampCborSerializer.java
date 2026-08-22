@@ -1,9 +1,7 @@
 package ssg.legoflow.wamp.core.serialization;
 
 import ssg.legoflow.wamp.core.WampMessage;
-
 import java.util.List;
-
 /**
  * Serializes and deserializes WAMP messages using CBOR (RFC 8949) binary format.
  * WAMP messages are encoded as CBOR arrays: {@code [type_code, ...fields]}.

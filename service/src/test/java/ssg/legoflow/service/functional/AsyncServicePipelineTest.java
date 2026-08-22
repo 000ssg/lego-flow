@@ -1,16 +1,13 @@
 package ssg.legoflow.service.functional;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import static org.assertj.core.api.Assertions.*;
-
 class AsyncServicePipelineTest {
 
     @Test

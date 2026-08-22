@@ -2,13 +2,10 @@ package ssg.legoflow.service.cluster.coordination;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 import static org.assertj.core.api.Assertions.*;
-
 class EtcdClientIntegrationTest {
 
     private EtcdConfig config;

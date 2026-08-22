@@ -7,9 +7,7 @@ import ssg.legoflow.http.header.ContentEncoding;
 import ssg.legoflow.http.transfer.ContentEncodingCodec;
 import ssg.legoflow.service.AbstractService;
 import ssg.legoflow.service.ServiceDescriptor;
-
 import java.nio.ByteBuffer;
-
 public class HttpServer extends AbstractService<HttpRequest, HttpResponse> {
 
     private final ServerConfig config;

@@ -5,12 +5,10 @@ import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpResponse;
 import ssg.legoflow.http.core.HttpStatus;
 import ssg.legoflow.http.header.EntityTag;
-
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-
 public class CacheValidator {
 
     public boolean isConditionalGet(HttpRequest request) {

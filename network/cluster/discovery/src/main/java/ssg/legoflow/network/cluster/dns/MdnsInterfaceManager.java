@@ -2,7 +2,6 @@ package ssg.legoflow.network.cluster.dns;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
@@ -12,7 +11,6 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
-
 /**
  * Manages network interfaces suitable for mDNS multicast communication.
  *

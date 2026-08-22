@@ -6,11 +6,9 @@ import ssg.legoflow.wamp.core.realm.RealmManager;
 import ssg.legoflow.wamp.core.router.Broker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 /**
  * Comprehensive demo of all WAMP module features.
  *

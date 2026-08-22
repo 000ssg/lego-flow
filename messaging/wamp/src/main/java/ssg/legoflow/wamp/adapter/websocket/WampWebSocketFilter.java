@@ -4,12 +4,8 @@ import ssg.legoflow.blocks.AbstractDataFilter;
 import ssg.legoflow.blocks.Context;
 import ssg.legoflow.http.websocket.WebSocketFrame;
 import ssg.legoflow.http.websocket.WebSocketFrameCodec;
-import ssg.legoflow.wamp.core.WampMessage;
-import ssg.legoflow.wamp.core.WampSerializer;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-
 /**
  * DataFilter that encodes WAMP messages into WebSocket frame bytes or decodes
  * WebSocket frame bytes into WAMP-ready JSON text.

@@ -17,7 +17,6 @@ import ssg.legoflow.media.sip.protocol.SipStatus;
 import ssg.legoflow.media.sip.registration.SipRegistrar;
 import ssg.legoflow.media.sip.transaction.ClientTransaction;
 import ssg.legoflow.media.sip.transaction.ServerTransaction;
-
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -25,7 +24,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
-
 /**
  * SIP User Agent combining UAC (client) and UAS (server) roles.
  *

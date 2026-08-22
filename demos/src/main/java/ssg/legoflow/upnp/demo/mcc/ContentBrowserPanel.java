@@ -3,11 +3,9 @@ package ssg.legoflow.upnp.demo.mcc;
 import ssg.legoflow.upnp.controlpoint.MediaServerProxy;
 import ssg.legoflow.upnp.mediaserver.ContentItem;
 import ssg.legoflow.upnp.mediaserver.ContentItemType;
-
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.MouseAdapter;
@@ -16,7 +14,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-
 /**
  * Media library browser panel with tree navigation, content table, breadcrumbs, and search.
  *

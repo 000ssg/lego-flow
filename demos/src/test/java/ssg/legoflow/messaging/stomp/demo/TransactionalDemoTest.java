@@ -1,11 +1,8 @@
 package ssg.legoflow.messaging.stomp.demo;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link TransactionalDemo}.
  *

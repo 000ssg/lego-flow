@@ -1,9 +1,7 @@
 package ssg.legoflow.database.mysql.auth;
 
 import ssg.legoflow.database.mysql.protocol.LengthEncodedString;
-
 import java.nio.ByteBuffer;
-
 /**
  * MySQL AuthSwitchRequest packet (0xFE header in auth context).
  *

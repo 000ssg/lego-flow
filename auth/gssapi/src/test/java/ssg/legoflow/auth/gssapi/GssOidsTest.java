@@ -3,9 +3,7 @@ package ssg.legoflow.auth.gssapi;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.Oid;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link GssOids} constants.
  */

@@ -1,13 +1,9 @@
 package ssg.legoflow.ssh.kex;
 
 import ssg.legoflow.ssh.transport.SshTransportCodec;
-
 import java.nio.ByteBuffer;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-
 /**
  * SSH_MSG_KEXINIT message (type 20) for algorithm negotiation per RFC 4253 section 7.1.
  *
@@ -112,19 +108,75 @@ public record KexInit(
 
         return new KexInit(
                 cookie,
-                List.of("curve25519-sha256", "ecdh-sha2-nistp256", "ecdh-sha2-nistp384",
-                        "ecdh-sha2-nistp521", "diffie-hellman-group16-sha512",
+                List.of("curve25519-sha256", "curve25519-sha256@libssh.org", "curve25519-sha256@openssh.com",
+                        "ecdh-sha2-nistp256", "ecdh-sha2-nistp256@openssh.com",
+                        "ecdh-sha2-nistp384", "ecdh-sha2-nistp384@openssh.com",
+                        "ecdh-sha2-nistp521", "ecdh-sha2-nistp521@openssh.com",
+                        "diffie-hellman-group16-sha512",
                         "diffie-hellman-group14-sha256"),
-                List.of("ssh-ed25519", "ecdsa-sha2-nistp256", "ecdsa-sha2-nistp384",
+                List.of("ssh-ed25519", "ecdsa-sha2-nistp256", "ecdsa-sha2-nistp384", "ecdsa-sha2-nistp521",
                         "rsa-sha2-512", "rsa-sha2-256"),
-                List.of("chacha20-poly1305@openssh.com", "aes256-gcm@openssh.com",
-                        "aes128-gcm@openssh.com", "aes256-ctr", "aes192-ctr", "aes128-ctr"),
-                List.of("chacha20-poly1305@openssh.com", "aes256-gcm@openssh.com",
-                        "aes128-gcm@openssh.com", "aes256-ctr", "aes192-ctr", "aes128-ctr"),
-                List.of("hmac-sha2-512-etm@openssh.com", "hmac-sha2-256-etm@openssh.com",
-                        "hmac-sha2-512", "hmac-sha2-256"),
-                List.of("hmac-sha2-512-etm@openssh.com", "hmac-sha2-256-etm@openssh.com",
-                        "hmac-sha2-512", "hmac-sha2-256"),
+                List.of("aes256-gcm@openssh.com", "aes128-gcm@openssh.com",
+                        "chacha20-poly1305@openssh.com", "aes256-ctr", "aes192-ctr", "aes128-ctr"),
+                List.of("aes256-gcm@openssh.com", "aes128-gcm@openssh.com",
+                        "chacha20-poly1305@openssh.com", "aes256-ctr", "aes192-ctr", "aes128-ctr"),
+                List.of("hmac-sha2-256-etm@openssh.com", "hmac-sha2-512-etm@openssh.com",
+                        "hmac-sha2-256", "hmac-sha2-512"),
+                List.of("hmac-sha2-256-etm@openssh.com", "hmac-sha2-512-etm@openssh.com",
+                        "hmac-sha2-256", "hmac-sha2-512"),
+                List.of("none", "zlib@openssh.com", "zlib"),
+                List.of("none", "zlib@openssh.com", "zlib"),
+                List.of(),
+                List.of(),
+                false
+        );
+    }
+
+    /**
+     * Creates a KEXINIT using the server's configured algorithm preferences.
+     * Server preferences are used for both directions, matching what the server will accept.
+     *
+     * @param preferredKex        preferred key exchange algorithms
+     * @param preferredHostKeys   preferred host key algorithms
+     * @param preferredCiphers    preferred ciphers
+     * @param preferredMacs       preferred MAC algorithms
+     * @return a new KEXINIT with server-preferred algorithms
+     */
+    public static KexInit serverKexInit(List<String> preferredKex, List<String> preferredHostKeys,
+                                         List<String> preferredCiphers, List<String> preferredMacs) {
+        byte[] cookie = new byte[16];
+        new SecureRandom().nextBytes(cookie);
+
+        return new KexInit(
+                cookie,
+                preferredKex != null ? preferredKex : List.of(
+                    "curve25519-sha256", "curve25519-sha256@libssh.org", "curve25519-sha256@openssh.com",
+                    "ecdh-sha2-nistp256", "ecdh-sha2-nistp256@openssh.com",
+                    "ecdh-sha2-nistp384", "ecdh-sha2-nistp384@openssh.com",
+                    "ecdh-sha2-nistp521", "ecdh-sha2-nistp521@openssh.com",
+                    "diffie-hellman-group16-sha512",
+                    "diffie-hellman-group14-sha256"
+                ),
+                preferredHostKeys != null ? preferredHostKeys : List.of(
+                    "ssh-ed25519", "ecdsa-sha2-nistp256", "ecdsa-sha2-nistp384",
+                    "rsa-sha2-512", "rsa-sha2-256"
+                ),
+                preferredCiphers != null ? preferredCiphers : List.of(
+                    "aes256-gcm@openssh.com", "aes128-gcm@openssh.com",
+                    "chacha20-poly1305@openssh.com", "aes256-ctr", "aes192-ctr", "aes128-ctr"
+                ),
+                preferredCiphers != null ? preferredCiphers : List.of(
+                    "aes256-gcm@openssh.com", "aes128-gcm@openssh.com",
+                    "chacha20-poly1305@openssh.com", "aes256-ctr", "aes192-ctr", "aes128-ctr"
+                ),
+                preferredMacs != null ? preferredMacs : List.of(
+                    "hmac-sha2-256-etm@openssh.com", "hmac-sha2-512-etm@openssh.com",
+                    "hmac-sha2-256", "hmac-sha2-512"
+                ),
+                preferredMacs != null ? preferredMacs : List.of(
+                    "hmac-sha2-256-etm@openssh.com", "hmac-sha2-512-etm@openssh.com",
+                    "hmac-sha2-256", "hmac-sha2-512"
+                ),
                 List.of("none", "zlib@openssh.com", "zlib"),
                 List.of("none", "zlib@openssh.com", "zlib"),
                 List.of(),

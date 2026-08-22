@@ -2,9 +2,7 @@ package ssg.legoflow.rpc.grpc.common;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.rpc.grpc.protobuf.MessageDescriptor;
-
 import static org.assertj.core.api.Assertions.*;
-
 class MethodDescriptorTest {
 
     private final MessageDescriptor reqDesc = MessageDescriptor.builder("Request").build();

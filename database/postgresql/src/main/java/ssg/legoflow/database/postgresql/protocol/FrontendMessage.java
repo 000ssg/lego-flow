@@ -1,8 +1,6 @@
 package ssg.legoflow.database.postgresql.protocol;
 
-import java.util.List;
 import java.util.Map;
-
 /**
  * Sealed interface for all frontend (client to server) messages.
  *

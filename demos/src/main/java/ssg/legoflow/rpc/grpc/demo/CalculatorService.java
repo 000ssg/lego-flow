@@ -4,9 +4,7 @@ import ssg.legoflow.rpc.grpc.common.MethodDescriptor;
 import ssg.legoflow.rpc.grpc.common.StatusException;
 import ssg.legoflow.rpc.grpc.protobuf.*;
 import ssg.legoflow.rpc.grpc.server.GrpcServer;
-import ssg.legoflow.rpc.grpc.server.GrpcServiceRegistry;
 import ssg.legoflow.rpc.grpc.transport.GrpcStatus;
-
 /**
  * Demo calculator service with unary RPCs: add, multiply, divide.
  *

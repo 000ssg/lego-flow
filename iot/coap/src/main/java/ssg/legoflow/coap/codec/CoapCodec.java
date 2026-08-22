@@ -6,10 +6,8 @@ import ssg.legoflow.coap.protocol.CoapCode;
 import ssg.legoflow.coap.protocol.CoapMessage;
 import ssg.legoflow.coap.protocol.CoapType;
 import ssg.legoflow.coap.protocol.CoapVersion;
-
 import java.nio.ByteBuffer;
 import ssg.legoflow.service.util.BufferPool;
-
 /**
  * CoAP message codec implementing encoding and decoding of CoAP messages
  * as defined in RFC 7252, Section 3.

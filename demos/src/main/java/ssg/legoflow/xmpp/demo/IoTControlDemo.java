@@ -4,15 +4,12 @@ import ssg.legoflow.xmpp.client.XmppClient;
 import ssg.legoflow.xmpp.client.XmppClientConfig;
 import ssg.legoflow.xmpp.core.JID;
 import ssg.legoflow.xmpp.iot.control.ControllableNode;
-import ssg.legoflow.xmpp.iot.control.ControlListener;
 import ssg.legoflow.xmpp.iot.control.ControlParameter;
 import ssg.legoflow.xmpp.iot.control.ControlRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * IoT Control demo: controllable thermostat node, client sets temperature.
  *

@@ -2,11 +2,9 @@ package ssg.legoflow.messaging.amqp.client;
 
 import ssg.legoflow.messaging.amqp.common.AmqpConstants;
 import ssg.legoflow.messaging.amqp.sasl.SaslMechanism;
-
 import java.time.Duration;
 import java.util.Objects;
 import java.util.UUID;
-
 /**
  * Configuration for {@link AmqpClient} with a fluent builder API.
  *
@@ -22,6 +20,8 @@ public final class ClientConfig {
     private final long idleTimeout;
     private final Duration connectTimeout;
     private final SaslMechanism saslMechanism;
+    private final String username;
+    private final String password;
 
     private ClientConfig(Builder builder) {
         this.host = builder.host;
@@ -32,6 +32,8 @@ public final class ClientConfig {
         this.idleTimeout = builder.idleTimeout;
         this.connectTimeout = builder.connectTimeout;
         this.saslMechanism = builder.saslMechanism;
+        this.username = builder.username;
+        this.password = builder.password;
     }
 
     /** Returns the container hostname. */
@@ -57,6 +59,12 @@ public final class ClientConfig {
 
     /** Returns the SASL mechanism, or null if SASL is not used. */
     public SaslMechanism saslMechanism() { return saslMechanism; }
+
+    /** Returns the username for SASL PLAIN authentication, or null. */
+    public String username() { return username; }
+
+    /** Returns the password for SASL PLAIN authentication, or null. */
+    public String password() { return password; }
 
     /**
      * Creates a builder with default settings.
@@ -91,6 +99,8 @@ public final class ClientConfig {
         private long idleTimeout = 0;
         private Duration connectTimeout = Duration.ofSeconds(10);
         private SaslMechanism saslMechanism;
+        private String username;
+        private String password;
 
         /** Sets the container hostname. */
         public Builder host(String host) { this.host = Objects.requireNonNull(host); return this; }
@@ -115,6 +125,12 @@ public final class ClientConfig {
 
         /** Sets the SASL mechanism for authentication. */
         public Builder saslMechanism(SaslMechanism saslMechanism) { this.saslMechanism = saslMechanism; return this; }
+
+        /** Sets the username for SASL PLAIN authentication. */
+        public Builder username(String username) { this.username = username; return this; }
+
+        /** Sets the password for SASL PLAIN authentication. */
+        public Builder password(String password) { this.password = password; return this; }
 
         /** Builds the configuration. */
         public ClientConfig build() { return new ClientConfig(this); }

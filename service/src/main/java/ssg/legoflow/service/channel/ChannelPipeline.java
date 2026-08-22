@@ -2,11 +2,9 @@ package ssg.legoflow.service.channel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 public class ChannelPipeline {
 
     private static final Logger LOG = LoggerFactory.getLogger(ChannelPipeline.class);

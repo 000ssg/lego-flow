@@ -6,10 +6,7 @@ import ssg.legoflow.network.common.asn1.Asn1Sequence;
 import ssg.legoflow.network.common.asn1.Asn1Type;
 import ssg.legoflow.network.common.ber.BerDecoder;
 import ssg.legoflow.network.common.ber.BerEncoder;
-
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-
 /**
  * Simple Paged Results control as defined in RFC 2696.
  *

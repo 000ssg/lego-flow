@@ -1,12 +1,9 @@
 package ssg.legoflow.http.core;
 
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.*;
-
 class HttpResponseTest {
 
     @Test

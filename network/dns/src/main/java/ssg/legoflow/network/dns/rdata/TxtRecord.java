@@ -1,12 +1,10 @@
 package ssg.legoflow.network.dns.rdata;
 
 import ssg.legoflow.network.dns.protocol.RecordType;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-
 /**
  * TXT record RDATA: one or more character strings (RFC 1035).
  *

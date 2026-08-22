@@ -4,13 +4,11 @@ import ssg.legoflow.coap.protocol.CoapCode;
 import ssg.legoflow.coap.protocol.CoapMessage;
 import ssg.legoflow.coap.protocol.CoapOption;
 import ssg.legoflow.coap.protocol.CoapType;
-
 import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
-
 /**
  * Represents a CoAP request/response exchange context for resource handlers.
  *

@@ -2,9 +2,7 @@ package ssg.legoflow.service.manager;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Unit tests for {@link ServiceGroupStatistics}.
  *

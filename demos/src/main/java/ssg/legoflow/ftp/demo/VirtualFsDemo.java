@@ -3,10 +3,8 @@ package ssg.legoflow.ftp.demo;
 import ssg.legoflow.ftp.server.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
 /**
  * Demonstrates an FTP server with an in-memory virtual filesystem.
  *

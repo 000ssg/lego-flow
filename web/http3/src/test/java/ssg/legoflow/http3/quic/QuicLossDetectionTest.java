@@ -2,11 +2,8 @@ package ssg.legoflow.http3.quic;
 
 import ssg.legoflow.http3.quic.QuicLossDetection.PacketNumberSpace;
 import org.junit.jupiter.api.Test;
-
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.*;
-
 class QuicLossDetectionTest {
 
     @Test

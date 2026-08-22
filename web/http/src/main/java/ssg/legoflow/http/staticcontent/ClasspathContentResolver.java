@@ -2,11 +2,9 @@ package ssg.legoflow.http.staticcontent;
 
 import ssg.legoflow.http.content.MediaTypeRegistry;
 import ssg.legoflow.http.header.MediaType;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Optional;
-
 public class ClasspathContentResolver implements ContentResolver {
 
     private final String basePath;

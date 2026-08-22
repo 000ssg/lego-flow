@@ -8,10 +8,8 @@ import ssg.legoflow.network.snmp.server.MibTree;
 import ssg.legoflow.network.snmp.server.SnmpAgent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Map;
 import java.util.NavigableMap;
-
 /**
  * Comprehensive demo of all SNMP module features.
  *

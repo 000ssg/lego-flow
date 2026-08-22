@@ -2,10 +2,7 @@ package ssg.legoflow.network.dns.server;
 
 import ssg.legoflow.network.dns.protocol.*;
 import ssg.legoflow.network.dns.rdata.*;
-
 import java.io.*;
-import java.util.Objects;
-
 /**
  * Parser for BIND-format zone files (RFC 1035, Section 5).
  *

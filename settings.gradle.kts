@@ -60,6 +60,7 @@ val nestedModules = mapOf(
     // Messaging modules
     "lego-flow-kafka"        to "messaging/kafka",
     "lego-flow-amqp"         to "messaging/amqp",
+    "lego-flow-amqp-091"     to "messaging/amqp-091",
     "lego-flow-stomp"        to "messaging/stomp",
     "lego-flow-nats"         to "messaging/nats",
     "lego-flow-mqtt"         to "messaging/mqtt",

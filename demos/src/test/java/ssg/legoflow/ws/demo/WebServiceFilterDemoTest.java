@@ -6,9 +6,7 @@ import ssg.legoflow.http.core.HttpMethod;
 import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.ws.WebServiceFilter;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class WebServiceFilterDemoTest {
 
     @Test

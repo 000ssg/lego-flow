@@ -1,12 +1,9 @@
 package ssg.legoflow.email.smtp.protocol;
 
 import org.junit.jupiter.api.Test;
-
 import java.io.*;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 /**
  * Additional tests for {@link SmtpCodec} parsing methods and edge cases.
  */

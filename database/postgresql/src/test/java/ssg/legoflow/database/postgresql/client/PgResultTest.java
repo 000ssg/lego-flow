@@ -2,11 +2,8 @@ package ssg.legoflow.database.postgresql.client;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.database.postgresql.protocol.BackendMessage.ColumnDescription;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Unit tests for {@link PgResult}.
  */

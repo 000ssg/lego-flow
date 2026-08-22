@@ -1,7 +1,6 @@
 package ssg.legoflow.network.cluster.core.hashing;
 
 import ssg.legoflow.network.cluster.core.ClusterNode;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -10,7 +9,6 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.TreeMap;
-
 /**
  * Consistent hash ring using the Ketama algorithm.
  *

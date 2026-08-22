@@ -8,9 +8,7 @@ import ssg.legoflow.http.proxy.reverse.ProxyRoute;
 import ssg.legoflow.http.proxy.reverse.ReverseProxy;
 import ssg.legoflow.http.proxy.reverse.ReverseProxyConfig;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class ProxyHandlerTest {
 
     @Test

@@ -1,14 +1,12 @@
 package ssg.legoflow.http.auth.sso.demo;
 
 import ssg.legoflow.http.auth.AuthPrincipal;
-import ssg.legoflow.http.auth.reverse.AuthHeaderInjector;
 import ssg.legoflow.http.auth.reverse.ReverseProxySso;
 import ssg.legoflow.http.auth.reverse.ReverseProxySsoConfig;
 import ssg.legoflow.http.auth.saml.SamlAssertionParser;
 import ssg.legoflow.http.auth.saml.SamlAuthnRequest;
 import ssg.legoflow.http.auth.saml.SamlConfig;
 import ssg.legoflow.http.auth.saml.SamlLogout;
-import ssg.legoflow.http.auth.saml.SamlPostBinding;
 import ssg.legoflow.http.auth.sso.SsoConfig;
 import ssg.legoflow.http.auth.sso.SsoManager;
 import ssg.legoflow.http.auth.sso.SsoSession;
@@ -19,12 +17,10 @@ import ssg.legoflow.http.core.HttpResponse;
 import ssg.legoflow.http.core.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.time.Duration;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Set;
-
 /**
  * Comprehensive demo of all SSO module features.
  *

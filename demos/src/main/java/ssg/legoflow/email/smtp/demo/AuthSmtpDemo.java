@@ -5,9 +5,7 @@ import ssg.legoflow.email.smtp.client.SmtpClientConfig;
 import ssg.legoflow.email.smtp.server.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.List;
-
 /**
  * Authenticated SMTP demo: server requires AUTH before sending.
  *

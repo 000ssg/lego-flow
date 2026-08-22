@@ -6,7 +6,6 @@ import ssg.legoflow.messaging.nats.server.NatsServer;
 import ssg.legoflow.network.cluster.core.ClusterNode;
 import ssg.legoflow.network.cluster.core.ClusterNodeStatus;
 import ssg.legoflow.network.cluster.core.ClusterRole;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,10 +13,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 class NatsClusterHealthBusTest {
 
     @Test

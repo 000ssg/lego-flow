@@ -2,9 +2,7 @@ package ssg.legoflow.rpc.graphql.validation;
 
 import ssg.legoflow.rpc.graphql.language.*;
 import ssg.legoflow.rpc.graphql.schema.*;
-
 import java.util.*;
-
 /**
  * Validates a GraphQL document against a schema.
  *

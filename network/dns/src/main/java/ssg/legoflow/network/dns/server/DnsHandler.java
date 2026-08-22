@@ -1,9 +1,7 @@
 package ssg.legoflow.network.dns.server;
 
 import ssg.legoflow.network.dns.protocol.DnsMessage;
-
 import java.net.SocketAddress;
-
 /**
  * Handler interface for processing DNS queries on the server.
  *

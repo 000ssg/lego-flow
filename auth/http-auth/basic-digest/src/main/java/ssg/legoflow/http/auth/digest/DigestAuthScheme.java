@@ -4,16 +4,13 @@ import ssg.legoflow.http.auth.*;
 import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpResponse;
-import ssg.legoflow.http.core.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.*;
-
 /**
  * HTTP Digest Authentication scheme (RFC 7616).
  * Supports MD5, MD5-sess, and SHA-256 algorithms, qop=auth and qop=auth-int,

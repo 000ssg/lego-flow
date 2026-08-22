@@ -1,10 +1,8 @@
 package ssg.legoflow.http.auth;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
 /**
  * Represents an authenticated user principal with identity, roles, and arbitrary attributes.
  *

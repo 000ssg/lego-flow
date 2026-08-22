@@ -1,12 +1,9 @@
 package ssg.legoflow.media.sip.transport;
 
 import org.junit.jupiter.api.*;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link UdpSipTransport}.
  */

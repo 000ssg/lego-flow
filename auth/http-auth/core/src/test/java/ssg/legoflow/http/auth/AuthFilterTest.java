@@ -3,9 +3,7 @@ package ssg.legoflow.http.auth;
 import ssg.legoflow.http.core.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class AuthFilterTest {
 
     private AuthSchemeRegistry registry;

@@ -1,8 +1,6 @@
 package ssg.legoflow.http.auth.reverse;
 
-import java.util.Objects;
 import java.util.Set;
-
 /**
  * Configuration for reverse proxy SSO.
  *

@@ -8,12 +8,9 @@ import ssg.legoflow.http.server.HttpServer;
 import ssg.legoflow.http.transfer.ByteRangeHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ByteRangeDemoTest {
 
     private HttpServer server;

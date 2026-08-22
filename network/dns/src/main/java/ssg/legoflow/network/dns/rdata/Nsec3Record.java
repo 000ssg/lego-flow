@@ -2,13 +2,11 @@ package ssg.legoflow.network.dns.rdata;
 
 import ssg.legoflow.network.dns.protocol.RecordType;
 import ssg.legoflow.network.dns.rdata.RData;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
-
 /**
  * NSEC3 record RDATA: hashed denial of existence (RFC 5155).
  *

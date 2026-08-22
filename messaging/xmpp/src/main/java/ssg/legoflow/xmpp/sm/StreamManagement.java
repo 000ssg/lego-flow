@@ -3,14 +3,12 @@ package ssg.legoflow.xmpp.sm;
 import ssg.legoflow.xmpp.core.Stanza;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * Implements XEP-0198 Stream Management for XMPP.
  *

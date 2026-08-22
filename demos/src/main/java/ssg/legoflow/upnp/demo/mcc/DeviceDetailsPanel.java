@@ -8,7 +8,6 @@ import ssg.legoflow.upnp.device.DeviceDescription;
 import ssg.legoflow.upnp.dlna.DlnaProtocolInfo;
 import ssg.legoflow.upnp.mediarenderer.TransportState;
 import ssg.legoflow.upnp.mediaserver.ContentItem;
-
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -16,7 +15,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-
 /**
  * Panel displaying per-type device properties based on the selected device.
  *

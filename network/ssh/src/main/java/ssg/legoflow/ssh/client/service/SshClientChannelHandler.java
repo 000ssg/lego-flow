@@ -2,9 +2,7 @@ package ssg.legoflow.ssh.client.service;
 
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
-
 import java.nio.ByteBuffer;
-
 /** Channel handler for SSH client service. */
 public final class SshClientChannelHandler implements ChannelHandler {
     private final SshClientService sshService;

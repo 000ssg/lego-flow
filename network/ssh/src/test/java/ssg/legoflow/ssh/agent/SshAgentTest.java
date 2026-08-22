@@ -3,12 +3,9 @@ package ssg.legoflow.ssh.agent;
 import ssg.legoflow.ssh.hostkey.Ed25519;
 import ssg.legoflow.ssh.hostkey.EcdsaSha2Nistp256;
 import ssg.legoflow.ssh.hostkey.SshKeyPair;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class SshAgentTest {
 
     private SshAgent agent;

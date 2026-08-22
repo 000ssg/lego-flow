@@ -13,9 +13,7 @@ import ssg.legoflow.network.modbus.server.DeviceMemory;
 import ssg.legoflow.network.modbus.server.ModbusServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Arrays;
-
 /**
  * Comprehensive demo of all Modbus TCP module features.
  *

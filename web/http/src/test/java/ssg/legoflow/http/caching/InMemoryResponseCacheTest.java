@@ -3,9 +3,7 @@ package ssg.legoflow.http.caching;
 import ssg.legoflow.http.core.HttpResponse;
 import ssg.legoflow.http.core.HttpStatus;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class InMemoryResponseCacheTest {
 
     @Test

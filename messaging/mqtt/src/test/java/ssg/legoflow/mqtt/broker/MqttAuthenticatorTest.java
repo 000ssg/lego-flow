@@ -7,12 +7,9 @@ import ssg.legoflow.mqtt.protocol.ConnectReturnCode;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for {@link MqttAuthenticator} and {@link InMemoryAuthenticator}.
  *

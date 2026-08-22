@@ -2,12 +2,9 @@ package ssg.legoflow.messaging.nats.jetstream;
 
 import ssg.legoflow.messaging.nats.client.NatsMessage;
 import ssg.legoflow.messaging.nats.protocol.NatsHeaders;
-import ssg.legoflow.messaging.nats.protocol.NatsStatus;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
 /**
  * Pull-based JetStream consumer subscription.
  *

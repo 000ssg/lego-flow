@@ -1,19 +1,17 @@
 package ssg.legoflow.ssh.transport;
 
 import org.junit.jupiter.api.Test;
-
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link SshTransportCodec}.
  */
 class SshTransportCodecTest {
 
     @Test
-    void testEncodeDecodeRoundTrip() {
+    void testEncodeDecodeRoundTrip() throws IOException {
         SshTransportCodec codec = new SshTransportCodec();
         byte[] payload = new byte[]{1, 2, 3, 4, 5};
         byte[] encoded = codec.encode(payload);
@@ -22,7 +20,7 @@ class SshTransportCodecTest {
     }
 
     @Test
-    void testEncodeDecodeEmptyPayload() {
+    void testEncodeDecodeEmptyPayload() throws IOException {
         SshTransportCodec codec = new SshTransportCodec();
         byte[] payload = new byte[0];
         byte[] encoded = codec.encode(payload);
@@ -31,7 +29,7 @@ class SshTransportCodecTest {
     }
 
     @Test
-    void testEncodeDecodeLargePayload() {
+    void testEncodeDecodeLargePayload() throws IOException {
         SshTransportCodec codec = new SshTransportCodec();
         byte[] payload = new byte[1000];
         for (int i = 0; i < payload.length; i++) payload[i] = (byte) (i & 0xFF);
@@ -41,7 +39,7 @@ class SshTransportCodecTest {
     }
 
     @Test
-    void testSequenceNumberIncrement() {
+    void testSequenceNumberIncrement() throws IOException {
         SshTransportCodec codec = new SshTransportCodec();
         assertThat(codec.outputSequenceNumber()).isEqualTo(0);
         codec.encode(new byte[]{1});
@@ -51,7 +49,7 @@ class SshTransportCodecTest {
     }
 
     @Test
-    void testInputSequenceNumberIncrement() {
+    void testInputSequenceNumberIncrement() throws IOException {
         SshTransportCodec codec = new SshTransportCodec();
         byte[] encoded = codec.encode(new byte[]{1});
         assertThat(codec.inputSequenceNumber()).isEqualTo(0);
@@ -60,7 +58,7 @@ class SshTransportCodecTest {
     }
 
     @Test
-    void testResetSequenceNumbers() {
+    void testResetSequenceNumbers() throws IOException {
         SshTransportCodec codec = new SshTransportCodec();
         codec.encode(new byte[]{1});
         codec.resetSequenceNumbers();
@@ -69,7 +67,7 @@ class SshTransportCodecTest {
     }
 
     @Test
-    void testReadWriteString() {
+    void testReadWriteString() throws IOException {
         ByteBuffer buf = ByteBuffer.allocate(256);
         SshTransportCodec.writeString(buf, "hello world");
         buf.flip();
@@ -78,7 +76,7 @@ class SshTransportCodecTest {
     }
 
     @Test
-    void testReadWriteEmptyString() {
+    void testReadWriteEmptyString() throws IOException {
         ByteBuffer buf = ByteBuffer.allocate(256);
         SshTransportCodec.writeString(buf, "");
         buf.flip();
@@ -87,7 +85,7 @@ class SshTransportCodecTest {
     }
 
     @Test
-    void testReadWriteBinary() {
+    void testReadWriteBinary() throws IOException {
         ByteBuffer buf = ByteBuffer.allocate(256);
         byte[] data = {10, 20, 30, 40, 50};
         SshTransportCodec.writeBinary(buf, data);
@@ -97,7 +95,7 @@ class SshTransportCodecTest {
     }
 
     @Test
-    void testReadWriteNameList() {
+    void testReadWriteNameList() throws IOException {
         ByteBuffer buf = ByteBuffer.allocate(256);
         List<String> names = List.of("aes256-ctr", "aes128-ctr", "hmac-sha2-256");
         SshTransportCodec.writeNameList(buf, names);
@@ -107,7 +105,7 @@ class SshTransportCodecTest {
     }
 
     @Test
-    void testReadWriteEmptyNameList() {
+    void testReadWriteEmptyNameList() throws IOException {
         ByteBuffer buf = ByteBuffer.allocate(256);
         SshTransportCodec.writeNameList(buf, List.of());
         buf.flip();
@@ -116,7 +114,7 @@ class SshTransportCodecTest {
     }
 
     @Test
-    void testReadWriteBoolean() {
+    void testReadWriteBoolean() throws IOException {
         ByteBuffer buf = ByteBuffer.allocate(2);
         SshTransportCodec.writeBoolean(buf, true);
         SshTransportCodec.writeBoolean(buf, false);
@@ -126,7 +124,7 @@ class SshTransportCodecTest {
     }
 
     @Test
-    void testReadWriteUint32() {
+    void testReadWriteUint32() throws IOException {
         ByteBuffer buf = ByteBuffer.allocate(8);
         SshTransportCodec.writeUint32(buf, 0xFFFFFFFFL);
         SshTransportCodec.writeUint32(buf, 12345L);
@@ -136,7 +134,7 @@ class SshTransportCodecTest {
     }
 
     @Test
-    void testPacketPaddingAlignment() {
+    void testPacketPaddingAlignment() throws IOException {
         SshTransportCodec codec = new SshTransportCodec();
         // Encoded packet size should be aligned to 8 bytes (minimum block)
         byte[] encoded = codec.encode(new byte[]{1, 2, 3});
@@ -146,12 +144,12 @@ class SshTransportCodecTest {
     }
 
     @Test
-    void testMaxPacketSizeConstant() {
+    void testMaxPacketSizeConstant() throws IOException {
         assertThat(SshTransportCodec.MAX_PACKET_SIZE).isEqualTo(35000);
     }
 
     @Test
-    void testMultipleEncodeDecodeRoundTrips() {
+    void testMultipleEncodeDecodeRoundTrips() throws IOException {
         SshTransportCodec codec = new SshTransportCodec();
         for (int i = 0; i < 10; i++) {
             byte[] payload = ("message " + i).getBytes();

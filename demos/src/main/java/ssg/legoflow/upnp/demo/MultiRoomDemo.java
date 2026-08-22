@@ -3,12 +3,9 @@ package ssg.legoflow.upnp.demo;
 import ssg.legoflow.upnp.controlpoint.ControlPoint;
 import ssg.legoflow.upnp.controlpoint.MediaRendererProxy;
 import ssg.legoflow.upnp.controlpoint.MediaServerProxy;
-import ssg.legoflow.upnp.mediarenderer.MediaRendererDevice;
 import ssg.legoflow.upnp.mediaserver.ContentItem;
-
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * Demo application: multi-room audio playback.
  *

@@ -1,9 +1,7 @@
 package ssg.legoflow.messaging.stomp.core;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link StompTransaction}.
  *

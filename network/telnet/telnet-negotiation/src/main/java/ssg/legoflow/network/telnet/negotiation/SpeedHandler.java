@@ -2,12 +2,10 @@ package ssg.legoflow.network.telnet.negotiation;
 
 import ssg.legoflow.network.telnet.base.TelnetConnection;
 import ssg.legoflow.network.telnet.base.TelnetOption;
-
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
-
 /**
  * Handles TERMINAL-SPEED (option 42) negotiation (RFC 1079).
  *

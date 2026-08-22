@@ -2,11 +2,8 @@ package ssg.legoflow.xmpp.auth;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.Base64;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link SaslAuthenticator}.
  *

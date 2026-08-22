@@ -1,11 +1,8 @@
 package ssg.legoflow.email.imap.protocol;
 
 import org.junit.jupiter.api.Test;
-
 import java.time.LocalDate;
-
 import static org.assertj.core.api.Assertions.*;
-
 class SearchCriteriaTest {
 
     // --- Leaf criteria ---

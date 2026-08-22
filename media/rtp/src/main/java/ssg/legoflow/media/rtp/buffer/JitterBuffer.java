@@ -3,11 +3,9 @@ package ssg.legoflow.media.rtp.buffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ssg.legoflow.media.rtp.packet.RtpPacket;
-
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
-
 /**
  * Adaptive jitter buffer for reordering RTP packets (RFC 3550).
  *

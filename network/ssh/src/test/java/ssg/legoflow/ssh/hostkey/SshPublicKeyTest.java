@@ -1,9 +1,7 @@
 package ssg.legoflow.ssh.hostkey;
 
 import org.junit.jupiter.api.Test;
-import java.util.Base64;
 import static org.assertj.core.api.Assertions.*;
-
 class SshPublicKeyTest {
 
     @Test

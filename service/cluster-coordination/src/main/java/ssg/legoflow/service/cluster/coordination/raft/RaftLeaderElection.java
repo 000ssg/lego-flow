@@ -3,17 +3,13 @@ package ssg.legoflow.service.cluster.coordination.raft;
 import ssg.legoflow.service.cluster.coordination.EtcdClient;
 import ssg.legoflow.service.cluster.coordination.EtcdElection;
 import ssg.legoflow.service.cluster.coordination.EtcdKVStore;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.time.Instant;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-
 /**
  * Raft terminology wrapper for etcd-backed leader election.
  *

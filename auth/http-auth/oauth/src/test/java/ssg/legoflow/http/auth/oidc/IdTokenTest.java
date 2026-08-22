@@ -3,12 +3,9 @@ package ssg.legoflow.http.auth.oidc;
 import ssg.legoflow.http.auth.token.JwtTokenProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.time.Duration;
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.*;
-
 class IdTokenTest {
 
     private JwtTokenProvider jwtProvider;

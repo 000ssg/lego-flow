@@ -4,12 +4,10 @@ import ssg.legoflow.messaging.nats.client.NatsClient;
 import ssg.legoflow.messaging.nats.client.NatsMessage;
 import ssg.legoflow.messaging.nats.protocol.NatsHeaders;
 import ssg.legoflow.messaging.nats.protocol.NatsProtocol;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Objects;
-
 /**
  * JetStream-aware NATS client for persistent publish and consume.
  *

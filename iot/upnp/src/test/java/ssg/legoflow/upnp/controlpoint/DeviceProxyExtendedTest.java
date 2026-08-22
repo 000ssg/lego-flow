@@ -3,9 +3,7 @@ package ssg.legoflow.upnp.controlpoint;
 import org.junit.jupiter.api.*;
 import ssg.legoflow.upnp.soap.SoapMessage;
 import static org.assertj.core.api.Assertions.*;
-
 import java.util.Map;
-
 /**
  * Extended SOAP message tests for additional coverage.
  */

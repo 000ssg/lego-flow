@@ -1,11 +1,8 @@
 package ssg.legoflow.service.cluster.coordination.raft;
 
 import org.junit.jupiter.api.Test;
-
 import java.time.Instant;
-
 import static org.assertj.core.api.Assertions.*;
-
 class RaftLogEntryTest {
 
     @Test

@@ -1,12 +1,10 @@
 package ssg.legoflow.media.sip.header;
 
 import ssg.legoflow.media.sip.protocol.SipUri;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-
 /**
  * Parsed SIP address header (From, To, Contact) per RFC 3261 section 20.
  *

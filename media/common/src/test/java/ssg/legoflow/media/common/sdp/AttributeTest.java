@@ -1,11 +1,8 @@
 package ssg.legoflow.media.common.sdp;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.*;
-
 class AttributeTest {
 
     @Test

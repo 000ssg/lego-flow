@@ -6,17 +6,13 @@ import ssg.legoflow.network.cluster.core.ClusterNode;
 import ssg.legoflow.network.cluster.core.ClusterNodeStatus;
 import ssg.legoflow.network.cluster.core.ClusterRole;
 import ssg.legoflow.network.cluster.core.ClusterStatus;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 import static org.assertj.core.api.Assertions.*;
-
 class EtcdDiscoveryTest {
 
     private EtcdClient client;

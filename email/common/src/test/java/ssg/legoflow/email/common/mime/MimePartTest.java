@@ -2,11 +2,8 @@ package ssg.legoflow.email.common.mime;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.email.common.encoding.Base64Codec;
-
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for {@link MimePart}.
  */

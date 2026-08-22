@@ -7,12 +7,7 @@ import ssg.legoflow.http.core.*;
 import ssg.legoflow.http.server.HttpServer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ChunkedTransferDemoTest {
 
     private HttpServer server;

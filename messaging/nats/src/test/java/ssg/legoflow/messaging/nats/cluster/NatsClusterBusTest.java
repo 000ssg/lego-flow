@@ -2,23 +2,15 @@ package ssg.legoflow.messaging.nats.cluster;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.messaging.nats.client.NatsClient;
-import ssg.legoflow.messaging.nats.client.NatsMessage;
-import ssg.legoflow.messaging.nats.client.Subscription;
 import ssg.legoflow.messaging.nats.server.NatsServer;
-
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 class NatsClusterBusTest {
 
     private NatsClusterConfig config(int port, String nodeId) {

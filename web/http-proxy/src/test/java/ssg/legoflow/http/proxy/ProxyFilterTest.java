@@ -2,9 +2,7 @@ package ssg.legoflow.http.proxy;
 
 import ssg.legoflow.http.core.*;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class ProxyFilterTest {
 
     @Test

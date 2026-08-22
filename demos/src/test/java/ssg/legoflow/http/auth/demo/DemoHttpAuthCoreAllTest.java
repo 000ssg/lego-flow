@@ -1,9 +1,7 @@
 package ssg.legoflow.http.auth.demo;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Runs the comprehensive HTTP Auth Core demo and verifies all feature sections.
  *

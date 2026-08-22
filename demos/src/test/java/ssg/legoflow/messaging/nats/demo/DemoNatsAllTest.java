@@ -1,9 +1,7 @@
 package ssg.legoflow.messaging.nats.demo;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Runs the comprehensive NATS demo and verifies all feature sections.
  *

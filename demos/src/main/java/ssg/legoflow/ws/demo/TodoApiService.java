@@ -6,11 +6,9 @@ import ssg.legoflow.ws.WebServiceContext;
 import ssg.legoflow.ws.WebServiceDescriptor;
 import ssg.legoflow.ws.content.JsonCodec;
 import ssg.legoflow.ws.request.ResponseMapper;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-
 public class TodoApiService implements WebService {
 
     private final WebServiceDescriptor descriptor = new WebServiceDescriptor(

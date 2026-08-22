@@ -3,9 +3,7 @@ package ssg.legoflow.network.modbus.client;
 import org.junit.jupiter.api.*;
 import ssg.legoflow.network.modbus.server.ModbusServer;
 import ssg.legoflow.network.modbus.server.DeviceMemory;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ModbusClientTest {
 
     private static ModbusServer server;

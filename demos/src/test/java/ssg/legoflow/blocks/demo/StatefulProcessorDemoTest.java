@@ -1,15 +1,11 @@
 package ssg.legoflow.blocks.demo;
 
-import ssg.legoflow.blocks.DefaultContext;
 import ssg.legoflow.blocks.ProcessorState;
 import ssg.legoflow.blocks.exceptions.StateTransitionException;
 import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 class StatefulProcessorDemoTest {
 
     private static class StatefulProcessor extends PassthroughProcessor<String> {

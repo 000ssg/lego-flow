@@ -2,9 +2,7 @@ package ssg.legoflow.upnp.mediarenderer;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Compliance tests for RenderingControl: brightness/contrast/color controls,
  * multi-channel audio, and volume range enforcement.

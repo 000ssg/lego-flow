@@ -11,6 +11,11 @@ server implementations for protocol compliance validation.
 | mosquitto    | `eclipse-mosquitto:latest`    | 1883  | MQTT broker reference implementation |
 | redis        | `redis:7-alpine`             | 6379  | Redis in-memory store                |
 | postgresql   | `postgres:17-alpine`         | 5432  | PostgreSQL database server           |
+| rabbitmq     | `rabbitmq:4-management`      | 5672  | AMQP 1.0 broker                      |
+| nats         | `nats:latest`                 | 4222  | NATS message broker                  |
+| prosody      | `prosody/prosody:latest`      | 5222  | XMPP server                          |
+| activemq     | `apache/activemq:latest`      | 61613 | STOMP broker                         |
+| openldap     | `osixia/openldap:latest`      | 389   | LDAP v3 server                       |
 
 ## Prerequisites
 
@@ -47,7 +52,7 @@ redis-cli -p 6379 ping
 ```bash
 cd /path/to/lego-flow
 mvn verify -pl interop-tests -am -P all -DskipInteropTests=false
-# Expected: 21 tests, 0 failures
+# Expected: 45+ tests, 0 failures
 ```
 
 #### Gradle
@@ -55,7 +60,7 @@ mvn verify -pl interop-tests -am -P all -DskipInteropTests=false
 ```bash
 cd /path/to/lego-flow
 ./gradlew :interop-tests:test -DskipInteropTests=false --console=plain
-# Expected: 21 tests, 0 failures
+# Expected: 45+ tests, 0 failures
 ```
 
 #### Verify Results

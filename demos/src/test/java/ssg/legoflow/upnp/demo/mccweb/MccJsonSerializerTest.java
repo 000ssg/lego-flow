@@ -1,8 +1,6 @@
 package ssg.legoflow.upnp.demo.mccweb;
 
 import ssg.legoflow.upnp.controlpoint.DeviceProxy;
-import ssg.legoflow.upnp.controlpoint.MediaRendererProxy;
-import ssg.legoflow.upnp.controlpoint.MediaServerProxy;
 import ssg.legoflow.upnp.mediarenderer.PositionInfo;
 import ssg.legoflow.upnp.mediarenderer.TransportInfo;
 import ssg.legoflow.upnp.mediarenderer.TransportState;
@@ -11,13 +9,10 @@ import ssg.legoflow.upnp.mediaserver.ContentContainer;
 import ssg.legoflow.upnp.mediaserver.ContentItem;
 import ssg.legoflow.upnp.mediaserver.ContentItemType;
 import org.junit.jupiter.api.Test;
-
 import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link MccJsonSerializer}.
  *

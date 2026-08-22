@@ -1,9 +1,7 @@
 package ssg.legoflow.database.redis.demo;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Runs the comprehensive Redis demo and verifies all feature sections.
  *

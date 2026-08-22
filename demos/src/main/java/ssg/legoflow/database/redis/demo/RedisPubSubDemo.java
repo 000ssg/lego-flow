@@ -2,13 +2,11 @@ package ssg.legoflow.database.redis.demo;
 
 import ssg.legoflow.database.redis.client.RedisClient;
 import ssg.legoflow.database.redis.server.RedisServer;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 /**
  * Demonstrates Redis Pub/Sub messaging patterns.
  *

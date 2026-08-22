@@ -8,12 +8,9 @@ import ssg.legoflow.http2.stream.Http2Stream;
 import ssg.legoflow.http2.stream.Http2StreamState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.*;
-
 class Http2ServerTest {
 
     private Http2Server server;

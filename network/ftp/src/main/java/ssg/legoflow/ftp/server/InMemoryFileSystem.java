@@ -1,12 +1,10 @@
 package ssg.legoflow.ftp.server;
 
 import ssg.legoflow.ftp.client.FtpFileEntry;
-
 import java.io.*;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * In-memory filesystem implementation for testing and virtual FTP servers.
  *

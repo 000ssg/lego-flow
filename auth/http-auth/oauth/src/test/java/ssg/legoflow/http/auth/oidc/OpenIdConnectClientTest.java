@@ -5,13 +5,10 @@ import ssg.legoflow.http.auth.oauth2.OAuth2Config;
 import ssg.legoflow.http.auth.token.JwtTokenProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.*;
-
 class OpenIdConnectClientTest {
 
     private OAuth2Client oauthClient;

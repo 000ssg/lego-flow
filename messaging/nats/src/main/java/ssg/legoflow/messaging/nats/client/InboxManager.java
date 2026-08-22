@@ -1,10 +1,8 @@
 package ssg.legoflow.messaging.nats.client;
 
 import ssg.legoflow.messaging.nats.protocol.NatsProtocol;
-
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * Generates unique inbox subjects for the NATS request/reply pattern.
  *

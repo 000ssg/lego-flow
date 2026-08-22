@@ -6,9 +6,7 @@ import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class CachingProxyDemoTest {
 
     private CachingProxyDemo demo;

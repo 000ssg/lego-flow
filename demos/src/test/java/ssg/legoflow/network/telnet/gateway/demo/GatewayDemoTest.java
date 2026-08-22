@@ -4,12 +4,9 @@ import ssg.legoflow.network.telnet.gateway.TelnetGateway;
 import ssg.legoflow.network.terminals.base.config.TerminalConfig;
 import ssg.legoflow.network.terminals.vt100.VT100Terminal;
 import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class GatewayDemoTest {
 
     @Test

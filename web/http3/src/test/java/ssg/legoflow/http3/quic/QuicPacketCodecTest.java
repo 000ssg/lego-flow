@@ -1,12 +1,9 @@
 package ssg.legoflow.http3.quic;
 
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link QuicPacketCodec} — variable-length integer encoding/decoding
  * and packet encode/decode round-trips for each packet type.

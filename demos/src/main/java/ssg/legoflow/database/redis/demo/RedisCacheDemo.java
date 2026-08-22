@@ -2,9 +2,7 @@ package ssg.legoflow.database.redis.demo;
 
 import ssg.legoflow.database.redis.client.RedisClient;
 import ssg.legoflow.database.redis.server.RedisServer;
-
 import java.io.IOException;
-
 /**
  * Demonstrates basic Redis caching patterns: SET/GET with TTL,
  * atomic counters (INCR/DECR), and hash-based object storage.
@@ -50,5 +48,9 @@ public final class RedisCacheDemo {
             client.execute("MSET", "k1", "v1", "k2", "v2", "k3", "v3");
             client.execute("MGET", "k1", "k2", "k3");
         }
+    }
+    public static void main(String[] args) throws Exception {
+        var server = new RedisServer();
+        run(server);
     }
 }

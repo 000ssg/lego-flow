@@ -2,18 +2,15 @@ package ssg.legoflow.http.cluster;
 
 import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpResponse;
-import ssg.legoflow.http.core.HttpStatus;
 import ssg.legoflow.http.feature.HttpFeature;
 import ssg.legoflow.http.feature.HttpFeatureCategory;
 import ssg.legoflow.http.feature.HttpFeatureRegistry;
 import ssg.legoflow.network.cluster.core.ClusterNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
-
 /**
  * HTTP feature that provides sticky session support for web clusters.
  *

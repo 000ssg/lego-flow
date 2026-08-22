@@ -4,9 +4,7 @@ import ssg.legoflow.xmpp.core.JID;
 import ssg.legoflow.xmpp.core.MessageStanza;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link StreamManagement}.
  *

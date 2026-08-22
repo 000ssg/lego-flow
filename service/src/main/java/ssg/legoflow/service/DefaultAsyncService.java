@@ -2,11 +2,9 @@ package ssg.legoflow.service;
 
 import ssg.legoflow.blocks.ProcessorState;
 import ssg.legoflow.blocks.ProcessorStatistics;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 public class DefaultAsyncService<I, O> implements AsyncService<I, O> {
 
     private final Service<I, O> delegate;

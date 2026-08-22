@@ -1,11 +1,8 @@
 package ssg.legoflow.media.common.sdp;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-
 /**
  * SDP media description ({@code m=}) field and associated media-level attributes
  * as defined in RFC 4566 section 5.14.

@@ -1,11 +1,8 @@
 package ssg.legoflow.service.passthrough;
 
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
-
 import static org.assertj.core.api.Assertions.*;
-
 class DataInterceptorTest {
 
     @Test

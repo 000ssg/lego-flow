@@ -5,12 +5,8 @@ import ssg.legoflow.wamp.core.role.Callee;
 import ssg.legoflow.wamp.core.role.Caller;
 import ssg.legoflow.wamp.core.router.Dealer;
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
-import java.util.Map;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class SimpleRpcDemoTest {
 
     @Test

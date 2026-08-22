@@ -1,14 +1,9 @@
 package ssg.legoflow.network.common.asn1;
 
 import org.junit.jupiter.api.Test;
-import ssg.legoflow.network.common.oid.ObjectIdentifier;
-
 import java.math.BigInteger;
 import java.time.Instant;
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for ASN.1 type value objects.
  */

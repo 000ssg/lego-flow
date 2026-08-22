@@ -3,9 +3,7 @@ package ssg.legoflow.ssh.demo;
 import ssg.legoflow.ssh.auth.PasswordAuth;
 import ssg.legoflow.ssh.client.SshClient;
 import ssg.legoflow.ssh.connection.SessionChannel;
-
 import java.nio.charset.StandardCharsets;
-
 /**
  * Demo: Interactive terminal session with PTY allocation.
  *

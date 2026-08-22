@@ -1,12 +1,10 @@
 package ssg.legoflow.ssh.auth;
 
 import ssg.legoflow.ssh.transport.SshTransportCodec;
-
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
-
 /**
  * Keyboard-interactive authentication per RFC 4256.
  *

@@ -2,20 +2,12 @@ package ssg.legoflow.network.dns.client;
 
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Timeout;
-import ssg.legoflow.network.dns.protocol.DnsName;
-import ssg.legoflow.network.dns.protocol.DnsRecord;
-import ssg.legoflow.network.dns.protocol.RecordType;
-import ssg.legoflow.network.dns.rdata.ARecord;
-import ssg.legoflow.network.dns.rdata.AaaaRecord;
 import ssg.legoflow.network.dns.server.AuthoritativeZone;
 import ssg.legoflow.network.dns.server.DnsServer;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Duration;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Integration tests for DnsLookup using a real DnsServer.
  */

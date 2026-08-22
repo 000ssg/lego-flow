@@ -1,9 +1,7 @@
 package ssg.legoflow.service;
 
 import ssg.legoflow.blocks.DataProcessor;
-
 import java.util.List;
-
 public interface Service<I, O> extends DataProcessor<I, O> {
 
     ServiceDescriptor getDescriptor();

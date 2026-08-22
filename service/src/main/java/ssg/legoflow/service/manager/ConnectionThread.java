@@ -4,9 +4,7 @@ import ssg.legoflow.service.Service;
 import ssg.legoflow.service.ServiceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.concurrent.CompletableFuture;
-
 public class ConnectionThread {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConnectionThread.class);

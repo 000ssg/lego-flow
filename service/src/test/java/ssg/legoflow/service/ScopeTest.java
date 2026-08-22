@@ -2,9 +2,7 @@ package ssg.legoflow.service;
 
 import ssg.legoflow.service.scope.*;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ScopeTest {
 
     @Test

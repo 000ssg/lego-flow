@@ -66,14 +66,23 @@ class CipherExtendedTest {
     }
 
     @Test void chacha20Poly1305EncryptDecrypt() throws Exception {
-        var cipher = new ChaCha20Poly1305();
+        var encrypt = new ChaCha20Poly1305();
+        var decrypt = new ChaCha20Poly1305();
         byte[] key = new byte[64];  // 32 encrypt + 32 MAC key
         byte[] nonce = new byte[12];
-        cipher.init(key, nonce, true);
-        byte[] plaintext = "Hello World!".getBytes();
-        byte[] result = cipher.encrypt(plaintext);
-        cipher.init(key, nonce, false);
-        assertThat(cipher.decrypt(result)).isEqualTo(plaintext);
+        encrypt.init(key, nonce, true);
+        decrypt.init(key, nonce, false);
+        // Payload: padLen(1) + data(12) + padding(4) = 17 bytes
+        byte[] payload = new byte[1 + 12 + 4];
+        payload[0] = 4;  // padLen
+        System.arraycopy("Hello World!".getBytes(), 0, payload, 1, 12);
+        encrypt.setSequenceNumber(0);
+        decrypt.setSequenceNumber(0);
+        byte[] encrypted = encrypt.encryptPayload(payload);
+        byte[] decrypted = decrypt.decryptPayload(encrypted);
+        // decrypted should be [padLen][Hello World!][padding]
+        assertThat(decrypted).hasSize(payload.length);
+        assertThat(decrypted[0]).isEqualTo((byte) 4);
     }
 
     @Test void factoryCreateUnsupported() {

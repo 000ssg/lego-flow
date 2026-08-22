@@ -3,17 +3,13 @@ package ssg.legoflow.network.cluster.dns;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ssg.legoflow.network.cluster.core.*;
-
-import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.MulticastSocket;
 import java.net.UnknownHostException;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * DNS-SD based cluster membership implementation per RFC 6762/8305.
  *

@@ -3,13 +3,10 @@ package ssg.legoflow.ws;
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.http.core.*;
 import ssg.legoflow.http.server.HttpRouter;
-
 import java.util.Set;
 import java.util.HashMap;
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for {@link WebServiceRegistry} and its DefaultWebServiceContext.
  *

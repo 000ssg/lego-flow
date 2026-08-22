@@ -2,11 +2,9 @@ package ssg.legoflow.wamp.core.serialization;
 
 import ssg.legoflow.wamp.core.WampMessage;
 import ssg.legoflow.wamp.core.WampMessageType;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 /**
  * Base class for binary WAMP serializers that convert between {@link WampMessage}
  * and binary byte arrays. Subclasses provide the encoder/decoder for the specific

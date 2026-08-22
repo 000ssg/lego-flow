@@ -2,9 +2,7 @@ package ssg.legoflow.messaging.stomp.server.service;
 
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
-
 import java.nio.ByteBuffer;
-
 /** Channel handler for STOMP server service. */
 public final class StompServerChannelHandler implements ChannelHandler {
     private final StompServerService stompService;

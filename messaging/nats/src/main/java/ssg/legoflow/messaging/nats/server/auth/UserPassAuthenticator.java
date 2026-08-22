@@ -1,11 +1,9 @@
 package ssg.legoflow.messaging.nats.server.auth;
 
 import ssg.legoflow.messaging.nats.protocol.ConnectOptions;
-
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Username/password authenticator that validates against registered credentials.
  *

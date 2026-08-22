@@ -2,15 +2,9 @@ package ssg.legoflow.network.dns.transport;
 
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Timeout;
-import ssg.legoflow.network.dns.protocol.DnsMessage;
-import ssg.legoflow.network.dns.protocol.RecordType;
-
 import javax.net.ssl.SSLContext;
-import java.net.InetSocketAddress;
 import java.time.Duration;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for DotTransport covering constructor validation and basic behavior.
  */

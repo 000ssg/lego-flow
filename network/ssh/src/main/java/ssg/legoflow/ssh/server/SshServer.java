@@ -8,17 +8,14 @@ import ssg.legoflow.ssh.scp.ScpServer;
 import ssg.legoflow.ssh.sftp.SftpServer;
 import ssg.legoflow.ssh.transport.SshTransport;
 import ssg.legoflow.ssh.transport.SshTransportCodec;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,7 +24,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * SSH server implementation supporting multiple concurrent connections.
  *
@@ -257,8 +253,11 @@ public final class SshServer implements AutoCloseable {
             transport.exchangeVersions();
 
             // Read client KEXINIT
+            System.out.println("[SERVER-CONNECTION] Starting KEXINIT read");
             byte[] clientKexPayload = transport.readPacket();
+            System.out.println("[SERVER-CONNECTION] KEXINIT read OK, payloadLen=" + clientKexPayload.length);
             KexInit clientKexInit = KexInit.decode(clientKexPayload);
+            transport.setRemoteKexInitBytes(clientKexPayload);
 
             // Send server KEXINIT
             KexInit serverKexInit = KexInit.defaultKexInit();
@@ -267,14 +266,20 @@ public final class SshServer implements AutoCloseable {
             // Negotiate
             transport.negotiateAlgorithms(serverKexInit, clientKexInit);
 
-            // Send NEWKEYS
-            transport.sendNewKeys();
-            transport.readPacket(); // read client NEWKEYS
-
+            // Set server host key and perform key exchange (DH + applyNewKeys + NEWKEYS)
+            System.out.println("[SERVER-CONNECTION] About to setServerHostKey");
+            transport.setServerHostKey(hostKey);
+            System.out.println("[SERVER-CONNECTION] About to performKeyExchange");
+            transport.performKeyExchange(
+                transport.remoteVersion().toString(),
+                transport.localVersion().toString());
+            System.out.println("[SERVER-CONNECTION] Key exchange completed");
             // Handle service request for ssh-userauth
+            System.out.println("[SERVER-CONNECTION] About to read service request");
             byte[] serviceReq = transport.readPacket();
             transport.sendServiceAccept("ssh-userauth");
 
+            System.out.println("[SERVER-CONNECTION] About to read auth request");
             // Handle authentication
             byte[] authReq = transport.readPacket();
             String authenticatedUser = handleAuth(transport, authReq);
@@ -292,8 +297,10 @@ public final class SshServer implements AutoCloseable {
             // Process connection-layer packets
             processConnectionPackets(transport, connId);
 
-        } catch (IOException e) {
-            LOG.debug("Connection {} error: {}", connId, e.getMessage());
+        } catch (Exception e) {
+            System.err.println("[SERVER-CONNECTION] FATAL: " + e.getClass().getName() + ": " + e.getMessage());
+            e.printStackTrace();
+            LOG.error("Connection {} error: {}", connId, e.getMessage(), e);
         } finally {
             connections.remove(connId);
             connectionCount.decrementAndGet();

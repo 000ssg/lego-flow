@@ -1,12 +1,8 @@
 package ssg.legoflow.ws;
 
-import ssg.legoflow.http.core.HttpMethod;
 import ssg.legoflow.http.server.HttpRouter;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-
 public class WebServiceRegistry {
 
     private final ConcurrentHashMap<String, WebService> services = new ConcurrentHashMap<>();

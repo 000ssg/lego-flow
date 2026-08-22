@@ -7,11 +7,9 @@ import ssg.legoflow.mqtt.client.MqttClientConfig;
 import ssg.legoflow.mqtt.protocol.QoS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 /**
  * Demo demonstrating MQTT retained messages: publish retained, new subscriber receives last value.
  *

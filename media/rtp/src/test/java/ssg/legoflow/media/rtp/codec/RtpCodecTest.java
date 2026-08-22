@@ -4,13 +4,10 @@ import org.junit.jupiter.api.Test;
 import ssg.legoflow.media.rtp.packet.HeaderExtension;
 import ssg.legoflow.media.rtp.packet.RtpHeader;
 import ssg.legoflow.media.rtp.packet.RtpPacket;
-
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link RtpCodec}.
  */

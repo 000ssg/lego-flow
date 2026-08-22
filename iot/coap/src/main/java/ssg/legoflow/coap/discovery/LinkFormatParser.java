@@ -3,9 +3,7 @@ package ssg.legoflow.coap.discovery;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-
 /**
  * Parser and serializer for CoRE Link Format (RFC 6690).
  *

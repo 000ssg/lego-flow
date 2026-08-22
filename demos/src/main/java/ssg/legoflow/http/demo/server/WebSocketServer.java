@@ -8,10 +8,8 @@ import ssg.legoflow.http.server.HttpServer;
 import ssg.legoflow.http.websocket.WebSocketFrame;
 import ssg.legoflow.http.websocket.WebSocketHandshake;
 import ssg.legoflow.http.websocket.WebSocketSession;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * WebSocket server demo that handles the upgrade handshake and echoes text frames.
  *

@@ -2,10 +2,8 @@ package ssg.legoflow.network.dns.rdata;
 
 import ssg.legoflow.network.dns.protocol.RecordType;
 import ssg.legoflow.network.dns.rdata.RData;
-
 import java.util.Arrays;
 import java.util.Objects;
-
 /**
  * NSEC3PARAM record RDATA: NSEC3 parameters (RFC 5155).
  *

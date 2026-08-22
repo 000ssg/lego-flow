@@ -6,9 +6,7 @@ import ssg.legoflow.media.sip.protocol.SipMethod;
 import ssg.legoflow.media.sip.protocol.SipRequest;
 import ssg.legoflow.media.sip.protocol.SipResponse;
 import ssg.legoflow.media.sip.protocol.SipStatus;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link SipDialog}.
  */

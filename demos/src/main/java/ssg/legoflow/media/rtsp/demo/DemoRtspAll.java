@@ -3,14 +3,9 @@ package ssg.legoflow.media.rtsp.demo;
 import ssg.legoflow.media.common.sdp.*;
 import ssg.legoflow.media.rtsp.client.RtspClient;
 import ssg.legoflow.media.rtsp.protocol.*;
-import ssg.legoflow.media.rtsp.server.MediaSource;
 import ssg.legoflow.media.rtsp.server.RtspServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.Optional;
-
 /**
  * Comprehensive demo of all RTSP module features.
  *

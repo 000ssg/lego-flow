@@ -4,12 +4,10 @@ import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpResponse;
 import ssg.legoflow.http.core.HttpStatus;
 import ssg.legoflow.http.core.HttpVersion;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.net.SocketTimeoutException;
 import java.net.ConnectException;
-
 /**
  * Error handling for proxy operations.
  *

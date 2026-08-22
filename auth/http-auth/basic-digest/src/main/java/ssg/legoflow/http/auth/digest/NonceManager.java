@@ -2,13 +2,11 @@ package ssg.legoflow.http.auth.digest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Manages nonce generation, tracking, and expiry for HTTP Digest authentication.
  * Thread-safe — uses ConcurrentHashMap for nonce tracking.

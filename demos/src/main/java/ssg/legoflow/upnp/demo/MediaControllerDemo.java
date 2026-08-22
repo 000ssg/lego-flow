@@ -6,10 +6,8 @@ import ssg.legoflow.upnp.controlpoint.MediaServerProxy;
 import ssg.legoflow.upnp.mediarenderer.MediaRendererDevice;
 import ssg.legoflow.upnp.mediaserver.ContentItem;
 import ssg.legoflow.upnp.mediaserver.MediaServerDevice;
-
 import java.time.Duration;
 import java.util.List;
-
 /**
  * Demo application: DLNA control point that discovers and controls media devices.
  *

@@ -5,10 +5,7 @@ import org.junit.jupiter.api.Test;
 import ssg.legoflow.media.sip.header.SipHeaders;
 import ssg.legoflow.media.sip.protocol.SipMethod;
 import ssg.legoflow.media.sip.protocol.SipRequest;
-import ssg.legoflow.media.sip.protocol.SipStatus;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link SipRegistrar}.
  */

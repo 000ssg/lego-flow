@@ -3,14 +3,11 @@ package ssg.legoflow.network.telnet.negotiation;
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.telnet.base.TelnetConnection;
 import ssg.legoflow.network.telnet.base.TelnetOption;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class SpeedHandlerTest {
 
     @Test

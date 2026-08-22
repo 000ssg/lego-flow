@@ -1,13 +1,10 @@
 package ssg.legoflow.xmpp.iot.sensor;
 
 import ssg.legoflow.xmpp.core.XmppExtension;
-
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 /**
  * XMPP extension for IoT Sensor Data (XEP-0323).
  *

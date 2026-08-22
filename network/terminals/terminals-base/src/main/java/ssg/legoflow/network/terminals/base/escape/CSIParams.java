@@ -1,9 +1,7 @@
 package ssg.legoflow.network.terminals.base.escape;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 /**
  * Parsed parameters from a CSI (Control Sequence Introducer) escape sequence.
  *

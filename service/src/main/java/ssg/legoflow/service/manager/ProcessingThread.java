@@ -4,13 +4,10 @@ import ssg.legoflow.service.channel.ChannelPipeline;
 import ssg.legoflow.service.channel.DataChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-
 /**
  * Processes I/O events for a single channel by dispatching reads, writes, and
  * connects through the associated {@link ChannelPipeline}.

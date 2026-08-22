@@ -1,9 +1,7 @@
 package ssg.legoflow.network.dns.protocol;
 
 import ssg.legoflow.network.dns.rdata.RData;
-
 import java.util.Objects;
-
 /**
  * A DNS resource record as defined in RFC 1035, Section 4.1.3.
  *

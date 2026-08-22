@@ -6,11 +6,9 @@ import ssg.legoflow.coap.resource.CoapExchange;
 import ssg.legoflow.coap.resource.CoapResource;
 import ssg.legoflow.coap.server.CoapServer;
 import ssg.legoflow.coap.server.CoapServerConfig;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * Demonstrates a simple CoAP server with temperature and humidity resources
  * supporting GET and PUT operations.

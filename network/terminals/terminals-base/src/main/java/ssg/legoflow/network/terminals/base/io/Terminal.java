@@ -5,9 +5,7 @@ import ssg.legoflow.network.terminals.base.display.Cursor;
 import ssg.legoflow.network.terminals.base.display.DisplayModel;
 import ssg.legoflow.network.terminals.base.display.TermAttr;
 import ssg.legoflow.network.terminals.base.event.TerminalEventListener;
-
 import java.util.List;
-
 /**
  * Core contract for terminal emulator implementations.
  *

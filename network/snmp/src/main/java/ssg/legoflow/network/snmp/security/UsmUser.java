@@ -1,6 +1,5 @@
 package ssg.legoflow.network.snmp.security;
 
-import java.util.Arrays;
 
 /**
  * A USM (User-based Security Model) user entry.

@@ -8,8 +8,6 @@ import ssg.legoflow.http.auth.AuthResult;
 import ssg.legoflow.http.auth.AuthenticationScheme;
 import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpMethod;
-import ssg.legoflow.http.core.HttpHeaders;
-
 class NegotiateAuthSchemeTest {
 
     private static SpnegoConfig makeConfig() {

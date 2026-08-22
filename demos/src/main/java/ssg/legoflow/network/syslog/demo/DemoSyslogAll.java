@@ -3,12 +3,10 @@ package ssg.legoflow.network.syslog.demo;
 import ssg.legoflow.network.syslog.SyslogCollector;
 import ssg.legoflow.network.syslog.SyslogSender;
 import ssg.legoflow.network.syslog.protocol.*;
-import ssg.legoflow.network.syslog.transport.FramingMode;
 import ssg.legoflow.network.syslog.transport.UdpCollector;
 import ssg.legoflow.network.syslog.transport.UdpSender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,7 +14,6 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 /**
  * Comprehensive demo of all Syslog module features.
  *

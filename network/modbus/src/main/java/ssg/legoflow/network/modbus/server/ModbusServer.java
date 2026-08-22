@@ -5,14 +5,12 @@ import org.slf4j.LoggerFactory;
 import ssg.legoflow.network.modbus.protocol.MbapHeader;
 import ssg.legoflow.network.modbus.protocol.ModbusCodec;
 import ssg.legoflow.network.modbus.protocol.ModbusFrame;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-
 /**
  * Modbus TCP server using virtual threads.
  *

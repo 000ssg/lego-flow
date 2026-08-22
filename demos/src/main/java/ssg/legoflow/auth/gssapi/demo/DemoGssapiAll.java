@@ -1,12 +1,10 @@
 package ssg.legoflow.auth.gssapi.demo;
 
 import ssg.legoflow.auth.gssapi.GssConfig;
-import ssg.legoflow.auth.gssapi.GssException;
 import ssg.legoflow.auth.gssapi.GssOids;
 import ssg.legoflow.auth.gssapi.SpnegoTokenHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 /**
  * Comprehensive demo of all GSSAPI module features.
  *

@@ -55,6 +55,8 @@ public final class Ed25519 implements HostKeyAlgorithm {
     public byte[] encodePublicKey(KeyPair keyPair) {
         byte[] keyType = "ssh-ed25519".getBytes();
         // Extract raw 32-byte Ed25519 public key from X.509 encoding
+        // X.509 BIT STRING for Ed25519: [padding 0x00][32 bytes key]
+        // The raw key is the last 32 bytes of the encoded key
         byte[] encoded = keyPair.getPublic().getEncoded();
         byte[] raw = new byte[32];
         System.arraycopy(encoded, encoded.length - 32, raw, 0, 32);

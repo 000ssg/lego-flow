@@ -4,9 +4,6 @@ import ssg.legoflow.mqtt.codec.MqttCodec;
 import ssg.legoflow.mqtt.protocol.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import ssg.legoflow.mqtt.broker.MqttTlsConfig;
-
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
@@ -20,7 +17,6 @@ import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * MQTT client supporting v3.1.1 and v5.0 protocol versions.
  *

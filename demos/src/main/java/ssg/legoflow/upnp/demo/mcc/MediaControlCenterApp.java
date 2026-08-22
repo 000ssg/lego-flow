@@ -7,10 +7,8 @@ import ssg.legoflow.upnp.mediaserver.ContentContainer;
 import ssg.legoflow.upnp.mediaserver.ContentItem;
 import ssg.legoflow.upnp.mediaserver.ContentItemType;
 import ssg.legoflow.upnp.mediaserver.MediaServerDevice;
-
 import javax.swing.*;
 import java.awt.*;
-import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.URI;
@@ -19,7 +17,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-
 /**
  * Application launcher for the Media Control Center demo.
  *

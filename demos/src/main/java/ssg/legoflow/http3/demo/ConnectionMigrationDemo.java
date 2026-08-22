@@ -4,10 +4,7 @@ import ssg.legoflow.http3.Http3Connection;
 import ssg.legoflow.http3.config.Http3Config;
 import ssg.legoflow.http3.quic.QuicConnection;
 import ssg.legoflow.http3.quic.QuicSettings;
-
-import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-
 /**
  * Demonstrates QUIC connection migration with HTTP/3.
  *

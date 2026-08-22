@@ -1,19 +1,14 @@
 package ssg.legoflow.http.cluster;
 
-import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpResponse;
-import ssg.legoflow.http.core.HttpStatus;
 import ssg.legoflow.network.cluster.core.ClusterNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Routes HTTP requests to cluster nodes based on session affinity cookies.
  *

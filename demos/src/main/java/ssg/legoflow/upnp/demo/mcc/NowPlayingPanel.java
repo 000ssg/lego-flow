@@ -6,7 +6,6 @@ import ssg.legoflow.upnp.mediarenderer.PlaybackListener;
 import ssg.legoflow.upnp.mediarenderer.PositionInfo;
 import ssg.legoflow.upnp.mediarenderer.TransportState;
 import ssg.legoflow.upnp.mediaserver.ContentItem;
-
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
@@ -17,7 +16,6 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.function.Consumer;
-
 /**
  * Right-side panel displaying the currently playing track information
  * with a dark theme matching the web variant's CSS styling.

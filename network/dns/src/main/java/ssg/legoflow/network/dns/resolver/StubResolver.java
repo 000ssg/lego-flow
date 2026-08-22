@@ -2,18 +2,14 @@ package ssg.legoflow.network.dns.resolver;
 
 import ssg.legoflow.network.dns.client.DnsClient;
 import ssg.legoflow.network.dns.protocol.DnsMessage;
-import ssg.legoflow.network.dns.protocol.DnsName;
 import ssg.legoflow.network.dns.protocol.DnsRecord;
-import ssg.legoflow.network.dns.protocol.RecordType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
-
 /**
  * Stub resolver that forwards queries to an upstream DNS server.
  *

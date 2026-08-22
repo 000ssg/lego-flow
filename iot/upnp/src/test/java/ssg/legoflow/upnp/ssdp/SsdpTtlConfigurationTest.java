@@ -1,9 +1,7 @@
 package ssg.legoflow.upnp.ssdp;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for SSDP multicast TTL configuration.
  *

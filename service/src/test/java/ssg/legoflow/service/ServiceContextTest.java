@@ -4,11 +4,8 @@ import ssg.legoflow.service.user.AccessControl;
 import ssg.legoflow.service.user.ServiceRole;
 import ssg.legoflow.service.user.ServiceUser;
 import org.junit.jupiter.api.Test;
-
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ServiceContextTest {
 
     @Test

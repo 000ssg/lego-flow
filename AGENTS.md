@@ -1087,6 +1087,89 @@ while (counter <= before && retries-- > 0) {
 }
 ```
 
+
+### Anti-Pattern ❌: NATS Virtual Thread Delivery Race
+When a NATS demo or test uses an in-house `NatsServer` with virtual threads for
+client connections, the `publish()` call completes as soon as the PUB command is
+written to the server — it does **not** wait for subscribers to receive and
+process the message. The subscriber's virtual thread must read the data from the
+TCP socket and invoke the callback. On Windows CI (slower thread scheduling),
+this window is large enough to cause `CountDownLatch` timeouts.
+
+Always add a small synchronization delay after the last publish and before the
+latch/counter assertion. Or better yet, use request/reply (which blocks until
+the reply arrives) instead of fire-and-forget pub/sub in tests:
+
+```java
+// BAD — publish completes before subscriber processes messages
+publisher.publish("demo.user.login", "user=alice");
+publisher.publish("demo.user.logout", "user=bob");
+publisher.publish("demo.system.restart", "node=1");
+latch.await(5, TimeUnit.SECONDS);  // may time out on Windows
+
+// GOOD — give subscriber virtual thread time to deliver messages
+publisher.publish("demo.user.login", "user=alice");
+publisher.publish("demo.user.logout", "user=bob");
+publisher.publish("demo.system.restart", "node=1");
+Thread.sleep(100);  // synchronization barrier
+latch.await(5, TimeUnit.SECONDS);
+
+// BEST — use request/reply which blocks until the reply arrives
+NatsMessage reply = client.request(subject, data, Duration.ofSeconds(5));
+assertThat(reply).isNotNull();
+```
+
+
+### Anti-Pattern ❌: AMQP ByteBuffer Reuse Without Clear
+AMQP protocol handlers reuse `ByteBuffer` instances for multiple reads.
+After `flip()` and reading into the buffer, `position` and `limit` must
+be reset with `clear()` before re-use. Otherwise `readFully()` sees
+`hasRemaining() == false` and reads zero bytes:
+
+```java
+// BAD: buffer already flipped, position at limit
+ByteBuffer buf = ByteBuffer.allocate(8);
+readFully(buf);  // reads 8 bytes
+buf.flip();
+byte[] header = new byte[8];
+buf.get(header);  // position=8, limit=8
+readFully(buf);   // does nothing! hasRemaining() == false
+
+// GOOD: clear before re-use
+headerBuf.clear();  // position=0, limit=8
+readFully(headerBuf);
+```
+
+
+### Anti-Pattern ❌: Windows TCP Connect Timeout to Closed Port
+
+On Windows, connecting to a TCP port that has nothing listening (closed port)
+does **not** receive an immediate RST like Linux does. Instead, the TCP stack
+may hang for 30+ seconds before the connection attempt fails. This causes
+intermittent test failures when tests expect an immediate `IOException`.
+
+On Ubuntu/CI Linux, the kernel sends RST immediately → `IOException` right away.
+On Windows, the connection attempt hangs → test times out or assertion fails.
+
+**Always set a connect timeout on sockets used in tests or production code:**
+
+```java
+// BAD: Default socket uses OS timeout (30+ seconds on Windows for closed ports)
+Socket socket = new Socket(host, port);  // hangs on Windows if port is closed
+
+// GOOD: Explicit connect timeout
+Socket socket = new Socket();
+socket.connect(new InetSocketAddress(host, port), 5_000);  // fails in 5s
+
+// Alternatively, use a connected socket with timeout:
+var socket = new Socket();
+socket.setSoTimeout(5_000);
+socket.connect(new InetSocketAddress(host, port), 5_000);
+```
+
+This is especially critical for **negative tests** that expect a connection
+to fail (e.g., "connect to non-existent server"), and for any CI test that
+must run deterministically on both Linux and Windows.
 ### Rule
 **All interop test assertions must be verified against the actual RFC or
 specification document, not guessed from implementation. When in doubt,

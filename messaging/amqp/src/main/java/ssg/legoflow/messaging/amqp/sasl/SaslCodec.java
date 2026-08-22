@@ -3,10 +3,8 @@ package ssg.legoflow.messaging.amqp.sasl;
 import ssg.legoflow.messaging.amqp.types.AmqpType;
 import ssg.legoflow.messaging.amqp.types.Descriptors;
 import ssg.legoflow.messaging.amqp.types.TypeCodec;
-
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * Encodes and decodes SASL frames for AMQP 1.0 authentication negotiation.
  *

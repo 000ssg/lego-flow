@@ -4,13 +4,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.common.oid.ObjectIdentifier;
 import ssg.legoflow.network.snmp.protocol.SnmpValue;
-
-import java.util.Map;
 import java.util.NavigableMap;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 /**
  * Tests for {@link MibTree} in-memory MIB operations.
  *

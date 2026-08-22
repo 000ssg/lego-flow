@@ -1,13 +1,10 @@
 package ssg.legoflow.email.smtp.dsn;
 
 import ssg.legoflow.email.smtp.protocol.EnhancedStatusCode;
-
-import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-
 /**
  * Generates Delivery Status Notification messages per RFC 3464.
  *

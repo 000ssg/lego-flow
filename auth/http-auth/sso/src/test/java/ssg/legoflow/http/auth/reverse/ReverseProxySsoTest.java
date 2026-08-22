@@ -4,12 +4,9 @@ import ssg.legoflow.http.auth.AuthPrincipal;
 import ssg.legoflow.http.core.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.Map;
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ReverseProxySsoTest {
 
     private ReverseProxySso proxySso;

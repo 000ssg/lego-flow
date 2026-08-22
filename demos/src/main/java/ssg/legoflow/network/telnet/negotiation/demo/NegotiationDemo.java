@@ -3,9 +3,7 @@ package ssg.legoflow.network.telnet.negotiation.demo;
 import ssg.legoflow.network.telnet.base.TelnetCommand;
 import ssg.legoflow.network.telnet.base.TelnetOption;
 import ssg.legoflow.network.telnet.negotiation.*;
-
 import java.util.List;
-
 /**
  * Demonstrates all Telnet option negotiation handlers.
  *
@@ -190,5 +188,8 @@ public final class NegotiationDemo {
             System.out.println("    Peer WILL " + TelnetOption.fromCode(opt) + " → " + resp);
         }
         System.out.println("  Negotiation complete");
+    }
+    public static void main(String[] args) {
+        demonstrate();
     }
 }

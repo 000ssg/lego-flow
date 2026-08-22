@@ -1,12 +1,9 @@
 package ssg.legoflow.ssh.sftp;
 
 import ssg.legoflow.ssh.transport.SshTransportCodec;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
 /**
  * SFTP packet encoding and decoding.
  *

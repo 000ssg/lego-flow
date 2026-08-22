@@ -4,14 +4,11 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Timeout;
 import ssg.legoflow.network.dns.protocol.*;
 import ssg.legoflow.network.dns.rdata.ARecord;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for RecursiveResolver covering constructor validation, cache behavior,
  * and edge cases.

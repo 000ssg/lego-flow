@@ -3,7 +3,6 @@ package ssg.legoflow.http.transfer;
 import ssg.legoflow.blocks.AbstractDataFilter;
 import ssg.legoflow.blocks.Context;
 import ssg.legoflow.http.header.ContentEncoding;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
@@ -11,7 +10,6 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.InflaterInputStream;
-
 public class ContentEncodingCodec extends AbstractDataFilter<ByteBuffer> {
 
     private final ContentEncoding encoding;

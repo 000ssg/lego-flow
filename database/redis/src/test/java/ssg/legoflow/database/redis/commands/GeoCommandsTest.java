@@ -4,12 +4,9 @@ import org.junit.jupiter.api.*;
 import ssg.legoflow.database.redis.client.RedisClient;
 import ssg.legoflow.database.redis.protocol.RespType;
 import ssg.legoflow.database.redis.server.RedisServer;
-
 import java.io.IOException;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for geo commands: GEOADD, GEODIST, GEOPOS, GEOSEARCH.
  */

@@ -3,10 +3,8 @@ package ssg.legoflow.media.sip.server;
 import ssg.legoflow.media.sip.protocol.SipCodec;
 import ssg.legoflow.media.sip.protocol.SipMessage;
 import ssg.legoflow.media.sip.registration.SipRegistrar;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -15,7 +13,6 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
-
 /**
  * SIP server that wraps the registrar with a TCP listener.
  * Uses virtual threads for connection handling.

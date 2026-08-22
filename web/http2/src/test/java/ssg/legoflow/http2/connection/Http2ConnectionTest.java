@@ -4,12 +4,9 @@ import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http2.frame.*;
 import ssg.legoflow.http2.stream.Http2StreamState;
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-
 import static org.assertj.core.api.Assertions.*;
-
 class Http2ConnectionTest {
 
     @Test

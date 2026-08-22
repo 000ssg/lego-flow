@@ -25,4 +25,7 @@ public final class VT400Demo {
 
         System.out.println("Type: " + terminal.type());
     }
+    public static void main(String[] args) {
+        demonstrate();
+    }
 }

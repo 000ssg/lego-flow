@@ -1,9 +1,7 @@
 package ssg.legoflow.database.postgresql.auth;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * SCRAM-SHA-256 authentication (RFC 5802) for PostgreSQL.
  *

@@ -1,12 +1,10 @@
 package ssg.legoflow.ssh.agent;
 
 import ssg.legoflow.ssh.hostkey.SshKeyPair;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * In-memory SSH agent implementation per draft-miller-ssh-agent.
  *

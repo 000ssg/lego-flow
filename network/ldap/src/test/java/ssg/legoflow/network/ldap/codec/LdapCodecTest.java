@@ -4,12 +4,9 @@ import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.ldap.control.LdapControl;
 import ssg.legoflow.network.ldap.filter.SearchFilter;
 import ssg.legoflow.network.ldap.protocol.*;
-
 import java.nio.ByteBuffer;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link LdapCodec} BER encoding/decoding round-trips.
  *

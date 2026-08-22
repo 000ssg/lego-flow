@@ -1,13 +1,11 @@
 package ssg.legoflow.media.common.codec;
 
 import ssg.legoflow.media.common.sdp.*;
-
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
 /**
  * SDP offer/answer negotiator implementing RFC 3264.
  *

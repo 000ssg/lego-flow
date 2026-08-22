@@ -3,11 +3,8 @@ package ssg.legoflow.http.auth.sso;
 import ssg.legoflow.http.auth.AuthPrincipal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.*;
-
 class SsoSessionTest {
 
     private AuthPrincipal principal;

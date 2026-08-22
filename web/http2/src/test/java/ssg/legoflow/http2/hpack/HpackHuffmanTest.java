@@ -1,11 +1,8 @@
 package ssg.legoflow.http2.hpack;
 
 import org.junit.jupiter.api.Test;
-
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.*;
-
 class HpackHuffmanTest {
 
     @Test

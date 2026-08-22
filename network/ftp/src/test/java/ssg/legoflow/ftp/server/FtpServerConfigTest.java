@@ -2,11 +2,8 @@ package ssg.legoflow.ftp.server;
 
 import ssg.legoflow.ftp.security.FtpsConfig;
 import org.junit.jupiter.api.Test;
-
 import java.time.Duration;
-
 import static org.assertj.core.api.Assertions.*;
-
 class FtpServerConfigTest {
 
     @Test

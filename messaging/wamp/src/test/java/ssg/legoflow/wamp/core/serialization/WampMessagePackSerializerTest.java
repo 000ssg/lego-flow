@@ -2,12 +2,9 @@ package ssg.legoflow.wamp.core.serialization;
 
 import ssg.legoflow.wamp.core.WampMessage;
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for WAMP message serialization/deserialization via MessagePack.
  */

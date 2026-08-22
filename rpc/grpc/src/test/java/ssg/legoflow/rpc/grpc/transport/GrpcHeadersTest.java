@@ -3,9 +3,7 @@ package ssg.legoflow.rpc.grpc.transport;
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.rpc.grpc.metadata.Metadata;
-
 import static org.assertj.core.api.Assertions.*;
-
 class GrpcHeadersTest {
 
     @Test

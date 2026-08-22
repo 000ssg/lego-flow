@@ -1,9 +1,7 @@
 package ssg.legoflow.rpc.graphql.transport;
 
 import ssg.legoflow.rpc.graphql.execution.ExecutionResult;
-
 import java.util.Map;
-
 /**
  * SPI interface for GraphQL transport bindings.
  *

@@ -2,11 +2,8 @@ package ssg.legoflow.http.auth.oauth2;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.*;
-
 class OAuth2ClientTest {
 
     private OAuth2Config config;

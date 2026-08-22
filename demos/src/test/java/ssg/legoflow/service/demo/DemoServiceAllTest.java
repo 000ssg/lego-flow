@@ -1,9 +1,7 @@
 package ssg.legoflow.service.demo;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Functional test that exercises all ServiceGroup demo scenarios.
  *

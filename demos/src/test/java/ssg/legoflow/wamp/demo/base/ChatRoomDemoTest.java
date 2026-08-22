@@ -3,9 +3,7 @@ package ssg.legoflow.wamp.demo.base;
 import ssg.legoflow.wamp.core.realm.Realm;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class ChatRoomDemoTest {
 
     private ChatRoomDemo chat;

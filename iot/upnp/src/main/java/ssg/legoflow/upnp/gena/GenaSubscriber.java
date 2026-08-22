@@ -2,7 +2,6 @@ package ssg.legoflow.upnp.gena;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -21,9 +20,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import com.sun.net.httpserver.HttpServer;
-
 /**
  * Manages GENA event subscriptions for UPnP services.
  *

@@ -4,11 +4,8 @@ import org.junit.jupiter.api.Test;
 import ssg.legoflow.media.common.builder.MediaBuilder;
 import ssg.legoflow.media.common.builder.SessionBuilder;
 import ssg.legoflow.media.common.sdp.*;
-
 import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.*;
-
 class SdpNegotiatorTest {
 
     @Test

@@ -2,17 +2,11 @@ package ssg.legoflow.network.dns.protocol;
 
 import ssg.legoflow.network.dns.rdata.*;
 import ssg.legoflow.network.dns.rdata.dnssec.*;
-
 import java.io.ByteArrayOutputStream;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
-
 /**
  * DNS message binary codec implementing encoding and decoding per RFC 1035.
  *

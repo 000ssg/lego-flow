@@ -3,11 +3,8 @@ package ssg.legoflow.http2.server;
 import ssg.legoflow.http.core.*;
 import ssg.legoflow.http2.stream.Http2Stream;
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
-
 import static org.assertj.core.api.Assertions.*;
-
 class Http2RequestAdapterTest {
 
     @Test

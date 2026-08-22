@@ -1,11 +1,8 @@
 package ssg.legoflow.database.postgresql.auth;
 
 import org.junit.jupiter.api.Test;
-
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link ScramUtils}.
  */

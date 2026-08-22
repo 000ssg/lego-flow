@@ -6,13 +6,10 @@ import ssg.legoflow.messaging.stomp.core.StompFrame;
 import ssg.legoflow.messaging.stomp.core.StompHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 /**
  * Comprehensive demo of all STOMP 1.2 module features.
  *

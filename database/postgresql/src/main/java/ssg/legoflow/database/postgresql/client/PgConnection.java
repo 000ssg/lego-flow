@@ -5,12 +5,10 @@ import org.slf4j.LoggerFactory;
 import ssg.legoflow.database.postgresql.auth.Md5Auth;
 import ssg.legoflow.database.postgresql.auth.ScramSha256;
 import ssg.legoflow.database.postgresql.protocol.*;
-
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-
 /**
  * Manages the connection lifecycle and authentication negotiation with a PostgreSQL server.
  *

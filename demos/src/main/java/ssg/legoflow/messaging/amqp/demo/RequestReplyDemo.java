@@ -7,13 +7,10 @@ import ssg.legoflow.messaging.amqp.container.ContainerConfig;
 import ssg.legoflow.messaging.amqp.delivery.Delivery;
 import ssg.legoflow.messaging.amqp.message.AmqpMessage;
 import ssg.legoflow.messaging.amqp.message.Properties;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.concurrent.TimeUnit;
 import java.util.UUID;
-
 /**
  * Request/reply pattern demo using AMQP message properties.
  *

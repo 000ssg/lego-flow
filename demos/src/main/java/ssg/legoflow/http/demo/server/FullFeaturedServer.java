@@ -15,10 +15,8 @@ import ssg.legoflow.http.staticcontent.StaticContentConfig;
 import ssg.legoflow.http.staticcontent.StaticContentHandler;
 import ssg.legoflow.http.websocket.WebSocketHandshake;
 import ssg.legoflow.http.websocket.WebSocketSession;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Full-featured HTTP server demo combining static content, REST routes,
  * caching, security (TLS + HSTS), WebSocket, and compression.

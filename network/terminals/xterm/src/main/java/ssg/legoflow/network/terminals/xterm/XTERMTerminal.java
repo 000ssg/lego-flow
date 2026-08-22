@@ -7,9 +7,7 @@ import ssg.legoflow.network.terminals.base.escape.CSIParams;
 import ssg.legoflow.network.terminals.base.io.TerminalFactory;
 import ssg.legoflow.network.terminals.base.io.Terminal;
 import ssg.legoflow.network.terminals.ansi.ANSITerminal;
-
 import java.util.Base64;
-
 /**
  * XTERM terminal emulator.
  *

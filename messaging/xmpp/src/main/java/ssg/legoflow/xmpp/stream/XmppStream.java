@@ -4,7 +4,6 @@ import ssg.legoflow.xmpp.core.JID;
 import ssg.legoflow.xmpp.core.Stanza;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -14,7 +13,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-
 /**
  * XMPP XML stream management (RFC 6120).
  *

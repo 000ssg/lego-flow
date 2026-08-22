@@ -2,9 +2,7 @@ package ssg.legoflow.email.imap.service;
 
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
-
 import java.nio.ByteBuffer;
-
 /** Channel handler for IMAP service. */
 public final class ImapChannelHandler implements ChannelHandler {
     private final ImapService imapService;

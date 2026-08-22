@@ -1,9 +1,7 @@
 package ssg.legoflow.auth.gssapi;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link GssException} including code paths that were previously uncovered.
  */

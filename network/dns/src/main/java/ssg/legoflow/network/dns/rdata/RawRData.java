@@ -1,9 +1,7 @@
 package ssg.legoflow.network.dns.rdata;
 
 import ssg.legoflow.network.dns.protocol.RecordType;
-
 import java.util.Arrays;
-
 /**
  * Raw RDATA for record types that are not explicitly modeled.
  *

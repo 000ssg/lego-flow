@@ -3,12 +3,9 @@ package ssg.legoflow.http.proxy;
 import ssg.legoflow.http.core.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class ProxyErrorHandlerTest {
 
     private ProxyErrorHandler handler;

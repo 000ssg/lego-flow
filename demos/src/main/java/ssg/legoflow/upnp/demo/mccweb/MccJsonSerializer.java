@@ -5,17 +5,13 @@ import ssg.legoflow.upnp.controlpoint.DeviceProxy;
 import ssg.legoflow.upnp.controlpoint.MediaRendererProxy;
 import ssg.legoflow.upnp.controlpoint.MediaServerProxy;
 import ssg.legoflow.upnp.device.DeviceDescription;
-import ssg.legoflow.upnp.dlna.DlnaProtocolInfo;
 import ssg.legoflow.upnp.mediarenderer.PositionInfo;
 import ssg.legoflow.upnp.mediarenderer.TransportInfo;
-import ssg.legoflow.upnp.mediarenderer.TransportState;
 import ssg.legoflow.upnp.mediaserver.ContentContainer;
 import ssg.legoflow.upnp.mediaserver.ContentItem;
 import ssg.legoflow.upnp.mediaserver.DidlLiteParser;
-
 import java.time.Duration;
 import java.util.List;
-
 /**
  * JSON serialization utilities for the Media Control Center web API.
  *

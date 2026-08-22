@@ -5,9 +5,7 @@ import ssg.legoflow.http.core.*;
 import ssg.legoflow.http.demo.multi.LoadBalancedDemo;
 import ssg.legoflow.http.demo.multi.MultiServerDemo;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class MultiServerDemoTest {
 
     @Test

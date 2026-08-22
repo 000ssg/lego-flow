@@ -16,8 +16,10 @@ class SaslTest {
         var mech = new ExternalMechanism();
         assertThat(mech.name()).isEqualTo("EXTERNAL");
     }
-    @Test void testPlainMechanismRejectsNullUsername() {
-        assertThatThrownBy(() -> new PlainMechanism(null, "pass"))
-                .isInstanceOf(NullPointerException.class);
+    @Test void testPlainMechanismAllowsNullAuthId() {
+        // PLAIN allows null authId (identity used instead)
+        var mech = new PlainMechanism(null, "pass");
+        assertThat(mech.name()).isEqualTo("PLAIN");
+        assertThat(mech.initialResponse()).isNotNull();
     }
 }

@@ -1,12 +1,9 @@
 package ssg.legoflow.ftp.data;
 
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.net.InetAddress;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link ActiveDataConnection}.
  */

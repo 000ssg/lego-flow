@@ -1,6 +1,5 @@
 package ssg.legoflow.wamp.demo.websocket;
 
-import ssg.legoflow.http.websocket.WebSocketFrame;
 import ssg.legoflow.http.websocket.WebSocketSession;
 import ssg.legoflow.wamp.adapter.websocket.WebSocketWampTransport;
 import ssg.legoflow.wamp.core.WampMessage;
@@ -8,10 +7,7 @@ import ssg.legoflow.wamp.core.WampSerializer;
 import ssg.legoflow.wamp.core.role.Callee;
 import ssg.legoflow.wamp.core.role.Caller;
 import ssg.legoflow.wamp.core.router.Dealer;
-
 import java.util.List;
-import java.util.Map;
-
 /**
  * RPC over WebSocket transport demo.
  * Demonstrates Caller and Callee communicating through {@link WebSocketWampTransport}

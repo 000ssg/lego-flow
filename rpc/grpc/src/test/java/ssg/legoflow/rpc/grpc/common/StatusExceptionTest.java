@@ -3,9 +3,7 @@ package ssg.legoflow.rpc.grpc.common;
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.rpc.grpc.metadata.Metadata;
 import ssg.legoflow.rpc.grpc.transport.GrpcStatus;
-
 import static org.assertj.core.api.Assertions.*;
-
 class StatusExceptionTest {
 
     @Test
