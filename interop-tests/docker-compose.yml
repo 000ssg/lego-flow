@@ -190,3 +190,27 @@ services:
       timeout: 3s
       retries: 10
 
+
+  # ── SSH reference server (OpenSSH) ────────────
+  sshd:
+    build: docker/sshd
+    container_name: legoflow-sshd
+    ports:
+      - "2222:22"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 22 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── Telnet reference server ───────────────────
+  telnetd:
+    build: docker/telnetd
+    container_name: legoflow-telnetd
+    ports:
+      - "2223:23"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 23 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10

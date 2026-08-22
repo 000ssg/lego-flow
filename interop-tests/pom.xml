@@ -121,7 +121,17 @@
         <dependency>
             <groupId>ssg</groupId>
             <artifactId>lego-flow-amqp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-amqp-091</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.rabbitmq</groupId>
+            <artifactId>amqp-client</artifactId>
+            <version>5.22.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
