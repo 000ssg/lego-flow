@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   docker run -d --rm -p 61613:61613 -e ACTIVEMQ_ENABLE_SMS=false apache/activemq:latest
  *   mvn verify -Dinterop.stomp.host=localhost -DskipInteropTests=false
  */
+    @Tag("messaging-protocols")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class StompInteropTest {
 

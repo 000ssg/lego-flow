@@ -29,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   docker run -d -p 25:25 -p 8025:8025 mailhog/mailhog  # port 25 for SMTP, 8025 for web UI
  *   mvn verify -Dinterop.smtp.host=localhost
  */
+    @Tag("email-protocols")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SmtpInteropTest {
 

@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * docker compose -f interop-tests/docker-compose.yml up -d mosquitto
  * }</pre>
  */
+    @Tag("messaging-protocols")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MqttMosquittoInteropTest {
 

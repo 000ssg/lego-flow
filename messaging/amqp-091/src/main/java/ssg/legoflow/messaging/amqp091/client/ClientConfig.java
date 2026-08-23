@@ -16,6 +16,7 @@ public final class ClientConfig {
     private final int channelMax;
     private final int heartbeat;
     private final String username;
+    private final String virtualHost;
     private final String password;
 
     private ClientConfig(Builder builder) {
@@ -27,6 +28,7 @@ public final class ClientConfig {
         this.heartbeat = builder.heartbeat;
         this.username = builder.username;
         this.password = builder.password;
+        this.virtualHost = builder.virtualHost;
     }
 
     public String host() { return host; }
@@ -36,6 +38,7 @@ public final class ClientConfig {
     public int channelMax() { return channelMax; }
     public int heartbeat() { return heartbeat; }
     public String username() { return username; }
+    public String virtualHost() { return virtualHost; }
     public String password() { return password; }
 
     public static Builder builder() { return new Builder(); }
@@ -47,6 +50,7 @@ public final class ClientConfig {
         private int frameMax = 131072;
         private int channelMax = 2047;
         private int heartbeat = 60;
+        private String virtualHost = "/";
         private String username = "guest";
         private String password = "guest";
 

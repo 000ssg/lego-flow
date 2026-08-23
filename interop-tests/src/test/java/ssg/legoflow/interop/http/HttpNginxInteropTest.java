@@ -1,6 +1,7 @@
 package ssg.legoflow.interop.http;
 
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Tag;
 import ssg.legoflow.http.core.*;
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -10,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Interoperability test: Lego Flow HTTP client ↔ real nginx server.
  */
+@Tag("web-protocols")
 class HttpNginxInteropTest {
 
     private final String nginxHost = System.getProperty("interop.nginx.host", "localhost");

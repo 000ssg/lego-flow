@@ -8,6 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Interoperability test: Lego Flow PostgreSQL client ↔ real PostgreSQL server.
  */
+    @Tag("database-protocols")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PostgresqlInteropTest {
 

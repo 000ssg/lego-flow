@@ -35,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   docker run -d --rm -p 5672:5672 -p 15672:15672 rabbitmq:4-management
  *   mvn verify -Dinterop.amqp.host=localhost -DskipInteropTests=false
  */
+    @Tag("messaging-protocols")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Disabled("AMQP 1.0 SASL flow incompatible with RabbitMQ — uses AMQP 0-9-1 style auth")
 class AmqpInteropTest {

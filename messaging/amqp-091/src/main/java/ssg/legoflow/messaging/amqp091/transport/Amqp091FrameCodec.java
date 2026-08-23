@@ -10,16 +10,15 @@ import java.nio.ByteOrder;
  * <p>Wire format (big-endian):
  * <pre>
  *  Non-heartbeat frame:
- *    TYPE   byte    Frame type (0x08=method, 0x09=header, 0x0A=body)
+ *    TYPE   byte    Frame type (1=method, 2=header, 3=body)
  *    CHAN   uint16  Channel number (big-endian)
  *    SIZE   uint32  Payload size (big-endian)
  *    PAYLOAD byte[] Payload bytes
  *    END    byte    0xCE (frame end)
  *
  *  Heartbeat frame:
- *    TYPE   byte    0x08
+ *    TYPE   byte    8 (heartbeat type)
  *    END    byte    0xCE
- *    (SIZE=0 and CHAN are omitted for heartbeats)
  * </pre>
  *
  * <p>Frame sizes:
@@ -58,7 +57,7 @@ public final class Amqp091FrameCodec {
      */
     public static ByteBuffer encodeHeartbeat() {
         ByteBuffer buf = ByteBuffer.allocate(2);
-        buf.put(Amqp091Constants.FRAME_METHOD);
+        buf.put(Amqp091Constants.FRAME_HEARTBEAT);
         buf.put(Amqp091Constants.FRAME_END);
         buf.flip();
         return buf;
@@ -86,7 +85,7 @@ public final class Amqp091FrameCodec {
      * Decode an AMQP 0-9-1 frame from a ByteBuffer.
      *
      * <p>Reads: TYPE(1) + CHAN(2) + SIZE(4) + PAYLOAD(N) + END(1)
-     * For heartbeats (TYPE=0x08, SIZE=0): reads TYPE(1) + END(1).
+     * For heartbeats (TYPE=8): reads TYPE(1) + END(1).
      *
      * @param buf buffer positioned at frame start
      * @return the decoded frame, or null if not enough data
@@ -104,16 +103,18 @@ public final class Amqp091FrameCodec {
         // Read type first
         byte frameType = buf.get();
 
-        // Validate frame type
-        if (frameType != Amqp091Constants.FRAME_METHOD
-                && frameType != Amqp091Constants.FRAME_HEADER
-                && frameType != Amqp091Constants.FRAME_BODY) {
+        // Validate frame type: RabbitMQ uses 1=method, 2=header, 3=body, 8=heartbeat
+        if (frameType != Amqp091Constants.FRAME_METHOD &&
+            frameType != Amqp091Constants.FRAME_HEADER &&
+            frameType != Amqp091Constants.FRAME_BODY &&
+            frameType != Amqp091Constants.FRAME_HEARTBEAT) {
             throw new RuntimeException(
-                "Invalid AMQP 0-9-1 frame type: 0x" + Integer.toHexString(frameType & 0xFF));
+                "Invalid AMQP 0-9-1 frame type: 0x" + Integer.toHexString(frameType & 0xFF)
+                + " (expected 1=method, 2=header, 3=body, or 8=heartbeat)");
         }
 
-        // Heartbeat: type=0x08 and only needs TYPE + END = 2 bytes
-        if (frameType == Amqp091Constants.FRAME_METHOD && buf.remaining() >= 1) {
+        // Heartbeat: type=8 with immediate 0xCE end byte (no channel/size fields)
+        if (frameType == Amqp091Constants.FRAME_HEARTBEAT && buf.remaining() >= 1) {
             byte nextByte = buf.get();
             if (nextByte == Amqp091Constants.FRAME_END) {
                 return Amqp091Frame.builder()

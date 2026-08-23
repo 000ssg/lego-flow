@@ -25,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   docker run -d --rm -p 4222:4222 nats:latest
  *   mvn verify -Dinterop.nats.host=localhost -DskipInteropTests=false
  */
+    @Tag("messaging-protocols")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class NatsInteropTest {
 

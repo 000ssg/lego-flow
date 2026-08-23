@@ -27,7 +27,7 @@ class Amqp091ClientDebugTest {
                 .password("guest")
                 .build();
 
-        try (var client = Amqp091Client.builder().config(config).build()) {
+        try (var client = Amqp091Client.fromConfig(config)) {
             client.connect();
             assertThat(client.isConnected()).isTrue();
             LOG.info("SUCCESS: Connected to RabbitMQ at {}:{}", host, port);

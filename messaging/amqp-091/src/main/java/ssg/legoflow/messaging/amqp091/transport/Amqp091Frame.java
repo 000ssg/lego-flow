@@ -9,7 +9,7 @@ import java.util.Objects;
  *
  * <p>Frame layout:
  * <pre>
- *  Byte 0:    Frame type (0x08=method, 0x09=header, 0x0A=body)
+ *  Byte 0:    Frame type (1=method, 2=header, 3=body)
  *  Bytes 1-4: Payload size (uint32 big-endian)
  *  Bytes 5-6: Frame body type (uint16 big-endian) — only for method frames
  *  Bytes 7..N: Payload

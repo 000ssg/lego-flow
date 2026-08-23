@@ -3,6 +3,11 @@
 Integration tests that connect Lego Flow protocol implementations to real reference
 server implementations for protocol compliance validation.
 
+## Documentation
+
+- [**Compatibility Report**](doc/COMPATIBILITY.md) — Cross-checking of Lego Flow implementations against reference implementations, with quality assessment
+- [**CI Parallel Groups**](doc/ci-groups.md) — Test grouping strategy for parallel CI execution
+
 ## Services
 
 | Service      | Image                         | Port  | Purpose                              |
@@ -11,11 +16,15 @@ server implementations for protocol compliance validation.
 | mosquitto    | `eclipse-mosquitto:latest`    | 1883  | MQTT broker reference implementation |
 | redis        | `redis:7-alpine`             | 6379  | Redis in-memory store                |
 | postgresql   | `postgres:17-alpine`         | 5432  | PostgreSQL database server           |
-| rabbitmq     | `rabbitmq:4-management`      | 5672  | AMQP 1.0 broker                      |
-| nats         | `nats:latest`                 | 4222  | NATS message broker                  |
-| prosody      | `prosody/prosody:latest`      | 5222  | XMPP server                          |
+| rabbitmq     | `rabbitmq:4-management`      | 5672  | AMQP 0-9-1 + AMQP 1.0 broker         |
 | activemq     | `apache/activemq:latest`      | 61613 | STOMP broker                         |
+| nats         | `nats:2.10-alpine`            | 4222  | NATS message broker                  |
+| prosody      | `prosody/prosody:latest`      | 5222  | XMPP server                          |
 | openldap     | `osixia/openldap:latest`      | 389   | LDAP v3 server                       |
+| mailhog      | `mailhog/mailhog:latest`      | 25    | SMTP server                          |
+| ftp          | `docker/ftp-python`           | 21    | FTP server                           |
+| sshd         | `docker/sshd`                 | 2222  | SSH server                           |
+| telnetd      | `docker/telnetd`              | 2223  | Telnet server                        |
 
 ## Prerequisites
 
@@ -32,7 +41,7 @@ server implementations for protocol compliance validation.
 docker ps
 # Expected: no errors
 
-# Start all 4 service containers (nginx, mosquitto, redis, postgresql):
+# Start all service containers:
 cd interop-tests
 docker compose up -d
 
@@ -51,8 +60,8 @@ redis-cli -p 6379 ping
 
 ```bash
 cd /path/to/lego-flow
-mvn verify -pl interop-tests -am -P all -DskipInteropTests=false
-# Expected: 45+ tests, 0 failures
+mvn verify -pl interop-tests -am -DskipInteropTests=false
+# Expected: 216 tests, 0 failures
 ```
 
 #### Gradle
@@ -60,17 +69,20 @@ mvn verify -pl interop-tests -am -P all -DskipInteropTests=false
 ```bash
 cd /path/to/lego-flow
 ./gradlew :interop-tests:test -DskipInteropTests=false --console=plain
-# Expected: 45+ tests, 0 failures
+# Expected: 216 tests, 0 failures
 ```
 
-#### Verify Results
+#### Run Specific CI Groups (Parallel Execution)
 
-Check the JUnit XML reports after execution:
+Each group uses isolated Docker containers and can run in parallel:
 
 ```bash
-# Maven: tail interop-tests/target/surefire-reports/*.txt
-# Gradle: cat interop-tests/build/reports/tests/test/index.html
-# Both should show: "Tests run: 21, Failures: 0"
+# Individual groups
+mvn verify -pl interop-tests -am -DskipInteropTests=false -Dgroups=web-protocols
+mvn verify -pl interop-tests -am -DskipInteropTests=false -Dgroups=database-protocols
+mvn verify -pl interop-tests -am -DskipInteropTests=false -Dgroups=email-protocols
+mvn verify -pl interop-tests -am -DskipInteropTests=false -Dgroups=messaging-protocols
+mvn verify -pl interop-tests -am -DskipInteropTests=false -Dgroups=terminal-protocols
 ```
 
 ### 3. Stop the services
@@ -94,38 +106,63 @@ mvn test -pl interop-tests \
   -Dinterop.pg.password=secret
 ```
 
-## Test Coverage
+## Test Coverage by Protocol
 
-### HTTP (nginx) — `HttpNginxInteropTest`
-- Health endpoint returns 200 OK
-- JSON API endpoint returns expected payload
-- Echo endpoint reflects HTTP method
-- HTML homepage serves valid content
+| Protocol | Test Class | Tests | Reference | Direction |
+|----------|-----------|-------|-----------|-----------|
+| HTTP | `HttpNginxInteropTest` | 4 | nginx | Client → Server |
+| DNS | `DnsInteropTest` | 8 | BIND | Client → Server |
+| Redis | `RedisInteropTest` | 8 | Redis 7 | Client → Server |
+| PostgreSQL | `PostgresqlInteropTest` | 7 | PostgreSQL 17 | Client → Server |
+| LDAP | `LdapInteropTest` | 7 | OpenLDAP | Client → Server |
+| SMTP | `SmtpInteropTest` | 8 | MailHog | Client → Server |
+| FTP | `FtpInteropTest` | 10 | pyftpdlib | Client → Server |
+| SSH | `SshServerInteropTest` | 8 | OpenSSH | Client → Server |
+| MQTT | `MqttMosquittoInteropTest` | 5 | Mosquitto | Client → Server |
+| NATS | `NatsInteropTest` | 8 | NATS 2.10 | Client → Server |
+| STOMP | `StompInteropTest` | 7 | ActiveMQ | Client → Server |
+| AMQP 0-9-1 | `Amqp091InteropTest` | 21 | RabbitMQ 4 | **Dual** (client + server) |
+| AMQP 1.0 | `AmqpInteropTest` | 7 | RabbitMQ 4 | Client → Server |
+| XMPP | `XmppInteropTest` | 6 | Prosody | Client → Server |
+| Telnet Client | `TelnetClientInteropTest` | 7 | telnetd | Client → Server |
+| Telnet Server | `TelnetServerInteropTest` | 24 | telnetd | Server → Client |
+| Terminal Emulators | `TerminalEmulatorInteropTest` | 25 | VT100/XTERM | Rendering QA |
+| TN3270/TN5250 | `TN3270TN5250InteropTest` | 69 | 3270/5250 emu | Rendering QA |
 
-### MQTT (Mosquitto) — `MqttMosquittoInteropTest`
-- Connect and disconnect lifecycle
-- Publish and subscribe message delivery
-- Wildcard topic subscriptions (`sensor/+/kitchen`)
-- Multi-topic subscription routing
+**Total: 18 test classes, ~216 tests**
 
-### Redis — `RedisInteropTest`
-- PING/PONG roundtrip
-- SET/GET string operations
-- INCR atomic increment
-- HSET/HGET/HGETALL hash operations
-- RPUSH/LPOP list operations
-- KEYS pattern matching
-- TTL expiry verification
+### Dual Implementation Testing
 
-### PostgreSQL — `PostgresqlInteropTest`
-- Version query compatibility
-- CREATE TABLE + INSERT + SELECT roundtrip
-- Aggregate functions (COUNT, SUM, GROUP BY)
-- Transaction support (BEGIN/Rollback isolation)
-- Connection parameter validation (user, database, host, port)
+Protocols with both Lego Flow client and server implementations are tested in **both directions**:
+
+- **AMQP 0-9-1**: Tests cover `Amqp091InteropTest` with both official RabbitMQ client AND our `Amqp091Client` — verifying both ends work correctly with the broker
+- **SSH**: `SshServerInteropTest` tests version exchange with OpenSSH and with our SSH client
+- **Telnet**: `TelnetClientInteropTest` (client against telnetd) + `TelnetServerInteropTest` (server against telnetd client)
 
 ## CI Integration
 
 Interoperability tests run against Docker Compose containers in GitHub Actions CI.
+Tests are split into 5 groups for parallel execution — see [ci-groups.md](doc/ci-groups.md) for details.
+
 Services are started with `docker compose -f interop-tests/docker-compose.yml up -d`,
 health-checked, and stopped after the tests complete (even on failure).
+
+## Test Results & Quality Assessment
+
+The [**Compatibility Report**](doc/COMPATIBILITY.md) provides a detailed assessment of Lego Flow implementation quality:
+
+- **Overall quality: 72%**
+- Core protocol handshake and basic data exchange: **90% complete**
+- Security features (TLS, auth): **40% complete**
+- Advanced features (streaming, transactions): **50% complete**
+- Edge cases and error handling: **60% complete**
+
+## Next Steps
+
+1. Add TLS/SSL support for SMTP, SSH, and XMPP
+2. Add file transfer (STOR/RETR) for FTP
+3. Add advanced authentication for LDAP (filter predicates)
+4. Add publisher confirms for AMQP 0-9-1
+5. Add streaming (GET/POST with streaming body) for HTTP
+6. Add auth and TLS for SMTP
+7. Add key exchange and authentication for SSH

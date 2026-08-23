@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.*;
 /**
  * Tests for AMQP 0-9-1 frame codec encoding and decoding.
  * Wire format: TYPE(1) + CHAN(2) + SIZE(4) + PAYLOAD(N) + END(1)
- * Heartbeat: TYPE(1) + END(1)
+ * Heartbeat: TYPE(8) + END(1)
  */
 class FrameCodecTest {
 
@@ -18,14 +18,14 @@ class FrameCodecTest {
     void testHeartbeatEncodeDecode() {
         ByteBuffer encoded = Amqp091FrameCodec.encodeHeartbeat();
         assertThat(encoded.remaining()).isEqualTo(2);
-        assertThat(encoded.get(0)).isEqualTo(Amqp091Constants.FRAME_METHOD);
+        assertThat(encoded.get(0)).isEqualTo(Amqp091Constants.FRAME_HEARTBEAT);
         assertThat(encoded.get(1)).isEqualTo(Amqp091Constants.FRAME_END);
 
         // Rewind before decoding
         encoded.rewind();
         Amqp091Frame decoded = Amqp091FrameCodec.decode(encoded);
         assertThat(decoded).isNotNull();
-        assertThat(decoded.type()).isEqualTo(Amqp091Constants.FRAME_METHOD);
+        assertThat(decoded.type()).isEqualTo(Amqp091Constants.FRAME_HEARTBEAT);
         assertThat(decoded.payloadSize()).isEqualTo(0);
     }
 
@@ -36,6 +36,7 @@ class FrameCodecTest {
 
         // Wire format: TYPE(1) + CHAN(2) + SIZE(4) + PAYLOAD(5) + END(1) = 13
         assertThat(encoded.remaining()).isEqualTo(13);
+        encoded.rewind();
         assertThat(encoded.get(0)).isEqualTo(Amqp091Constants.FRAME_METHOD);
         assertThat(encoded.getShort(1)).isEqualTo((short) 0);
         assertThat(encoded.getInt(3)).isEqualTo(5);
@@ -125,6 +126,7 @@ class FrameCodecTest {
     void testEmptyPayloadMethodFrame() {
         ByteBuffer encoded = Amqp091FrameCodec.encodeMethod(30, new byte[0]);
         assertThat(encoded.remaining()).isEqualTo(8);
+        encoded.rewind();
         assertThat(encoded.get(0)).isEqualTo(Amqp091Constants.FRAME_METHOD);
         assertThat(encoded.getShort(1)).isEqualTo((short) 0);
         assertThat(encoded.getInt(3)).isEqualTo(0);

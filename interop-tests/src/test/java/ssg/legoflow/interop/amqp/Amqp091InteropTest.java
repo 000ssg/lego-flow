@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.*;
  *
  * @since 0.2.0
  */
+    @Tag("messaging-protocols")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Amqp091InteropTest {
 
@@ -40,16 +41,13 @@ class Amqp091InteropTest {
 
     @BeforeAll
     void connectOfficial() throws Exception {
-        ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost(host);
-        factory.setPort(port);
-        factory.setUsername(username);
-        factory.setPassword(password);
-        factory.setConnectionTimeout(30000);
-        factory.setHandshakeTimeout(30000);
+        var factory = new com.rabbitmq.client.ConnectionFactory();
+        factory.setHost(System.getProperty("interop.amqp.host", "localhost"));
+        factory.setPort(Integer.parseInt(System.getProperty("interop.amqp.port", "5672")));
+        factory.setUsername(System.getProperty("interop.amqp.username", "guest"));
+        factory.setPassword(System.getProperty("interop.amqp.password", "guest"));
         officialConn = factory.newConnection();
         officialCh = officialConn.createChannel();
-        officialCh.exchangeDeclare(exchangeName, BuiltinExchangeType.DIRECT, false);
     }
 
     @AfterAll

@@ -17,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   interop.dns.host (default: 8.8.8.8)
  *   interop.dns.port (default: 53)
  */
+    @Tag("web-protocols")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DnsInteropTest {
 

@@ -34,7 +34,7 @@ public final class Amqp091Client implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(Amqp091Client.class);
     private static final byte[] GREETING = new byte[]{
-        0x41, 0x4D, 0x51, 0x50, 0x00, 0x00, 0x09, 0x01
+        0x41, 0x4D, 0x51, 0x50, 0x00, 0x00, 0x09, 0x01  // matches Java client format
     };
 
     private final Amqp091Transport transport;
@@ -73,21 +73,69 @@ public final class Amqp091Client implements AutoCloseable {
         out.write(GREETING);
         out.flush();
 
-        byte[] serverGreeting = new byte[8];
-        in.readFully(serverGreeting);
-        LOG.info("Server greeting: {} (version {}.{})",
-                new String(serverGreeting, StandardCharsets.US_ASCII),
-                serverGreeting[5] & 0xFF, serverGreeting[6] & 0xFF);
+        // RabbitMQ 4.x sends the connection.start frame directly after the greeting
+        // without sending its own greeting first. Standard AMQP 0-9-1 servers may
+        // send a greeting response first. We handle both cases.
+        byte[] header = new byte[7];
+        in.readFully(header);
+        byte frameType = header[0];
 
-        Amqp091Frame startFrame = readMethodFrame(in);
+        // Check if the server sent a greeting response (starts with "AMQP")
+        boolean isGreeting = (header[0] == 0x41 && header[1] == 0x4D && header[2] == 0x51 && header[3] == 0x50);
+
+        Amqp091Frame startFrame;
+        if (isGreeting) {
+            // Server sent its greeting: read remaining 4 bytes
+            byte[] greetingRemainder = new byte[4];
+            in.readFully(greetingRemainder);
+            LOG.info("Server greeting: {} (version {}.{})",
+                    new String(header, StandardCharsets.US_ASCII),
+                    greetingRemainder[1] & 0xFF, greetingRemainder[2] & 0xFF);
+            startFrame = readMethodFrame(in);
+        } else {
+            // Server sent method frame directly (RabbitMQ 4.x optimization)
+            LOG.debug("Server sent method frame directly (type=0x{}), greeting response omitted",
+                    Integer.toHexString(frameType & 0xFF));
+            int payloadSize = ((header[3] & 0xFF) << 24) | ((header[4] & 0xFF) << 16) |
+                              ((header[5] & 0xFF) << 8) | (header[6] & 0xFF);
+            byte[] payload = new byte[payloadSize];
+            in.readFully(payload);
+            byte end = in.readByte();
+            if (end != Amqp091Constants.FRAME_END) {
+                throw new IOException("Missing frame end octet (0xCE)");
+            }
+            startFrame = Amqp091Frame.builder()
+                    .type(frameType).payloadSize(payloadSize)
+                    .channel(((header[1] & 0xFF) << 8) | (header[2] & 0xFF))
+                    .payload(payload).build();
+        }
+
         parseConnectionStart(startFrame.payload());
         LOG.info("connection.start received");
 
         sendStartOk(out);
 
         Amqp091Frame tuneFrame = readMethodFrame(in);
-        frameMax = readUnsignedInt(tuneFrame.payload());
-        heartbeat = readUnsignedShort(tuneFrame.payload());
+        ByteBuffer tunePayload = tuneFrame.payload();
+        byte[] tuneRaw = new byte[tunePayload.remaining()];
+        tunePayload.get(tuneRaw);
+        StringBuilder sb = new StringBuilder("Tune hex:");
+        for (byte b : tuneRaw) { sb.append(" ").append(String.format("%02X", b & 0xFF)); }
+        LOG.info(sb.toString());
+        // Tune payload: [channel_max:2][frame_max:4][heartbeat:2] but may include method-id
+        // For 12-byte payload, first 4 bytes might be class_id + method_id
+        int offset = (tuneRaw.length == 12) ? 4 : 0;
+        ByteBuffer tBuf = ByteBuffer.wrap(tuneRaw, offset, tuneRaw.length - offset);
+        if (tBuf.remaining() >= 8) {
+            tBuf.getShort(); // skip channel_max
+            frameMax = tBuf.getInt();
+            heartbeat = tBuf.getShort() & 0xFFFF;
+        } else {
+            // Wrong size - try without skip
+            tBuf.getShort();
+            frameMax = tBuf.getInt();
+            heartbeat = tBuf.getShort() & 0xFFFF;
+        }
         LOG.info("Tuned: frameMax={}, heartbeat={}", frameMax, heartbeat);
 
         sendTuneOk(out);
@@ -522,18 +570,27 @@ public final class Amqp091Client implements AutoCloseable {
 
     // ── Frame I/O ──
 
-    private void sendMethodFrame(int channel, int methodNumber, byte[] payload, int payloadLen) throws IOException {
-        int payloadSize = 2 + payloadLen; // method-id(2) + args
+    private void sendMethodFrame(int channel, int methodNumber, byte[] payload, int payloadLen,
+                                  DataOutputStream out) throws IOException {
+        int classId = methodNumber >> 16;
+        int methodId = methodNumber & 0xFFFF;
+        int payloadSize = 4 + payloadLen; // class-id(2) + method-id(2) + args
         ByteBuffer buf = ByteBuffer.allocate(1 + 2 + 4 + payloadSize + 1); // type + chan + size + payload + end
         buf.order(ByteOrder.BIG_ENDIAN);
         buf.put(Amqp091Constants.FRAME_METHOD);
         buf.putShort((short) channel);
         buf.putInt(payloadSize);
-        buf.putShort((short) methodNumber);
+        buf.putShort((short) classId);
+        buf.putShort((short) methodId);
         buf.put(payload, 0, payloadLen);
         buf.put((byte) Amqp091Constants.FRAME_END);
         buf.flip();
-        writeFully(buf);
+        out.write(buf.array(), buf.arrayOffset() + buf.position(), buf.remaining());
+        out.flush();
+    }
+
+    private void sendMethodFrame(int channel, int methodNumber, byte[] payload, int payloadLen) throws IOException {
+        sendMethodFrame(channel, methodNumber, payload, payloadLen, rawOut);
     }
 
     private void writeFully(ByteBuffer buf) throws IOException {
@@ -583,8 +640,11 @@ public final class Amqp091Client implements AutoCloseable {
         byte[] header = new byte[7]; // type(1) + chan(2) + size(4)
         rawIn.readFully(header);
         int frameType = header[0] & 0xFF;
-        // Heartbeat check
-        if (frameType == Amqp091Constants.FRAME_METHOD && rawIn.available() >= 1) {
+        // Heartbeat: type=method, size=0, then frame-end
+        // Use size field to detect heartbeat (not available() which may be unreliable after close)
+        int size = ((header[3] & 0xFF) << 24) | ((header[4] & 0xFF) << 16) |
+                   ((header[5] & 0xFF) << 8) | (header[6] & 0xFF);
+        if (frameType == Amqp091Constants.FRAME_HEARTBEAT || size == 0) {
             byte end = rawIn.readByte();
             if (end != Amqp091Constants.FRAME_END) {
                 throw new IOException("Missing frame end octet (0xCE) in heartbeat");
@@ -648,21 +708,31 @@ public final class Amqp091Client implements AutoCloseable {
     // ── Handshake ──
 
     private void parseConnectionStart(ByteBuffer payload) {
+        // Parse: version(2) + server-properties(table) + mechanisms(longstr) + locales(longstr)
         byte major = payload.get();
         byte minor = payload.get();
         LOG.info("Server version: {}.{}", major & 0xFF, minor & 0xFF);
+        
+        // server-properties: table (4-byte size + table content)
         int tableLen = readUnsignedInt(payload);
         if (tableLen > 0 && payload.remaining() >= tableLen) {
             payload.position(payload.position() + tableLen);
         }
+        
+        // mechanisms: longstr (4-byte size + mechanism names)
         int mechLen = readUnsignedInt(payload);
-        byte[] mechBytes = new byte[Math.min(mechLen, 256)];
-        payload.get(mechBytes);
-        LOG.info("Server mechanisms: {}", new String(mechBytes, StandardCharsets.US_ASCII).trim());
+        if (mechLen > 0) {
+            LOG.info("Server mechanisms length: {}", mechLen);
+            payload.position(payload.position() + mechLen);
+        }
+        
+        // locales: longstr (4-byte size + locale names)
         int localeLen = readUnsignedInt(payload);
         if (localeLen > 0 && payload.remaining() >= localeLen) {
+            LOG.info("Server locales length: {}", localeLen);
             payload.position(payload.position() + localeLen);
         }
+        LOG.debug("Parsed connection.start at position {}", payload.position());
     }
 
     private void sendStartOk(DataOutputStream out) throws IOException {
@@ -671,96 +741,116 @@ public final class Amqp091Client implements AutoCloseable {
         byte[] response = ("\0" + config.username() + "\0" + config.password()).getBytes(StandardCharsets.UTF_8);
         byte[] locale = "en_US".getBytes(StandardCharsets.UTF_8);
 
-        ByteBuffer payloadBuf = ByteBuffer.allocate(64 + clientProps.length + mechanism.length + response.length + locale.length);
-        // client_properties: longstr + table
-        payloadBuf.putInt(clientProps.length);
+        // AMQP 0-9-1 connection.start-ok: [client_properties:table][mechanism:shortstr][response:longstr][locale:shortstr]
+        ByteBuffer payloadBuf = ByteBuffer.allocate(128 + clientProps.length + mechanism.length + response.length + locale.length);
         payloadBuf.put(clientProps);
-        // mechanism: longstr + bytes
-        payloadBuf.putInt(mechanism.length);
+        payloadBuf.put((byte) mechanism.length); // shortstr for mechanism
         payloadBuf.put(mechanism);
-        // response: longstr + bytes
-        payloadBuf.putInt(response.length);
+        payloadBuf.putInt(response.length);       // longstr for response
         payloadBuf.put(response);
-        // locale: longstr + bytes
-        payloadBuf.putInt(locale.length);
+        payloadBuf.put((byte) locale.length);     // shortstr for locale
         payloadBuf.put(locale);
         payloadBuf.flip();
         sendMethodFrame(0, Amqp091Constants.CONNECTION_START_OK,
-                payloadBuf.array(), payloadBuf.remaining());
+                payloadBuf.array(), payloadBuf.remaining(), out);
     }
 
     private void sendTuneOk(DataOutputStream out) throws IOException {
+        // AMQP 0-9-1 tune-ok: [channel_max:2][frame_max:4][heartbeat:2]
+        // Use server's channel_max limit since 0 (no limit) is rejected by RabbitMQ 4.x
+        int clampedFrameMax = Math.min(frameMax, Amqp091Constants.DEFAULT_MAX_FRAME_SIZE);
+        int channelMax = config.channelMax();  // use config value
         ByteBuffer payload = ByteBuffer.allocate(8);
-        payload.putInt(frameMax);
-        payload.putShort((short) heartbeat);
-        payload.putShort((short) 0); // channel max
+        payload.putShort((short) channelMax);     // channel max
+        payload.putInt(clampedFrameMax);          // frame max (clamped to 131072)
+        payload.putShort((short) heartbeat);      // heartbeat
         payload.flip();
+        LOG.info("Tune-ok sent: channelMax={}, frameMax={}, heartbeat={}", channelMax, clampedFrameMax, heartbeat);
         sendMethodFrame(0, Amqp091Constants.CONNECTION_TUNE_OK,
-                payload.array(), payload.remaining());
+                payload.array(), payload.remaining(), out);
     }
 
     private void sendConnectionOpen(DataOutputStream out) throws IOException {
-        ByteBuffer payload = ByteBuffer.allocate(128);
-        writeLongString(payload, config.containerId().getBytes(StandardCharsets.UTF_8));
+        // AMQP 0-9-1 wire format used by RabbitMQ / Java client:
+        // [virtual-host:shortstr][capabilities:shortstr][reserved2:bitfield]
+        // Note: Java client skips reserved1 and uses shortstr (not longstr) for vhost/caps.
+        // Wire for "/" vhost: 01 2F 00 00  (4 bytes, no reserved1)
+        ByteBuffer payload = ByteBuffer.allocate(32);
+        byte[] vhost = config.virtualHost().getBytes(StandardCharsets.UTF_8);
+        payload.put((byte) vhost.length);   // shortstr length for virtual-host
+        payload.put(vhost);                 // virtual-host data
+        payload.put((byte) 0);              // capabilities = empty shortstr (length 0)
+        payload.put((byte) 0x00);           // reserved2: bitfield (1 bit = false, padded to byte)
         payload.flip();
         sendMethodFrame(0, Amqp091Constants.CONNECTION_OPEN,
-                payload.array(), payload.remaining());
+                payload.array(), payload.remaining(), out);
     }
 
     // ── Encoding helpers ──
 
     private byte[] buildClientProperties() {
-        ByteBuffer table = ByteBuffer.allocate(256);
-        writeTableField(table, "product", "Lego-Flow-AMQP");
-        writeTableField(table, "platform", "Java");
-        writeTableField(table, "version", "0.2.0-SNAPSHOT");
-        writeTableField(table, "information", "Lego Flow AMQP 0-9-1 client");
-        int pos = table.position();
-        table.position(0);
-        byte[] result = new byte[pos];
-        table.get(result);
+        // AMQP 0-9-1 table: [table_size(int32)][entries...]
+        ByteBuffer bodyBuf = ByteBuffer.allocate(256);
+        writeTableField(bodyBuf, "product", "Lego-Flow-AMQP");
+        writeTableField(bodyBuf, "platform", "Java");
+        writeTableField(bodyBuf, "version", "0.2.0-SNAPSHOT");
+        writeTableField(bodyBuf, "information", "Lego Flow AMQP 0-9-1 client");
+        int bodyLen = bodyBuf.position();
+        ByteBuffer payload = ByteBuffer.allocate(4 + bodyLen);
+        payload.putInt(bodyLen); // 4-byte table size prefix
+        bodyBuf.flip();
+        payload.put(bodyBuf);
+        payload.flip();
+        byte[] result = new byte[payload.remaining()];
+        payload.get(result);
         return result;
     }
 
     private void writeTableField(ByteBuffer table, String key, String value) {
+        // AMQP 0-9-1 table entry: [key_shortstr][value_encoding]
+        // String value: 'S' + longstr (4-byte length + data)
         byte[] keyBytes = key.getBytes(StandardCharsets.US_ASCII);
         table.put((byte) keyBytes.length);
         table.put(keyBytes);
-        table.put((byte) 'S');
+        table.put((byte) 'S'); // string type indicator
         byte[] valBytes = value.getBytes(StandardCharsets.US_ASCII);
-        table.putShort((short) valBytes.length);
+        table.putInt(valBytes.length); // 4-byte longstr length
         table.put(valBytes);
     }
 
     private byte[] encodeTable(Map<String, Object> table) {
-        ByteBuffer buf = ByteBuffer.allocate(512);
-        buf.put((byte) table.size());
+        // AMQP 0-9-1 table: [table_size(int32)][entries...]
+        ByteBuffer bodyBuf = ByteBuffer.allocate(512);
         for (Map.Entry<String, Object> entry : table.entrySet()) {
             byte[] key = entry.getKey().getBytes(StandardCharsets.US_ASCII);
-            buf.put((byte) key.length);
-            buf.put(key);
+            bodyBuf.put((byte) key.length); // shortstr key length
+            bodyBuf.put(key);
             Object val = entry.getValue();
             if (val instanceof String) {
-                buf.put((byte) 'S');
+                bodyBuf.put((byte) 'S'); // string type
                 byte[] vb = ((String) val).getBytes(StandardCharsets.US_ASCII);
-                buf.putShort((short) vb.length);
-                buf.put(vb);
+                bodyBuf.putInt(vb.length); // 4-byte longstr length
+                bodyBuf.put(vb);
             } else if (val instanceof Integer) {
-                buf.put((byte) 'I');
-                buf.putInt((Integer) val);
+                bodyBuf.put((byte) 'I'); // integer type
+                bodyBuf.putInt((Integer) val);
             } else if (val instanceof Boolean) {
-                buf.put((byte) 't');
-                buf.put((byte) ((Boolean) val ? 1 : 0));
+                bodyBuf.put((byte) 't'); // boolean type
+                bodyBuf.put((byte) ((Boolean) val ? 1 : 0));
             } else if (val instanceof byte[]) {
-                buf.put((byte) 'B');
+                bodyBuf.put((byte) 'B'); // binary type
                 byte[] vb = (byte[]) val;
-                buf.putInt(vb.length);
-                buf.put(vb);
+                bodyBuf.putInt(vb.length);
+                bodyBuf.put(vb);
             }
         }
-        int pos = buf.position();
-        buf.position(0);
-        byte[] result = new byte[pos];
+        int bodyLen = bodyBuf.position();
+        ByteBuffer buf = ByteBuffer.allocate(4 + bodyLen);
+        buf.putInt(bodyLen); // 4-byte table size prefix
+        bodyBuf.flip();
+        buf.put(bodyBuf);
+        buf.flip();
+        byte[] result = new byte[buf.remaining()];
         buf.get(result);
         return result;
     }
