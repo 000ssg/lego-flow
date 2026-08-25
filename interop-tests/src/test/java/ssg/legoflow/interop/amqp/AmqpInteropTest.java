@@ -37,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
     @Tag("messaging-protocols")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Disabled("AMQP 1.0 SASL flow incompatible with RabbitMQ — uses AMQP 0-9-1 style auth")
+@Disabled("AMQP 1.0 SASL flow incompatible with RabbitMQ's AMQP 1.0 broker")
 class AmqpInteropTest {
 
     private final String host = System.getProperty("interop.amqp.host", "localhost");

@@ -16,7 +16,7 @@ server implementations for protocol compliance validation.
 | mosquitto    | `eclipse-mosquitto:latest`    | 1883  | MQTT broker reference implementation |
 | redis        | `redis:7-alpine`             | 6379  | Redis in-memory store                |
 | postgresql   | `postgres:17-alpine`         | 5432  | PostgreSQL database server           |
-| rabbitmq     | `rabbitmq:4-management`      | 5672  | AMQP 0-9-1 + AMQP 1.0 broker         |
+| rabbitmq     | `rabbitmq:4-management`      | 5672  | AMQP 1.0 broker (via amqp1.0 plugin) |
 | activemq     | `apache/activemq:latest`      | 61613 | STOMP broker                         |
 | nats         | `nats:2.10-alpine`            | 4222  | NATS message broker                  |
 | prosody      | `prosody/prosody:latest`      | 5222  | XMPP server                          |
@@ -121,7 +121,6 @@ mvn test -pl interop-tests \
 | MQTT | `MqttMosquittoInteropTest` | 5 | Mosquitto | Client → Server |
 | NATS | `NatsInteropTest` | 8 | NATS 2.10 | Client → Server |
 | STOMP | `StompInteropTest` | 7 | ActiveMQ | Client → Server |
-| AMQP 0-9-1 | `Amqp091InteropTest` | 21 | RabbitMQ 4 | **Dual** (client + server) |
 | AMQP 1.0 | `AmqpInteropTest` | 7 | RabbitMQ 4 | Client → Server |
 | XMPP | `XmppInteropTest` | 6 | Prosody | Client → Server |
 | Telnet Client | `TelnetClientInteropTest` | 7 | telnetd | Client → Server |
@@ -129,13 +128,12 @@ mvn test -pl interop-tests \
 | Terminal Emulators | `TerminalEmulatorInteropTest` | 25 | VT100/XTERM | Rendering QA |
 | TN3270/TN5250 | `TN3270TN5250InteropTest` | 69 | 3270/5250 emu | Rendering QA |
 
-**Total: 18 test classes, ~216 tests**
+**Total: 17 test classes, ~195 tests**
 
 ### Dual Implementation Testing
 
 Protocols with both Lego Flow client and server implementations are tested in **both directions**:
 
-- **AMQP 0-9-1**: Tests cover `Amqp091InteropTest` with both official RabbitMQ client AND our `Amqp091Client` — verifying both ends work correctly with the broker
 - **SSH**: `SshServerInteropTest` tests version exchange with OpenSSH and with our SSH client
 - **Telnet**: `TelnetClientInteropTest` (client against telnetd) + `TelnetServerInteropTest` (server against telnetd client)
 
@@ -162,7 +160,6 @@ The [**Compatibility Report**](doc/COMPATIBILITY.md) provides a detailed assessm
 1. Add TLS/SSL support for SMTP, SSH, and XMPP
 2. Add file transfer (STOR/RETR) for FTP
 3. Add advanced authentication for LDAP (filter predicates)
-4. Add publisher confirms for AMQP 0-9-1
-5. Add streaming (GET/POST with streaming body) for HTTP
-6. Add auth and TLS for SMTP
-7. Add key exchange and authentication for SSH
+4. Add streaming (GET/POST with streaming body) for HTTP
+5. Add auth and TLS for SMTP
+6. Add key exchange and authentication for SSH

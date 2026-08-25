@@ -13,7 +13,6 @@
     <modules>
         <module>kafka</module>
         <module>amqp</module>
-        <module>amqp-091</module>
         <module>stomp</module>
         <module>nats</module>
         <module>mqtt</module>

@@ -31,10 +31,9 @@ Each group is identified by a `-Dgroups` Maven filter or `@Tags` annotation.
 - MQTT — `MqttMosquittoInteropTest` (5 tests)
 - NATS — `NatsInteropTest` (8 tests)
 - STOMP — `StompInteropTest` (7 tests)
-- AMQP 0-9-1 — `Amqp091InteropTest` (21 tests)
 - AMQP 1.0 — `AmqpInteropTest` (7 tests, disabled)
 - XMPP — `XmppInteropTest` (6 tests)
-- **Total: 54 tests (47 active)**
+- **Total: 33 tests (26 active)**
 - **Containers: mosquitto, nats, activemq, rabbitmq, prosody**
 
 ### Group 5: `terminal-protocols` (heavy, longest-running)

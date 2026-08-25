@@ -251,31 +251,6 @@ Tests are organized into **5 CI-parallel groups** (`ci-groups.md`). Results belo
 
 ---
 
-### AMQP 0-9-1
-| Feature | Lego Flow | RabbitMQ 3.13 | Notes |
-|---------|-----------|---------------|-------|
-| Connection handshake | ✅ | ✅ | Negotiation |
-| Channel management | ✅ | ✅ | Open/close/reopen |
-| Exchange declare/delete | ✅ | ✅ | All exchange types |
-| Queue declare/bind/unbind | ✅ | ✅ | Full lifecycle |
-| Queue purge/delete | ✅ | ✅ | Operations |
-| Basic publish (body split) | ✅ | ✅ | Content frames |
-| Basic get (synchronous) | ✅ | ✅ | One-shot receive |
-| Basic consume (async) | ✅ | ✅ | Consumer tags |
-| Consumer cancel | ✅ | ✅ | Graceful cancel |
-| Basic ack/nack/reject | ✅ | ✅ | Delivery tracking |
-| Basic recover | ✅ | ✅ | Message recovery |
-| QoS (prefetch) | ✅ | ✅ | Flow control |
-| Content properties | ✅ | ✅ | Headers, delivery-mode |
-| Heartbeat | 🟡 | ✅ | Partial |
-| connection.close | ✅ | ✅ | Graceful shutdown |
-| publisher confirms | 🔴 | ✅ | Not implemented |
-| Queue mirroring | 🔴 | ✅ | Not implemented |
-
-**Assessment**: Full basic messaging protocol. Publisher confirms and mirroring are gaps.
-
----
-
 ### SSH (RFC 4251-4256)
 | Feature | Lego Flow | OpenSSH | Notes |
 |---------|-----------|---------|-------|
@@ -404,7 +379,7 @@ Tests are organized into **5 CI-parallel groups** (`ci-groups.md`). Results belo
 
 ### Key Findings
 
-1. **Strongest areas**: HTTP, FTP (directory ops), DNS, Redis, PostgreSQL (basic), Telnet, AMQP 0-9-1
+1. **Strongest areas**: HTTP, FTP (directory ops), DNS, Redis, PostgreSQL (basic), Telnet
 2. **Greatest gaps**: SSH (only version exchange), SMTP (no TLS/auth), LDAP (no complex filters)
 3. **Dual implementation**: All protocols with both client and server tests cover both directions
 4. **CI readiness**: Tests are grouped into 5 isolated parallel groups for efficient CI execution
