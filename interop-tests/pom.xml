@@ -128,6 +128,22 @@
             <version>5.22.0</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- Apache Qpid Proton-J — reference AMQP 1.0 client for protocol capture -->
+        <dependency>
+            <groupId>org.apache.qpid</groupId>
+            <artifactId>proton-j</artifactId>
+            <version>0.34.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- PassThroughConnection for wire capture -->
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-service</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>ssg</groupId>
             <artifactId>lego-flow-nats</artifactId>

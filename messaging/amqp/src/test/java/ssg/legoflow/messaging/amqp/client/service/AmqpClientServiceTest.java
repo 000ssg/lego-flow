@@ -1,5 +1,7 @@
 package ssg.legoflow.messaging.amqp.client.service;
 
+import ssg.legoflow.messaging.amqp.common.AmqpCtxImpl;
+import ssg.legoflow.messaging.amqp.transport.AmqpFrameCodecImpl;
 import org.junit.jupiter.api.*;
 import static org.assertj.core.api.Assertions.*;
 
@@ -28,12 +30,14 @@ class AmqpClientServiceTest {
 
     @Test void testChannelHandlerCanBeCreated() {
         var service = AmqpClientService.builder("localhost", 5672).build();
-        var handler = service.createChannelHandler();
+        var context = new AmqpCtxImpl();
+        var codec = new AmqpFrameCodecImpl((ch, frameData) -> {});
+        var handler = new AmqpClientChannelHandler(service, codec, context);
         assertThat(handler).isNotNull();
     }
 
-    @Test void testGetClientIsNullBeforeConnect() {
+    @Test void testGetAmqpContextIsNullBeforeConnect() {
         var service = AmqpClientService.builder("localhost", 5672).build();
-        assertThat(service.getClient()).isNull();
+        assertThat(service.getAmqpContext()).isNull();
     }
 }

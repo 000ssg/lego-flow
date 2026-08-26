@@ -5,8 +5,13 @@ import ssg.legoflow.messaging.amqp.sasl.SaslMechanism;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.UUID;
+
 /**
  * Configuration for {@link AmqpClient} with a fluent builder API.
+ *
+ * <p>Supports broker-aware configuration via {@link BrokerMode}, which
+ * pre-fills settle modes, address formatting, and protocol preferences
+ * for interop with specific AMQP 1.0 brokers.
  *
  * @since 0.1.0
  */
@@ -22,6 +27,9 @@ public final class ClientConfig {
     private final SaslMechanism saslMechanism;
     private final String username;
     private final String password;
+    private final BrokerMode brokerMode;
+    private final int sndSettleMode;
+    private final int rcvSettleMode;
 
     private ClientConfig(Builder builder) {
         this.host = builder.host;
@@ -34,6 +42,9 @@ public final class ClientConfig {
         this.saslMechanism = builder.saslMechanism;
         this.username = builder.username;
         this.password = builder.password;
+        this.brokerMode = builder.brokerMode;
+        this.sndSettleMode = builder.sndSettleMode;
+        this.rcvSettleMode = builder.rcvSettleMode;
     }
 
     /** Returns the container hostname. */
@@ -51,8 +62,17 @@ public final class ClientConfig {
     /** Returns the maximum channel number. */
     public int channelMax() { return channelMax; }
 
-    /** Returns the idle timeout in milliseconds. */
+    /** Returns the idle timeout in milliseconds (0 = disabled). */
     public long idleTimeout() { return idleTimeout; }
+
+    /** Returns the broker target mode. */
+    public BrokerMode brokerMode() { return brokerMode; }
+
+    /** Returns the sender settle mode (0=unsettled, 1=settled, 2=mixed). */
+    public int sndSettleMode() { return sndSettleMode; }
+
+    /** Returns the receiver settle mode (0=first, 1=second). */
+    public int rcvSettleMode() { return rcvSettleMode; }
 
     /** Returns the connect timeout. */
     public Duration connectTimeout() { return connectTimeout; }
@@ -101,6 +121,9 @@ public final class ClientConfig {
         private SaslMechanism saslMechanism;
         private String username;
         private String password;
+        private BrokerMode brokerMode = BrokerMode.STANDARD;
+        private int sndSettleMode = 0; // unsettled
+        private int rcvSettleMode = 0; // first
 
         /** Sets the container hostname. */
         public Builder host(String host) { this.host = Objects.requireNonNull(host); return this; }
@@ -131,6 +154,27 @@ public final class ClientConfig {
 
         /** Sets the password for SASL PLAIN authentication. */
         public Builder password(String password) { this.password = password; return this; }
+
+        /**
+         * Sets the broker target mode. This pre-fills mode-specific defaults
+         * (settle modes, address format) which can be overridden by subsequent
+         * builder calls.
+         *
+         * @param mode the broker mode
+         * @return this builder
+         */
+        public Builder brokerMode(BrokerMode mode) {
+            this.brokerMode = Objects.requireNonNull(mode);
+            this.sndSettleMode = mode.sndSettleMode();
+            this.rcvSettleMode = mode.rcvSettleMode();
+            return this;
+        }
+
+        /** Sets the sender settle mode (0=unsettled, 1=settled, 2=mixed). */
+        public Builder sndSettleMode(int sndSettleMode) { this.sndSettleMode = sndSettleMode; return this; }
+
+        /** Sets the receiver settle mode (0=first, 1=second). */
+        public Builder rcvSettleMode(int rcvSettleMode) { this.rcvSettleMode = rcvSettleMode; return this; }
 
         /** Builds the configuration. */
         public ClientConfig build() { return new ClientConfig(this); }

@@ -84,45 +84,91 @@ public final class AmqpClient implements AutoCloseable {
             channel.configureBlocking(true);
             channel.connect(new InetSocketAddress(config.host(), config.port()));
             this.transport = new TcpTransport(channel);
+            // Finish the connection handshake before sending data
+            ((TcpTransport) this.transport).ensureConnected();
         }
 
         executor = Executors.newVirtualThreadPerTaskExecutor();
 
-        // Protocol header exchange
-        transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
+        // Always try SASL-first (proto-3) header regardless of mechanism.
+        // Most modern brokers (RabbitMQ, Artemis) require SASL.
+        // If the server responds with AMQP_HEADER (proto-0) or closes the socket,
+        // fall back to proto-0 (Qpid Dispatch path).
+        SaslMechanism mechanism;
+        if (config.saslMechanism() != null) {
+            mechanism = config.saslMechanism();
+        } else if (config.username() != null && !config.username().isBlank()) {
+            mechanism = new PlainMechanism(config.username(), config.password());
+        } else {
+            mechanism = new AnonymousMechanism();
+        }
+
+        // Send SASL_HEADER first — readFully accumulates bytes until a full 8-byte header
+        // is available. If the server closes the connection, readFully throws and we
+        // fall back to proto-0.
+        transport.send(ByteBuffer.wrap(AmqpConstants.SASL_HEADER));
         ByteBuffer headerBuf = ByteBuffer.allocate(8);
-        readFully(headerBuf);
+        try {
+            readFully(headerBuf);
+        } catch (AmqpException e) {
+            // Server closed connection on SASL_HEADER — Qpid Dispatch doesn't support
+            // SASL-first. Fall back to proto-0: reopen socket, send AMQP_HEADER.
+            LOG.debug("Server closed connection on SASL_HEADER, falling back to proto-0");
+            transport.close();
+            SocketChannel newChannel = SocketChannel.open();
+            newChannel.configureBlocking(true);
+            newChannel.connect(new InetSocketAddress(config.host(), config.port()));
+            this.transport = new TcpTransport(newChannel);
+            ((TcpTransport) this.transport).ensureConnected();
+            headerBuf = ByteBuffer.allocate(8);
+            transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
+            readFully(headerBuf);
+            headerBuf.flip();
+            byte[] fbHeader = new byte[8];
+            headerBuf.get(fbHeader);
+            if (!Arrays.equals(fbHeader, AmqpConstants.AMQP_HEADER)) {
+                throw new IOException("Invalid AMQP header on proto-0 fallback: " + Arrays.toString(fbHeader));
+            }
+            LOG.debug("Fell back to proto-0, proceeding without SASL");
+            // Proceed to OPEN on proto-0 connection
+            state = ConnectionState.HDR_EXCH;
+            var open = new Performative.Open(
+                    config.containerId(), config.host(),
+                    config.maxFrameSize(), config.channelMax(),
+                    config.idleTimeout(), List.of(), List.of(), Map.of()
+            );
+            sendPerformative(0, open);
+            AmqpFrame openFrame = readFrame();
+            if (openFrame != null && openFrame.performative() instanceof AmqpType.Described desc) {
+                var remoteOpen = (Performative.Open) PerformativeCodec.decode(desc);
+                maxFrameSize = (int) Math.min(config.maxFrameSize(), remoteOpen.maxFrameSize());
+                LOG.debug("Connected (proto-0) to container '{}'", remoteOpen.containerId());
+            }
+            state = ConnectionState.OPENED;
+            connected.set(true);
+            readerFuture = executor.submit(this::readLoop);
+            return;
+        }
         headerBuf.flip();
         byte[] serverHeader = new byte[8];
         headerBuf.get(serverHeader);
 
-        boolean saslRequired = Arrays.equals(serverHeader, AmqpConstants.SASL_HEADER);
-
-        if (saslRequired) {
-            // SASL negotiation first (per AMQP 1.0 spec), then AMQP header exchange
-            SaslMechanism mechanism;
-            if (config.saslMechanism() != null) {
-                mechanism = config.saslMechanism();
-            } else if (config.username() != null && !config.username().isBlank()) {
-                mechanism = new PlainMechanism(config.username(), config.password());
-            } else {
-                mechanism = new AnonymousMechanism();
-            }
+        if (Arrays.equals(serverHeader, AmqpConstants.SASL_HEADER)) {
+            LOG.debug("Server supports SASL, proceeding with negotiation");
             doSaslNegotiation(mechanism);
-            // After SASL completes, client re-sends AMQP header to establish connection
             transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
             headerBuf.clear();
             readFully(headerBuf);
             headerBuf.flip();
-            byte[] amqpHeader = new byte[8];
-            headerBuf.get(amqpHeader);
-            if (!Arrays.equals(amqpHeader, AmqpConstants.AMQP_HEADER)) {
-                throw new IOException("Invalid AMQP header after SASL negotiation");
+            byte[] amqpEcho = new byte[8];
+            headerBuf.get(amqpEcho);
+            if (!Arrays.equals(amqpEcho, AmqpConstants.AMQP_HEADER)) {
+                throw new IOException("Invalid AMQP header echo after SASL: " + Arrays.toString(amqpEcho));
             }
+        } else if (Arrays.equals(serverHeader, AmqpConstants.AMQP_HEADER)) {
+            LOG.debug("Server responded with AMQP_HEADER, skipping SASL");
         } else {
-            if (!Arrays.equals(serverHeader, AmqpConstants.AMQP_HEADER)) {
-                throw new IOException("Invalid AMQP header response: " + Arrays.toString(serverHeader));
-            }
+            throw new IOException("Invalid protocol header response: " + Arrays.toString(serverHeader));
         }
         state = ConnectionState.HDR_EXCH;
 
@@ -150,30 +196,40 @@ public final class AmqpClient implements AutoCloseable {
     }
 
     private void doSaslNegotiation(SaslMechanism mechanism) throws IOException {
-        // Send SASL header
-        transport.send(ByteBuffer.wrap(AmqpConstants.SASL_HEADER));
-
-        // Read SASL mechanisms frame
+        // Read sasl-mechanisms frame from server (frame type 0x01 = SASL)
         AmqpFrame mechFrame = readFrame();
-        if (mechFrame != null) {
-            List<String> mechanisms = SaslCodec.decodeMechanisms((AmqpType.Described) mechFrame.performative());
-        } else {
+        if (mechFrame == null || mechFrame.type() != AmqpConstants.FRAME_TYPE_SASL) {
+            throw new AmqpException(AmqpError.FRAMING_ERROR,
+                    "Expected SASL sasl-mechanisms frame, got type=" + (mechFrame != null ? mechFrame.type() : "null"));
         }
+        if (!(mechFrame.performative() instanceof AmqpType.Described)) {
+            throw new AmqpException(AmqpError.FRAMING_ERROR,
+                    "sasl-mechanisms frame has non-described performative: " + mechFrame.performative().getClass().getSimpleName());
+        }
+        List<String> mechanisms = SaslCodec.decodeMechanisms((AmqpType.Described) mechFrame.performative());
+        LOG.debug("Server SASL mechanisms: {}", mechanisms);
 
         // Send SASL init
-        var init = SaslCodec.encodeInit(mechanism.name(), mechanism.initialResponse(), config.host());
+        byte[] initialResponse = mechanism.initialResponse();
+        var init = SaslCodec.encodeInit(mechanism.name(), initialResponse, config.host());
         var initFrame = new AmqpFrame(0, AmqpConstants.FRAME_TYPE_SASL, init);
         ByteBuffer initBuf = FrameCodec.encode(initFrame, maxFrameSize);
+        LOG.debug("SASL init: mechanism={}, responseLen={}", mechanism.name(), initialResponse != null ? initialResponse.length : 0);
         transport.send(initBuf);
 
         // Read SASL outcome
         AmqpFrame outcomeFrame = readFrame();
+        if (outcomeFrame == null || outcomeFrame.type() != AmqpConstants.FRAME_TYPE_SASL) {
+            throw new AmqpException(AmqpError.FRAMING_ERROR,
+                    "Expected SASL sasl-outcome frame, got type=" + (outcomeFrame != null ? outcomeFrame.type() : "null"));
+        }
         if (outcomeFrame.performative() instanceof AmqpType.Described outcomeDesc) {
             int code = SaslCodec.decodeOutcomeCode(outcomeDesc);
             if (code != 0) {
                 throw new AmqpException(AmqpError.UNAUTHORIZED_ACCESS,
                         "SASL authentication failed with code: " + code);
             }
+            LOG.debug("SASL authentication successful");
         }
     }
 
@@ -229,6 +285,11 @@ public final class AmqpClient implements AutoCloseable {
 
         // Wait for attach response
         waitForAttach(link);
+
+        // Grant initial credit so the sender can send messages immediately.
+        // RabbitMQ AMQP 1.0 may not grant credit until the queue exists (created
+        // by the receiver link). The broker will replenish credit via FLOW frames.
+        link.grantCredit(0, AmqpConstants.DEFAULT_LINK_CREDIT);
 
         return link;
     }
@@ -326,9 +387,17 @@ public final class AmqpClient implements AutoCloseable {
                 if (session != null) {
                     session.handleFlow(flow);
                     if (flow.handle() != null) {
+                        // Link-level flow: update credit on the matching link
                         SenderLink sender = session.senderLink(flow.handle());
-                        if (sender != null && flow.deliveryCount() != null && flow.linkCredit() != null) {
-                            sender.grantCredit(flow.deliveryCount(), flow.linkCredit());
+                        if (sender != null && flow.linkCredit() != null) {
+                            // Broker is granting us credit to send.
+                            // delivery-count from broker = how many the broker thinks we've sent.
+                            long brokerDeliveryCount = flow.deliveryCount() != null ? flow.deliveryCount() : sender.deliveryCount();
+                            sender.grantCredit(brokerDeliveryCount, flow.linkCredit());
+                        }
+                        ReceiverLink receiver = session.receiverLink(flow.handle());
+                        if (receiver != null) {
+                            // Broker (acting as sender) may also flow to our receiver links
                         }
                     }
                 }

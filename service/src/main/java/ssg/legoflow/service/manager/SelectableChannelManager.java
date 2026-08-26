@@ -4,6 +4,8 @@ import ssg.legoflow.service.Service;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.channel.ChannelPipeline;
 import ssg.legoflow.service.channel.DataChannel;
+import ssg.legoflow.service.channel.TcpDataChannel;
+import ssg.legoflow.service.channel.UdpDataChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -52,7 +54,26 @@ public class SelectableChannelManager extends AbstractServicesManager {
     public void registerChannel(Service<?, ?> service, DataChannel channel) {
         var name = service.getDescriptor().name();
         channelsByService.put(name, channel);
-        pipelinesByService.computeIfAbsent(name, _ -> new ChannelPipeline());
+        var pipeline = pipelinesByService.computeIfAbsent(name, _ -> new ChannelPipeline());
+
+        // Register with the selector
+        try {
+            if (channel instanceof TcpDataChannel tcp) {
+                int ops = SelectionKey.OP_READ | SelectionKey.OP_CONNECT;
+                var key = tcp.getSocketChannel().register(selector, ops,
+                        new ChannelRegistration(channel, pipeline));
+                tcp.setSelectionKey(key);
+                LOG.debug("Registered TCP channel for service: {} with ops={}", name, ops);
+            } else if (channel instanceof UdpDataChannel udp) {
+                var key = udp.getDatagramChannel().register(selector, SelectionKey.OP_READ,
+                        new ChannelRegistration(channel, pipeline));
+                udp.setSelectionKey(key);
+            }
+        } catch (IOException e) {
+            channelsByService.remove(name);
+            pipelinesByService.remove(name);
+            throw new UncheckedIOException("Failed to register channel for service: " + name, e);
+        }
         LOG.debug("Registered channel for service: {}", name);
     }
 
@@ -60,9 +81,17 @@ public class SelectableChannelManager extends AbstractServicesManager {
         var name = service.getDescriptor().name();
         var channel = channelsByService.remove(name);
         pipelinesByService.remove(name);
-        if (channel != null && channel.isOpen()) {
+        if (channel != null) {
             try {
-                channel.close();
+                // Deregister from selector first
+                if (channel instanceof TcpDataChannel tcp) {
+                    var key = tcp.getSelectionKey();
+                    if (key != null) key.cancel();
+                } else if (channel instanceof UdpDataChannel udp) {
+                    var key = udp.getSelectionKey();
+                    if (key != null) key.cancel();
+                }
+                if (channel.isOpen()) channel.close();
             } catch (IOException e) {
                 LOG.warn("Error closing channel for service: {}", name, e);
             }

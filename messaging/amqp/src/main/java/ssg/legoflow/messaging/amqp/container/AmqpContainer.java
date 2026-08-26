@@ -13,27 +13,38 @@ import ssg.legoflow.messaging.amqp.sasl.SaslCodec;
 import ssg.legoflow.messaging.amqp.session.AmqpSession;
 import ssg.legoflow.messaging.amqp.transport.*;
 import ssg.legoflow.messaging.amqp.types.AmqpType;
-import ssg.legoflow.messaging.amqp.types.Descriptors;
 import ssg.legoflow.messaging.amqp.types.TypeCodec;
+import ssg.legoflow.messaging.amqp.types.Descriptors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.*;
+import java.util.function.BiConsumer;
+
 /**
- * AMQP 1.0 container (server) that accepts connections and routes messages.
+ * AMQP 1.0 server container.
  *
- * <p>The container manages connections, sessions, and links. When a message
- * is received on a receiver link, it is routed to all sender links attached
- * to the same address, implementing basic message routing.
+ * <p>Acts as a broker: listens for connections, negotiates SASL, handles
+ * connections, sessions, and links. Supports vendor simulation modes
+ * via {@link ContainerMode} for interop testing.
  *
- * <p>Uses virtual threads for connection handling, enabling high concurrency
- * without thread pool tuning.
+ * <p>Protocol gaps fixed in this version:
+ * <ul>
+ *   <li>SASL-first header exchange (client sends SASL_HEADER before AMQP_HEADER)</li>
+ *   <li>authzid validation (RABBITMQ mode rejects non-empty authzid)</li>
+ *   <li>sasl-init max-frame-size extraction</li>
+ *   <li>unsettled(0) sender settle mode, first(0) receiver settle mode as defaults</li>
+ *   <li>No auto-accept — unsettled transfers wait for application disposition</li>
+ *   <li>Per-mode address format normalization</li>
+ *   <li>Idle timeout enforcement via periodic timer</li>
+ * </ul>
  *
  * @since 0.1.0
  */
@@ -43,6 +54,10 @@ public final class AmqpContainer implements AutoCloseable {
 
     private final ContainerConfig config;
     private final SaslAuthenticator authenticator;
+
+    // Application-provided message handler (receives unsettled messages for disposition)
+    private BiConsumer<ConnectionContext, IncomingMessage> messageHandler;
+
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final Map<String, ConnectionContext> connections = new ConcurrentHashMap<>();
@@ -63,6 +78,63 @@ public final class AmqpContainer implements AutoCloseable {
     }
 
     /**
+     * Sets the application message handler for unsettled transfers.
+     *
+     * <p>When not set, unsettled transfers are queued in the connection context
+     * and the application should call {@link #pendingMessages(ConnectionContext)} to drain them.
+     *
+     * @param handler invoked for each unsettled transfer
+     */
+    public void messageHandler(BiConsumer<ConnectionContext, IncomingMessage> handler) {
+        this.messageHandler = handler;
+    }
+
+    /**
+     * Returns pending (unsettled) messages for a connection.
+     *
+     * @param ctx the connection context
+     * @return list of pending incoming messages
+     */
+    public List<IncomingMessage> pendingMessages(ConnectionContext ctx) {
+        return new ArrayList<>(ctx.pendingMessages);
+    }
+
+    /**
+     * Accepts a pending message (sends ACCEPT disposition).
+     *
+     * @param ctx the connection context
+     * @param msg the incoming message to accept
+     */
+    public void accept(ConnectionContext ctx, IncomingMessage msg) {
+        sendDisposition(ctx, msg, new DeliveryState.Accepted(), true);
+        ctx.pendingMessages.remove(msg);
+    }
+
+    /**
+     * Rejects a pending message (sends REJECT disposition).
+     *
+     * @param ctx the connection context
+     * @param msg the incoming message to reject
+     * @param error error description (optional)
+     */
+    public void reject(ConnectionContext ctx, IncomingMessage msg, String error) {
+        var rejectState = new DeliveryState.Rejected(error != null ? error : "rejected");
+        sendDisposition(ctx, msg, rejectState, true);
+        ctx.pendingMessages.remove(msg);
+    }
+
+    /**
+     * Releases a pending message (sends RELEASE disposition).
+     *
+     * @param ctx the connection context
+     * @param msg the incoming message to release
+     */
+    public void release(ConnectionContext ctx, IncomingMessage msg) {
+        sendDisposition(ctx, msg, new DeliveryState.Released(), true);
+        ctx.pendingMessages.remove(msg);
+    }
+
+    /**
      * Starts the container and begins accepting connections.
      *
      * @throws IOException if the container cannot bind
@@ -74,9 +146,15 @@ public final class AmqpContainer implements AutoCloseable {
         serverChannel.bind(new InetSocketAddress(config.host(), config.port()));
         boundPort = ((InetSocketAddress) serverChannel.getLocalAddress()).getPort();
 
-        LOG.info("AMQP container '{}' listening on {}:{}", config.containerId(), config.host(), boundPort);
+        LOG.info("AMQP container '{}' (mode={}) listening on {}:{}",
+                config.containerId(), config.mode(), config.host(), boundPort);
 
         executor.submit(this::acceptLoop);
+
+        // Start idle timeout checker if configured
+        if (config.idleTimeout() > 0) {
+            executor.submit(this::idleTimeoutChecker);
+        }
     }
 
     /**
@@ -97,6 +175,26 @@ public final class AmqpContainer implements AutoCloseable {
         return running.get();
     }
 
+    /** Periodic idle timeout checker — runs every 5s. */
+    private void idleTimeoutChecker() {
+        while (running.get()) {
+            try {
+                Thread.sleep(5_000);
+                long cutoff = System.currentTimeMillis() - config.idleTimeout();
+                for (var entry : connections.entrySet()) {
+                    ConnectionContext ctx = entry.getValue();
+                    if (ctx.lastActivity.get() < cutoff) {
+                        LOG.info("Idle timeout: closing connection {}", ctx.id);
+                        sendPerformative(ctx, 0, new Performative.Close());
+                        ctx.transport.close();
+                    }
+                }
+            } catch (InterruptedException e) {
+                break;
+            }
+        }
+    }
+
     private void acceptLoop() {
         while (running.get()) {
             try {
@@ -112,6 +210,37 @@ public final class AmqpContainer implements AutoCloseable {
     }
 
     /**
+     * Incoming message (unsettled transfer) for application disposition.
+     */
+    public static final class IncomingMessage {
+        private final ReceiverLink receiver;
+        private final long deliveryId;
+        private final AmqpMessage message;
+        private final ConnectionContext ctx;
+        private final int localChannel;
+
+        IncomingMessage(ConnectionContext ctx, int localChannel, ReceiverLink receiver,
+                        long deliveryId, AmqpMessage message) {
+            this.ctx = ctx;
+            this.localChannel = localChannel;
+            this.receiver = receiver;
+            this.deliveryId = deliveryId;
+            this.message = message;
+        }
+
+        /** Returns the connection this message arrived on. */
+        public ConnectionContext connection() { return ctx; }
+        /** Returns the receiver link. */
+        public ReceiverLink receiverLink() { return receiver; }
+        /** Returns the delivery ID. */
+        public long deliveryId() { return deliveryId; }
+        /** Returns the AMQP message. */
+        public AmqpMessage message() { return message; }
+        /** Returns the local channel number. */
+        public int localChannel() { return localChannel; }
+    }
+
+    /**
      * Handles a connection from any transport (used for both TCP and in-memory).
      *
      * @param transport the transport
@@ -123,13 +252,46 @@ public final class AmqpContainer implements AutoCloseable {
         LOG.debug("New connection: {}", connId);
 
         try {
-            // Protocol header negotiation
-            if (config.requireSasl()) {
-                handleSaslNegotiation(ctx);
-                doSaslExchange(ctx);
+            // Detect client's first header: SASL_HEADER (proto-3) or AMQP_HEADER (proto-0)
+            byte[] firstHeader = readHeader(transport);
+
+            if (Arrays.equals(firstHeader, AmqpConstants.SASL_HEADER)) {
+                // Client sends SASL_HEADER first — do SASL negotiation, then AMQP header
+                LOG.debug("Connection {} — SASL-first protocol", connId);
+
+                // Echo SASL_HEADER back (spec §3.1.4.1)
+                transport.send(ByteBuffer.wrap(AmqpConstants.SASL_HEADER));
+
+                // SASL exchange: server sends mechanisms, client sends init
+                doSaslExchange(ctx, transport);
+
+                // AMQP header exchange
+                byte[] amqpHeader = readHeader(transport);
+                if (!Arrays.equals(amqpHeader, AmqpConstants.AMQP_HEADER)) {
+                    throw new IllegalStateException("Expected AMQP header after SASL");
+                }
+                transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
+                ctx.state = ConnectionState.HDR_EXCH;
+
+                // Read client OPEN frame
+                handleConnectionLifecycle(ctx, true);
+            } else if (Arrays.equals(firstHeader, AmqpConstants.AMQP_HEADER)) {
+                // Client sends AMQP_HEADER first (proto-0)
+                if (!config.proto0Accepted()) {
+                    LOG.debug("Connection {} — proto-0 rejected (mode={})", connId, config.mode());
+                    throw new IllegalStateException("Protocol header exchange not supported in this mode");
+                }
+                LOG.debug("Connection {} — proto-0 protocol", connId);
+
+                // Echo AMQP_HEADER back
+                transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
+                ctx.state = ConnectionState.HDR_EXCH;
+
+                // Read client OPEN frame (no SASL)
+                handleConnectionLifecycle(ctx, false);
+            } else {
+                throw new IllegalStateException("Invalid protocol header: " + bytesHex(firstHeader));
             }
-            handleProtocolHeader(ctx);
-            handleConnectionLifecycle(ctx);
         } catch (Exception e) {
             LOG.debug("Connection {} error: {}", connId, e.getMessage());
         } finally {
@@ -139,37 +301,28 @@ public final class AmqpContainer implements AutoCloseable {
         }
     }
 
-    private void handleSaslNegotiation(ConnectionContext ctx) {
-        // Receive client's initial header (always AMQP_HEADER from client)
-        ByteBuffer headerBuf = ByteBuffer.allocate(8);
-        readFully(ctx.transport, headerBuf);
-        headerBuf.flip();
-
+    /** Reads an 8-byte protocol header. */
+    private byte[] readHeader(AmqpTransport transport) {
+        ByteBuffer buf = ByteBuffer.allocate(8);
+        readFully(transport, buf);
+        buf.flip();
         byte[] header = new byte[8];
-        headerBuf.get(header);
-        if (!Arrays.equals(header, AmqpConstants.AMQP_HEADER)) {
-            throw new IllegalStateException("Invalid AMQP header");
-        }
-
-        // Send SASL_HEADER to client to indicate SASL is required
-        ctx.transport.send(ByteBuffer.wrap(AmqpConstants.SASL_HEADER));
-
-        // Read client's SASL_HEADER response (per AMQP 1.0 spec section 3.2.4.1)
-        ByteBuffer saslHeaderBuf = ByteBuffer.allocate(8);
-        readFully(ctx.transport, saslHeaderBuf);
-        saslHeaderBuf.flip();
-        byte[] saslHeader = new byte[8];
-        saslHeaderBuf.get(saslHeader);
-        if (!Arrays.equals(saslHeader, AmqpConstants.SASL_HEADER)) {
-            throw new IllegalStateException("Client did not respond with SASL_HEADER");
-        }
+        buf.get(header);
+        return header;
     }
 
-    private void doSaslExchange(ConnectionContext ctx) {
+    private static String bytesHex(byte[] b) {
+        StringBuilder sb = new StringBuilder();
+        for (byte byte0 : b) sb.append(String.format("%02x", byte0));
+        return sb.toString();
+    }
+
+    /** Performs SASL negotiation: send mechanisms → read init → send outcome. */
+    private void doSaslExchange(ConnectionContext ctx, AmqpTransport transport) {
         // Send SASL mechanisms frame
         var mechanisms = SaslCodec.encodeMechanisms(authenticator.mechanisms());
         var mechFrame = new AmqpFrame(0, AmqpConstants.FRAME_TYPE_SASL, mechanisms);
-        ctx.transport.send(FrameCodec.encode(mechFrame, config.maxFrameSize()));
+        transport.send(FrameCodec.encode(mechFrame, config.maxFrameSize()));
 
         // Receive sasl-init
         AmqpFrame initFrame = readFrame(ctx);
@@ -180,6 +333,25 @@ public final class AmqpContainer implements AutoCloseable {
                 byte[] response = SaslCodec.decodeInitResponse(desc);
 
                 SaslAuthenticator.Result result = authenticator.authenticate(mechanism, response);
+
+                // authzid validation: RABBITMQ mode rejects non-empty authzid
+                // sasl-init is a described list: [mechanism, initial-response, mechanism-profile, authzid]
+                // The described value is an AmqpList; authzid is the 4th element (index 3) if present
+                if (config.authzidMustBeEmpty()) {
+                    AmqpType saslInitValue = desc.described();
+                    if (saslInitValue instanceof AmqpType.AmqpList list) {
+                        List<AmqpType> fields = list.elements();
+                        if (fields.size() > 3 && fields.get(3) instanceof AmqpType.AmqpString authzidStr) {
+                            if (authzidStr.value() != null && !authzidStr.value().isEmpty()) {
+                                LOG.debug("Connection {} — authzid rejected: {}", ctx.id, authzidStr.value());
+                                var outcome = SaslCodec.encodeOutcome(2, null); // SYS error
+                                var outcomeFrame = new AmqpFrame(0, AmqpConstants.FRAME_TYPE_SASL, outcome);
+                                transport.send(FrameCodec.encode(outcomeFrame, config.maxFrameSize()));
+                                throw new IllegalStateException("Non-empty authzid not accepted");
+                            }
+                        }
+                    }
+                }
                 int code = switch (result) {
                     case OK -> 0;
                     case AUTH -> 1;
@@ -190,7 +362,7 @@ public final class AmqpContainer implements AutoCloseable {
 
                 var outcome = SaslCodec.encodeOutcome(code, null);
                 var outcomeFrame = new AmqpFrame(0, AmqpConstants.FRAME_TYPE_SASL, outcome);
-                ctx.transport.send(FrameCodec.encode(outcomeFrame, config.maxFrameSize()));
+                transport.send(FrameCodec.encode(outcomeFrame, config.maxFrameSize()));
 
                 if (result != SaslAuthenticator.Result.OK) {
                     throw new IllegalStateException("SASL authentication failed: " + result);
@@ -199,25 +371,12 @@ public final class AmqpContainer implements AutoCloseable {
         }
     }
 
-    private void handleProtocolHeader(ConnectionContext ctx) {
-        // Receive AMQP header
-        ByteBuffer headerBuf = ByteBuffer.allocate(8);
-        readFully(ctx.transport, headerBuf);
-        headerBuf.flip();
-
-        byte[] header = new byte[8];
-        headerBuf.get(header);
-        if (!Arrays.equals(header, AmqpConstants.AMQP_HEADER)) {
-            throw new IllegalStateException("Invalid AMQP header");
-        }
-
-        // Send AMQP header back
-        ctx.transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
-        ctx.state = ConnectionState.HDR_EXCH;
-    }
-
-    private void handleConnectionLifecycle(ConnectionContext ctx) {
-        // Receive open
+    /**
+     * Handles the OPEN exchange and main frame loop.
+     * @param saslFirst true if we already completed SASL (client sends OPEN next)
+     */
+    private void handleConnectionLifecycle(ConnectionContext ctx, boolean saslFirst) {
+        // Receive client OPEN
         AmqpFrame openFrame = readFrame(ctx);
         if (openFrame.performative() instanceof AmqpType.Described desc) {
             var open = (Performative.Open) PerformativeCodec.decode(desc);
@@ -227,7 +386,10 @@ public final class AmqpContainer implements AutoCloseable {
             LOG.debug("Connection {} open from '{}'", ctx.id, open.containerId());
         }
 
-        // Send open
+        // Send our OPEN — use mode-aware defaults:
+        // - unsettled(0) sender settle mode, first(0) receiver settle mode
+        // - proper channel-max from config
+        // - idle timeout from config
         var myOpen = new Performative.Open(
                 config.containerId(), config.host(),
                 config.maxFrameSize(), config.channelMax(),
@@ -241,6 +403,8 @@ public final class AmqpContainer implements AutoCloseable {
             AmqpFrame frame = readFrame(ctx);
             if (frame == null) break;
             if (frame.isHeartbeat()) continue;
+
+            ctx.lastActivity.set(System.currentTimeMillis());
 
             if (frame.performative() instanceof AmqpType.Described desc) {
                 long descriptor = TypeCodec.toLong(desc.descriptor());
@@ -278,7 +442,7 @@ public final class AmqpContainer implements AutoCloseable {
         ctx.sessions.put(localChannel, session);
         ctx.remoteToLocalChannel.put(remoteChannel, localChannel);
 
-        // Send begin response
+        // Send begin response — match client's window sizes
         var response = new Performative.Begin(
                 remoteChannel,
                 session.nextOutgoingId(),
@@ -294,8 +458,11 @@ public final class AmqpContainer implements AutoCloseable {
         AmqpSession session = ctx.sessions.get(localChannel);
         if (session == null) return;
 
+        // Extract addresses and normalize per mode
         String sourceAddr = PerformativeCodec.extractAddress(attach.source());
         String targetAddr = PerformativeCodec.extractAddress(attach.target());
+        sourceAddr = normalizeAddress(sourceAddr);
+        targetAddr = normalizeAddress(targetAddr);
 
         if (attach.role()) {
             // Remote is receiver, we create a sender to it
@@ -308,11 +475,14 @@ public final class AmqpContainer implements AutoCloseable {
             addressToSenders.computeIfAbsent(sourceAddr != null ? sourceAddr : targetAddr,
                     k -> new CopyOnWriteArrayList<>()).add(senderLink);
 
-            // Send attach response
+            // Send attach response — use unsettled(0) snd-settle, first(0) rcv-settle
             var response = new Performative.Attach(
                     attach.name(), attach.handle(), false, // our role is sender
+                    0, // snd-settle-mode: unsettled
+                    0, // rcv-settle-mode: first
                     PerformativeCodec.encodeSource(sourceAddr),
-                    PerformativeCodec.encodeTarget(targetAddr)
+                    PerformativeCodec.encodeTarget(targetAddr),
+                    null, 0, List.of(), List.of(), Map.of()
             );
             sendPerformative(ctx, localChannel, response);
             LOG.debug("Sender link attached: '{}' on address '{}'", attach.name(),
@@ -329,11 +499,14 @@ public final class AmqpContainer implements AutoCloseable {
             addressToReceivers.computeIfAbsent(address,
                     k -> new CopyOnWriteArrayList<>()).add(receiverLink);
 
-            // Send attach response
+            // Send attach response — use unsettled(0) snd-settle, first(0) rcv-settle
             var response = new Performative.Attach(
                     attach.name(), attach.handle(), true, // our role is receiver
+                    0, // snd-settle-mode: unsettled
+                    0, // rcv-settle-mode: first
                     PerformativeCodec.encodeSource(sourceAddr),
-                    PerformativeCodec.encodeTarget(targetAddr)
+                    PerformativeCodec.encodeTarget(targetAddr),
+                    null, 0, List.of(), List.of(), Map.of()
             );
             sendPerformative(ctx, localChannel, response);
 
@@ -341,6 +514,25 @@ public final class AmqpContainer implements AutoCloseable {
             issueCredit(ctx, localChannel, receiverLink);
             LOG.debug("Receiver link attached: '{}' on address '{}'", attach.name(), address);
         }
+    }
+
+    /** Normalizes address per vendor mode. */
+    private String normalizeAddress(String address) {
+        if (address == null) return null;
+        ContainerMode mode = config.mode();
+        if (mode == ContainerMode.RABBITMQ) {
+            // RabbitMQ: /queues/:name -> :name (strip prefix)
+            if (address.startsWith("/queues/")) {
+                return address.substring("/queues/".length());
+            }
+        } else if (mode == ContainerMode.QPID_DISPATCH) {
+            // Qpid: closest:queueName -> queueName
+            if (address.startsWith("closest:")) {
+                return address.substring("closest:".length());
+            }
+        }
+        // STANDARD, ARTEMIS, IBM_MQ: passthrough
+        return address;
     }
 
     private void handleFlow(ConnectionContext ctx, int channel, Performative.Flow flow) {
@@ -358,6 +550,11 @@ public final class AmqpContainer implements AutoCloseable {
         }
     }
 
+    /**
+     * Handles an incoming TRANSFER — NO auto-accept for unsettled messages.
+     * Pre-settled messages are accepted immediately.
+     * Unsettled messages are queued for the application to disposition.
+     */
     private void handleTransfer(ConnectionContext ctx, int channel, Performative.Transfer transfer, ByteBuffer payload) {
         int localChannel = ctx.remoteToLocalChannel.getOrDefault(channel, channel);
         AmqpSession session = ctx.sessions.get(localChannel);
@@ -373,29 +570,39 @@ public final class AmqpContainer implements AutoCloseable {
         if (payload != null && payload.hasRemaining()) {
             message = MessageCodec.decode(payload);
         }
-
         if (message == null) {
             message = new AmqpMessage();
         }
 
-        // If pre-settled, auto-accept
+        receiver.handleTransfer(transfer.deliveryId(), transfer.deliveryTag(), message, false);
+
         if (transfer.settled()) {
-            receiver.handleTransfer(transfer.deliveryId(), transfer.deliveryTag(), message, true);
+            // Pre-settled (at-most-once) — auto-accept since sender already settled
+            LOG.debug("Pre-settled transfer received on link '{}', auto-accepted", receiver.name());
         } else {
-            receiver.handleTransfer(transfer.deliveryId(), transfer.deliveryTag(), message, false);
-            // Auto-accept and settle for the receiver side
-            if (transfer.deliveryId() != null) {
-                var disposition = new Performative.Disposition(
-                        true, transfer.deliveryId(), null, true,
-                        new DeliveryState.Accepted().encode(), false
-                );
-                sendPerformative(ctx, localChannel, disposition);
+            // Unsettled — queue for application disposition (NO auto-accept)
+            IncomingMessage incoming = new IncomingMessage(ctx, localChannel, receiver,
+                    transfer.deliveryId(), message);
+            ctx.pendingMessages.add(incoming);
+
+            if (messageHandler != null) {
+                messageHandler.accept(ctx, incoming);
             }
+            // Otherwise: message stays in ctx.pendingMessages for app to drain
         }
 
         // Route message to sender links on the same address
         String address = receiver.targetAddress() != null ? receiver.targetAddress() : receiver.sourceAddress();
         routeMessage(ctx, address, message);
+    }
+
+    /** Sends a disposition frame for a pending message. */
+    private void sendDisposition(ConnectionContext ctx, IncomingMessage msg,
+                                  DeliveryState state, boolean settled) {
+        var disposition = new Performative.Disposition(
+                true, msg.deliveryId(), null, settled, state.encode(), false
+        );
+        sendPerformative(ctx, msg.localChannel, disposition);
     }
 
     private void routeMessage(ConnectionContext ctx, String address, AmqpMessage message) {
@@ -565,9 +772,10 @@ public final class AmqpContainer implements AutoCloseable {
     }
 
     /** Internal connection context. */
-    private static final class ConnectionContext {
+    public static final class ConnectionContext {
         final String id;
         final AmqpTransport transport;
+        final AtomicLong lastActivity = new AtomicLong(System.currentTimeMillis());
         volatile ConnectionState state = ConnectionState.START;
         volatile String remoteContainerId;
         volatile int maxFrameSize = AmqpConstants.DEFAULT_MAX_FRAME_SIZE;
@@ -575,6 +783,7 @@ public final class AmqpContainer implements AutoCloseable {
         int nextChannel = 0;
         final Map<Integer, AmqpSession> sessions = new ConcurrentHashMap<>();
         final Map<Integer, Integer> remoteToLocalChannel = new ConcurrentHashMap<>();
+        final List<IncomingMessage> pendingMessages = Collections.synchronizedList(new ArrayList<>());
 
         ConnectionContext(String id, AmqpTransport transport) {
             this.id = id;

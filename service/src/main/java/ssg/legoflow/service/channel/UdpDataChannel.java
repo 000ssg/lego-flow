@@ -314,4 +314,13 @@ public class UdpDataChannel implements DataChannel {
     public DatagramChannel getDatagramChannel() {
         return datagramChannel;
     }
+
+    /**
+     * Set the selection key (called by {@link SelectableChannelManager} after registration).
+     *
+     * @param key the selection key
+     */
+    public void setSelectionKey(SelectionKey key) {
+        this.selectionKey = key;
+    }
 }

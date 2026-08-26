@@ -1,5 +1,7 @@
 package ssg.legoflow.messaging.amqp.transport;
 
+import ssg.legoflow.messaging.amqp.common.AmqpError;
+import ssg.legoflow.messaging.amqp.common.AmqpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -23,10 +25,24 @@ public final class TcpTransport implements AmqpTransport {
     /**
      * Creates a TCP transport wrapping the given socket channel.
      *
-     * @param channel the socket channel (must be connected)
+     * <p>The channel must be connected before sending data. When the channel
+     * is created from {@link SocketChannel#open()}, call {@link #ensureConnected()}
+     * before sending.
+     *
+     * @param channel the socket channel
      */
     public TcpTransport(SocketChannel channel) {
         this.channel = Objects.requireNonNull(channel);
+    }
+
+    /**
+     * Ensures the socket is fully connected. After {@link SocketChannel#connect()},
+     * this must be called before any send/receive to complete the handshake.
+     */
+    public void ensureConnected() throws IOException {
+        if (!channel.isConnected() && channel.isConnectionPending()) {
+            channel.finishConnect();
+        }
     }
 
     @Override
@@ -36,8 +52,9 @@ public final class TcpTransport implements AmqpTransport {
                 channel.write(data);
             }
         } catch (IOException e) {
-            LOG.debug("Error sending data", e);
+            LOG.warn("Error sending data", e);
             close();
+            throw new AmqpException(AmqpError.CONNECTION_FORCED, "Send failed: " + e.getMessage());
         }
     }
 

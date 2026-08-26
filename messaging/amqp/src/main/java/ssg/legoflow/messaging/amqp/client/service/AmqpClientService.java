@@ -2,11 +2,19 @@ package ssg.legoflow.messaging.amqp.client.service;
 
 import ssg.legoflow.blocks.Context;
 import ssg.legoflow.blocks.ProcessorState;
+import ssg.legoflow.messaging.amqp.common.AmqpContext;
+import ssg.legoflow.messaging.amqp.common.AmqpCtxImpl;
+import ssg.legoflow.messaging.amqp.transport.AmqpFrameCodec;
+import ssg.legoflow.messaging.amqp.transport.AmqpFrameCodecImpl;
 import ssg.legoflow.service.AbstractService;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
 import ssg.legoflow.service.channel.ChannelHandler;
+import ssg.legoflow.service.channel.ChannelPipeline;
+import ssg.legoflow.service.channel.DataChannel;
+import ssg.legoflow.service.manager.SelectableChannelManager;
 import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.List;
 import java.util.function.Consumer;
 /** Service-based AMQP client adapter for DP/DF composition. */
@@ -14,8 +22,9 @@ public final class AmqpClientService extends AbstractService<ByteBuffer, ByteBuf
 
     private final String host;
     private final int port;
-    private volatile ssg.legoflow.messaging.amqp.client.AmqpClient client;
     private volatile Consumer<AmqpResult> deliveryCallback;
+    private volatile SelectableChannelManager channelManager;
+    private volatile AmqpContext amqpContext;
 
     public record AmqpResult(boolean success, String address, ByteBuffer payload) {
         public static AmqpResult ok(String addr, ByteBuffer data) { return new AmqpResult(true, addr, data); }
@@ -30,14 +39,44 @@ public final class AmqpClientService extends AbstractService<ByteBuffer, ByteBuf
         this.port = builder.port;
     }
 
+    public void setChannelManager(SelectableChannelManager cm) {
+        this.channelManager = cm;
+    }
+
     @Override
     protected void doConnect(ServiceContext ctx) {
         try {
             transitionTo(ProcessorState.CONNECTING);
-            var config = ssg.legoflow.messaging.amqp.client.ClientConfig.builder()
-                    .host(host).port(port).build();
-            this.client = new ssg.legoflow.messaging.amqp.client.AmqpClient(config);
-            client.connect();
+            if (channelManager == null) {
+                throw new IllegalStateException("SelectableChannelManager not set");
+            }
+            // Create AMQP context for this connection
+            this.amqpContext = new AmqpCtxImpl();
+            amqpContext.setRemoteHost(host);
+            amqpContext.setRemotePort(port);
+            ctx.setAttribute("amqp.context", amqpContext);
+
+            // Create codec + channel handler
+            var codec = new AmqpFrameCodecImpl((ch, frameData) -> {
+                // Complete frame extracted — fire to service
+                processInbound(frameData);
+            });
+            var handler = new AmqpClientChannelHandler(this, codec, amqpContext);
+
+            // Register the channel with the manager and set up pipeline
+            var pipeline = channelManager.getChannelPipeline(this);
+            pipeline.addFirst(codec);
+            pipeline.addLast(handler);
+
+            // Open socket and wrap as data channel
+            SocketChannel sc = SocketChannel.open();
+            sc.configureBlocking(false);
+            var dataChannel = new ssg.legoflow.service.channel.TcpDataChannel(sc);
+            dataChannel.connect(host, port);
+            channelManager.registerChannel(this, dataChannel);
+
+            amqpContext.setState(ProcessorState.READY);
+            transitionTo(ProcessorState.READY);
         } catch (Exception e) {
             throw new RuntimeException("AMQP client failed to connect: " + host + ":" + port, e);
         }
@@ -45,11 +84,11 @@ public final class AmqpClientService extends AbstractService<ByteBuffer, ByteBuf
 
     @Override
     protected void doDisconnect(ServiceContext ctx) {
-        if (client != null) { try { client.close(); } catch (Exception ignored) {} }
+        if (channelManager != null) channelManager.unregisterChannel(this);
+        if (amqpContext != null) amqpContext.setState(ProcessorState.STOPPED);
         transitionTo(ProcessorState.STOPPED);
     }
 
-    public ssg.legoflow.messaging.amqp.client.AmqpClient getClient() { return client; }
     public void setDeliveryCallback(Consumer<AmqpResult> cb) { this.deliveryCallback = cb; }
 
     @Override
@@ -67,7 +106,7 @@ public final class AmqpClientService extends AbstractService<ByteBuffer, ByteBuf
         if (deliveryCallback != null) deliveryCallback.accept(AmqpResult.ok("delivery", data.asReadOnlyBuffer()));
     }
 
-    public ChannelHandler createChannelHandler() { return new AmqpClientChannelHandler(this); }
+    public AmqpContext getAmqpContext() { return amqpContext; }
 
     public static class Builder {
         private final String host;
