@@ -25,7 +25,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public final class WireCaptureInterceptor implements DataInterceptor {
 
-    private record WireEntry(
+    public record WireEntry(
             Direction direction,
             long timestampMs,
             EstablishedConnection connection,
@@ -35,12 +35,21 @@ public final class WireCaptureInterceptor implements DataInterceptor {
     private final CopyOnWriteArrayList<WireEntry> entries = new CopyOnWriteArrayList<>();
 
     @Override
-    public ByteBuffer intercept(Direction direction, ByteBuffer buffer, EstablishedConnection connection) {
-        // Snapshot the data
-        byte[] snapshot = new byte[buffer.remaining()];
-        buffer.duplicate().get(snapshot); // duplicate so we don't modify position
+    public ByteBuffer onLocalToRemote(EstablishedConnection connection, ByteBuffer data) {
+        capture(Direction.LOCAL_TO_REMOTE, connection, data);
+        return data;
+    }
+
+    @Override
+    public ByteBuffer onRemoteToLocal(EstablishedConnection connection, ByteBuffer data) {
+        capture(Direction.REMOTE_TO_LOCAL, connection, data);
+        return data;
+    }
+
+    private void capture(Direction direction, EstablishedConnection connection, ByteBuffer data) {
+        byte[] snapshot = new byte[data.remaining()];
+        data.duplicate().get(snapshot); // duplicate so we don't modify position
         entries.add(new WireEntry(direction, System.currentTimeMillis(), connection, snapshot));
-        return buffer; // pass through unchanged
     }
 
     /** Returns an unmodifiable snapshot of all captured wire entries. */
