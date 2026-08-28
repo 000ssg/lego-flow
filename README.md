@@ -590,7 +590,7 @@ See [Cluster Master Plan](network/cluster/doc/plan/master.md) for detailed phase
 <a id="documentation"></a>
 ## Documentation
 
-> Root documentation: [Code Overview](doc/CODE_OVERVIEW.md) | [Architecture](doc/ARCHITECTURE.md) | [Requirements](doc/REQUIREMENTS.md) | [DP/DF Compliance](doc/COMPARISON.md) | [Benchmark Comparison](doc/COMPARISON.md)
+> Root documentation: [Code Overview](doc/CODE_OVERVIEW.md) | [Architecture](doc/ARCHITECTURE.md) | [Requirements](doc/REQUIREMENTS.md) | [Protocol Implementation Guidelines](doc/PROTOCOL-GUIDELINES.md) | [DP/DF Compliance](doc/COMPARISON.md) | [Benchmark Comparison](doc/COMPARISON.md)
 
 ### Module Documentation
 
