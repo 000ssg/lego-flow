@@ -1,0 +1,14 @@
+// Capture: legoflow client → Artemis
+// Host: localhost:5675
+// Auth: PLAIN
+// Date: 2026-08-26T08:06:30.773828Z
+
+#      DIR   ANNOTATION                HEX
+----------------------------------------------------------------------------------------------------
+  1 C_TO_S CONNECT                   41 4D 51 50 03 01 00 00
+  2 S_TO_C CONNECT                   41 4D 51 50 03 01 00 00
+  3 S_TO_C CONNECT                   00 00 00 22 02 01 00 00
+  4 S_TO_C CONNECT                   00 53 40 C0 15 01 E0 12
+  5 S_TO_C CONNECT                   02 A3 05 50 4C 41 49 4E
+  6 S_TO_C CONNECT                   09 41 4E 4F 4E 59 4D 4F
+  7 S_TO_C CONNECT                   55 53

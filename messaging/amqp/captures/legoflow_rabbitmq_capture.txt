@@ -1,0 +1,9 @@
+// Capture: legoflow client → RabbitMQ
+// Host: localhost:5672
+// Auth: ANONYMOUS
+// Date: 2026-08-26T08:05:30.315688Z
+
+#      DIR   ANNOTATION                HEX
+----------------------------------------------------------------------------------------------------
+  1 C_TO_S CONNECT                   41 4D 51 50 00 01 00 00
+  2 S_TO_C CONNECT                   41 4D 51 50 03 01 00 00

@@ -30,14 +30,12 @@ class AmqpClientServiceTest {
 
     @Test void testChannelHandlerCanBeCreated() {
         var service = AmqpClientService.builder("localhost", 5672).build();
-        var context = new AmqpCtxImpl();
-        var codec = new AmqpFrameCodecImpl((ch, frameData) -> {});
-        var handler = new AmqpClientChannelHandler(service, codec, context);
+        var handler = service.createChannelHandler();
         assertThat(handler).isNotNull();
     }
 
-    @Test void testGetAmqpContextIsNullBeforeConnect() {
+    @Test void testGetClientIsNullBeforeConnect() {
         var service = AmqpClientService.builder("localhost", 5672).build();
-        assertThat(service.getAmqpContext()).isNull();
+        assertThat(service.getClient()).isNull();
     }
 }

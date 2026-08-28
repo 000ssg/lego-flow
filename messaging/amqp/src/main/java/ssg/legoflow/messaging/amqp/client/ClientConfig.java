@@ -28,6 +28,7 @@ public final class ClientConfig {
     private final String username;
     private final String password;
     private final BrokerMode brokerMode;
+    private final boolean proto0Accepted;
     private final int sndSettleMode;
     private final int rcvSettleMode;
 
@@ -43,6 +44,7 @@ public final class ClientConfig {
         this.username = builder.username;
         this.password = builder.password;
         this.brokerMode = builder.brokerMode;
+        this.proto0Accepted = builder.proto0Accepted;
         this.sndSettleMode = builder.sndSettleMode;
         this.rcvSettleMode = builder.rcvSettleMode;
     }
@@ -67,6 +69,9 @@ public final class ClientConfig {
 
     /** Returns the broker target mode. */
     public BrokerMode brokerMode() { return brokerMode; }
+
+    /** When true, skips the SASL-first handshake. */
+    public boolean proto0Accepted() { return proto0Accepted; }
 
     /** Returns the sender settle mode (0=unsettled, 1=settled, 2=mixed). */
     public int sndSettleMode() { return sndSettleMode; }
@@ -122,6 +127,7 @@ public final class ClientConfig {
         private String username;
         private String password;
         private BrokerMode brokerMode = BrokerMode.STANDARD;
+        private boolean proto0Accepted = false;
         private int sndSettleMode = 0; // unsettled
         private int rcvSettleMode = 0; // first
 
@@ -167,8 +173,14 @@ public final class ClientConfig {
             this.brokerMode = Objects.requireNonNull(mode);
             this.sndSettleMode = mode.sndSettleMode();
             this.rcvSettleMode = mode.rcvSettleMode();
+            if (mode == BrokerMode.QPID_DISPATCH) {
+                this.proto0Accepted = true;
+            }
             return this;
         }
+
+        /** When true, skips the SASL-first handshake and sends AMQP_HEADER directly. */
+        public Builder proto0Accepted(boolean v) { this.proto0Accepted = v; return this; }
 
         /** Sets the sender settle mode (0=unsettled, 1=settled, 2=mixed). */
         public Builder sndSettleMode(int sndSettleMode) { this.sndSettleMode = sndSettleMode; return this; }

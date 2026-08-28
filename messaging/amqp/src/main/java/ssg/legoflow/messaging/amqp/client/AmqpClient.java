@@ -21,19 +21,21 @@ import ssg.legoflow.messaging.amqp.types.AmqpType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * AMQP 1.0 client for connecting to containers and exchanging messages.
  *
  * <p>Provides methods to connect, create sessions, attach sender/receiver links,
  * send messages, and receive messages. Supports SASL authentication and
  * multiple delivery semantics.
+ *
+ * <p><b>Transport-agnostic:</b> this class uses only the {@link AmqpTransport}
+ * interface. TCP infrastructure belongs in the service layer.
  *
  * @since 0.1.0
  */
@@ -62,38 +64,19 @@ public final class AmqpClient implements AutoCloseable {
     }
 
     /**
-     * Connects to the AMQP container.
+     * Connects using a pre-configured transport.
      *
+     * @param transport the transport to use
      * @throws IOException if the connection fails
      */
-    public void connect() throws IOException {
-        connect(null);
-    }
-
-    /**
-     * Connects to the AMQP container using the given transport (for testing).
-     *
-     * @param testTransport the transport to use, or null for TCP
-     * @throws IOException if the connection fails
-     */
-    public void connect(AmqpTransport testTransport) throws IOException {
-        if (testTransport != null) {
-            this.transport = testTransport;
-        } else {
-            SocketChannel channel = SocketChannel.open();
-            channel.configureBlocking(true);
-            channel.connect(new InetSocketAddress(config.host(), config.port()));
-            this.transport = new TcpTransport(channel);
-            // Finish the connection handshake before sending data
-            ((TcpTransport) this.transport).ensureConnected();
+    public void connect(AmqpTransport transport) throws IOException {
+        if (transport == null) {
+            throw new IllegalArgumentException("Transport must not be null");
         }
+        this.transport = transport;
 
         executor = Executors.newVirtualThreadPerTaskExecutor();
 
-        // Always try SASL-first (proto-3) header regardless of mechanism.
-        // Most modern brokers (RabbitMQ, Artemis) require SASL.
-        // If the server responds with AMQP_HEADER (proto-0) or closes the socket,
-        // fall back to proto-0 (Qpid Dispatch path).
         SaslMechanism mechanism;
         if (config.saslMechanism() != null) {
             mechanism = config.saslMechanism();
@@ -103,72 +86,60 @@ public final class AmqpClient implements AutoCloseable {
             mechanism = new AnonymousMechanism();
         }
 
-        // Send SASL_HEADER first — readFully accumulates bytes until a full 8-byte header
-        // is available. If the server closes the connection, readFully throws and we
-        // fall back to proto-0.
-        transport.send(ByteBuffer.wrap(AmqpConstants.SASL_HEADER));
-        ByteBuffer headerBuf = ByteBuffer.allocate(8);
-        try {
-            readFully(headerBuf);
-        } catch (AmqpException e) {
-            // Server closed connection on SASL_HEADER — Qpid Dispatch doesn't support
-            // SASL-first. Fall back to proto-0: reopen socket, send AMQP_HEADER.
-            LOG.debug("Server closed connection on SASL_HEADER, falling back to proto-0");
-            transport.close();
-            SocketChannel newChannel = SocketChannel.open();
-            newChannel.configureBlocking(true);
-            newChannel.connect(new InetSocketAddress(config.host(), config.port()));
-            this.transport = new TcpTransport(newChannel);
-            ((TcpTransport) this.transport).ensureConnected();
-            headerBuf = ByteBuffer.allocate(8);
+        if (config.proto0Accepted()) {
+            // Proto-0 (Qpid Dispatch): AMQP_HEADER → OPEN (no SASL).
+            LOG.debug("Proto-0 (Qpid): AMQP_HEADER, then OPEN (no SASL)");
             transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
+            ByteBuffer headerBuf = ByteBuffer.allocate(8);
             readFully(headerBuf);
             headerBuf.flip();
-            byte[] fbHeader = new byte[8];
-            headerBuf.get(fbHeader);
-            if (!Arrays.equals(fbHeader, AmqpConstants.AMQP_HEADER)) {
-                throw new IOException("Invalid AMQP header on proto-0 fallback: " + Arrays.toString(fbHeader));
+            byte[] echo = new byte[8];
+            headerBuf.get(echo);
+            if (!Arrays.equals(echo, AmqpConstants.AMQP_HEADER)) {
+                throw new IOException("Invalid AMQP header echo in proto-0: " + Arrays.toString(echo));
             }
-            LOG.debug("Fell back to proto-0, proceeding without SASL");
-            // Proceed to OPEN on proto-0 connection
-            state = ConnectionState.HDR_EXCH;
-            var open = new Performative.Open(
-                    config.containerId(), config.host(),
-                    config.maxFrameSize(), config.channelMax(),
-                    config.idleTimeout(), List.of(), List.of(), Map.of()
-            );
-            sendPerformative(0, open);
-            AmqpFrame openFrame = readFrame();
-            if (openFrame != null && openFrame.performative() instanceof AmqpType.Described desc) {
-                var remoteOpen = (Performative.Open) PerformativeCodec.decode(desc);
-                maxFrameSize = (int) Math.min(config.maxFrameSize(), remoteOpen.maxFrameSize());
-                LOG.debug("Connected (proto-0) to container '{}'", remoteOpen.containerId());
-            }
-            state = ConnectionState.OPENED;
-            connected.set(true);
-            readerFuture = executor.submit(this::readLoop);
-            return;
-        }
-        headerBuf.flip();
-        byte[] serverHeader = new byte[8];
-        headerBuf.get(serverHeader);
-
-        if (Arrays.equals(serverHeader, AmqpConstants.SASL_HEADER)) {
-            LOG.debug("Server supports SASL, proceeding with negotiation");
-            doSaslNegotiation(mechanism);
-            transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
-            headerBuf.clear();
-            readFully(headerBuf);
-            headerBuf.flip();
-            byte[] amqpEcho = new byte[8];
-            headerBuf.get(amqpEcho);
-            if (!Arrays.equals(amqpEcho, AmqpConstants.AMQP_HEADER)) {
-                throw new IOException("Invalid AMQP header echo after SASL: " + Arrays.toString(amqpEcho));
-            }
-        } else if (Arrays.equals(serverHeader, AmqpConstants.AMQP_HEADER)) {
-            LOG.debug("Server responded with AMQP_HEADER, skipping SASL");
+            // No SASL in proto-0 — proceed directly to OPEN
         } else {
-            throw new IOException("Invalid protocol header response: " + Arrays.toString(serverHeader));
+            // Proto-3: SASL-first. Send SASL_HEADER, wait for server echo.
+            // If server echoes SASL_HEADER → do SASL, then send AMQP_HEADER.
+            // If server echoes AMQP_HEADER → do SASL (proto-0 auto-detect).
+            // If server closes → signal service layer to retry with proto-0.
+            transport.send(ByteBuffer.wrap(AmqpConstants.SASL_HEADER));
+            ByteBuffer headerBuf = ByteBuffer.allocate(8);
+            try {
+                readFully(headerBuf);
+            } catch (AmqpException e) {
+                // Server closed connection — Qpid Dispatch doesn't support SASL-first.
+                // Signal service layer to retry with proto-0.
+                LOG.debug("Server closed connection on SASL_HEADER — proto-0 fallback needed");
+                throw new IOException(
+                        "Server does not support SASL-first protocol (proto-3). "
+                        + "The service layer should create a new transport and retry with proto0Accepted=true.", e);
+            }
+            headerBuf.flip();
+            byte[] serverHeader = new byte[8];
+            headerBuf.get(serverHeader);
+
+            if (Arrays.equals(serverHeader, AmqpConstants.SASL_HEADER)) {
+                LOG.debug("Server supports SASL-first, proceeding with negotiation");
+                doSaslNegotiation(mechanism);
+                transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
+                headerBuf.clear();
+                readFully(headerBuf);
+                headerBuf.flip();
+                byte[] amqpEcho = new byte[8];
+                headerBuf.get(amqpEcho);
+                if (!Arrays.equals(amqpEcho, AmqpConstants.AMQP_HEADER)) {
+                    throw new IOException("Invalid AMQP header echo after SASL: " + Arrays.toString(amqpEcho));
+                }
+            } else if (Arrays.equals(serverHeader, AmqpConstants.AMQP_HEADER)) {
+                // Server responded with AMQP_HEADER to SASL_HEADER — proto-0 auto-detect.
+                // Still do SASL (Qpid Dispatch supports SASL after AMQP_HEADER).
+                LOG.debug("Server responded with AMQP_HEADER, doing SASL (proto-0 auto-detect)");
+                doSaslNegotiation(mechanism);
+            } else {
+                throw new IOException("Invalid header from server: " + Arrays.toString(serverHeader));
+            }
         }
         state = ConnectionState.HDR_EXCH;
 
@@ -233,11 +204,6 @@ public final class AmqpClient implements AutoCloseable {
         }
     }
 
-    private void performSasl(SaslMechanism mechanism) {
-        // Deprecated: use doSaslNegotiation instead (called after header exchange)
-        throw new UnsupportedOperationException("Use connect() which handles SASL automatically");
-    }
-
     /**
      * Creates a new session.
      *
@@ -287,8 +253,6 @@ public final class AmqpClient implements AutoCloseable {
         waitForAttach(link);
 
         // Grant initial credit so the sender can send messages immediately.
-        // RabbitMQ AMQP 1.0 may not grant credit until the queue exists (created
-        // by the receiver link). The broker will replenish credit via FLOW frames.
         link.grantCredit(0, AmqpConstants.DEFAULT_LINK_CREDIT);
 
         return link;
@@ -343,6 +307,13 @@ public final class AmqpClient implements AutoCloseable {
         return connected.get();
     }
 
+    /**
+     * Returns the negotiated max frame size.
+     */
+    public int getMaxFrameSize() {
+        return maxFrameSize;
+    }
+
     private void readLoop() {
         try {
             while (connected.get() && transport.isOpen()) {
@@ -376,7 +347,6 @@ public final class AmqpClient implements AutoCloseable {
             }
             case Performative.Attach attach -> {
                 if (session != null) {
-                    // Update link state
                     SenderLink sl = session.senderLink(attach.handle());
                     if (sl != null) sl.state(SenderLink.State.ATTACHED);
                     ReceiverLink rl = session.receiverLink(attach.handle());
@@ -387,11 +357,8 @@ public final class AmqpClient implements AutoCloseable {
                 if (session != null) {
                     session.handleFlow(flow);
                     if (flow.handle() != null) {
-                        // Link-level flow: update credit on the matching link
                         SenderLink sender = session.senderLink(flow.handle());
                         if (sender != null && flow.linkCredit() != null) {
-                            // Broker is granting us credit to send.
-                            // delivery-count from broker = how many the broker thinks we've sent.
                             long brokerDeliveryCount = flow.deliveryCount() != null ? flow.deliveryCount() : sender.deliveryCount();
                             sender.grantCredit(brokerDeliveryCount, flow.linkCredit());
                         }

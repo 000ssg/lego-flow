@@ -4,6 +4,7 @@ import ssg.legoflow.service.Service;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.channel.ChannelPipeline;
 import ssg.legoflow.service.channel.DataChannel;
+import ssg.legoflow.service.channel.ServerDataChannel;
 import ssg.legoflow.service.channel.TcpDataChannel;
 import ssg.legoflow.service.channel.UdpDataChannel;
 import org.slf4j.Logger;
@@ -32,6 +33,7 @@ public class SelectableChannelManager extends AbstractServicesManager {
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final Map<String, DataChannel> channelsByService = new ConcurrentHashMap<>();
     private final Map<String, ChannelPipeline> pipelinesByService = new ConcurrentHashMap<>();
+    private final Map<String, ServerDataChannel> serverChannelsByService = new ConcurrentHashMap<>();
     private volatile Thread selectorThread;
 
     public SelectableChannelManager(ServiceContext context) {
@@ -77,6 +79,43 @@ public class SelectableChannelManager extends AbstractServicesManager {
         LOG.debug("Registered channel for service: {}", name);
     }
 
+    public void registerServerChannel(Service<?, ?> service, ServerDataChannel channel) {
+        var name = service.getDescriptor().name();
+        serverChannelsByService.put(name, channel);
+        var pipeline = pipelinesByService.computeIfAbsent(name, _ -> new ChannelPipeline());
+
+        // Register with the selector for OP_ACCEPT
+        try {
+            channel.registerWith(selector);
+            var key = channel.getSelectionKey();
+            if (key != null) {
+                key.attach(new ServerChannelRegistration(channel, pipeline));
+            }
+            channel.setSelectionKey(key);
+            LOG.debug("Registered server channel for service: {} with OP_ACCEPT", name);
+        } catch (IOException e) {
+            serverChannelsByService.remove(name);
+            pipelinesByService.remove(name);
+            throw new UncheckedIOException("Failed to register server channel for service: " + name, e);
+        }
+    }
+
+    public void unregisterServerChannel(Service<?, ?> service) {
+        var name = service.getDescriptor().name();
+        var channel = serverChannelsByService.remove(name);
+        pipelinesByService.remove(name);
+        if (channel != null) {
+            try {
+                var key = channel.getSelectionKey();
+                if (key != null) key.cancel();
+                if (channel.isOpen()) channel.close();
+            } catch (IOException e) {
+                LOG.warn("Error closing server channel for service: {}", name, e);
+            }
+        }
+        LOG.debug("Unregistered server channel for service: {}", name);
+    }
+
     public void unregisterChannel(Service<?, ?> service) {
         var name = service.getDescriptor().name();
         var channel = channelsByService.remove(name);
@@ -105,6 +144,10 @@ public class SelectableChannelManager extends AbstractServicesManager {
 
     public DataChannel getChannel(Service<?, ?> service) {
         return channelsByService.get(service.getDescriptor().name());
+    }
+
+    public ServerDataChannel getServerChannel(Service<?, ?> service) {
+        return serverChannelsByService.get(service.getDescriptor().name());
     }
 
     public void startEventLoop() {
@@ -173,6 +216,13 @@ public class SelectableChannelManager extends AbstractServicesManager {
      */
     private void dispatchKey(SelectionKey key) {
         var attachment = key.attachment();
+        if (attachment instanceof ServerChannelRegistration srvReg) {
+            // Server socket — accept new connections
+            if (key.isAcceptable()) {
+                processingPool.submit(() -> handleAccept(srvReg));
+            }
+            return;
+        }
         if (!(attachment instanceof ChannelRegistration reg)) return;
 
         var channel = reg.channel();
@@ -190,6 +240,23 @@ public class SelectableChannelManager extends AbstractServicesManager {
         }
     }
 
+    private void handleAccept(ServerChannelRegistration srvReg) {
+        try {
+            var clientChannel = srvReg.serverChannel().accept();
+            if (clientChannel != null) {
+                var pipeline = srvReg.pipeline();
+                pipeline.fireConnect(clientChannel);
+                // Register the accepted client channel with the selector for read events
+                var key = clientChannel.getSocketChannel().register(selector, SelectionKey.OP_READ,
+                        new ChannelRegistration(clientChannel, pipeline));
+                clientChannel.setSelectionKey(key);
+                LOG.debug("Accepted client connection on server channel");
+            }
+        } catch (IOException e) {
+            LOG.warn("Error accepting connection", e);
+        }
+    }
+
     @Override
     public void close() {
         stopEventLoop();
@@ -201,6 +268,14 @@ public class SelectableChannelManager extends AbstractServicesManager {
             }
         });
         channelsByService.clear();
+        serverChannelsByService.values().forEach(channel -> {
+            try {
+                if (channel.isOpen()) channel.close();
+            } catch (IOException e) {
+                LOG.warn("Error closing server channel", e);
+            }
+        });
+        serverChannelsByService.clear();
         pipelinesByService.clear();
         connectionPool.close();
         processingPool.close();
@@ -217,4 +292,5 @@ public class SelectableChannelManager extends AbstractServicesManager {
     }
 
     record ChannelRegistration(DataChannel channel, ChannelPipeline pipeline) {}
+    record ServerChannelRegistration(ServerDataChannel serverChannel, ChannelPipeline pipeline) {}
 }

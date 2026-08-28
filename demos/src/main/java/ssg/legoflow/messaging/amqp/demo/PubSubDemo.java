@@ -1,13 +1,11 @@
 package ssg.legoflow.messaging.amqp.demo;
 
-import ssg.legoflow.messaging.amqp.client.AmqpClient;
-import ssg.legoflow.messaging.amqp.client.ClientConfig;
-import ssg.legoflow.messaging.amqp.container.AmqpContainer;
-import ssg.legoflow.messaging.amqp.container.ContainerConfig;
+import ssg.legoflow.messaging.amqp.client.service.AmqpClientService;
 import ssg.legoflow.messaging.amqp.message.AmqpMessage;
+import ssg.legoflow.messaging.amqp.server.service.AmqpContainerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Publish/subscribe demo with multiple subscribers on the same address.
  *
@@ -28,50 +26,53 @@ public final class PubSubDemo {
      * @throws Exception if an error occurs
      */
     public static int run(int subscriberCount, int messageCount) throws Exception {
-        var containerConfig = ContainerConfig.defaults();
-        try (var container = new AmqpContainer(containerConfig)) {
-            container.start();
-            int port = container.port();
+        var containerService = AmqpContainerService.builder()
+                .port(0)
+                .containerId("pubsub-container")
+                .build();
+        containerService.connect(null);
+        int port = containerService.port();
+        LOG.info("Container started on port {}", port);
 
-            Thread.sleep(100);
+        Thread.sleep(100);
 
-            AtomicInteger totalReceived = new AtomicInteger(0);
-            var subscribers = new AmqpClient[subscriberCount];
+        // Create subscribers
+        var subscriberServices = new AmqpClientService[subscriberCount];
+        for (int i = 0; i < subscriberCount; i++) {
+            var service = AmqpClientService.builder("localhost", port)
+                    .containerId("sub-" + i)
+                    .build();
+            service.connect(null);
+            subscriberServices[i] = service;
+        }
 
-            // Create subscribers
-            for (int i = 0; i < subscriberCount; i++) {
-                var config = ClientConfig.builder().port(port).containerId("sub-" + i).build();
-                subscribers[i] = new AmqpClient(config);
-                subscribers[i].connect();
-                var session = subscribers[i].createSession();
-                var receiver = subscribers[i].createReceiver(session, "sub-link-" + i, "topic/news");
-            }
+        Thread.sleep(200);
+
+        // Create publisher
+        try (var publisherService = AmqpClientService.builder("localhost", port)
+                .containerId("publisher")
+                .build()) {
+            publisherService.connect(null);
+            var publisher = publisherService.getClient();
+            var session = publisher.createSession();
+            var sender = publisher.createSender(session, "pub-link", "topic/news");
 
             Thread.sleep(200);
 
-            // Create publisher
-            var pubConfig = ClientConfig.builder().port(port).containerId("publisher").build();
-            try (var publisher = new AmqpClient(pubConfig)) {
-                publisher.connect();
-                var session = publisher.createSession();
-                var sender = publisher.createSender(session, "pub-link", "topic/news");
-
-                Thread.sleep(200);
-
-                // Publish messages
-                for (int i = 0; i < messageCount; i++) {
-                    publisher.send(sender, AmqpMessage.of("News item #" + i), true);
-                }
-
-                Thread.sleep(500);
+            // Publish messages
+            for (int i = 0; i < messageCount; i++) {
+                publisher.send(sender, AmqpMessage.of("News item #" + i), true);
             }
 
-            // Close subscribers and count received
-            for (var sub : subscribers) {
-                sub.close();
-            }
-
-            return totalReceived.get();
+            Thread.sleep(500);
         }
+
+        // Close subscribers
+        for (var sub : subscriberServices) {
+            if (sub != null) sub.disconnect(null);
+        }
+
+        containerService.disconnect(null);
+        return 0;
     }
 }

@@ -96,7 +96,22 @@ public class AmqpFrameCodecImpl implements AmqpFrameCodec {
     @Override
     public ByteBuffer encode(Object frame) {
         if (frame instanceof AmqpFrame af) {
-            return FrameCodec.encode(af, Integer.MAX_VALUE);
+            // Encode: size(4) + doff(1) + type(1) + channel(2) + encoded performative + optional payload
+            var bodyBuf = ssg.legoflow.messaging.amqp.types.TypeCodec.encode(af.performative());
+            bodyBuf.flip();
+            int payloadLen = af.payload() != null ? af.payload().remaining() : 0;
+            int totalSize = 8 + bodyBuf.remaining() + payloadLen;
+            ByteBuffer out = ByteBuffer.allocate(totalSize);
+            out.putInt(totalSize);
+            out.put((byte) 2); // doff
+            out.put(af.type());
+            out.putShort((short) af.channel());
+            out.put(bodyBuf);
+            if (payloadLen > 0 && af.payload().hasRemaining()) {
+                out.put(af.payload());
+            }
+            out.flip();
+            return out;
         }
         throw new IllegalArgumentException("Expected AmqpFrame, got: " + frame.getClass());
     }

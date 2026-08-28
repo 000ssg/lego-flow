@@ -1,6 +1,9 @@
 package ssg.legoflow.service;
 
 import ssg.legoflow.blocks.Context;
+import ssg.legoflow.service.channel.DataChannel;
+import ssg.legoflow.service.channel.ServerDataChannel;
+import ssg.legoflow.service.manager.SelectableChannelManager;
 import ssg.legoflow.service.scope.*;
 import ssg.legoflow.service.user.AccessControl;
 import ssg.legoflow.service.user.ServiceRole;
@@ -21,4 +24,16 @@ public interface ServiceContext extends Context {
     boolean hasRole(ServiceRole role);
 
     void checkPermission(String operation) throws AccessControl.AccessDeniedException;
+
+    default void registerChannel(Service<?, ?> service, DataChannel channel) {
+        getChannelManager().registerChannel(service, channel);
+    }
+
+    default void registerServerChannel(Service<?, ?> service, ServerDataChannel channel) {
+        getChannelManager().registerServerChannel(service, channel);
+    }
+
+    default SelectableChannelManager getChannelManager() {
+        return getAttribute("channelManager");
+    }
 }

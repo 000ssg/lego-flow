@@ -4,7 +4,7 @@
 [![Java](https://img.shields.io/badge/Java-25+-orange.svg)](https://www.oracle.com/java/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](../LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-195-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-264-brightgreen.svg)]()
 [![Version](https://img.shields.io/badge/Version-0.1.0-SNAPSHOT-blue.svg)]()
 
 AMQP 1.0 protocol module for the Lego Flow framework, providing container (server) and client implementations for advanced message queuing.
@@ -21,8 +21,11 @@ AMQP Container / Client (connection management, API surface)
         -> Performative Codec (9 performatives as described lists)
           -> Type System Codec (22 primitive + composite types, self-describing)
             -> Frame Codec (8-byte header + body encoding)
-              -> Transport SPI (TCP / in-memory adapters)
+              -> Transport SPI (PipelineTransport: selector + blocking / in-memory)
+                -> service module (SelectableChannelManager, ServiceContext)
 ```
+
+- **Service layer**: `AmqpClientService` and `AmqpContainerService` wire the protocol stack through `SelectableChannelManager` (server) or virtual threads (client)
 
 ## Features
 
@@ -107,14 +110,16 @@ var config = ClientConfig.builder()
 ```
 ssg.legoflow.messaging.amqp/
 |-- client/            -- Client: connect, session, sender/receiver links, SASL
+|-- client/service/    -- AmqpClientService (DP/DF-based service wrapper)
 |-- container/         -- Container (server): accept, route, session/link management
+|-- container/service/ -- AmqpContainerService (DP/DF-based service wrapper)
 |-- common/            -- Constants, error conditions, connection state, exceptions
 |-- delivery/          -- Delivery tracking, delivery states (sealed), codec
 |-- link/              -- Sender and receiver links with credit-based flow control
 |-- message/           -- Message model (7 sections), message codec, header, properties
 |-- sasl/              -- SASL mechanisms (ANONYMOUS, PLAIN, EXTERNAL), authenticator
 |-- session/           -- Session multiplexing, flow control windows, link registry
-|-- transport/         -- Frame codec, performative codec, transport SPI, TCP/in-memory
+|-- transport/         -- Frame codec, performative codec, transport SPI, PipelineTransport
 |-- types/             -- AMQP type system (22 types), binary codec, descriptors
 +-- demo/              -- Demo applications and examples
 ```

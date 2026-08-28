@@ -12,15 +12,8 @@ AMQP 1.0 (ISO 19464 / OASIS) is an open standard for business messaging. Unlike 
 
 ```mermaid
 graph TD
-    L1["Container / Client<br/>(connection management, SASL, API surface)"]
-    L2["Session Multiplexing<br/>(incoming/outgoing windows, transfer-id tracking,<br/>link registry by handle)"]
-    L3["Link Layer<br/>(credit-based flow control, sender/receiver,<br/>attach/detach lifecycle)"]
-    L4["Delivery Management<br/>(delivery-id/tag, settlement, outcomes:<br/>accepted/rejected/released/modified/transactional)"]
-    L5["Performative Codec<br/>(9 performatives as described lists,<br/>field encoding/decoding with null trimming)"]
-    L6["Type System Codec<br/>(22 primitive types + list/map/array/described,<br/>self-describing binary format, compact encoding)"]
-    L7["Frame Codec<br/>(8-byte header: SIZE/DOFF/TYPE/CHANNEL,<br/>performative body + optional payload)"]
-    L8["Transport SPI<br/>(AmqpTransport interface:<br/>TcpTransport, InMemoryTransport)"]
-    L9["service module (TCP)<br/>(SocketChannel, virtual threads)"]
+    L8["Transport SPI<br/>(AmqpTransport interface:<br/>PipelineTransport, InMemoryTransport)"]
+    L9["service module<br/>(SelectableChannelManager + virtual threads,<br/>ServiceContext, lifecycle)"]
     L10["blocks module<br/>(DP&lt;I,O&gt;, DF&lt;T&gt;, Context, State, Statistics)"]
 
     L1 --> L2 --> L3 --> L4 --> L5 --> L6 --> L7 --> L8 --> L9 --> L10
@@ -219,11 +212,13 @@ graph TD
 ```mermaid
 graph TD
     AT["AmqpTransport (interface)<br/>send(ByteBuffer), receive(ByteBuffer),<br/>close(), isOpen()"]
-    AT --> TCP["TcpTransport<br/>(SocketChannel wrapper)"]
+    AT --> PT["PipelineTransport<br/>(selector-driven + blocking fallback)"]
     AT --> IM["InMemoryTransport<br/>(BlockingQueue pair)"]
+    PT --> SM["SelectableChannelManager<br/>(server-side multiplexing)"]
+    PT --> VT["Virtual thread + SocketChannel<br/>(client-side blocking)"]
 ```
 
-- **TcpTransport**: thin wrapper over `SocketChannel`, blocking I/O
+- **PipelineTransport**: primary transport for both client and server. When a `SelectableChannelManager` is registered (server), data arrives via `onRead()` callback and a semaphore signals `receive()`. When running on a virtual thread (client), falls back to blocking `SocketChannel.read()`.
 - **InMemoryTransport**: `createPair()` returns two connected transports using `LinkedBlockingQueue`
 - Container's `handleConnection(AmqpTransport)` is public, allowing direct injection of in-memory transports for testing
 
@@ -232,9 +227,19 @@ graph TD
 | Lego Flow Module | Usage in AMQP |
 |------------------|---------------|
 | `blocks` | DP<I,O> for message processing pipeline, DF<T> for message filtering, Statistics for metrics |
-| `service` | TCP channels for container/client connections, virtual thread pools, lifecycle management |
+| `service` | SelectableChannelManager for server multiplexing, virtual threads for client I/O, ServiceContext for lifecycle, AmqpClientService/AmqpContainerService wrappers |
 
-The AMQP module follows the framework's conventions: AutoCloseable resources, fluent builder APIs for configuration, virtual threads for concurrency.
+The AMQP module follows the framework's conventions: AutoCloseable resources, fluent builder APIs for configuration, virtual threads for concurrency, DP/DF-based service wrappers.
+
+## Broker Compatibility
+
+| Broker | BrokerMode | Handshake | Auth |
+|--------|-----------|-----------|------|
+| RabbitMQ | `RABBITMQ` | SASL-first (proto-3) | ANONYMOUS, PLAIN |
+| Apache Artemis | `ARTEMIS` | SASL-first (proto-3) | PLAIN (admin/admin) |
+| Qpid Dispatch | `QPID_DISPATCH` | AMQP_HEADER first (proto-0) | ANONYMOUS (no SASL) |
+
+**Qpid Dispatch requires proto-0 mode.** `AUTO`/`STANDARD` broker mode will fail because Qpid closes the connection on `SASL_HEADER`. The `scholzj/qpid-dispatch` Docker image is amd64-only and incompatible with arm64 (Apple Silicon) hosts.
 
 ---
 
@@ -245,4 +250,4 @@ The AMQP module follows the framework's conventions: AutoCloseable resources, fl
 
 ---
 
-**Last Updated**: 2026-07-06
+**Last Updated**: 2026-08-28
