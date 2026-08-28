@@ -259,7 +259,29 @@ Every protocol module must provide a memory-based transport for client↔server 
 - Each invalid transition (expect rejection)
 - Concurrent transition attempts (CAS failure)
 
-### 6.5 Interop Tests
+### 6.5 Test Location by Transport Dependency
+
+Split tests based on whether they need external services:
+
+| Test Type | Lives In | Transport | Runs When |
+|-----------|----------|-----------|-----------|
+| Unit | `<module>/src/test/java/` | None (memory) | Every build |
+| In-process integration | `<module>/src/test/java/` | `InMemoryTransport` | Every build |
+| Docker interop | `interop-tests/src/test/java/` | TCP (Docker) | CI interop job only |
+
+**Never put Docker-dependent tests in module `src/test/java/`.** They will fail on
+CI runners that don't have Docker services running during the `build` job.
+
+```
+module/src/test/java/.../      ← unit + in-process tests (run on every build)
+interop-tests/src/test/java/.../  ← Docker interop tests (run in CI interop job)
+```
+
+The AMQP module demonstrates this pattern:
+- `InProcessIntegrationTest.java` — lives in `messaging/amqp/src/test/`, uses InMemoryTransport
+- `AmqpBrokerInteropTest.java` — lives in `interop-tests/src/test/`, connects to Docker brokers
+
+### 6.6 Interop Tests
 
 - Connect to real implementations (brokers, servers, clients)
 - Test SASL/auth negotiation if applicable
