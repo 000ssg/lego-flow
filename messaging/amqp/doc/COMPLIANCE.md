@@ -10,15 +10,13 @@
 | Broker | Wire Compliance | SASL Flow | Address Model | Reference Quality |
 |--------|----------------|-----------|---------------|-------------------|
 | **Apache ActiveMQ Artemis** | High | Standard SASL-first | JMS-native | ★★★★★ Best reference |
-| **Apache Qpid Dispatch Router** | High | ANONYMOUS default | Prefix routing | ★★★★ Good reference |
-| **RabbitMQ** | Medium | SASL-required, rejects proto-0 | Exchange/queue mapping | ★★ Broken as reference |
+| **RabbitMQ** | Medium | SASL-required, rejects proto-0 | Exchange/queue mapping | ★★ Limited as reference |
 | **Solace** | High | SASL-echo | Topic/queue prefix | ★★★ Cloud-only |
 | **Azure Service Bus** | Medium | CBS extensions | Topic/subscription | ★★ Cloud-only |
 | **IBM MQ** | Low | Server-OPEN-first | Queue manager | ★★ Legacy |
 
-**Bottom line:** No single broker is a perfect reference. Artemis + Qpid Dispatch Router form the
-best pair for validating compliance. RabbitMQ is NOT a reference — it's a broker that happens to
-speak AMQP 1.0 as one of several protocols.
+**Bottom line:** Artemis is the strict AMQP 1.0 reference. RabbitMQ supports AMQP 1.0 as a
+secondary protocol with broker-specific address mapping and SASL quirks.
 
 ---
 
@@ -48,7 +46,6 @@ Client                         Server
 | **OASIS spec** | Client sends, server echoes | Same | Client controls flow |
 | **RabbitMQ** | ❌ Rejects! | ✅ Required for AMQP 1.0 | Sends proto-0 first → socket closed. Must use proto-3. |
 | **Artemis** | ✅ Accepted | ✅ Accepted | Both work, depends on acceptor config |
-| **Qpid Dispatch** | ✅ With ANONYMOUS | ✅ With SASL | Defaults to ANONYMOUS SASL |
 | **Solace** | ✅ Only if auth disabled | ✅ If auth enabled | Echoes back whatever client sends |
 | **IBM MQ** | ✅ Accepted | ✅ Accepted | Standard echo |
 
@@ -58,8 +55,7 @@ Client                         Server
 // Correctly sends SASL_HEADER (proto 3) first when credentials exist
 // Correctly sends AMQP_HEADER (proto 0) first when anonymous
 ```
-**Status:** ✅ Compliant. Will work against Artemis, Qpid Dispatch, Solace, IBM MQ.
-**Issue:** Will be rejected by RabbitMQ if attempting anonymous (proto-0) connection.
+**Status:** ✅ Compliant. Will work against Artemis and RabbitMQ with credentials.
 
 ---
 
@@ -71,7 +67,6 @@ Client                         Server
 |--------|-------------------|-------|
 | **Artemis** | PLAIN, ANONYMOUS, GSSAPI | Configurable per-acceptor |
 | **RabbitMQ** | PLAIN, ANONYMOUS | AMQP 1.0 only; requires SASL |
-| **Qpid Dispatch** | ANONYMOUS | Default config; configurable |
 | **Solace** | ANONYMOUS, PLAIN, EXTERNAL, XOAUTH2 | VPN-configurable |
 | **IBM MQ** | PLAIN, EXTERNAL, GSSAPI | Queue-manager config |
 
@@ -84,11 +79,10 @@ RFC 4616 defines SASL PLAIN as: `authzid\0authcid\0password`
 | **OASIS spec** | ✅ Must accept | ✅ Must accept | - |
 | **RabbitMQ** | ✅ Works | ❌ Rejects (socket close) | rabbitmq-server#2586 |
 | **Artemis** | ✅ Works | ✅ Works | - |
-| **Qpid Dispatch** | ✅ Works | ✅ Works | - |
 | **IBM MQ** | ✅ Works | ✅ Works | - |
 
-**Critical:** Qpid Proton-C clients send `authzid = authcid` by default (`guest\0guest\0guest`),
-which RabbitMQ rejects. Legoflow correctly sends empty authzid: `PlainMechanism.java` line 42.
+**Critical:** RabbitMQ AMQP 1.0 plugin clients should send empty authzid per RFC 4616.
+Legoflow correctly sends empty authzid: `PlainMechanism.java` line 42.
 
 ```java
 // Legoflow PlainMechanism.java
@@ -115,7 +109,6 @@ The spec states SASL frames are limited to 512 bytes before OPEN negotiation:
 | Broker | Enforces 512 limit? | Max allowed |
 |--------|-------------------|-------------|
 | **OASIS spec** | ✅ 512 bytes | 512 |
-| **Qpid Broker-J** | ✅ 4096 bytes | 4096 |
 | **RabbitMQ** | ❌ No hard limit | - |
 | **Artemis** | ❌ No hard limit | - |
 
@@ -136,7 +129,6 @@ The spec does NOT specify which peer sends OPEN first.
 | **OASIS spec** | Either | Either |
 | **Artemis** | Waits for client | ✅ Client must send first |
 | **RabbitMQ** | Waits for client | ✅ Client must send first |
-| **Qpid Dispatch** | Waits for client | ✅ |
 | **Solace** | Waits for client | ✅ Sends after processing |
 | **IBM MQ** | ✅ Sometimes first | Can send before client |
 
@@ -158,24 +150,6 @@ AmqpFrame openFrame = readFrame();    // Read OPEN response
 |-------|-------------|---------------|-------|
 | `container-id` | Required string | From config | ✅ |
 | `hostname` | Null = default | From config | RabbitMQ: `vhost:tenant-1` prefix |
-| `channel-max` | 65535 | From config | ⚠️ Qpid Broker-J treats as signed short |
-| `idle-time-out` | 0 (disabled) | From config | Solace: must be ≥ 500ms |
-
-### channel-max signed short overflow
-
-The spec defines `channel-max` as `ushort` (unsigned, 0-65535).
-
-| Broker | Treats as unsigned? | Bug? |
-|--------|-------------------|------|
-| **OASIS spec** | ✅ unsigned short | - |
-| **Qpid Broker-J** | ❌ Signed short | QPID-6193, QPID-6153 |
-| **Artemis** | ✅ | - |
-| **RabbitMQ** | ✅ | - |
-
-If the client sends `channel-max` > 32767, Qpid Broker-J truncates it to a negative value and
-crashes on `ArrayIndexOutOfBoundsException`.
-
-**Legoflow default:** `AmqpConstants.DEFAULT_CHANNEL_MAX = 65535` — will crash Qpid Broker-J.
 
 ---
 
@@ -339,11 +313,7 @@ should reject messages it cannot process. Most brokers don't auto-accept.
 |-------|-----------------|----------------|----------|
 | **RabbitMQ rejects proto-0 without SASL** | RabbitMQ | Cannot connect anonymously | High |
 | **RabbitMQ rejects non-empty SASL authzid** | RabbitMQ + Proton clients | Legoflow sends empty authzid ✅ | N/A (fixed) |
-| **Qpid Broker-J crashes on channel-max > 32767** | Qpid Broker-J | Default 65535 will crash | High |
-| **IBM MQ sends OPEN before client** | IBM MQ | Legoflow hangs waiting to send | Medium |
 | **RabbitMQ requires receiver before sender** | RabbitMQ | Sender-first pattern fails | Medium |
-| **Qpid C++ broker drops pipelined OPEN** | Qpid C++ | rhea.js ANONYMOUS connections fail | Medium |
-| **XOAuth2 tokens exceed 512-byte SASL limit** | All strict brokers | Not currently used | Low |
 | **RabbitMQ address format (exchange/queue)** | RabbitMQ | Simple queue names don't work | High |
 
 ---
@@ -356,27 +326,21 @@ should reject messages it cannot process. Most brokers don't auto-accept.
 - **Config:** Standard acceptor on port 5672, AMQP protocol, PLAIN/ANONYMOUS SASL
 - **Credentials:** `ARTEMIS_USER`/`ARTEMIS_PASSWORD` env vars
 
-### Secondary reference: Qpid Dispatch Router
-- **Docker image:** `scholzj/qpid-dispatch:latest` (amd64 only — use on non-Apple Silicon)
-- **Why:** Reference Proton-C implementation, Apache-verified
-- **Config:** Standalone mode, ANONYMOUS SASL by default
-- **Note:** Runs under QEMU emulation on Apple Silicon (slow/unreliable)
+### Secondary reference: RabbitMQ
+- **Docker image:** `rabbitmq:4-management`
+- **Why:** Most widely deployed AMQP broker with AMQP 1.0 plugin
+- **Config:** `rabbitmq_amqp1_0` plugin, queues must be pre-created via management API
+- **Credentials:** `RABBITMQ_DEFAULT_USER`/`RABBITMQ_DEFAULT_PASS` env vars
+- **Note:** Requires `/queues/:queue` addressing, SASL PLAIN, pre-declared queues
 
 ### NOT suitable as reference
-- **RabbitMQ:** Broker-specific address mapping, SASL quirks, authzid bug
 - **Solace:** Cloud-only, proprietary extensions
 - **Azure Service Bus:** Cloud-only, CBS extensions required
+- **IBM MQ:** Legacy, server-initiated OPEN, non-standard behavior
 
 ### Qpid Interop Test
 The Apache Qpid Interop Test suite (`qpid-interop-test`) validates AMQP 1.0 clients against
-both Artemis and Qpid Dispatch Router. It is the authoritative compliance check.
-
-```bash
-docker run -it apache/artemis:latest-alpine
-# Inside container:
-qpid-interop-test amqp_types_test
-qpid-interop-test amqp_large_content_test
-```
+Artemis. It is the authoritative compliance check.
 
 ---
 
@@ -391,7 +355,7 @@ qpid-interop-test amqp_large_content_test
 | BEGIN frame | ✅ | Standard channel assignment |
 | ATTACH settle modes | ⚠️ | Defaults to mixed(2) — non-standard |
 | FLOW credit handling | ✅ | Handles null delivery-count |
-| channel-max | ⚠️ | Default 65535 crashes Qpid Broker-J |
+| channel-max | ⚠️ | Default 65535 — safe for supported brokers |
 | Address resolution | ⚠️ | No broker-specific addressing support |
 | Auto-accept transfers | ⚠️ | Non-standard — should allow rejection |
 | Error handling | ⚠️ | Limited error condition support |
@@ -402,9 +366,8 @@ qpid-interop-test amqp_large_content_test
 
 ## 12. Action Items
 
-1. **Reduce channel-max default** from 65535 to 32767 for Qpid Broker-J compatibility
-2. **Add broker-specific address formatting** for RabbitMQ (`/queues/:queue` v2 format)
-3. **Fix settle mode defaults** — use unsettled(0) as standard, mixed(2) only when broker offers it
-4. **Handle server-sent OPEN first** — support IBM MQ / brokers that initiate OPEN
-5. **Remove auto-accept** — implement proper disposition handling
-6. **Run Qpid Interop Test** against legoflow's AmqpContainer for authoritative compliance check
+1. **Add broker-specific address formatting** for RabbitMQ (`/queues/:queue` v2 format)
+2. **Fix settle mode defaults** — use unsettled(0) as standard, mixed(2) only when broker offers it
+3. **Handle server-sent OPEN first** — support IBM MQ / brokers that initiate OPEN
+4. **Remove auto-accept** — implement proper disposition handling
+5. **Run Qpid Interop Test** against legoflow's AmqpContainer for authoritative compliance check

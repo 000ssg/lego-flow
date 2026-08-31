@@ -4,7 +4,9 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ssg.legoflow.messaging.amqp.client.AmqpClient;
 import ssg.legoflow.messaging.amqp.client.BrokerMode;
+import ssg.legoflow.messaging.amqp.client.ClientConfig;
 import ssg.legoflow.messaging.amqp.client.service.AmqpClientService;
 import ssg.legoflow.messaging.amqp.delivery.Delivery;
 import ssg.legoflow.messaging.amqp.link.ReceiverLink;
@@ -24,7 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Interoperability test: Lego Flow AMQP 1.0 client ↔ Apache ActiveMQ Artemis.
+ * Interoperability test: Lego Flow AMQP 1.0 client ↔ various AMQP 1.0 brokers.
  *
  * <p>Each test creates its own connection — no shared protocol state between tests.
  * The SelectableChannelManager (event loop) is shared, but connections are per-test.
@@ -35,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   interop.amqp.username (default: guest)
  *   interop.amqp.password (default: guest)
  *   interop.amqp.queue (default: interop-test-queue)
+ *   interop.amqp.broker (default: ARTEMIS — one of ARTEMIS, RABBITMQ)
  */
 @Tag("messaging-protocols")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -42,11 +45,21 @@ class AmqpInteropTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(AmqpInteropTest.class);
 
+    enum Broker { ARTEMIS, RABBITMQ }
+
     private final String host = System.getProperty("interop.amqp.host", "localhost");
     private final int port = Integer.parseInt(System.getProperty("interop.amqp.port", "5672"));
     private final String username = System.getProperty("interop.amqp.username", "guest");
     private final String password = System.getProperty("interop.amqp.password", "guest");
     private final String queueName = System.getProperty("interop.amqp.queue", "interop-test-queue");
+    private final Broker broker = Broker.valueOf(System.getProperty("interop.amqp.broker", "ARTEMIS"));
+
+    private BrokerMode brokerMode() {
+        return switch (broker) {
+            case RABBITMQ -> BrokerMode.RABBITMQ;
+            default -> BrokerMode.STANDARD;
+        };
+    }
 
     // Shared event loop only — no shared connection state
     private static SelectableChannelManager channelManager;
@@ -67,17 +80,16 @@ class AmqpInteropTest {
 
     /** Create a fresh connection for the current test. */
     private AmqpClientService connectClient(String nameSuffix) {
-        var svc = AmqpClientService.builder(host, port)
+        var builder = AmqpClientService.builder(host, port)
                 .name("interop-" + nameSuffix)
                 .containerId("interop-client-" + nameSuffix)
-                .username(username)
-                .password(password)
                 .timeout(Duration.ofSeconds(10))
-                .build();
+                .brokerMode(brokerMode());
+        var svc = builder.username(username).password(password).build();
         var ctx = new DefaultServiceContext(ServiceUser.anonymous());
         ctx.setAttribute("channelManager", channelManager);
         svc.connect(ctx);
-        LOG.info("Connected to AMQP broker at {}:{}", host, port);
+        LOG.info("Connected to {} broker at {}:{}", broker, host, port);
         return svc;
     }
 
@@ -120,8 +132,12 @@ class AmqpInteropTest {
 
             var client = svc.getClient();
             AmqpSession session = client.createSession();
-            SenderLink sender = client.createSender(session, "interop-sender", queueName);
-            ReceiverLink receiver = client.createReceiver(session, "interop-receiver", queueName);
+
+            // RabbitMQ requires /queues/ prefix for address routing
+            String effectiveQueue = brokerMode().formatAddress(queueName);
+
+            SenderLink sender = client.createSender(session, "interop-sender", effectiveQueue);
+            ReceiverLink receiver = client.createReceiver(session, "interop-receiver", effectiveQueue);
 
             // Build message before starting receive thread — avoids frame-stealing race
             AmqpMessage message = new AmqpMessage();
@@ -170,8 +186,10 @@ class AmqpInteropTest {
             var client = svc.getClient();
             AmqpSession session = client.createSession();
             String multiQueue = queueName + "-multi";
-            SenderLink sender = client.createSender(session, "multi-sender", multiQueue);
-            ReceiverLink receiver = client.createReceiver(session, "multi-receiver", multiQueue);
+            // RabbitMQ requires /queues/ prefix
+            String effectiveQueue = brokerMode().formatAddress(multiQueue);
+            SenderLink sender = client.createSender(session, "multi-sender", effectiveQueue);
+            ReceiverLink receiver = client.createReceiver(session, "multi-receiver", effectiveQueue);
 
             // Send all messages first, then receive — no frame-stealing race
             for (int i = 0; i < 5; i++) {
@@ -193,7 +211,7 @@ class AmqpInteropTest {
 
     @Test
     void testClientConfigBuilder() {
-        var config = ssg.legoflow.messaging.amqp.client.ClientConfig.builder()
+        var config = ClientConfig.builder()
                 .host("test")
                 .port(5673)
                 .connectTimeout(Duration.ofSeconds(5))
