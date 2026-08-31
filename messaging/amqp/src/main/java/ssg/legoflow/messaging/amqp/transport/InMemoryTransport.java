@@ -3,6 +3,7 @@ package ssg.legoflow.messaging.amqp.transport;
 import java.nio.ByteBuffer;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -50,17 +51,22 @@ public final class InMemoryTransport implements AmqpTransport {
 
     @Override
     public int receive(ByteBuffer buffer) {
+        return receiveWithTimeout(buffer, 5, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public int receiveWithTimeout(ByteBuffer buffer, long timeout, TimeUnit unit) {
         if (!open.get()) return -1;
         try {
-            ByteBuffer data = inbound.take();
-            if (!open.get()) return -1;
+            ByteBuffer data = inbound.poll(timeout, unit);
+            if (data == null || !open.get()) return -1;
+            if (!data.hasRemaining()) return -1; // Close signal
             int count = Math.min(buffer.remaining(), data.remaining());
             int limit = data.limit();
             data.limit(data.position() + count);
             buffer.put(data);
             data.limit(limit);
             if (data.hasRemaining()) {
-                // Put remainder back for next read
                 inbound.offer(data);
             }
             return count;

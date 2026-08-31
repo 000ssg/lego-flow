@@ -22,8 +22,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -36,6 +38,20 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * <p><b>Transport-agnostic:</b> this class uses only the {@link AmqpTransport}
  * interface. TCP infrastructure belongs in the service layer.
+ *
+ * <p><b>Single-reader architecture:</b> there is no background read loop.
+ * All frame reading happens synchronously on the calling thread:
+ * <ol>
+ *   <li>{@link #connect(AmqpTransport)} reads handshake frames (SASL, OPEN)</li>
+ *   <li>{@link #createSession()} reads BEGIN response</li>
+ *   <li>{@link #createSender(AmqpSession, String, String)} and
+ *       {@link #createReceiver(AmqpSession, String, String)} read ATTACH response</li>
+ *   <li>{@link ReceiverLink#receive(long, TimeUnit)} reads frames until a
+ *       TRANSFER for this link arrives</li>
+ * </ol>
+ * Data flows into the transport's ring buffer via
+ * {@code fireRead} → handler → transport. Whoever calls {@code pollFrame()}
+ * is the sole reader. No race, no lost frames.
  *
  * @since 0.1.0
  */
@@ -50,8 +66,6 @@ public final class AmqpClient implements AutoCloseable {
 
     private volatile AmqpTransport transport;
     private volatile ConnectionState state = ConnectionState.START;
-    private volatile ExecutorService executor;
-    private volatile Future<?> readerFuture;
     private volatile int maxFrameSize = AmqpConstants.DEFAULT_MAX_FRAME_SIZE;
 
     /**
@@ -66,6 +80,11 @@ public final class AmqpClient implements AutoCloseable {
     /**
      * Connects using a pre-configured transport.
      *
+     * <p>Runs the SASL negotiation and AMQP OPEN handshake synchronously,
+     * reading and writing frames on the calling thread. Once connected, the
+     * caller is responsible for reading incoming frames via
+     * {@link #pollFrame(long, TimeUnit)}.
+     *
      * @param transport the transport to use
      * @throws IOException if the connection fails
      */
@@ -74,8 +93,6 @@ public final class AmqpClient implements AutoCloseable {
             throw new IllegalArgumentException("Transport must not be null");
         }
         this.transport = transport;
-
-        executor = Executors.newVirtualThreadPerTaskExecutor();
 
         SaslMechanism mechanism;
         if (config.saslMechanism() != null) {
@@ -98,19 +115,13 @@ public final class AmqpClient implements AutoCloseable {
             if (!Arrays.equals(echo, AmqpConstants.AMQP_HEADER)) {
                 throw new IOException("Invalid AMQP header echo in proto-0: " + Arrays.toString(echo));
             }
-            // No SASL in proto-0 — proceed directly to OPEN
         } else {
             // Proto-3: SASL-first. Send SASL_HEADER, wait for server echo.
-            // If server echoes SASL_HEADER → do SASL, then send AMQP_HEADER.
-            // If server echoes AMQP_HEADER → do SASL (proto-0 auto-detect).
-            // If server closes → signal service layer to retry with proto-0.
             transport.send(ByteBuffer.wrap(AmqpConstants.SASL_HEADER));
             ByteBuffer headerBuf = ByteBuffer.allocate(8);
             try {
                 readFully(headerBuf);
             } catch (AmqpException e) {
-                // Server closed connection — Qpid Dispatch doesn't support SASL-first.
-                // Signal service layer to retry with proto-0.
                 LOG.debug("Server closed connection on SASL_HEADER — proto-0 fallback needed");
                 throw new IOException(
                         "Server does not support SASL-first protocol (proto-3). "
@@ -133,8 +144,6 @@ public final class AmqpClient implements AutoCloseable {
                     throw new IOException("Invalid AMQP header echo after SASL: " + Arrays.toString(amqpEcho));
                 }
             } else if (Arrays.equals(serverHeader, AmqpConstants.AMQP_HEADER)) {
-                // Server responded with AMQP_HEADER to SASL_HEADER — proto-0 auto-detect.
-                // Still do SASL (Qpid Dispatch supports SASL after AMQP_HEADER).
                 LOG.debug("Server responded with AMQP_HEADER, doing SASL (proto-0 auto-detect)");
                 doSaslNegotiation(mechanism);
             } else {
@@ -151,7 +160,7 @@ public final class AmqpClient implements AutoCloseable {
         );
         sendPerformative(0, open);
 
-        // Receive open
+        // Receive open response
         AmqpFrame openFrame = readFrame();
         if (openFrame.performative() instanceof AmqpType.Described desc) {
             var remoteOpen = (Performative.Open) PerformativeCodec.decode(desc);
@@ -161,13 +170,10 @@ public final class AmqpClient implements AutoCloseable {
 
         state = ConnectionState.OPENED;
         connected.set(true);
-
-        // Start background frame reader
-        readerFuture = executor.submit(this::readLoop);
     }
 
     private void doSaslNegotiation(SaslMechanism mechanism) throws IOException {
-        // Read sasl-mechanisms frame from server (frame type 0x01 = SASL)
+        // Read sasl-mechanisms frame from server
         AmqpFrame mechFrame = readFrame();
         if (mechFrame == null || mechFrame.type() != AmqpConstants.FRAME_TYPE_SASL) {
             throw new AmqpException(AmqpError.FRAMING_ERROR,
@@ -185,7 +191,6 @@ public final class AmqpClient implements AutoCloseable {
         var init = SaslCodec.encodeInit(mechanism.name(), initialResponse, config.host());
         var initFrame = new AmqpFrame(0, AmqpConstants.FRAME_TYPE_SASL, init);
         ByteBuffer initBuf = FrameCodec.encode(initFrame, maxFrameSize);
-        LOG.debug("SASL init: mechanism={}, responseLen={}", mechanism.name(), initialResponse != null ? initialResponse.length : 0);
         transport.send(initBuf);
 
         // Read SASL outcome
@@ -207,9 +212,13 @@ public final class AmqpClient implements AutoCloseable {
     /**
      * Creates a new session.
      *
+     * <p>Sends BEGIN and reads frames until the remote BEGIN response arrives,
+     * processing them through the state machine.
+     *
      * @return the session
+     * @throws IOException if the operation fails
      */
-    public AmqpSession createSession() {
+    public AmqpSession createSession() throws IOException {
         int channel = nextChannel.getAndIncrement();
         var session = new AmqpSession(channel);
         session.frameSender((performative, payload) -> {
@@ -224,8 +233,8 @@ public final class AmqpClient implements AutoCloseable {
         sendPerformative(channel, begin);
         session.state(AmqpSession.State.BEGIN_SENT);
 
-        // Wait for begin response
-        waitForSessionBegin(session);
+        // Wait for begin response — read frames until session is MAPPED
+        waitForFrame(() -> session.state() == AmqpSession.State.MAPPED, config.connectTimeout());
 
         return session;
     }
@@ -233,12 +242,15 @@ public final class AmqpClient implements AutoCloseable {
     /**
      * Creates a sender link on the given session.
      *
+     * <p>Sends ATTACH and reads frames until the remote ATTACH response arrives.
+     *
      * @param session the session
      * @param name    the link name
      * @param address the target address
      * @return the sender link
+     * @throws IOException if the operation fails
      */
-    public SenderLink createSender(AmqpSession session, String name, String address) {
+    public SenderLink createSender(AmqpSession session, String name, String address) throws IOException {
         long handle = session.allocateHandle();
         var link = new SenderLink(name, handle, null, address);
         link.session(session);
@@ -250,9 +262,9 @@ public final class AmqpClient implements AutoCloseable {
         link.state(SenderLink.State.ATTACH_SENT);
 
         // Wait for attach response
-        waitForAttach(link);
+        waitForFrame(() -> link.state() == SenderLink.State.ATTACHED, config.connectTimeout());
 
-        // Grant initial credit so the sender can send messages immediately.
+        // Grant initial credit
         link.grantCredit(0, AmqpConstants.DEFAULT_LINK_CREDIT);
 
         return link;
@@ -261,15 +273,19 @@ public final class AmqpClient implements AutoCloseable {
     /**
      * Creates a receiver link on the given session.
      *
+     * <p>Sends ATTACH and reads frames until the remote ATTACH response arrives.
+     *
      * @param session the session
      * @param name    the link name
      * @param address the source address
      * @return the receiver link
+     * @throws IOException if the operation fails
      */
-    public ReceiverLink createReceiver(AmqpSession session, String name, String address) {
+    public ReceiverLink createReceiver(AmqpSession session, String name, String address) throws IOException {
         long handle = session.allocateHandle();
         var link = new ReceiverLink(name, handle, address, null);
         link.session(session);
+        link.client(this);
         session.addReceiverLink(link);
 
         // Send attach
@@ -278,12 +294,80 @@ public final class AmqpClient implements AutoCloseable {
         link.state(ReceiverLink.State.ATTACH_SENT);
 
         // Wait for attach response
-        waitForAttach(link);
+        waitForFrame(() -> link.state() == ReceiverLink.State.ATTACHED, config.connectTimeout());
 
         // Issue initial credit
         link.issueCredit(AmqpConstants.DEFAULT_LINK_CREDIT);
 
         return link;
+    }
+
+    /**
+     * Reads one frame from the transport and processes it through the state machine.
+     * Blocks until a frame is available or the timeout elapses.
+     *
+     * <p>This is the single entry point for frame consumption. All callers
+     * (handshake, session setup, receiver) use this path. No background thread
+     * reads frames — the caller is the reader.
+     *
+     * @param timeout how long to wait for a frame
+     * @param unit    timeout unit
+     * @return true if a frame was read and processed, false on timeout or closed transport
+     */
+    public boolean pollFrame(long timeout, TimeUnit unit) throws IOException {
+        if (!connected.get() || transport == null || !transport.isOpen()) return false;
+
+        long deadline = System.currentTimeMillis() + unit.toMillis(timeout);
+
+        // Read frame size (4 bytes)
+        ByteBuffer sizeBuf = ByteBuffer.allocate(4);
+        long remainingMs = deadline - System.currentTimeMillis();
+        if (remainingMs <= 0) return false;
+        int read = transport.receiveWithTimeout(sizeBuf, remainingMs, TimeUnit.MILLISECONDS);
+        if (read < 4) {
+            System.out.println("[pollFrame] size read only " + read + " bytes, timeout");
+            return false;
+        }
+        sizeBuf.flip();
+        int size = sizeBuf.getInt();
+        System.out.println("[pollFrame] size=" + size);
+
+        if (size < AmqpConstants.FRAME_HEADER_SIZE) return false;
+
+        // Read frame body
+        remainingMs = deadline - System.currentTimeMillis();
+        if (remainingMs <= 0) return false;
+
+        ByteBuffer bodyBuf = ByteBuffer.allocate(size - 4);
+        read = transport.receiveWithTimeout(bodyBuf, remainingMs, TimeUnit.MILLISECONDS);
+        if (read < (size - 4)) {
+            System.out.println("[pollFrame] body read only " + read + "/" + (size - 4) + " bytes, timeout");
+            return false;
+        }
+        bodyBuf.flip();
+
+        ByteBuffer frameBuf = ByteBuffer.allocate(size);
+        frameBuf.putInt(size);
+        frameBuf.put(bodyBuf);
+        frameBuf.flip();
+
+        AmqpFrame frame = FrameCodec.decode(frameBuf);
+        if (frame == null) {
+            System.out.println("[pollFrame] decode returned null for size " + size);
+            return false;
+        }
+
+        System.out.println("[pollFrame] ch=" + frame.channel() + " perf=" + frame.performative().getClass().getSimpleName());
+
+        // Process through state machine
+        if (frame.isHeartbeat()) return true;
+
+        if (frame.performative() instanceof AmqpType.Described desc) {
+            Performative perf = PerformativeCodec.decode(desc);
+            System.out.println("[pollFrame] decoded " + perf.getClass().getSimpleName());
+            handleIncomingPerformative(frame.channel(), perf, frame.payload());
+        }
+        return true;
     }
 
     /**
@@ -314,27 +398,26 @@ public final class AmqpClient implements AutoCloseable {
         return maxFrameSize;
     }
 
-    private void readLoop() {
-        try {
-            while (connected.get() && transport.isOpen()) {
-                AmqpFrame frame = readFrame();
-                if (frame == null) break;
-                if (frame.isHeartbeat()) continue;
-
-                if (frame.performative() instanceof AmqpType.Described desc) {
-                    Performative perf = PerformativeCodec.decode(desc);
-                    handleIncomingPerformative(frame.channel(), perf, frame.payload());
-                }
+    /**
+     * Blocks reading frames until the condition becomes true or timeout elapses.
+     * Processes every frame through the state machine — which may update session/link state.
+     */
+    private void waitForFrame(java.util.function.BooleanSupplier condition, Duration timeout) throws IOException {
+        long deadline = System.currentTimeMillis() + timeout.toMillis();
+        while (!condition.getAsBoolean()) {
+            long remainingMs = deadline - System.currentTimeMillis();
+            if (remainingMs <= 0) {
+                throw new AmqpException(AmqpError.ILLEGAL_STATE,
+                        "Timeout waiting for response");
             }
-        } catch (Exception e) {
-            if (connected.get()) {
-                LOG.debug("Read loop error: {}", e.getMessage());
-            }
-        } finally {
-            connected.set(false);
+            pollFrame(remainingMs, TimeUnit.MILLISECONDS);
         }
     }
 
+    /**
+     * Dispatches an incoming performative to the appropriate session/link handler.
+     * The state machine updates session state, link state, and receiver queues.
+     */
     private void handleIncomingPerformative(int channel, Performative perf, ByteBuffer payload) {
         AmqpSession session = sessions.get(channel);
 
@@ -346,11 +429,21 @@ public final class AmqpClient implements AutoCloseable {
                 }
             }
             case Performative.Attach attach -> {
+                System.out.println("[handleAttach] handle=" + attach.handle() + " role=" + attach.role());
                 if (session != null) {
                     SenderLink sl = session.senderLink(attach.handle());
-                    if (sl != null) sl.state(SenderLink.State.ATTACHED);
+                    if (sl != null) {
+                        System.out.println("[handleAttach] -> sender: " + sl.name());
+                        sl.state(SenderLink.State.ATTACHED);
+                    }
                     ReceiverLink rl = session.receiverLink(attach.handle());
-                    if (rl != null) rl.state(ReceiverLink.State.ATTACHED);
+                    if (rl != null) {
+                        System.out.println("[handleAttach] -> receiver: " + rl.name());
+                        rl.state(ReceiverLink.State.ATTACHED);
+                    }
+                    if (sl == null && rl == null) {
+                        System.out.println("[handleAttach] NO LINK FOUND for handle=" + attach.handle());
+                    }
                 }
             }
             case Performative.Flow flow -> {
@@ -361,10 +454,6 @@ public final class AmqpClient implements AutoCloseable {
                         if (sender != null && flow.linkCredit() != null) {
                             long brokerDeliveryCount = flow.deliveryCount() != null ? flow.deliveryCount() : sender.deliveryCount();
                             sender.grantCredit(brokerDeliveryCount, flow.linkCredit());
-                        }
-                        ReceiverLink receiver = session.receiverLink(flow.handle());
-                        if (receiver != null) {
-                            // Broker (acting as sender) may also flow to our receiver links
                         }
                     }
                 }
@@ -409,38 +498,29 @@ public final class AmqpClient implements AutoCloseable {
             case Performative.Close close -> {
                 state = ConnectionState.CLOSE_RCVD;
                 connected.set(false);
+                if (close.error() != null) {
+                    System.out.println("[AmqpClient] Server sent Close with error: " + close.error());
+                    throw new AmqpException(AmqpError.ILLEGAL_STATE, "Server closed connection: " + close.error());
+                }
             }
             default -> {}
         }
     }
 
-    private void waitForSessionBegin(AmqpSession session) {
-        long deadline = System.currentTimeMillis() + config.connectTimeout().toMillis();
-        while (session.state() != AmqpSession.State.MAPPED && System.currentTimeMillis() < deadline) {
-            Thread.onSpinWait();
-        }
-    }
-
-    private void waitForAttach(SenderLink link) {
-        long deadline = System.currentTimeMillis() + config.connectTimeout().toMillis();
-        while (link.state() != SenderLink.State.ATTACHED && System.currentTimeMillis() < deadline) {
-            Thread.onSpinWait();
-        }
-    }
-
-    private void waitForAttach(ReceiverLink link) {
-        long deadline = System.currentTimeMillis() + config.connectTimeout().toMillis();
-        while (link.state() != ReceiverLink.State.ATTACHED && System.currentTimeMillis() < deadline) {
-            Thread.onSpinWait();
-        }
-    }
-
-    private void sendPerformative(int channel, Performative performative) {
+    /**
+     * Sends a performative on the given channel.
+     * Used by links to send FLOW, DISPOSITION, etc.
+     */
+    public void sendPerformative(int channel, Performative performative) {
         var described = PerformativeCodec.encode(performative);
         var frame = new AmqpFrame(channel, AmqpConstants.FRAME_TYPE_AMQP, described);
         transport.send(FrameCodec.encode(frame, maxFrameSize));
     }
 
+    /**
+     * Reads one frame from transport synchronously.
+     * Used by handshake code during connect().
+     */
     private AmqpFrame readFrame() {
         ByteBuffer sizeBuf = ByteBuffer.allocate(4);
         readFully(sizeBuf);
@@ -460,6 +540,10 @@ public final class AmqpClient implements AutoCloseable {
         return FrameCodec.decode(frameBuf);
     }
 
+    /**
+     * Reads exactly buffer.remaining() bytes from transport.
+     * Used by handshake (header exchange, SASL frames).
+     */
     private void readFully(ByteBuffer buf) {
         while (buf.hasRemaining()) {
             int n = transport.receive(buf);
@@ -481,7 +565,6 @@ public final class AmqpClient implements AutoCloseable {
         }
 
         if (transport != null) transport.close();
-        if (executor != null) executor.close();
         state = ConnectionState.END;
         LOG.debug("AMQP client closed");
     }

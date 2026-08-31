@@ -44,14 +44,25 @@ public class ProcessingThread {
         PROCESSING_POOL.submit(() -> {
             try {
                 readBuffer.clear();
-                int bytesRead = channel.read(readBuffer);
-                if (bytesRead > 0) {
-                    readBuffer.flip();
-                    pipeline.fireRead(channel, readBuffer);
-                } else if (bytesRead < 0) {
+                int n;
+                while ((n = channel.read(readBuffer)) > 0) {
+                    if (!readBuffer.hasRemaining()) break;
+                }
+                if (n < 0 || !readBuffer.hasRemaining()) {
+                }
+                if (n < 0) {
                     pipeline.fireDisconnect(channel);
+                    return;
+                }
+                readBuffer.flip();
+                if (readBuffer.hasRemaining()) {
+                    System.out.println("[processReadable] read " + readBuffer.remaining() + " bytes, firing");
+                    pipeline.fireRead(channel, readBuffer);
+                } else {
+                    System.out.println("[processReadable] nothing to fire after flip");
                 }
             } catch (Exception e) {
+                System.out.println("[processReadable] error: " + e.getMessage());
                 LOG.error("Error processing read", e);
                 pipeline.fireError(channel, e);
             }

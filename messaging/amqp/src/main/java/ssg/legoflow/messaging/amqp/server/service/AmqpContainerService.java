@@ -85,6 +85,12 @@ public final class AmqpContainerService extends AbstractService<ByteBuffer, Byte
             // Register with service manager's selector
             ctx.registerServerChannel(this, serverChannel);
 
+            // Add handler to the server pipeline so accepted connections are dispatched
+            var pipeline = ctx.getChannelManager().getChannelPipeline(this);
+            if (pipeline != null) {
+                pipeline.addLast(createChannelHandler());
+            }
+
             // Start accept loop via service manager (selector-driven)
             container.start();
             LOG.info("AMQP container listening on port {}", port);
@@ -96,6 +102,10 @@ public final class AmqpContainerService extends AbstractService<ByteBuffer, Byte
     @Override
     protected void doDisconnect(ServiceContext ctx) {
         try { if (container != null) container.close(); } catch (Exception ignored) {}
+        try {
+            var mgr = ctx.getChannelManager();
+            if (mgr != null) mgr.unregisterServerChannel(this);
+        } catch (Exception ignored) {}
         try { if (serverChannel != null) serverChannel.close(); } catch (Exception ignored) {}
     }
 
@@ -116,6 +126,8 @@ public final class AmqpContainerService extends AbstractService<ByteBuffer, Byte
         return new AmqpContainerChannelHandler(this);
     }
 
+    /** @deprecated Use AmqpContainerChannelHandler to manage connections. */
+    @Deprecated
     void acceptConnection(TcpDataChannel dataChannel) {
         try {
             var transport = new PipelineTransport(dataChannel);

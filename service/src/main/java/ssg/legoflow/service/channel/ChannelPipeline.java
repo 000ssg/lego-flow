@@ -33,7 +33,7 @@ public class ChannelPipeline {
     public void fireRead(DataChannel channel, ByteBuffer data) {
         for (var handler : handlers) {
             try {
-                handler.onRead(channel, data.asReadOnlyBuffer());
+                handler.onRead(channel, data);
             } catch (Exception e) {
                 LOG.error("Handler {} threw on read", handler.getClass().getSimpleName(), e);
                 fireError(channel, e);

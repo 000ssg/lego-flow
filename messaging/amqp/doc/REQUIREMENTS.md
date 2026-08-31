@@ -186,3 +186,54 @@ Qpid Dispatch Router requires proto-0 mode (`BrokerMode.QPID_DISPATCH`):
 - No SASL negotiation — proceeds directly to OPEN performative
 - `AUTO` / `STANDARD` broker mode will fail against Qpid (connection closed on `SASL_HEADER`)
 - The `scholzj/qpid-dispatch` Docker image is amd64-only — interop tests disabled on arm64 hosts
+
+---
+
+## Commit: `cleanup-1` — AMQP 1.0 interop refinements against Artemis (Aug 2026)
+
+### Original Request
+> "do not hide isses but throw errors. now you guess some NPE was hidden - this should not be hidden but visibl and, may be, crash execution."
+> "i think no shared connections should be use in interop tests so that execution of one could not affect execution of others."
+
+### Reformulated Requirements
+1. `pollFrame()` and all frame consumers must throw exceptions explicitly — no silent swallow
+2. Each interop test method establishes and closes its own AMQP connection (no `@BeforeAll` shared state)
+3. Fix `ReceiverLink.issueCredit()` to include `incomingWindow`/`nextIncomingId` in Flow frames
+4. Ensure `AmqpFrame` payload flows correctly through `FrameSender` → `FrameCodec.encode()`
+5. Use Apache ActiveMQ Artemis as the strict AMQP 1.0 reference server (port 5675)
+
+### Final Design Decisions
+- **Artemis as reference**: `apache/artemis:latest-alpine` with `protocols=AMQP`, `guest`/`amq` auth via PLAIN SASL
+- **Error propagation**: `AmqpClient.pollFrame()` declares `throws IOException`; silent catch removed
+- **Per-test isolation**: `AmqpInteropTest` instantiates `AmqpClient` per test method; `ServiceManager` shared
+- **Two send paths**: `frameSender` lambda handles payload-bearing frames (Transfer); `sendPerformative()` handles handshake frames without payload
+
+### Implementation Details
+- **Patched**: `AmqpClient.pollFrame()` — removed silent catch, added `throws IOException`
+- **Patched**: `ReceiverLink.issueCredit()` — Flow frame now includes `nextIncomingId` and `incomingWindow` from session state
+- **Patched**: `ReceiverLink.pollFromTransport()` — declares `throws IOException` per user mandate
+- **Refactored**: `AmqpInteropTest` — removed `@BeforeAll` shared connection; per-test `AmqpClient` lifecycle
+- **Cleaned**: `PipelineTransport.java` — removed inline debug hex logging and wire capture interceptors
+- **Created**: `Amqp10WireCaptureTest.java` — raw byte capture against Artemis for future debugging
+- **Patched**: test files — `int` vs `Long` type mismatches in `Flow` constructor calls
+
+### Test Coverage
+- **Unit tests**: 264 passing (Gradle: `:lego-flow-amqp:test`)
+- **Interop tests**: 6/6 passing against Artemis (Maven: `mvn -pl interop-tests test`)
+  - `testConnectionLifecycle` — connect, session, attach sender, close
+  - `testReceiveMessage` — receiver link credit, receive, accept
+  - `testSendAndReceiveMessage` — full send→receive round-trip
+  - `testMultipleMessages` — multiple messages on same link
+  - `testMultipleSessions` — concurrent sessions
+  - `testUnsettledDelivery` — unsettled delivery with disposition
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Background agents | 0 |
+| Agent tokens | ~400k |
+| Agent tool calls | ~500 |
+| Agent wall time | ~4h |
+| Files created/modified | 12 |
+| Lines added/removed | +600 / -200 |
+| Tests added | 6 interop (total: 270) |

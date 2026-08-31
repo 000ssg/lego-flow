@@ -1,126 +1,76 @@
-# AMQP DP/DF/Service Refinement Plan
+# AMQP Protocol Refinement — Phase Plan
 
-**Branch:** cleanup-1 | **Created:** 2026-08-27 | **Status:** IN PROGRESS
+**Goal:** Fix all architectural violations, eliminate deadlocks and data loss, ensure service layer compliance, verify interop, update docs, and commit.
 
-## Execution State
+**Context:** The AMQP 1.0 implementation has transport-agnostic core (AmqpClient/AmqpContainer) that works over AmqpTransport SPI. Service layer wraps it with service-manager integration (SelectableChannelManager + ChannelPipeline + PipelineTransport). Core logic was built first; service integration was layered on and has architectural violations and race conditions.
 
-| Phase | Status | Notes |
-|-------|--------|-------|
-| Phase 1: Restore Protocol Layer | IN PROGRESS | AmqpClient/AmqpContainer/FrameCodec are protocol impl, not deprecated |
-| Phase 2: Service Wrappers | NOT STARTED | AmqpClientService → AmqpClient, AmqpContainerService → AmqpContainer |
-| Phase 3: Debug Utilities Cleanup | COMPLETED | Deleted capture/, CapturingTransport, TrafficCapture |
-| Phase 4: Async Interop Tests | NOT STARTED | Service.async() + CountDownLatch, all 3 brokers |
-| Phase 5: Coverage Tests (80%+) | NOT STARTED | Unit tests for protocol classes |
-| Phase 6: Documentation | NOT STARTED | Guidelines, AGENTS.md, module docs |
-| Phase 7: Final Build & Commit | NOT STARTED | Maven + Gradle + commit |
-
-## Architecture
-
-```
-AmqpClientService (sync service)
-  └── AmqpClient (blocking protocol — SASL, OPEN, sessions, links)
-        └── AmqpTransport (TcpTransport or InMemoryTransport)
-
-AmqpClientService.async() → DefaultAsyncService (virtual threads)
-  └── CompletableFutures for all operations
-
-AmqpContainerService (sync service)
-  └── AmqpContainer (blocking server — accept, SASL, connections)
-        └── AmqpTransport (TcpTransport or InMemoryTransport)
-```
-
-### DECISION-1: Protocol logic lives in blocking classes
-Following Redis, MQTT, SSH pattern: the blocking client IS the protocol layer.
-The service is a thin wrapper. `.async()` provides the async API via virtual threads.
-AmqpClient/AmqpContainer/FrameCodec are NOT deprecated — they follow the established pattern.
-
-### DECISION-2: Qpid uses QPID_DISPATCH mode (no SASL)
-Qpid Dispatch Router uses proto-0 (AMQP_HEADER first, no SASL).
-BrokerMode.QPID_DISPATCH configures this correctly. Tests use this mode for Qpid.
-
-### DECISION-3: Only debug utilities are truly deprecated
-capture/, CapturingTransport, TrafficCapture were debug/trafﬁc capture tools
-never used by production code or tests. These were already deleted.
+**Rules:**
+1. Protocol core NEVER touches SocketChannel/Selector — only AmqpTransport
+2. Service layer owns TCP lifecycle via SelectableChannelManager
+3. No deadlocks: client handshake must not block the selector thread
+4. No data loss: PipelineTransport must handle backpressure, not drop frames
+5. Tests must use CountDownLatch, not Thread.sleep, for async coordination
 
 ---
 
-## Phase 1: Restore Protocol Layer
+## Phase 1: Audit & Baseline ✅ DONE
 
-Restore from git: AmqpClient, AmqpContainer, TcpTransport, FrameCodec
-These are the protocol implementation — same pattern as RedisClient in RedisClientService.
+### 1.1 Catalog all source files and identify issues
+- [x] AmqpClientService.doConnect() — spawns virtual thread for handshake while blocking on latch. Potential deadlock if selector event loop stalls.
+- [x] AmqpContainerService.acceptConnection() — creates PipelineTransport AND calls container.handleConnection(). But AmqpContainerChannelHandler.onConnect() creates ANOTHER PipelineTransport. **Double transport bug.**
+- [x] AmqpContainerService.doDisconnect() — does NOT call ctx.getChannelManager().unregisterServerChannel(). **Selector key leak.**
+- [x] AmqpClientService.doDisconnect() — calls ctx.getChannelManager().unregisterChannel() without null check on ctx.
+- [x] PipelineTransport.send() — drops data when outboundBuffer non-null. **Data loss under backpressure.**
+- [x] PipelineTransport.onWrite() — only writes one buffer, no queue. Frames can be lost.
+- [x] InProcessIntegrationTest uses InMemoryTransport (bypasses service layer) — doesn't test the actual pipeline.
 
----
-
-## Phase 2: Service Wrappers
-
-Rewrite AmqpClientService to delegate to AmqpClient:
-```java
-class AmqpClientService extends AbstractService<ByteBuffer, ByteBuffer> {
-    private volatile AmqpClient client;
-    protected void doConnect(ServiceContext ctx) {
-        client = new AmqpClient(config);
-        client.connect();  // blocking on virtual thread
-    }
-    public AmqpClient getClient() { return client; }
-}
-```
-
-Rewrite AmqpContainerService to delegate to AmqpContainer:
-```java
-class AmqpContainerService extends AbstractService<ByteBuffer, ByteBuffer> {
-    private volatile AmqpContainer container;
-    protected void doConnect(ServiceContext ctx) {
-        container = new AmqpContainer(config);
-        container.start();
-    }
-}
-```
+### 1.2 Run existing tests and document failures
+- [x] 268 tests, 1 failed: testDisconnectBeforeConnectDoesNotThrow
 
 ---
 
-## Phase 3: Debug Utilities Cleanup (DONE)
+## Phase 2: Architecture & Flow Fixes ✅ IN PROGRESS
 
-Deleted: capture/, CapturingTransport, TrafficCapture
+### 2.1 Fix PipelineTransport send() — backpressure queue
+- [x] Replace single outboundBuffer with LinkedBlockingQueue<ByteBuffer>
+- [x] send() tries immediate write, enqueues remainder
+- [x] onWrite() drains queue, re-queues partial writes
+- [x] registerOps() checks queue emptiness, not single buffer
 
----
+### 2.2 Fix AmqpContainerChannelHandler — single transport per connection
+- [x] Remove service.acceptConnection() call from onConnect() — it was creating a wasted transport
+- [x] Transport created once in handler, passed to container
 
-## Phase 4: Async Interop Tests
+### 2.3 Fix AmqpContainerService.disconnect() — unregister server channel
+- [x] Add ctx.getChannelManager().unregisterServerChannel(this) with null safety
 
-Rewrite BrokerInteropTest using async API:
-```java
-AmqpClientService service = AmqpClientService.builder(host, port).build();
-var ctx = DefaultServiceContext.builder(ServiceUser.anonymous()).build();
-service.async().connect(ctx).get(10, SECONDS);
-AmqpClient client = service.getClient();
-AmqpSession session = client.createSession();
-// ... latch-based receive ...
-```
+### 2.4 Fix AmqpClientService.doDisconnect() — null safety
+- [x] Check ctx != null before accessing channel manager
 
-Broker configs:
-| Broker | Port | Mode | Auth |
-|--------|------|------|------|
-| RabbitMQ | 5672 | RABBITMQ | ANONYMOUS |
-| QpidDispatch | 5674 | QPID_DISPATCH | ANONYMOUS (no SASL) |
-| Artemis | 5675 | ARTEMIS | PLAIN (admin/admin) |
+### 2.5 Fix AmqpClientServiceTest
+- [x] Provide real ServiceContext with channel manager for disconnect test
 
 ---
 
-## Phase 5: Coverage Tests (Target: 80%+)
+## Phase 3: Test & Interop Verification
 
-Unit tests for all protocol classes using InMemoryTransport.
+### 3.1 Service layer integration test
+- Add test: AmqpClientService ↔ AmqpContainerService via TCP
+- Verify handshake, session, send/receive through full pipeline
+
+### 3.2 In-process integration test update
+- Update InProcessIntegrationTest to also test via service layer (not just InMemoryTransport)
+
+### 3.3 Verify interop tests against RabbitMQ Docker
+- Run AmqpInteropTest against RabbitMQ
+- Verify no deadlocks under load
 
 ---
 
-## Phase 6: Documentation
+## Phase 4: Documentation & Commit
 
-Update AGENTS.md, README.md, doc/ARCHITECTURE.md, doc/REQUIREMENTS.md.
-
----
-
-## Phase 7: Final Build & Commit
-
-1. `mvn clean test -pl '!benchmarks'` — ALL modules
-2. `./gradlew clean test --rerun-tasks` — ALL modules
-3. Verify all interop tests pass against 3 brokers
-4. Commit with detailed message
-5. Update REQUIREMENTS.md with final metrics
+### 4.1 Update ARCHITECTURE.md
+### 4.2 Update COMPLIANCE.md
+### 4.3 Update README.md
+### 4.4 Final build verification (Maven + Gradle)
+### 4.5 Commit with full documentation

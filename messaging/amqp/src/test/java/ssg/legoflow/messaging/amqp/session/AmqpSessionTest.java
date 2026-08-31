@@ -77,7 +77,7 @@ class AmqpSessionTest {
     @Test void testHandleFlow() {
         var session = new AmqpSession(0);
         session.handleBegin(new Performative.Begin(0, 0, 100, 100));
-        var flow = new Performative.Flow(0L, 200, 0, 300,
+        var flow = new Performative.Flow(0L, 200L, 0L, 300L,
                 null, null, null, null, false, false, java.util.Map.of());
         session.handleFlow(flow);
         // Remote outgoing window should be updated

@@ -24,14 +24,23 @@ public final class AmqpContainerChannelHandler implements ChannelHandler {
     public void onConnect(DataChannel channel) {
         LOG.debug("Client channel accepted by container");
         if (channel instanceof TcpDataChannel) {
-            service.acceptConnection((TcpDataChannel) channel);
             var transport = new PipelineTransport(channel);
             transportByChannel.put(channel, transport);
             try {
-                service.getContainer().handleConnection(transport);
+                // handleConnection() spawns a virtual thread — does NOT block here.
+                // If it throws (e.g. null container), clean up immediately.
+                if (service.getContainer() != null) {
+                    service.getContainer().handleConnection(transport);
+                } else {
+                    LOG.error("Container not initialized for service: {}", service.getDescriptor().name());
+                    transportByChannel.remove(channel);
+                    transport.close();
+                    try { channel.close(); } catch (Exception ignored) {}
+                }
             } catch (Exception e) {
                 LOG.error("Failed to handle connection: {}", e.getMessage(), e);
                 transportByChannel.remove(channel);
+                transport.close();
                 try { channel.close(); } catch (Exception ignored) {}
             }
         }

@@ -59,8 +59,8 @@ public final class AmqpSession {
     private final AtomicLong incomingWindow = new AtomicLong(AmqpConstants.DEFAULT_INCOMING_WINDOW);
     private final AtomicLong nextOutgoingId = new AtomicLong(0);
     private final AtomicLong outgoingWindow = new AtomicLong(AmqpConstants.DEFAULT_OUTGOING_WINDOW);
-    private volatile long remoteIncomingWindow;
-    private volatile long remoteOutgoingWindow;
+    private volatile long remoteIncomingWindow = AmqpConstants.DEFAULT_INCOMING_WINDOW;
+    private volatile long remoteOutgoingWindow = AmqpConstants.DEFAULT_OUTGOING_WINDOW;
     private volatile long handleMax = 0xFFFFFFFFL;
 
     // Links by handle

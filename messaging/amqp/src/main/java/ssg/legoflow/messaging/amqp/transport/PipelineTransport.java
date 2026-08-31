@@ -6,105 +6,137 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * {@link AmqpTransport} implementation backed by a {@link DataChannel} in the
  * service pipeline.
  *
- * <p>This bridge allows blocking protocol code (AMQP client/container) to work
- * with the non-blocking NIO pipeline. The selector-driven {@link ssg.legoflow.service.channel.ProcessingThread}
- * reads bytes from the socket and delivers them via {@link #onRead(DataChannel, ByteBuffer)}.
- * The protocol thread calls {@link #receive(ByteBuffer)} which blocks until inbound
- * data is available in the buffer. Outbound writes are queued and flushed when the
- * selector fires {@link SelectionKey#OP_WRITE}.
+ * <p>Ring buffer: one writer (onRead/add), one reader (receive/fetch).
+ * <p>{@code add()} and {@code fetch()} are synchronized on the buffer.
+ * <p>{@code peek()} is a lock-free estimate — good enough for deciding whether to wait.
  *
- * <p>One instance per connection. Not thread-safe for concurrent receivers, but
- * designed for the single-protocol-thread-per-connection model.
- *
- * @since 0.2.0
+ * <p>One instance per connection.
  */
 public final class PipelineTransport implements AmqpTransport {
 
     private static final Logger LOG = LoggerFactory.getLogger(PipelineTransport.class);
+    private static final int BUFFER_SIZE = 65536;
 
     private final DataChannel channel;
-    private final Queue<ByteBuffer> inboundFragments = new ConcurrentLinkedQueue<>();
-    private final Queue<ByteBuffer> outboundQueue = new ConcurrentLinkedQueue<>();
-    private final AtomicBoolean open = new AtomicBoolean(true);
-    private final AtomicReference<ByteBuffer> outboundBuffer = new AtomicReference<>(null);
-    private final Semaphore dataAvailable = new Semaphore(0);
 
-    /**
-     * Creates a pipeline transport for the given channel.
-     *
-     * @param channel the data channel (registered with SelectableChannelManager)
-     */
+    // Ring buffer state
+    private final byte[] buffer = new byte[BUFFER_SIZE];
+    private int start;   // first available byte
+    private int end;     // next write position
+    private volatile int count;   // bytes in buffer (volatile for peek visibility)
+    private final Semaphore available = new Semaphore(0);
+
+    // Outbound queue — prevents data loss under backpressure
+    private final LinkedBlockingQueue<ByteBuffer> outboundQueue = new LinkedBlockingQueue<>();
+    private final AtomicBoolean open = new AtomicBoolean(true);
+
     public PipelineTransport(DataChannel channel) {
         this.channel = channel;
     }
 
     /**
-     * Called by the pipeline when data is read from the channel.
-     * The bytes are buffered for {@link #receive(ByteBuffer)}.
+     * Called by the pipeline when data arrives from the channel.
+     * Appends bytes to the ring buffer and signals the consumer.
      */
     public void onRead(DataChannel ch, ByteBuffer data) {
         if (!open.get()) return;
-        data.flip();
-        inboundFragments.offer(data);
-        LOG.debug("Inbound: {} bytes buffered (queue size={})", data.remaining(), inboundFragments.size());
-        dataAvailable.release();
+        int n = add(data);
+        if (n > 0) available.release(1);
+    }
+
+    /**
+     * Add bytes from the source buffer into the ring buffer.
+     * Atomic: updates start/end/count under a single lock.
+     * @return number of bytes added
+     */
+    public synchronized int add(ByteBuffer src) {
+        int n = src.remaining();
+        if (n == 0) return 0;
+
+        // Compact if not enough room
+        if (count + n > buffer.length) {
+            if (count > 0) {
+                System.arraycopy(buffer, start, buffer, 0, count);
+                end = count;
+                start = 0;
+            }
+            if (count + n > buffer.length) {
+                LOG.warn("Buffer overflow: {} + {} > {}", count, n, buffer.length);
+                return 0;
+            }
+        }
+
+        // Copy into buffer, handling wrap
+        int first = Math.min(n, buffer.length - end);
+        src.get(buffer, end, first);
+        end = (end + first) % buffer.length;
+        if (first < n) {
+            src.get(buffer, 0, n - first);
+            end = n - first;
+        }
+        count += n;
+        return n;
+    }
+
+    /**
+     * Fetch up to dst.remaining() bytes from the ring buffer.
+     * Atomic: updates start/count under a single lock.
+     * @return number of bytes fetched
+     */
+    public synchronized int fetch(ByteBuffer dst) {
+        if (count == 0) return 0;
+        int n = Math.min(count, dst.remaining());
+
+        // Copy out, handling wrap
+        int first = Math.min(n, buffer.length - start);
+        dst.put(buffer, start, first);
+        if (first < n) {
+            dst.put(buffer, 0, n - first);
+        }
+        start = (start + n) % buffer.length;
+        count -= n;
+        return n;
+    }
+
+    /**
+     * Lock-free estimate of bytes available for reading.
+     * Used by receive() to decide whether to wait on the semaphore.
+     * May be slightly stale by the time fetch() runs — that's fine,
+     * fetch() will just return 0 and we wait again.
+     */
+    public int peek() {
+        return count; // volatile not needed for single-writer, but count is volatile enough for estimate
     }
 
     /**
      * Called by the pipeline when the channel is writable.
-     * Flushes the outbound buffer to the channel.
+     * Drains the outbound queue, writing each buffer in order.
      */
     public void onWrite(DataChannel ch) {
         if (!open.get()) return;
-        var buf = outboundBuffer.get();
-        if (buf != null && buf.hasRemaining()) {
+        ByteBuffer buf;
+        while ((buf = outboundQueue.poll()) != null) {
+            if (!buf.hasRemaining()) continue;
             try {
-                int written = channel.write(buf);
-                LOG.debug("Flushed {} bytes outbound", written);
-                if (!buf.hasRemaining()) {
-                    outboundBuffer.set(null);
-                }
+                channel.write(buf);
             } catch (IOException e) {
                 LOG.warn("Outbound flush failed", e);
                 close();
                 return;
             }
-        }
-        if (!outboundQueue.isEmpty()) {
-            var next = outboundQueue.poll();
-            if (next != null) {
-                outboundBuffer.set(next);
-                try {
-                    int written = channel.write(next);
-                    LOG.debug("Flushed {} bytes outbound from queue", written);
-                    if (!next.hasRemaining()) {
-                        // Drain remaining items
-                        while (!outboundQueue.isEmpty() && outboundBuffer.get() != null) {
-                            var item = outboundQueue.poll();
-                            if (item != null && item.hasRemaining()) {
-                                outboundBuffer.set(item);
-                                break;
-                            }
-                        }
-                        if (outboundBuffer.get() == null && outboundQueue.isEmpty()) {
-                            registerOps();
-                        }
-                    }
-                } catch (IOException e) {
-                    LOG.warn("Outbound queue flush failed", e);
-                    close();
-                }
+            // If buffer still has data, re-queue it
+            if (buf.hasRemaining()) {
+                outboundQueue.offer(buf);
+                break; // Wait for next writable event
             }
         }
         registerOps();
@@ -115,9 +147,7 @@ public final class PipelineTransport implements AmqpTransport {
         if (key == null) return;
         try {
             int ops = SelectionKey.OP_READ;
-            if (outboundBuffer.get() != null || !outboundQueue.isEmpty()) {
-                ops |= SelectionKey.OP_WRITE;
-            }
+            if (!outboundQueue.isEmpty()) ops |= SelectionKey.OP_WRITE;
             key.interestOps(ops);
         } catch (Exception e) {
             LOG.debug("Failed to update interest ops", e);
@@ -128,94 +158,72 @@ public final class PipelineTransport implements AmqpTransport {
     public void send(ByteBuffer data) {
         if (!open.get()) return;
         var slice = data.slice();
-        if (outboundBuffer.compareAndSet(null, slice)) {
-            try {
-                int written = channel.write(slice);
-                LOG.debug("Immediate write: {} bytes", written);
-                if (!slice.hasRemaining()) {
-                    outboundBuffer.set(null);
-                    registerOps();
-                    return;
-                }
-            } catch (IOException e) {
-                LOG.debug("Immediate write blocked, queuing", e);
+        // Try immediate write first — avoids waking selector for the common case
+        try {
+            int written = channel.write(slice);
+            if (written == slice.remaining()) {
+                return; // All data written immediately
             }
-            registerOps();
-        } else {
-            outboundQueue.offer(slice);
-            registerOps();
+        } catch (IOException e) {
+            LOG.debug("Immediate write failed: {}", e.getMessage());
         }
+        // Enqueue remaining data — never drops frames
+        outboundQueue.offer(slice);
+        registerOps();
     }
 
     @Override
     public int receive(ByteBuffer buffer) {
-        if (!open.get() || !channel.isOpen()) return -1;
-
-        // Try buffered data first (pipeline-driven)
-        drainBuffer(buffer);
-        if (buffer.position() > 0) return buffer.position();
-
-        // Try direct read from channel — works for both blocking sockets (client on
-        // virtual thread) and non-blocking sockets (server, where 0 means wait for selector).
-        try {
-            int n = channel.read(buffer);
-            if (n > 0) return n;
-            if (n < 0) {
-                close();
-                return -1;
-            }
-            // n == 0: non-blocking channel, no data yet — wait for selector callback
-        } catch (IOException e) {
-            LOG.debug("Receive read failed: {}", e.getMessage());
-            close();
-            return -1;
-        }
-
-        // Wait for pipeline to deliver data via onRead()
-        try {
-            if (!dataAvailable.tryAcquire(5, TimeUnit.SECONDS)) {
-                if (!open.get()) return -1;
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return -1;
-        }
-
-        // Drain any data that arrived while waiting
-        drainBuffer(buffer);
-        if (buffer.position() > 0) return buffer.position();
-
-        return 0;
+        return receiveWithTimeout(buffer, 5, TimeUnit.SECONDS);
     }
 
-    private void drainBuffer(ByteBuffer buffer) {
-        while (buffer.hasRemaining() && !inboundFragments.isEmpty()) {
-            var fragment = inboundFragments.peek();
-            if (fragment == null || !fragment.hasRemaining()) {
-                inboundFragments.poll();
+    @Override
+    public int receiveWithTimeout(ByteBuffer buffer, long timeout, TimeUnit unit) {
+        if (!open.get()) return -1;
+
+        long deadline = System.currentTimeMillis() + unit.toMillis(timeout);
+        int fetched = 0;
+
+        while (buffer.hasRemaining()) {
+            long remainingMs = deadline - System.currentTimeMillis();
+            if (remainingMs <= 0) return fetched > 0 ? fetched : -1;
+
+            // Fast path: data already in buffer
+            if (peek() >= buffer.remaining()) {
+                int n = fetch(buffer);
+                fetched += n;
+                if (n == 0) break;
                 continue;
             }
-            int toCopy = Math.min(buffer.remaining(), fragment.remaining());
-            for (int i = 0; i < toCopy; i++) {
-                buffer.put(fragment.get());
+
+            // Wait for data
+            try {
+                if (!available.tryAcquire(1, remainingMs, TimeUnit.MILLISECONDS)) {
+                    return fetched > 0 ? fetched : -1;
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return fetched > 0 ? fetched : -1;
             }
-            if (!fragment.hasRemaining()) {
-                inboundFragments.poll();
-            }
+
+            // Data arrived — fetch it
+            int n = fetch(buffer);
+            fetched += n;
+            if (n == 0) continue; // semaphore false positive — retry
         }
+
+        return fetched;
     }
 
     @Override
     public void close() {
         if (!open.compareAndSet(true, false)) return;
+        outboundQueue.clear();
         try {
             channel.close();
         } catch (IOException e) {
             LOG.debug("Error closing channel", e);
         }
-        inboundFragments.clear();
-        outboundQueue.clear();
-        outboundBuffer.set(null);
     }
 
     @Override
@@ -223,7 +231,6 @@ public final class PipelineTransport implements AmqpTransport {
         return open.get() && channel.isOpen();
     }
 
-    /** Returns the underlying data channel. */
     public DataChannel getChannel() {
         return channel;
     }

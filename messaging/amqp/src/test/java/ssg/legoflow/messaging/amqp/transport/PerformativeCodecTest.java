@@ -109,7 +109,7 @@ class PerformativeCodecTest {
     // ---- Flow ----
 
     @Test void testFlowSessionLevel() {
-        var flow = new Performative.Flow(0L, 2048, 0, 2048,
+        var flow = new Performative.Flow(0L, 2048L, 0L, 2048L,
                 null, null, null, null, false, false, Map.of());
         var described = PerformativeCodec.encode(flow);
         var decoded = (Performative.Flow) PerformativeCodec.decode(described);
@@ -118,7 +118,7 @@ class PerformativeCodecTest {
     }
 
     @Test void testFlowLinkLevel() {
-        var flow = new Performative.Flow(10L, 2048, 5, 2048,
+        var flow = new Performative.Flow(10L, 2048L, 5L, 2048L,
                 0L, 5L, 100L, 50L, false, true, Map.of());
         var described = PerformativeCodec.encode(flow);
         var decoded = (Performative.Flow) PerformativeCodec.decode(described);
@@ -130,7 +130,7 @@ class PerformativeCodecTest {
     }
 
     @Test void testFlowDrain() {
-        var flow = new Performative.Flow(0L, 2048, 0, 2048,
+        var flow = new Performative.Flow(0L, 2048L, 0L, 2048L,
                 0L, 0L, 0L, null, true, false, Map.of());
         var described = PerformativeCodec.encode(flow);
         var decoded = (Performative.Flow) PerformativeCodec.decode(described);
@@ -138,7 +138,7 @@ class PerformativeCodecTest {
     }
 
     @Test void testFlowDescriptorCode() {
-        var flow = new Performative.Flow(0L, 100, 0, 100,
+        var flow = new Performative.Flow(0L, 100L, 0L, 100L,
                 null, null, null, null, false, false, Map.of());
         var described = PerformativeCodec.encode(flow);
         assertThat(TypeCodec.toLong(described.descriptor())).isEqualTo(Descriptors.FLOW);

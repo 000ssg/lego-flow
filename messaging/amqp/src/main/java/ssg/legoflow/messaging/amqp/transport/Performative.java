@@ -130,9 +130,9 @@ public sealed interface Performative
      */
     record Flow(
             Long nextIncomingId,
-            long incomingWindow,
-            long nextOutgoingId,
-            long outgoingWindow,
+            Long incomingWindow,
+            Long nextOutgoingId,
+            Long outgoingWindow,
             Long handle,
             Long deliveryCount,
             Long linkCredit,

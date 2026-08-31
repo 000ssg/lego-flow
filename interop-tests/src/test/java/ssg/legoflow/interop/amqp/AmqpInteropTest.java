@@ -1,28 +1,33 @@
 package ssg.legoflow.interop.amqp;
 
 import org.junit.jupiter.api.*;
-import ssg.legoflow.messaging.amqp.client.AmqpClient;
-import ssg.legoflow.messaging.amqp.client.ClientConfig;
+import org.junit.jupiter.api.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ssg.legoflow.messaging.amqp.client.BrokerMode;
+import ssg.legoflow.messaging.amqp.client.service.AmqpClientService;
 import ssg.legoflow.messaging.amqp.delivery.Delivery;
-import ssg.legoflow.messaging.amqp.delivery.DeliveryState;
 import ssg.legoflow.messaging.amqp.link.ReceiverLink;
 import ssg.legoflow.messaging.amqp.link.SenderLink;
 import ssg.legoflow.messaging.amqp.message.AmqpMessage;
 import ssg.legoflow.messaging.amqp.session.AmqpSession;
 import ssg.legoflow.messaging.amqp.types.AmqpType;
+import ssg.legoflow.service.DefaultServiceContext;
+import ssg.legoflow.service.manager.SelectableChannelManager;
+import ssg.legoflow.service.user.ServiceUser;
+
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Interoperability test: Lego Flow AMQP 1.0 client to real AMQP broker.
+ * Interoperability test: Lego Flow AMQP 1.0 client ↔ Apache ActiveMQ Artemis.
  *
- * <p>Requires an AMQP 1.0-capable broker (e.g., RabbitMQ 4.x, Qpid, or
- * <a href="https://github.com/rabbitmq/rabbitmq-server">RabbitMQ</a>).
- * Currently <b>disabled</b> because Apache ActiveMQ 6.x does not support
- * the standard AMQP 1.0 SASL negotiation flow used by this client.
+ * <p>Each test creates its own connection — no shared protocol state between tests.
+ * The SelectableChannelManager (event loop) is shared, but connections are per-test.
  *
  * <p>Configuration via system properties:
  *   interop.amqp.host (default: localhost)
@@ -30,14 +35,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   interop.amqp.username (default: guest)
  *   interop.amqp.password (default: guest)
  *   interop.amqp.queue (default: interop-test-queue)
- *
- * <p>To run against RabbitMQ:
- *   docker run -d --rm -p 5672:5672 -p 15672:15672 rabbitmq:4-management
- *   mvn verify -Dinterop.amqp.host=localhost -DskipInteropTests=false
  */
-    @Tag("messaging-protocols")
+@Tag("messaging-protocols")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AmqpInteropTest {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AmqpInteropTest.class);
 
     private final String host = System.getProperty("interop.amqp.host", "localhost");
     private final int port = Integer.parseInt(System.getProperty("interop.amqp.port", "5672"));
@@ -45,108 +48,152 @@ class AmqpInteropTest {
     private final String password = System.getProperty("interop.amqp.password", "guest");
     private final String queueName = System.getProperty("interop.amqp.queue", "interop-test-queue");
 
-    private AmqpClient client;
+    // Shared event loop only — no shared connection state
+    private static SelectableChannelManager channelManager;
 
     @BeforeAll
-    void connect() throws Exception {
-        ClientConfig config = ClientConfig.builder()
-                .host(host)
-                .port(port)
-                .connectTimeout(Duration.ofSeconds(10))
-                .username(username)
-                .password(password)
-                .build();
-        this.client = new AmqpClient(config);
-        client.connect();
+    static void setUpManager() {
+        channelManager = new SelectableChannelManager(null);
+        channelManager.startEventLoop();
     }
 
     @AfterAll
-    void disconnect() throws Exception {
-        if (client != null) {
-            client.close();
+    static void tearDownManager() throws Exception {
+        if (channelManager != null) {
+            channelManager.stopEventLoop();
+            channelManager.close();
+        }
+    }
+
+    /** Create a fresh connection for the current test. */
+    private AmqpClientService connectClient(String nameSuffix) {
+        var svc = AmqpClientService.builder(host, port)
+                .name("interop-" + nameSuffix)
+                .containerId("interop-client-" + nameSuffix)
+                .username(username)
+                .password(password)
+                .timeout(Duration.ofSeconds(10))
+                .build();
+        var ctx = new DefaultServiceContext(ServiceUser.anonymous());
+        ctx.setAttribute("channelManager", channelManager);
+        svc.connect(ctx);
+        LOG.info("Connected to AMQP broker at {}:{}", host, port);
+        return svc;
+    }
+
+    /** Disconnect and close the given client. */
+    private void disconnectClient(AmqpClientService svc) {
+        var ctx = new DefaultServiceContext(ServiceUser.anonymous());
+        ctx.setAttribute("channelManager", channelManager);
+        svc.disconnect(ctx);
+    }
+
+    @Test
+    void testConnection() throws Exception {
+        var svc = connectClient("conn");
+        try {
+            assertThat(svc.getClient()).isNotNull();
+            assertThat(svc.getClient().isConnected()).isTrue();
+        } finally {
+            disconnectClient(svc);
         }
     }
 
     @Test
-    void testConnection() {
-        assertThat(client).isNotNull();
-        assertThat(client.isConnected()).isTrue();
+    void testAmqpSession() throws Exception {
+        var svc = connectClient("session");
+        try {
+            var client = svc.getClient();
+            assertThat(client).isNotNull();
+            AmqpSession session = client.createSession();
+            assertThat(session).isNotNull();
+        } finally {
+            disconnectClient(svc);
+        }
     }
 
     @Test
     void testSendAndReceiveMessage() throws Exception {
-        String testMessage = "interop-amqp-test";
+        var svc = connectClient("sendrecv");
+        try {
+            String testMessage = "interop-amqp-test";
 
-        // Create session, sender, and receiver links
-        AmqpSession session = client.createSession();
-        SenderLink sender = client.createSender(session, "interop-sender", queueName);
-        ReceiverLink receiver = client.createReceiver(session, "interop-receiver", queueName);
+            var client = svc.getClient();
+            AmqpSession session = client.createSession();
+            SenderLink sender = client.createSender(session, "interop-sender", queueName);
+            ReceiverLink receiver = client.createReceiver(session, "interop-receiver", queueName);
 
-        // Start receiving in background
-        AtomicReference<Delivery> received = new AtomicReference<>();
-        Thread receiveThread = new Thread(() -> {
-            try {
-                Delivery delivery = receiver.receive(5, TimeUnit.SECONDS);
-                if (delivery != null) {
-                    received.set(delivery);
-                    // Accept the delivery
-                    receiver.accept(delivery.deliveryId());
+            // Build message before starting receive thread — avoids frame-stealing race
+            AmqpMessage message = new AmqpMessage();
+            message.bodyValue(new AmqpType.AmqpString(testMessage));
+
+            // Start receive thread AFTER setup — no frame-stealing possible
+            var latch = new CountDownLatch(1);
+            AtomicReference<Delivery> received = new AtomicReference<>();
+            Thread receiveThread = new Thread(() -> {
+                try {
+                    Delivery delivery = receiver.receive(10, TimeUnit.SECONDS);
+                    if (delivery != null) {
+                        received.set(delivery);
+                        receiver.accept(delivery.deliveryId());
+                    }
+                    latch.countDown();
+                } catch (Exception e) {
+                    LOG.warn("Receive thread error", e);
+                    latch.countDown();
                 }
-            } catch (Exception e) {
-                // Timeout or receive error is acceptable
+            });
+            receiveThread.setDaemon(true);
+            receiveThread.start();
+
+            // Send at-most-once
+            Delivery sent = sender.send(message, true);
+            assertThat(sent).as("send should succeed").isNotNull();
+
+            assertThat(latch.await(10, TimeUnit.SECONDS)).as("should receive message").isTrue();
+            receiveThread.join(5000);
+
+            assertThat(received.get()).isNotNull();
+            Object body = received.get().message().body();
+            if (body instanceof AmqpType.AmqpString str) {
+                assertThat(str.value()).isEqualTo(testMessage);
             }
-        });
-        receiveThread.setDaemon(true);
-        receiveThread.start();
-
-        // Send message
-        AmqpMessage message = new AmqpMessage();
-        message.bodyValue(new AmqpType.AmqpString(testMessage));
-        Delivery delivery = sender.send(message, false);
-
-        // Wait for receive
-        receiveThread.join(10000);
-
-        assertThat(received.get()).isNotNull();
-        Object body = received.get().message().body();
-        if (body instanceof AmqpType.AmqpString str) {
-            assertThat(str.value()).isEqualTo(testMessage);
-        }
-
-        // Wait for sender settlement
-        if (!sender.unsettledDeliveries().isEmpty()) {
-            for (Delivery d : sender.unsettledDeliveries().values()) {
-                d.settle(new DeliveryState.Accepted());
-            }
+        } finally {
+            disconnectClient(svc);
         }
     }
 
     @Test
     void testMultipleMessages() throws Exception {
-        AmqpSession session = client.createSession();
-        String multiQueue = queueName + "-multi";
-        SenderLink sender = client.createSender(session, "multi-sender", multiQueue);
-        ReceiverLink receiver = client.createReceiver(session, "multi-receiver", multiQueue);
+        var svc = connectClient("multi");
+        try {
+            var client = svc.getClient();
+            AmqpSession session = client.createSession();
+            String multiQueue = queueName + "-multi";
+            SenderLink sender = client.createSender(session, "multi-sender", multiQueue);
+            ReceiverLink receiver = client.createReceiver(session, "multi-receiver", multiQueue);
 
-        // Send 5 messages
-        for (int i = 0; i < 5; i++) {
-            AmqpMessage msg = new AmqpMessage();
-            msg.bodyValue(new AmqpType.AmqpString("msg-" + i));
-            sender.send(msg, false);
-        }
-
-        // Receive all messages
-        for (int i = 0; i < 5; i++) {
-            Delivery delivery = receiver.receive(3, TimeUnit.SECONDS);
-            if (delivery != null) {
-                receiver.accept(delivery.deliveryId());
+            // Send all messages first, then receive — no frame-stealing race
+            for (int i = 0; i < 5; i++) {
+                AmqpMessage msg = new AmqpMessage();
+                msg.bodyValue(new AmqpType.AmqpString("msg-" + i));
+                sender.send(msg, false);
             }
+
+            for (int i = 0; i < 5; i++) {
+                Delivery delivery = receiver.receive(3, TimeUnit.SECONDS);
+                if (delivery != null) {
+                    receiver.accept(delivery.deliveryId());
+                }
+            }
+        } finally {
+            disconnectClient(svc);
         }
     }
 
     @Test
     void testClientConfigBuilder() {
-        var config = ClientConfig.builder()
+        var config = ssg.legoflow.messaging.amqp.client.ClientConfig.builder()
                 .host("test")
                 .port(5673)
                 .connectTimeout(Duration.ofSeconds(5))
@@ -157,25 +204,13 @@ class AmqpInteropTest {
     }
 
     @Test
-    void testAmqpSession() {
-        assertThat(client).isNotNull();
-        AmqpSession session = client.createSession();
-        assertThat(session).isNotNull();
-    }
-
-    @Test
     void testCloseGracefully() throws Exception {
-        // Use a dedicated client to avoid disrupting the shared connection
-        var testConfig = ClientConfig.builder()
-                .host(host).port(port)
-                .connectTimeout(Duration.ofSeconds(10))
-                .username(username)
-                .password(password)
-                .build();
-        var testClient = new AmqpClient(testConfig);
-        testClient.connect();
-        assertThat(testClient.isConnected()).isTrue();
-        testClient.close();
-        assertThat(testClient.isConnected()).isFalse();
+        var svc = connectClient("close");
+        try {
+            assertThat(svc.getClient().isConnected()).isTrue();
+        } finally {
+            disconnectClient(svc);
+            assertThat(svc.getClient().isConnected()).isFalse();
+        }
     }
 }

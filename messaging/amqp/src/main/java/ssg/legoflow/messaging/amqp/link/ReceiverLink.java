@@ -1,5 +1,6 @@
 package ssg.legoflow.messaging.amqp.link;
 
+import ssg.legoflow.messaging.amqp.client.AmqpClient;
 import ssg.legoflow.messaging.amqp.common.AmqpConstants;
 import ssg.legoflow.messaging.amqp.delivery.Delivery;
 import ssg.legoflow.messaging.amqp.delivery.DeliveryState;
@@ -9,6 +10,7 @@ import ssg.legoflow.messaging.amqp.transport.Performative;
 import ssg.legoflow.messaging.amqp.transport.PerformativeCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -59,7 +61,11 @@ public final class ReceiverLink {
     private final BlockingQueue<Delivery> receivedMessages = new LinkedBlockingQueue<>();
     private final Map<Long, Delivery> unsettledDeliveries = new ConcurrentHashMap<>();
     private volatile AmqpSession session;
+    private volatile AmqpClient client;
     private volatile MessageHandler messageHandler;
+
+    /** Sets the client reference so {@link #receive(long, TimeUnit)} can poll frames. */
+    public void client(AmqpClient client) { this.client = client; }
 
     /**
      * Callback for message reception.
@@ -138,6 +144,10 @@ public final class ReceiverLink {
     /**
      * Issues credit to the remote sender, allowing it to send messages.
      *
+     * <p>Per AMQP 1.0 (ISO/IEC 19464-1): when {@code handle} and
+     * {@code link-credit} are set, {@code next-incoming-id} and
+     * {@code incoming-window} MUST be null (per-link flow control).
+     *
      * @param credit the number of messages to allow
      */
     public void issueCredit(long credit) {
@@ -145,16 +155,13 @@ public final class ReceiverLink {
         this.grantedCredit.addAndGet(credit);
         if (session != null) {
             var flow = new Performative.Flow(
-                    session.nextIncomingId(),
-                    session.incomingWindow(),
-                    session.nextOutgoingId(),
-                    session.outgoingWindow(),
-                    handle,
-                    deliveryCount.get(),
-                    grantedCredit.get(),
-                    null,
-                    false, false,
-                    Map.of()
+                    session.nextIncomingId(),          // next-incoming-id
+                    session.incomingWindow(),           // incoming-window
+                    null, null,                         // next-outgoing-id, outgoing-window
+                    handle,                             // handle
+                    deliveryCount.get(),                // delivery-count
+                    grantedCredit.get(),                // link-credit
+                    null, false, false, Map.of()
             );
             session.send(flow);
         }
@@ -193,16 +200,26 @@ public final class ReceiverLink {
 
     /**
      * Receives the next message, blocking until one is available.
+     * Reads frames from transport via the client and processes them
+     * through the state machine until a TRANSFER for this link arrives.
      *
      * @return the delivery
      * @throws InterruptedException if interrupted while waiting
      */
     public Delivery receive() throws InterruptedException {
-        return receivedMessages.take();
+        // Check queue first — message may have arrived while we were doing something else
+        if (!receivedMessages.isEmpty()) {
+            return receivedMessages.poll();
+        }
+        // Otherwise poll frames from transport until one arrives
+        return pollFromTransport(Long.MAX_VALUE);
     }
 
     /**
      * Receives the next message with a timeout.
+     * Reads frames from transport via the client and processes them
+     * through the state machine until a TRANSFER for this link arrives
+     * or the timeout elapses.
      *
      * @param timeout the timeout value
      * @param unit    the timeout unit
@@ -210,7 +227,39 @@ public final class ReceiverLink {
      * @throws InterruptedException if interrupted while waiting
      */
     public Delivery receive(long timeout, TimeUnit unit) throws InterruptedException {
-        return receivedMessages.poll(timeout, unit);
+        if (client == null) {
+            // Fallback: direct queue poll (for non-service usage)
+            return receivedMessages.poll(timeout, unit);
+        }
+        return pollFromTransport(unit.toMillis(timeout));
+    }
+
+    /**
+     * Polls frames from the transport until a message for this link arrives or timeout.
+     * This is the single-reader path: only one caller reads frames at a time.
+     */
+    private Delivery pollFromTransport(long timeoutMs) throws InterruptedException {
+        long deadline = System.currentTimeMillis() + timeoutMs;
+
+        while (true) {
+            if (!receivedMessages.isEmpty()) {
+                return receivedMessages.poll();
+            }
+
+            long remainingMs = deadline - System.currentTimeMillis();
+            if (remainingMs <= 0) {
+                return null;
+            }
+
+            try {
+                boolean gotFrame = client.pollFrame(remainingMs, TimeUnit.MILLISECONDS);
+                if (!gotFrame) {
+                    return null;
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Error polling frames: " + e.getMessage(), e);
+            }
+        }
     }
 
     /**

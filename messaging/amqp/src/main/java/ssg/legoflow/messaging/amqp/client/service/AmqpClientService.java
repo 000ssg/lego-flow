@@ -4,12 +4,12 @@ import ssg.legoflow.blocks.Context;
 import ssg.legoflow.messaging.amqp.client.AmqpClient;
 import ssg.legoflow.messaging.amqp.client.BrokerMode;
 import ssg.legoflow.messaging.amqp.client.ClientConfig;
-import ssg.legoflow.messaging.amqp.message.AmqpMessage;
 import ssg.legoflow.messaging.amqp.transport.PipelineTransport;
 import ssg.legoflow.service.AbstractService;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
 import ssg.legoflow.service.channel.ChannelHandler;
+import ssg.legoflow.service.channel.DataChannel;
 import ssg.legoflow.service.channel.TcpDataChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,22 +17,24 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.nio.channels.SelectionKey;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
- * AMQP 1.0 client service — creates a TCP connection via virtual threads.
+ * AMQP 1.0 client service — delegates all I/O to the {@code SelectableChannelManager}.
  *
- * <p>Opens a {@link SocketChannel}, wraps it in {@link TcpDataChannel}, and bridges to
- * {@link AmqpClient} via {@link PipelineTransport}. The protocol layer's readLoop runs
- * on a virtual thread and blocks on {@code receive()} — virtual threads make this efficient
- * with zero selector overhead.
- *
- * <p>Only the server side needs {@link ssg.legoflow.service.manager.SelectableChannelManager}
- * for multiplexing many connections. A client has one connection and a virtual-threaded
- * readLoop is the natural choice.
+ * <p>Client-side TCP lifecycle:</p>
+ * <ol>
+ *   <li>{@code doConnect()} opens a non-blocking SocketChannel, registers for OP_CONNECT, THEN starts connect</li>
+ *   <li>Manager fires {@code fireConnect()} when TCP connects</li>
+ *   <li>Handler's {@code onConnect()} finishes TCP, enables OP_READ|OP_WRITE, runs protocol handshake</li>
+ *   <li>Data flows via fireRead/fireWrite through pipeline to transport to protocol</li>
+ * </ol>
  */
 public final class AmqpClientService extends AbstractService<ByteBuffer, ByteBuffer> {
 
@@ -53,6 +55,8 @@ public final class AmqpClientService extends AbstractService<ByteBuffer, ByteBuf
     private volatile PipelineTransport transport;
     private volatile TcpDataChannel dataChannel;
     private volatile Consumer<AmqpResult> deliveryCallback;
+
+    void setClient(AmqpClient c) { this.client = c; }
 
     public record AmqpResult(boolean success, String address, ByteBuffer payload) {
         public static AmqpResult ok(String addr, ByteBuffer data) { return new AmqpResult(true, addr, data); }
@@ -78,33 +82,37 @@ public final class AmqpClientService extends AbstractService<ByteBuffer, ByteBuf
     @Override
     protected void doConnect(ServiceContext ctx) {
         try {
-            // Create TCP socket channel and connect
+            // 1. Open non-blocking socket
             var socketChannel = SocketChannel.open();
-            socketChannel.connect(new InetSocketAddress(host, port));
-            socketChannel.configureBlocking(true);
-
+            socketChannel.configureBlocking(false);
             dataChannel = new TcpDataChannel(socketChannel);
+
+            // 2. Create transport and handler with latch BEFORE registering
             transport = new PipelineTransport(dataChannel);
+            var handler = new AmqpClientChannelHandler(this, ctx);
+            var latch = new CountDownLatch(1);
+            handler.setConnectLatch(latch);
 
-            // Build config
-            var configBuilder = ClientConfig.builder()
-                    .host(host)
-                    .port(port)
-                    .containerId(containerId)
-                    .maxFrameSize(maxFrameSize)
-                    .channelMax(channelMax)
-                    .idleTimeout(idleTimeout)
-                    .connectTimeout(timeout);
-            if (username != null) configBuilder.username(username).password(password);
-            if (brokerModeName != null) configBuilder.brokerMode(BrokerMode.valueOf(brokerModeName));
-            var config = configBuilder.build();
+            // 3. Register channel with manager (OP_CONNECT only) — handler + latch already in place
+            ctx.registerChannel(this, dataChannel, handler);
 
-            this.client = new AmqpClient(config);
-            client.connect(transport);
+            // 4. Start async connect AFTER registration — selector is already listening for OP_CONNECT
+            socketChannel.connect(new InetSocketAddress(host, port));
 
-            LOG.info("AMQP client connected to {}:{}", host, port);
+            // 5. Wait for TCP connect (handler.onConnect fires on processing pool thread)
+            if (!latch.await(timeout.toMillis(), TimeUnit.MILLISECONDS)) {
+                throw new IOException("AMQP connection timeout: " + host + ":" + port);
+            }
+
+            // 6. Protocol handshake runs HERE on the calling thread — no deadlock with selector
+            handler.doProtocolHandshake();
+
+            LOG.info("AMQP client connected to {}:{} (selector-driven)", host, port);
         } catch (IOException e) {
             throw new RuntimeException("AMQP client failed to connect: " + host + ":" + port, e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("AMQP connection interrupted", e);
         }
     }
 
@@ -112,15 +120,29 @@ public final class AmqpClientService extends AbstractService<ByteBuffer, ByteBuf
     protected void doDisconnect(ServiceContext ctx) {
         try { if (client != null) client.close(); } catch (Exception ignored) {}
         try { if (transport != null) transport.close(); } catch (Exception ignored) {}
+        if (ctx != null) {
+            var mgr = ctx.getChannelManager();
+            if (mgr != null) mgr.unregisterChannel(this);
+        }
     }
 
     public AmqpClient getClient() { return client; }
     public PipelineTransport getTransport() { return transport; }
     public TcpDataChannel getDataChannel() { return dataChannel; }
     public void setDeliveryCallback(Consumer<AmqpResult> cb) { this.deliveryCallback = cb; }
+    public String getHost() { return host; }
+    public int getPort() { return port; }
+    public Duration getTimeout() { return timeout; }
+    public int getMaxFrameSize() { return maxFrameSize; }
+    public int getChannelMax() { return channelMax; }
+    public long getIdleTimeout() { return idleTimeout; }
+    public String getUsername() { return username; }
+    public String getPassword() { return password; }
+    public String getBrokerModeName() { return brokerModeName; }
+    public String getContainerId() { return containerId; }
 
     public ChannelHandler createChannelHandler() {
-        return new AmqpClientChannelHandler(this);
+        return new AmqpClientChannelHandler(this, null);
     }
 
     @Override
@@ -144,6 +166,11 @@ public final class AmqpClientService extends AbstractService<ByteBuffer, ByteBuf
         private String containerId;
 
         public Builder(String host, int port) { this.host = host; this.port = port; }
+        /**
+         * Set a unique service name. Each AMQP client instance registered with the same
+         * {@link ssg.legoflow.service.manager.SelectableChannelManager} must have a
+         * different name — the manager uses the name as the pipeline key.
+         */
         public Builder name(String n) { this.name = n; return this; }
         public Builder dependencies(String... d) { for (String dep : d) dependencies.add(dep); return this; }
         public Builder priority(int p) { this.priority = p; return this; }

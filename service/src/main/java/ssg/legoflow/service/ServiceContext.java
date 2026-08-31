@@ -1,6 +1,7 @@
 package ssg.legoflow.service;
 
 import ssg.legoflow.blocks.Context;
+import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
 import ssg.legoflow.service.channel.ServerDataChannel;
 import ssg.legoflow.service.manager.SelectableChannelManager;
@@ -26,7 +27,23 @@ public interface ServiceContext extends Context {
     void checkPermission(String operation) throws AccessControl.AccessDeniedException;
 
     default void registerChannel(Service<?, ?> service, DataChannel channel) {
-        getChannelManager().registerChannel(service, channel);
+        var mgr = getChannelManager();
+        if (mgr == null) {
+            throw new IllegalStateException("ChannelManager not configured in context for service: " + service.getDescriptor().name());
+        }
+        mgr.registerChannel(service, channel);
+    }
+
+    default void registerChannel(Service<?, ?> service, DataChannel channel, ChannelHandler handler) {
+        var mgr = getChannelManager();
+        if (mgr == null) {
+            throw new IllegalStateException("ChannelManager not configured in context for service: " + service.getDescriptor().name());
+        }
+        mgr.registerChannel(service, channel);
+        var pipeline = mgr.getChannelPipeline(service);
+        if (pipeline != null && handler != null) {
+            pipeline.addLast(handler);
+        }
     }
 
     default void registerServerChannel(Service<?, ?> service, ServerDataChannel channel) {

@@ -61,11 +61,13 @@ public class SelectableChannelManager extends AbstractServicesManager {
         // Register with the selector
         try {
             if (channel instanceof TcpDataChannel tcp) {
-                int ops = SelectionKey.OP_READ | SelectionKey.OP_CONNECT;
-                var key = tcp.getSocketChannel().register(selector, ops,
+                var socketChannel = tcp.getSocketChannel();
+                // Initiate non-blocking connect — selector will fire OP_CONNECT
+                int ops = SelectionKey.OP_CONNECT;
+                var key = socketChannel.register(selector, ops,
                         new ChannelRegistration(channel, pipeline));
                 tcp.setSelectionKey(key);
-                LOG.debug("Registered TCP channel for service: {} with ops={}", name, ops);
+                LOG.debug("Registered TCP channel for service: {} with OP_CONNECT", name);
             } else if (channel instanceof UdpDataChannel udp) {
                 var key = udp.getDatagramChannel().register(selector, SelectionKey.OP_READ,
                         new ChannelRegistration(channel, pipeline));
@@ -77,6 +79,23 @@ public class SelectableChannelManager extends AbstractServicesManager {
             throw new UncheckedIOException("Failed to register channel for service: " + name, e);
         }
         LOG.debug("Registered channel for service: {}", name);
+    }
+
+    /**
+     * Update interest ops for an already-registered channel (e.g., after TCP connect,
+     * switch from OP_CONNECT to OP_READ | OP_WRITE).
+     */
+    public void updateChannelOps(Service<?, ?> service, int ops) {
+        var name = service.getDescriptor().name();
+        var channel = channelsByService.get(name);
+        if (channel instanceof TcpDataChannel tcp) {
+            var key = tcp.getSelectionKey();
+            if (key != null) {
+                key.interestOps(ops);
+                selector.wakeup(); // Force selector to see the new interest set
+                LOG.debug("Updated interest ops for service: {} to {} and woke up selector", name, ops);
+            }
+        }
     }
 
     public void registerServerChannel(Service<?, ?> service, ServerDataChannel channel) {
@@ -229,8 +248,27 @@ public class SelectableChannelManager extends AbstractServicesManager {
         var pipeline = reg.pipeline();
         var processingThread = new ProcessingThread(channel, pipeline, bufferSize);
 
+        // Diagnostic: trace key readiness
+        if (key.isReadable() || key.isWritable() || key.isConnectable()) {
+            System.out.println("[dispatchKey] readable=" + key.isReadable()
+                    + " writable=" + key.isWritable()
+                    + " ops=" + key.interestOps()
+                    + " ready=" + key.readyOps());
+        }
+
         if (key.isReadable()) {
-            processingPool.submit(processingThread::processReadable);
+            System.out.println("[dispatchKey] → submitting processReadable to processingPool");
+            processingPool.submit(() -> {
+                System.out.println("[processingThread] processReadable starting");
+                try {
+                    processingThread.processReadable();
+                    System.out.println("[processingThread] processReadable completed");
+                } catch (Exception e) {
+                    System.out.println("[processingThread] processReadable EXCEPTION: " + e);
+                    e.printStackTrace();
+                }
+                return null;
+            });
         }
         if (key.isWritable()) {
             processingPool.submit(processingThread::processWritable);
