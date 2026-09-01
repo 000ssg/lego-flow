@@ -39,6 +39,7 @@ public final class QuicLossDetection {
     private long minRtt = Long.MAX_VALUE;
     private long latestRtt = 0;
     private boolean firstRttSample = true;
+    private int rttSampleCount = 0;
 
     // ---- Sent packet tracking per packet number space ----
     private final Map<PacketNumberSpace, Map<Long, SentPacketInfo>> sentPackets = new ConcurrentHashMap<>();
@@ -174,6 +175,8 @@ public final class QuicLossDetection {
         long earliestLossTime = Long.MAX_VALUE;
 
         var tracked = sentPackets.get(space);
+        // Time threshold — only after at least 2 RTT samples for a stable estimate (RFC 9002 §6.1.2)
+        boolean timeThresholdEnabled = rttSampleCount >= 2;
         for (var entry : tracked.entrySet()) {
             var info = entry.getValue();
             if (info.packetNumber() > largest) continue;
@@ -184,14 +187,16 @@ public final class QuicLossDetection {
                 continue;
             }
 
-            // Time threshold
-            long elapsed = now - info.timeSent();
-            if (elapsed >= timeThresholdNs) {
-                lost.add(info.packetNumber());
-            } else {
-                long lossTimeCandidate = info.timeSent() + timeThresholdNs;
-                if (lossTimeCandidate < earliestLossTime) {
-                    earliestLossTime = lossTimeCandidate;
+            if (timeThresholdEnabled) {
+                // Time threshold
+                long elapsed = now - info.timeSent();
+                if (elapsed >= timeThresholdNs) {
+                    lost.add(info.packetNumber());
+                } else {
+                    long lossTimeCandidate = info.timeSent() + timeThresholdNs;
+                    if (lossTimeCandidate < earliestLossTime) {
+                        earliestLossTime = lossTimeCandidate;
+                    }
                 }
             }
         }
@@ -245,6 +250,7 @@ public final class QuicLossDetection {
      */
     private void updateRtt(long rttSampleMs, long ackDelayMs) {
         latestRtt = rttSampleMs;
+        rttSampleCount++;
 
         if (rttSampleMs < minRtt) {
             minRtt = rttSampleMs;

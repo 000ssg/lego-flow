@@ -212,13 +212,13 @@ graph TD
 ```mermaid
 graph TD
     AT["AmqpTransport (interface)<br/>send(ByteBuffer), receive(ByteBuffer),<br/>close(), isOpen()"]
-    AT --> PT["PipelineTransport<br/>(selector-driven + blocking fallback)"]
+    AT --> PT["PipelineTransport<br/>(selector-driven, DataChannel)"]
     AT --> IM["InMemoryTransport<br/>(BlockingQueue pair)"]
     PT --> SM["SelectableChannelManager<br/>(server-side multiplexing)"]
-    PT --> VT["Virtual thread + SocketChannel<br/>(client-side blocking)"]
+    PT --> VC["Virtual thread + DataChannel<br/>(client via AmqpClientService)"]
 ```
 
-- **PipelineTransport**: primary transport for both client and server. When a `SelectableChannelManager` is registered (server), data arrives via `onRead()` callback and a semaphore signals `receive()`. When running on a virtual thread (client), falls back to blocking `SocketChannel.read()`.
+- **PipelineTransport**: primary transport for both client and server. Reads are driven by `SelectableChannelManager` (server) or `AmqpClientService` (client) via `DataChannel.fireRead()`. The transport only exposes the `AmqpTransport` SPI — it never touches `SocketChannel` directly.
 - **InMemoryTransport**: `createPair()` returns two connected transports using `LinkedBlockingQueue`
 - Container's `handleConnection(AmqpTransport)` is public, allowing direct injection of in-memory transports for testing
 
@@ -227,19 +227,16 @@ graph TD
 | Lego Flow Module | Usage in AMQP |
 |------------------|---------------|
 | `blocks` | DP<I,O> for message processing pipeline, DF<T> for message filtering, Statistics for metrics |
-| `service` | SelectableChannelManager for server multiplexing, virtual threads for client I/O, ServiceContext for lifecycle, AmqpClientService/AmqpContainerService wrappers |
+| `service` | SelectableChannelManager for server/client multiplexing, AmqpClientService/AmqpContainerService wrappers |
 
-The AMQP module follows the framework's conventions: AutoCloseable resources, fluent builder APIs for configuration, virtual threads for concurrency, DP/DF-based service wrappers.
+The AMQP module follows the framework's conventions: AutoCloseable resources, fluent builder APIs for configuration, DataChannel for I/O, DP/DF-based service wrappers.
 
 ## Broker Compatibility
 
 | Broker | BrokerMode | Handshake | Auth |
 |--------|-----------|-----------|------|
 | RabbitMQ | `RABBITMQ` | SASL-first (proto-3) | ANONYMOUS, PLAIN |
-| Apache Artemis | `ARTEMIS` | SASL-first (proto-3) | PLAIN (admin/admin) |
-| Qpid Dispatch | `QPID_DISPATCH` | AMQP_HEADER first (proto-0) | ANONYMOUS (no SASL) |
-
-**Qpid Dispatch requires proto-0 mode.** `AUTO`/`STANDARD` broker mode will fail because Qpid closes the connection on `SASL_HEADER`. The `scholzj/qpid-dispatch` Docker image is amd64-only and incompatible with arm64 (Apple Silicon) hosts.
+| Apache Artemis | `ARTEMIS` | SASL-first (proto-3) | PLAIN |
 
 ---
 
