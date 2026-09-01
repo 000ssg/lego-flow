@@ -60,10 +60,12 @@ class InProcessIntegrationTest {
                 serverContainer.accept(connCtx, incoming);
             });
 
+            var serverReady = new CountDownLatch(1);
             Thread serverThread = Thread.ofVirtual().name("inproc-server").start(() -> {
+                serverReady.countDown();
                 serverContainer.handleConnection(transportPair[1]);
             });
-            Thread.sleep(300);
+            assertThat(serverReady.await(5, TimeUnit.SECONDS)).as("Server must start").isTrue();
 
             var clientConfig = ClientConfig.builder()
                     .containerId("test-client")
@@ -101,10 +103,12 @@ class InProcessIntegrationTest {
                     .build());
             serverContainer.start();
 
+            var serverReady = new CountDownLatch(1);
             Thread serverThread = Thread.ofVirtual().name("inproc-server").start(() -> {
+                serverReady.countDown();
                 serverContainer.handleConnection(transportPair[1]);
             });
-            Thread.sleep(300);
+            assertThat(serverReady.await(5, TimeUnit.SECONDS)).as("Server must start").isTrue();
 
             var clientConfig = ClientConfig.builder()
                     .containerId("test-client")
