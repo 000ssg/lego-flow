@@ -1,6 +1,7 @@
 package ssg.legoflow.messaging.amqp.container;
 
 import ssg.legoflow.messaging.amqp.common.AmqpConstants;
+import ssg.legoflow.messaging.amqp.common.AmqpEventListener;
 import ssg.legoflow.messaging.amqp.common.ConnectionState;
 import ssg.legoflow.messaging.amqp.delivery.DeliveryState;
 import ssg.legoflow.messaging.amqp.delivery.DeliveryStateCodec;
@@ -160,72 +161,92 @@ public final class AmqpContainer implements AutoCloseable {
         }
     }
 
+    // Lightweight event listener — zero overhead when not configured
+    private AmqpEventListener listener = AmqpEventListener.NO_OP;
+
     /**
-     * Handles a new client connection. The service layer calls this for each
-     * accepted transport. This method runs the full protocol lifecycle (SASL,
-     * header exchange, frame loop) and cleans up when done.
+     * Sets a lightweight event listener for protocol lifecycle events.
+     * Zero overhead when not set (default = NO_OP sentinel).
+     *
+     * @param listener the listener, or null to reset to NO_OP
+     */
+    public void setListener(AmqpEventListener listener) {
+        this.listener = listener != null ? listener : AmqpEventListener.NO_OP;
+    }
+
+    /**
+     * Handles a new client connection asynchronously. The service layer calls this
+     * for each accepted transport — the protocol loop runs on the executor.
      *
      * @param transport the transport for this connection (already open)
      */
     public void handleConnection(AmqpTransport transport) {
-        handleConnection(transport, null);
-    }
-
-    /**
-     * Handles an incoming AMQP connection with an optional ready callback.
-     *
-     * @param transport the transport for this connection (already open)
-     * @param readyCallback optional callback fired when the connection handler starts
-     */
-    public void handleConnection(AmqpTransport transport, java.lang.Runnable readyCallback) {
         String connId = UUID.randomUUID().toString().substring(0, 8);
         var ctx = new ConnectionContext(connId, transport);
         connections.put(connId, ctx);
         LOG.debug("New connection: {}", connId);
 
-        executor.submit(() -> {
-            if (readyCallback != null) {
-                readyCallback.run();
-            }
-            try {
-                // Detect client's first header: SASL_HEADER (proto-3) or AMQP_HEADER (proto-0)
-                byte[] firstHeader = readHeader(transport);
+        executor.submit(() -> handleConnectionInternal(ctx));
+    }
 
-                if (Arrays.equals(firstHeader, AmqpConstants.SASL_HEADER)) {
-                    LOG.debug("Connection {} — SASL-first protocol", connId);
-                    // Echo SASL_HEADER back
-                    transport.send(ByteBuffer.wrap(AmqpConstants.SASL_HEADER));
-                    // SASL exchange
-                    doSaslExchange(ctx, transport);
-                    // AMQP header exchange
-                    byte[] amqpHeader = readHeader(transport);
-                    if (!Arrays.equals(amqpHeader, AmqpConstants.AMQP_HEADER)) {
-                        throw new IllegalStateException("Expected AMQP header after SASL");
-                    }
-                    transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
-                    ctx.state = ConnectionState.HDR_EXCH;
-                    // Read client OPEN frame
-                    handleConnectionLifecycle(ctx, true);
-                } else if (Arrays.equals(firstHeader, AmqpConstants.AMQP_HEADER)) {
-                    if (!config.proto0Accepted()) {
-                        LOG.debug("Connection {} — proto-0 rejected (mode={})", connId, config.mode());
-                        throw new IllegalStateException("Protocol header exchange not supported in this mode");
-                    }
-                    LOG.debug("Connection {} — proto-0 protocol", connId);
-                    transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
-                    ctx.state = ConnectionState.HDR_EXCH;
-                    handleConnectionLifecycle(ctx, false);
-                } else {
-                    throw new IllegalStateException("Invalid protocol header: " + bytesHex(firstHeader));
-                }
-            } catch (Exception e) {
-                LOG.debug("Connection {} error: {}", connId, e.getMessage());
-            } finally {
-                cleanupConnection(ctx);
-                connections.remove(connId);
-                transport.close();
+    /**
+     * Handles a new client connection synchronously. The protocol loop runs on the
+     * calling thread. Useful for in-memory transports where the caller is already
+     * a dedicated thread and executor scheduling delays are undesirable.
+     *
+     * @param transport the transport for this connection (already open)
+     */
+    public void handleConnectionSync(AmqpTransport transport) {
+        String connId = UUID.randomUUID().toString().substring(0, 8);
+        var ctx = new ConnectionContext(connId, transport);
+        connections.put(connId, ctx);
+        LOG.debug("New connection (sync): {}", connId);
+
+        handleConnectionInternal(ctx);
+    }
+
+    /** Shared protocol loop — called from executor or directly. */
+    private void handleConnectionInternal(ConnectionContext ctx) {
+        listener.onEvent(AmqpEventListener.EventType.CONNECTION_STARTED, ctx.id, null);
+        try {
+            runProtocol(ctx);
+        } catch (Exception e) {
+            LOG.debug("Connection {} error: {}", ctx.id, e.getMessage());
+        } finally {
+            listener.onEvent(AmqpEventListener.EventType.CONNECTION_CLOSING, ctx.id, null);
+            cleanupConnection(ctx);
+            connections.remove(ctx.id);
+            ctx.transport.close();
+        }
+    }
+
+    /** Executes the full protocol handshake and frame loop. Extracted for sync/async dispatch. */
+    private void runProtocol(ConnectionContext ctx) {
+        byte[] firstHeader = readHeader(ctx.transport);
+
+        if (Arrays.equals(firstHeader, AmqpConstants.SASL_HEADER)) {
+            LOG.debug("Connection {} — SASL-first protocol", ctx.id);
+            ctx.transport.send(ByteBuffer.wrap(AmqpConstants.SASL_HEADER));
+            doSaslExchange(ctx, ctx.transport);
+            byte[] amqpHeader = readHeader(ctx.transport);
+            if (!Arrays.equals(amqpHeader, AmqpConstants.AMQP_HEADER)) {
+                throw new IllegalStateException("Expected AMQP header after SASL");
             }
-        });
+            ctx.transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
+            ctx.state = ConnectionState.HDR_EXCH;
+            handleConnectionLifecycle(ctx, true);
+        } else if (Arrays.equals(firstHeader, AmqpConstants.AMQP_HEADER)) {
+            if (!config.proto0Accepted()) {
+                LOG.debug("Connection {} — proto-0 rejected (mode={})", ctx.id, config.mode());
+                throw new IllegalStateException("Protocol header exchange not supported in this mode");
+            }
+            LOG.debug("Connection {} — proto-0 protocol", ctx.id);
+            ctx.transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
+            ctx.state = ConnectionState.HDR_EXCH;
+            handleConnectionLifecycle(ctx, false);
+        } else {
+            throw new IllegalStateException("Invalid protocol header: " + bytesHex(firstHeader));
+        }
     }
 
     /** Reads an 8-byte protocol header. */
@@ -320,6 +341,7 @@ public final class AmqpContainer implements AutoCloseable {
         );
         sendPerformative(ctx, 0, myOpen);
         ctx.state = ConnectionState.OPENED;
+        listener.onEvent(AmqpEventListener.EventType.CONNECTION_OPENED, ctx.id, null);
 
         // Main frame loop
         while (ctx.transport.isOpen() && ctx.state == ConnectionState.OPENED) {
@@ -372,6 +394,7 @@ public final class AmqpContainer implements AutoCloseable {
                 session.outgoingWindow()
         );
         sendPerformative(ctx, localChannel, response);
+        listener.onEvent(AmqpEventListener.EventType.SESSION_CREATED, ctx.id, "local=" + localChannel);
         LOG.debug("Session begun: local={}, remote={}", localChannel, remoteChannel);
     }
 
@@ -403,6 +426,7 @@ public final class AmqpContainer implements AutoCloseable {
                     null, 0, List.of(), List.of(), Map.of()
             );
             sendPerformative(ctx, localChannel, response);
+            listener.onEvent(AmqpEventListener.EventType.LINK_ATTACHED, ctx.id, attach.name());
             LOG.debug("Sender link attached: '{}' on address '{}'", attach.name(),
                     sourceAddr != null ? sourceAddr : targetAddr);
         } else {
@@ -426,6 +450,7 @@ public final class AmqpContainer implements AutoCloseable {
             sendPerformative(ctx, localChannel, response);
 
             issueCredit(ctx, localChannel, receiverLink);
+            listener.onEvent(AmqpEventListener.EventType.LINK_ATTACHED, ctx.id, attach.name());
             LOG.debug("Receiver link attached: '{}' on address '{}'", attach.name(), address);
         }
     }

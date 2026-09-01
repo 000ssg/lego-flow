@@ -3,6 +3,7 @@ package ssg.legoflow.messaging.amqp.interop;
 import org.junit.jupiter.api.*;
 import ssg.legoflow.messaging.amqp.client.AmqpClient;
 import ssg.legoflow.messaging.amqp.client.ClientConfig;
+import ssg.legoflow.messaging.amqp.common.AmqpEventListener;
 import ssg.legoflow.messaging.amqp.container.AmqpContainer;
 import ssg.legoflow.messaging.amqp.container.ContainerConfig;
 import ssg.legoflow.messaging.amqp.container.ContainerMode;
@@ -60,11 +61,10 @@ class InProcessIntegrationTest {
                 serverContainer.accept(connCtx, incoming);
             });
 
+            // Use listener to know when server is ready to exchange frames
             var serverReady = new CountDownLatch(1);
-            Thread serverThread = Thread.ofVirtual().name("inproc-server").start(() -> {
-                serverContainer.handleConnection(transportPair[1], serverReady::countDown);
-            });
-            assertThat(serverReady.await(5, TimeUnit.SECONDS)).as("Server must start").isTrue();
+            serverContainer.setListener(AmqpEventListener.latchOnFirst(serverReady,
+                    AmqpEventListener.EventType.CONNECTION_STARTED));
 
             var clientConfig = ClientConfig.builder()
                     .containerId("test-client")
@@ -74,6 +74,12 @@ class InProcessIntegrationTest {
                     .connectTimeout(Duration.ofSeconds(5))
                     .build();
             var client = new AmqpClient(clientConfig);
+
+            // Start server thread — runs protocol loop directly (no executor delay)
+            Thread.ofVirtual().name("inproc-server").start(() ->
+                    serverContainer.handleConnectionSync(transportPair[1]));
+
+            assertThat(serverReady.await(5, TimeUnit.SECONDS)).as("Server must start").isTrue();
             client.connect(transportPair[0]);
 
             assertThat(client.isConnected()).isTrue();
@@ -103,10 +109,8 @@ class InProcessIntegrationTest {
             serverContainer.start();
 
             var serverReady = new CountDownLatch(1);
-            Thread serverThread = Thread.ofVirtual().name("inproc-server").start(() -> {
-                serverContainer.handleConnection(transportPair[1], serverReady::countDown);
-            });
-            assertThat(serverReady.await(5, TimeUnit.SECONDS)).as("Server must start").isTrue();
+            serverContainer.setListener(AmqpEventListener.latchOnFirst(serverReady,
+                    AmqpEventListener.EventType.CONNECTION_STARTED));
 
             var clientConfig = ClientConfig.builder()
                     .containerId("test-client")
@@ -116,6 +120,12 @@ class InProcessIntegrationTest {
                     .connectTimeout(Duration.ofSeconds(5))
                     .build();
             var client = new AmqpClient(clientConfig);
+
+            // Start server thread — runs protocol loop directly (no executor delay)
+            Thread.ofVirtual().name("inproc-server").start(() ->
+                    serverContainer.handleConnectionSync(transportPair[1]));
+
+            assertThat(serverReady.await(5, TimeUnit.SECONDS)).as("Server must start").isTrue();
             client.connect(transportPair[0]);
 
             assertThat(client.isConnected()).isTrue();

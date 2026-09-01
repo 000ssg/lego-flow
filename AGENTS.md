@@ -938,7 +938,61 @@ the lambda).
 waiting before the commit is accepted.** This has caused 3+ CI failures across platforms
 (Ubuntu, macOS, Windows) in the cluster_protocols branch alone.
 
-## 11. Interop Test Protocol Accuracy ⚠️ CRITICAL
+## 11. In-Memory Transport Signaling ⚠️ REQUIRED
+
+### Problem: Blocking Polls and Executor Delays on CI
+In-memory transports connect two virtual threads in the same JVM. Without proper signaling,
+the reader either busy-spins or blocks with timeouts that race against CI scheduling.
+
+### Anti-Pattern ❌: Busy-Spin with onSpinWait
+```java
+// BAD: poll() returns null → onSpinWait → loop. The sender isn't notified,
+// so on CI the reader may spin for seconds waiting for data.
+ByteBuffer data = inbound.poll();
+if (data == null) { Thread.onSpinWait(); continue; }
+```
+
+### Anti-Pattern ❌: Second-Level Timeouts
+```java
+// BAD: 5-second timeout for in-memory data. On CI, both threads block for seconds.
+ByteBuffer data = inbound.poll(5, TimeUnit.SECONDS);
+```
+
+### Correct Pattern ✅: Queue Signaling
+`LinkedBlockingQueue.poll(timeout)` uses `signal()` — when the sender calls `offer()`,
+it wakes the waiting thread immediately via `LockSupport.unpark()`:
+
+```java
+@Override
+public int receive(ByteBuffer buffer) {
+    return receiveWithTimeout(buffer, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+}
+
+@Override
+public int receiveWithTimeout(ByteBuffer buffer, long timeout, TimeUnit unit) {
+    ByteBuffer data = inbound.poll(timeout, unit);  // Wakes on offer()
+    if (data == null) return -1;  // Timeout or closed
+    // ... copy data to buffer ...
+}
+```
+
+### Implementation Rules
+1. **Use `poll(Long.MAX_VALUE, unit)` for receive()** — the queue's `signal()` on `offer()`
+   wakes the reader immediately. Virtual threads park/unpark in microseconds.
+2. **No busy-loops** — `Thread.onSpinWait()` is wrong here because there's no semaphore
+   to wake the spinner.
+3. **No seconds-level timeouts** — in-memory transport uses the queue's built-in signaling.
+4. **Reference implementation** — see `InMemoryTransport` in `messaging/amqp/`.
+
+### Why This Works
+Virtual threads park on `poll(timeout)` and unpark when `offer()` is called.
+The latency is the OS thread switch — microseconds, not seconds. This works on every
+platform and CI runner because it uses `LockSupport.unpark()`, which is deterministic
+regardless of CPU contention.
+
+---
+
+## 12. Interop Test Protocol Accuracy ⚠️ CRITICAL
 
 ### Anti-Pattern ❌: Incorrect Enum-Based Protocol Codes
 When tests reference enum values by numeric code (e.g. `TelnetOption.fromCode(32)`),

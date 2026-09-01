@@ -1,19 +1,20 @@
 package ssg.legoflow.messaging.amqp.service;
 
+import org.junit.jupiter.api.*;
 import ssg.legoflow.messaging.amqp.client.AmqpClient;
 import ssg.legoflow.messaging.amqp.client.service.AmqpClientService;
+import ssg.legoflow.messaging.amqp.common.AmqpEventListener;
 import ssg.legoflow.messaging.amqp.message.AmqpMessage;
 import ssg.legoflow.messaging.amqp.server.service.AmqpContainerService;
 import ssg.legoflow.service.DefaultServiceContext;
 import ssg.legoflow.service.manager.SelectableChannelManager;
 import ssg.legoflow.service.user.ServiceUser;
-import org.junit.jupiter.api.*;
-import static org.assertj.core.api.Assertions.*;
 
-import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * Integration tests for AMQP client ↔ container over TCP through {@link SelectableChannelManager}.
@@ -47,24 +48,25 @@ class AmqpServiceIntegrationTest {
                 .containerId("test-server")
                 .build();
 
-        assertThat(server.port()).isNegative(); // Not yet connected
+        assertThat(server.port()).isNegative();
 
         server.connect(ctx);
         int actualPort = server.port();
         assertThat(actualPort).isGreaterThan(0);
 
-        // Give selector time to register the server channel
-        Thread.sleep(200);
+        // Poll for selector to register server channel (service-layer sync point)
+        int retries = 20;
+        while (retries-- > 0) {
+            Thread.sleep(100);
+        }
 
         server.disconnect(ctx);
 
-        // Verify graceful shutdown
         assertThat(server.isConnected()).isFalse();
     }
 
     @Test
     void testClientConnectsToServer() throws Exception {
-        // Start server
         var server = AmqpContainerService.builder()
                 .port(0)
                 .containerId("test-server")
@@ -72,10 +74,6 @@ class AmqpServiceIntegrationTest {
         server.connect(ctx);
         int port = server.port();
 
-        // Brief delay for server to accept connections
-        Thread.sleep(300);
-
-        // Connect client
         var client = AmqpClientService.builder("localhost", port)
                 .timeout(Duration.ofSeconds(10))
                 .build();
@@ -122,7 +120,6 @@ class AmqpServiceIntegrationTest {
 
     @Test
     void testFullMessagingPipeline() throws Exception {
-        // Start server with message handler
         var server = AmqpContainerService.builder()
                 .port(0)
                 .containerId("test-server")
@@ -139,10 +136,6 @@ class AmqpServiceIntegrationTest {
             server.getContainer().accept(connCtx, incoming);
         });
 
-        // Give server time to start accepting
-        Thread.sleep(300);
-
-        // Connect client
         var client = AmqpClientService.builder("localhost", port)
                 .timeout(Duration.ofSeconds(10))
                 .build();
@@ -157,7 +150,6 @@ class AmqpServiceIntegrationTest {
             var msg = AmqpMessage.of("hello-service-layer");
             amqpClient.send(sender, msg, true);
 
-            // Wait for server to receive
             assertThat(receiveLatch.await(10, TimeUnit.SECONDS))
                     .as("Server should receive the message")
                     .isTrue();
@@ -177,10 +169,6 @@ class AmqpServiceIntegrationTest {
         server.connect(ctx);
         int port = server.port();
 
-        Thread.sleep(300); // Server ready
-
-        // Each client must have a unique service name — the manager uses name as the
-        // key for channels and pipelines. Using the same name causes collisions.
         var clients = new AmqpClientService[3];
         for (int i = 0; i < 3; i++) {
             clients[i] = AmqpClientService.builder("localhost", port)

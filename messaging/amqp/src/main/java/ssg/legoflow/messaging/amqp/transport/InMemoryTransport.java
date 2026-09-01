@@ -51,7 +51,9 @@ public final class InMemoryTransport implements AmqpTransport {
 
     @Override
     public int receive(ByteBuffer buffer) {
-        return receiveWithTimeout(buffer, 5, TimeUnit.SECONDS);
+        // In-memory: use take() — the queue's signal() wakes immediately on offer().
+        // With virtual threads, this parks the VT and unparks it as soon as data arrives.
+        return receiveWithTimeout(buffer, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
     }
 
     @Override
