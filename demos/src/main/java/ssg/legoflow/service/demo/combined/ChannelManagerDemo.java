@@ -114,8 +114,10 @@ public class ChannelManagerDemo {
 
         @Override
         public void onRead(DataChannel channel, ByteBuffer data) {
-            var bytes = new byte[data.remaining()];
-            data.get(bytes);
+            // Use duplicate to avoid consuming the buffer for downstream handlers
+            var dup = data.duplicate();
+            var bytes = new byte[dup.remaining()];
+            dup.get(bytes);
             readData.add(bytes);
             events.add("READ:" + new String(bytes));
         }
