@@ -168,12 +168,25 @@ public final class AmqpContainer implements AutoCloseable {
      * @param transport the transport for this connection (already open)
      */
     public void handleConnection(AmqpTransport transport) {
+        handleConnection(transport, null);
+    }
+
+    /**
+     * Handles an incoming AMQP connection with an optional ready callback.
+     *
+     * @param transport the transport for this connection (already open)
+     * @param readyCallback optional callback fired when the connection handler starts
+     */
+    public void handleConnection(AmqpTransport transport, java.lang.Runnable readyCallback) {
         String connId = UUID.randomUUID().toString().substring(0, 8);
         var ctx = new ConnectionContext(connId, transport);
         connections.put(connId, ctx);
         LOG.debug("New connection: {}", connId);
 
         executor.submit(() -> {
+            if (readyCallback != null) {
+                readyCallback.run();
+            }
             try {
                 // Detect client's first header: SASL_HEADER (proto-3) or AMQP_HEADER (proto-0)
                 byte[] firstHeader = readHeader(transport);
