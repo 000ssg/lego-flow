@@ -649,3 +649,12 @@ Implemented 8-phase cluster protocol suite enabling multi-node deployment of Leg
 | Files deleted | 1 |
 | Lines added/removed | +410 / -131 |
 | Tests added | 0 (infrastructure only) |
+
+## 2026-09-02: ACL module
+- Created acl module with domain model (AclDomain, User, Group, Role, AclRule)
+- Certificate generation via BouncyCastle (JDK 25+ sealed sun.security internals)
+- SSH key generation (RSA/Ed25519), SASL utilities (PLAIN, SCRAM-SHA-256, Postgres SCRAM)
+- Config loaders: properties, YAML, JSON, XML
+- SSL context helpers for Java SSL engine testing
+- TestDomain factory with 10-year self-signed certs for all protocol tests
+- 105 tests, 0 failures (Maven), 98 tests, 0 failures (Gradle)
