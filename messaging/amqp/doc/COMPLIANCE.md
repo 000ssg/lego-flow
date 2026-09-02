@@ -23,20 +23,20 @@ secondary protocol with broker-specific address mapping and SASL quirks.
 ## 1. Protocol Header Negotiation (Section 2.2)
 
 ### What the spec says
-```
-Client                         Server
-  |--- AMQP%n%m%r%v (proto 0) --->|
-  |<-- AMQP%n%m%r%v (proto 0) ---|  echo back
+```mermaid
+sequenceDiagram
+    Client->>Server: AMQP%n%m%r%v (proto 0)
+    Server-->>Client: AMQP%n%m%r%v (echo)
 ```
 
 Optional SASL layer uses protocol 3:
-```
-Client                         Server
-  |--- AMQP%3%1%0%0 (proto 3) --->|
-  |<-- AMQP%3%1%0%0 (proto 3) ---|  echo back
-  |   ... SASL negotiation ...    |
-  |--- AMQP%0%1%0%0 (proto 0) --->|  post-SASL switch
-  |<-- AMQP%0%1%0%0 (proto 0) ---|
+```mermaid
+sequenceDiagram
+    Client->>Server: AMQP%3%1%0%0 (proto 3)
+    Server-->>Client: AMQP%3%1%0%0 (echo)
+    Note over Client,Server: SASL negotiation
+    Client->>Server: AMQP%0%1%0%0 (proto 0)
+    Server-->>Client: AMQP%0%1%0%0 (echo)
 ```
 
 ### How brokers actually behave

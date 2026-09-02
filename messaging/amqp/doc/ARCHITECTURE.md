@@ -244,7 +244,3 @@ The AMQP module follows the framework's conventions: AutoCloseable resources, fl
 
 - [Module README](../README.md) | [Requirements](REQUIREMENTS.md) | [Compliance](COMPLIANCE.md)
 - [Root Architecture](../../doc/ARCHITECTURE.md) | [Root README](../../README.md)
-
----
-
-**Last Updated**: 2026-08-28
