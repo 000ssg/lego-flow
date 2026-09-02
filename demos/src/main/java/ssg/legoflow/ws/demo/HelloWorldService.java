@@ -4,9 +4,7 @@ import ssg.legoflow.http.core.*;
 import ssg.legoflow.ws.WebService;
 import ssg.legoflow.ws.WebServiceContext;
 import ssg.legoflow.ws.WebServiceDescriptor;
-
 import java.util.Set;
-
 public class HelloWorldService implements WebService {
 
     private final WebServiceDescriptor descriptor = new WebServiceDescriptor("/hello", Set.of(HttpMethod.GET));

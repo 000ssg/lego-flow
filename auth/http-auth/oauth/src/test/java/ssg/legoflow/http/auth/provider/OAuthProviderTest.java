@@ -1,12 +1,8 @@
 package ssg.legoflow.http.auth.provider;
 
-import ssg.legoflow.http.auth.oauth2.OAuth2Config;
 import org.junit.jupiter.api.Test;
-
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.*;
-
 class OAuthProviderTest {
 
     // --- Google ---

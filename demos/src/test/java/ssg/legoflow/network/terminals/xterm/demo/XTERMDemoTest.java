@@ -5,9 +5,7 @@ import ssg.legoflow.network.terminals.base.io.Terminal;
 import ssg.legoflow.network.terminals.xterm.XTERMTerminal;
 import ssg.legoflow.network.terminals.xterm.XTERMTerminal.MouseMode;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class XTERMDemoTest {
 
     @Test

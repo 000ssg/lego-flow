@@ -8,12 +8,10 @@ import ssg.legoflow.network.terminals.base.display.TermAttr;
 import ssg.legoflow.network.terminals.base.event.TerminalEventListener;
 import ssg.legoflow.network.terminals.base.io.Terminal;
 import ssg.legoflow.network.terminals.base.io.TerminalFactory;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-
 /**
  * VT52 terminal emulator.
  *

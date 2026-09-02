@@ -4,14 +4,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ssg.legoflow.network.syslog.protocol.SyslogCodec;
 import ssg.legoflow.network.syslog.protocol.SyslogMessage;
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
-
 /**
  * Syslog message collector using UDP transport (RFC 5426).
  *

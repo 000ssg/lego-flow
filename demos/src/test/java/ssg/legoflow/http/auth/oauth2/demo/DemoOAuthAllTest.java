@@ -1,9 +1,7 @@
 package ssg.legoflow.http.auth.oauth2.demo;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Runs the comprehensive OAuth demo and verifies all feature sections.
  *

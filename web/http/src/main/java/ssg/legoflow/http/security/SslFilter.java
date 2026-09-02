@@ -2,9 +2,7 @@ package ssg.legoflow.http.security;
 
 import ssg.legoflow.blocks.AbstractDataFilter;
 import ssg.legoflow.blocks.Context;
-
 import java.nio.ByteBuffer;
-
 public class SslFilter extends AbstractDataFilter<ByteBuffer> {
 
     private final SslConfig config;

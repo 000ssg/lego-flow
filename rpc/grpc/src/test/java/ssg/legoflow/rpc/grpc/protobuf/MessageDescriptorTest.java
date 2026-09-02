@@ -1,9 +1,7 @@
 package ssg.legoflow.rpc.grpc.protobuf;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class MessageDescriptorTest {
 
     @Test

@@ -5,9 +5,7 @@ import ssg.legoflow.network.terminals.base.io.Terminal;
 import ssg.legoflow.network.terminals.vt500.VT500Terminal;
 import ssg.legoflow.network.terminals.vt500.VT500Terminal.CharSet;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class VT500DemoTest {
 
     @Test

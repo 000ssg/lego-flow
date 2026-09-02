@@ -6,14 +6,11 @@ import ssg.legoflow.upnp.mediaserver.ContentItem;
 import ssg.legoflow.upnp.mediaserver.ContentItemType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link MediaRendererProxy}.
  *

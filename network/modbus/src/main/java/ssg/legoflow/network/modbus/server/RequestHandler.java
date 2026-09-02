@@ -3,9 +3,7 @@ package ssg.legoflow.network.modbus.server;
 import ssg.legoflow.network.modbus.protocol.FunctionCode;
 import ssg.legoflow.network.modbus.protocol.ModbusCodec;
 import ssg.legoflow.network.modbus.protocol.ModbusException;
-
 import java.nio.ByteBuffer;
-
 /**
  * Handles Modbus request PDUs and produces response PDUs.
  *

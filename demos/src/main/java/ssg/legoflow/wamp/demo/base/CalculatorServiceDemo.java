@@ -4,13 +4,11 @@ import ssg.legoflow.wamp.core.WampMessage;
 import ssg.legoflow.wamp.core.role.Callee;
 import ssg.legoflow.wamp.core.role.Caller;
 import ssg.legoflow.wamp.core.router.Dealer;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-
 /**
  * Calculator service demo: registers math operations (add, multiply, divide) as separate
  * callees and routes calls through a shared Dealer. Division by zero produces a WAMP error.

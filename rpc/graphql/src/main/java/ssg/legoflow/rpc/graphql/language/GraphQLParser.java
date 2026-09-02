@@ -1,9 +1,7 @@
 package ssg.legoflow.rpc.graphql.language;
 
 import ssg.legoflow.rpc.graphql.schema.Directive;
-
 import java.util.*;
-
 /**
  * Parses a GraphQL query string into a Document AST.
  *

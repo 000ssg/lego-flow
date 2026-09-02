@@ -1,9 +1,7 @@
 package ssg.legoflow.database.postgresql.auth;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link ScramSha256} and {@link ScramUtils}.
  */

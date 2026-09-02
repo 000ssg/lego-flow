@@ -2,11 +2,8 @@ package ssg.legoflow.demos.cluster;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.cluster.core.ClusterNode;
-
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for {@link ClusterSimulationDemo}.
  *

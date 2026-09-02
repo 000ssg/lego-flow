@@ -3,13 +3,9 @@ package ssg.legoflow.coap.resource;
 import ssg.legoflow.coap.discovery.LinkFormatEntry;
 import ssg.legoflow.coap.discovery.LinkFormatParser;
 import org.junit.jupiter.api.Test;
-
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for {@link LinkFormatParser}.
  *

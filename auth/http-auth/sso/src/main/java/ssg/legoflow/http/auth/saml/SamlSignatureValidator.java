@@ -2,7 +2,6 @@ package ssg.legoflow.http.auth.saml;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
@@ -11,7 +10,6 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.Objects;
-
 /**
  * Validates XML Signatures on SAML Response/Assertion elements using
  * X.509 certificates. Supports RSA-SHA256 (and RSA-SHA1) signature verification.

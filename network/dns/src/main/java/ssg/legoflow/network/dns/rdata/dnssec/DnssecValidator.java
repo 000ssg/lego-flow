@@ -3,21 +3,15 @@ package ssg.legoflow.network.dns.rdata.dnssec;
 import ssg.legoflow.network.dns.protocol.DnsCodec;
 import ssg.legoflow.network.dns.protocol.DnsName;
 import ssg.legoflow.network.dns.protocol.DnsRecord;
-import ssg.legoflow.network.dns.protocol.RecordType;
-import ssg.legoflow.network.dns.rdata.RData;
 import ssg.legoflow.network.dns.rdata.DnskeyRecord;
 import ssg.legoflow.network.dns.rdata.DsRecord;
 import ssg.legoflow.network.dns.rdata.RrsigRecord;
-
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
-import java.security.interfaces.ECPublicKey;
-import java.security.interfaces.RSAPublicKey;
 import java.security.spec.*;
 import java.time.Instant;
 import java.util.*;
-
 /**
  * DNSSEC signature validator supporting RSA-SHA256 and ECDSA-P256-SHA256.
  *

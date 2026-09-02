@@ -2,13 +2,10 @@ package ssg.legoflow.network.cluster.core.hashing;
 
 import ssg.legoflow.network.cluster.core.ClusterNode;
 import org.junit.jupiter.api.Test;
-
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class KetamaRedistributionTest {
 
     private static final int NUM_KEYS = 10_000;

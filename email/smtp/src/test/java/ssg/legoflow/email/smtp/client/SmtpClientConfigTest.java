@@ -2,12 +2,9 @@ package ssg.legoflow.email.smtp.client;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
-
 import javax.net.ssl.SSLContext;
 import java.time.Duration;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Unit tests for {@link SmtpClientConfig} and its builder.
  */

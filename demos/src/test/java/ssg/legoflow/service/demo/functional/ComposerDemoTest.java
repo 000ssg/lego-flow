@@ -5,9 +5,7 @@ import ssg.legoflow.service.demo.procedural.EchoService;
 import ssg.legoflow.service.functional.ServiceComposer;
 import ssg.legoflow.service.user.ServiceUser;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ComposerDemoTest {
 
     @Test

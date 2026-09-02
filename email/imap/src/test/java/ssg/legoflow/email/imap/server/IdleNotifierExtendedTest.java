@@ -1,13 +1,10 @@
 package ssg.legoflow.email.imap.server;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-
 import static org.assertj.core.api.Assertions.*;
-
 class IdleNotifierExtendedTest {
 
     @Test void registerAndNotifyExists() {

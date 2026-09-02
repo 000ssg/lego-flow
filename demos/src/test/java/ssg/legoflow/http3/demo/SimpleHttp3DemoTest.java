@@ -3,13 +3,10 @@ package ssg.legoflow.http3.demo;
 import ssg.legoflow.http3.quic.QuicConnection;
 import ssg.legoflow.http3.quic.QuicSettings;
 import org.junit.jupiter.api.Test;
-
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.*;
-
 class SimpleHttp3DemoTest {
 
     @Test

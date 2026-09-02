@@ -4,8 +4,6 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-
 /**
  * IMAP4rev2 protocol codec for parsing and serializing tagged commands and responses.
  *

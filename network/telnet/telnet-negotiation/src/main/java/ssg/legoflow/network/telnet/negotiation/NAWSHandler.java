@@ -2,11 +2,9 @@ package ssg.legoflow.network.telnet.negotiation;
 
 import ssg.legoflow.network.telnet.base.TelnetConnection;
 import ssg.legoflow.network.telnet.base.TelnetOption;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
-
 /**
  * Handles NAWS (Negotiate About Window Size, option 31) (RFC 1073).
  *

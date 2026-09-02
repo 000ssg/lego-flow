@@ -1,9 +1,7 @@
 package ssg.legoflow.rpc.grpc.metadata;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class MetadataTest {
 
     @Test

@@ -2,14 +2,10 @@ package ssg.legoflow.network.terminals.tn3270;
 
 import ssg.legoflow.network.terminals.base.config.TerminalConfig;
 import ssg.legoflow.network.terminals.tn3270.TN3270DataStreamParser.KeyboardDataRecord;
-import ssg.legoflow.network.terminals.tn3270.TN3270DataStreamParser.ControlRecord;
 import ssg.legoflow.network.terminals.tn3270.TN3270DataStreamParser.DataStreamRecord;
 import ssg.legoflow.network.terminals.tn3270.TN3270DataStreamParser.FieldDataRecord;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-
 /**
  * 3270 screen model.
  *

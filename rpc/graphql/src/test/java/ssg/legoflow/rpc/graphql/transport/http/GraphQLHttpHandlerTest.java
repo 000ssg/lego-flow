@@ -6,11 +6,8 @@ import ssg.legoflow.rpc.graphql.schema.ObjectType;
 import ssg.legoflow.rpc.graphql.schema.FieldDefinition;
 import ssg.legoflow.rpc.graphql.schema.ScalarType;
 import org.junit.jupiter.api.*;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 class GraphQLHttpHandlerTest {
 
     private GraphQLSchema schema;

@@ -3,13 +3,10 @@ package ssg.legoflow.ftp.server;
 import ssg.legoflow.ftp.client.FtpFileEntry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link InMemoryFileSystem}.
  */

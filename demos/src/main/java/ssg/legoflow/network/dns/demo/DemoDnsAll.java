@@ -3,8 +3,6 @@ package ssg.legoflow.network.dns.demo;
 import ssg.legoflow.network.dns.client.DnsClient;
 import ssg.legoflow.network.dns.client.DnsLookup;
 import ssg.legoflow.network.dns.protocol.DnsMessage;
-import ssg.legoflow.network.dns.protocol.DnsName;
-import ssg.legoflow.network.dns.protocol.DnsRecord;
 import ssg.legoflow.network.dns.protocol.RecordType;
 import ssg.legoflow.network.dns.protocol.ResponseCode;
 import ssg.legoflow.network.dns.resolver.DnsCache;
@@ -14,14 +12,12 @@ import ssg.legoflow.network.dns.server.DnsServer;
 import ssg.legoflow.network.dns.server.ZoneFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.List;
-
 /**
  * Comprehensive demo of all DNS module features.
  *

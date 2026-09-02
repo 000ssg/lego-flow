@@ -2,12 +2,10 @@ package ssg.legoflow.rpc.graphql.demo;
 
 import ssg.legoflow.rpc.graphql.execution.SubscriptionPublisher;
 import ssg.legoflow.rpc.graphql.schema.*;
-
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * Chat application schema with subscriptions.
  *

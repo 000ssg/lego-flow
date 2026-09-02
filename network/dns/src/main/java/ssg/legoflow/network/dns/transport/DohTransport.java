@@ -4,7 +4,6 @@ import ssg.legoflow.network.dns.protocol.DnsCodec;
 import ssg.legoflow.network.dns.protocol.DnsMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -13,7 +12,6 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.Objects;
-
 /**
  * DNS-over-HTTPS transport (RFC 8484).
  *

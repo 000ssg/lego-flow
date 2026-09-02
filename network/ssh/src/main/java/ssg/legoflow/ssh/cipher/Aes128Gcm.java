@@ -3,91 +3,110 @@ package ssg.legoflow.ssh.cipher;
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 
 /**
  * AES-128 in GCM mode for SSH (aes128-gcm@openssh.com).
  *
- * <p>This is an AEAD cipher that provides both encryption and authentication.
- * When used, no separate MAC algorithm is needed. The IV is incremented
- * for each packet.
+ * <p>AEAD cipher using standard JCA AES/GCM. Per OpenSSH wire format:
+ * <ul>
+ *   <li>Encrypt: full packet encrypted with pktLen as AAD, returns [ct][tag]</li>
+ *   <li>Decrypt: uses pktLen (from wire format) as AAD, returns [plaintext]</li>
+ * </ul>
  *
  * @since 0.1.0
  */
 public final class Aes128Gcm implements SshCipher {
 
     private static final int TAG_LENGTH_BITS = 128;
+    private static final int TAG_LENGTH_BYTES = 16;
+    private static final int NONCE_LEN = 12;
+    private static final byte[] GCM_PREFIX = {'G', 'C', 'M', ' '};
+
     private SecretKeySpec keySpec;
-    private byte[] iv;
-    private boolean encrypting;
+    private byte[] baseNonce;
+    private long autoSeq = 0;
+    private byte[] aad = new byte[4];
 
     @Override public String name() { return "aes128-gcm@openssh.com"; }
     @Override public int blockSize() { return 16; }
     @Override public int keySize() { return 16; }
     @Override public int ivSize() { return 12; }
     @Override public boolean isAead() { return true; }
-    @Override public int authTagLength() { return 16; }
+    @Override public int authTagLength() { return TAG_LENGTH_BYTES; }
+    @Override public int nonceLen() { return NONCE_LEN; }
 
     @Override
     public void init(byte[] key, byte[] iv, boolean encrypt) {
         this.keySpec = new SecretKeySpec(key, 0, keySize(), "AES");
-        this.iv = new byte[ivSize()];
-        System.arraycopy(iv, 0, this.iv, 0, Math.min(iv.length, ivSize()));
-        this.encrypting = encrypt;
+        this.baseNonce = new byte[NONCE_LEN];
+        System.arraycopy(GCM_PREFIX, 0, this.baseNonce, 0, 4);
+        int ivCopyLen = Math.min(iv.length, NONCE_LEN - 4);
+        System.arraycopy(iv, 0, this.baseNonce, 4, ivCopyLen);
+        this.autoSeq = 0;
+    }
+
+    private byte[] makeSeqNonce(long seq) {
+        byte[] n = new byte[NONCE_LEN];
+        System.arraycopy(baseNonce, 0, n, 0, NONCE_LEN);
+        for (int i = 0; i < 4; i++) {
+            n[i] = (byte) (GCM_PREFIX[i] ^ ((seq >> (24 - 8 * i)) & 0xFF));
+        }
+        return n;
     }
 
     @Override
-    public byte[] encrypt(byte[] data) {
+    public void setSequenceNumber(long seq) {
+        this.autoSeq = seq;
+    }
+
+    @Override
+    public void setAad(byte[] aad) {
+        System.arraycopy(aad, 0, this.aad, 0, Math.min(4, aad.length));
+    }
+
+    @Override
+    public void clearAad() {
+        java.util.Arrays.fill(this.aad, (byte) 0);
+    }
+
+    @Override
+    public byte[] encryptWithAad(byte[] packet, byte[] aad) {
         try {
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-            cipher.init(Cipher.ENCRYPT_MODE, keySpec, new GCMParameterSpec(TAG_LENGTH_BITS, iv));
-            // First 4 bytes (packet_length) are AAD
-            if (data.length >= 4) {
-                cipher.updateAAD(data, 0, 4);
-                byte[] aadPart = new byte[4];
-                System.arraycopy(data, 0, aadPart, 0, 4);
-                byte[] encrypted = cipher.doFinal(data, 4, data.length - 4);
-                byte[] result = new byte[4 + encrypted.length];
-                System.arraycopy(aadPart, 0, result, 0, 4);
-                System.arraycopy(encrypted, 0, result, 4, encrypted.length);
-                incrementIv();
-                return result;
-            }
-            byte[] result = cipher.doFinal(data);
-            incrementIv();
-            return result;
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec,
+                    new GCMParameterSpec(TAG_LENGTH_BITS, makeSeqNonce(autoSeq++)));
+            cipher.updateAAD(aad);
+            return cipher.doFinal(packet);
         } catch (GeneralSecurityException e) {
-            throw new RuntimeException("AES-128-GCM encryption failed", e);
+            throw new RuntimeException("AES-128-GCM encryption failed: " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    public byte[] decryptWithAad(byte[] ctWithTag, byte[] aad) {
+        try {
+            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            if (ctWithTag.length < TAG_LENGTH_BYTES) {
+                throw new RuntimeException("AES-128-GCM decrypt: data too short");
+            }
+            cipher.init(Cipher.DECRYPT_MODE, keySpec,
+                    new GCMParameterSpec(TAG_LENGTH_BITS, makeSeqNonce(autoSeq++)));
+            cipher.updateAAD(aad);
+            return cipher.doFinal(ctWithTag);
+        } catch (GeneralSecurityException e) {
+            throw new RuntimeException("AES-128-GCM decryption failed: " + e.getMessage(), e);
+        }
+    }
+
+    // Delegate encrypt/decrypt to encryptedWithAad/decryptWithAad for AEAD mode
+    @Override
+    public byte[] encrypt(byte[] data) {
+        return encryptWithAad(data, aad);
     }
 
     @Override
     public byte[] decrypt(byte[] data) {
-        try {
-            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-            cipher.init(Cipher.DECRYPT_MODE, keySpec, new GCMParameterSpec(TAG_LENGTH_BITS, iv));
-            if (data.length >= 4) {
-                cipher.updateAAD(data, 0, 4);
-                byte[] decrypted = cipher.doFinal(data, 4, data.length - 4);
-                byte[] result = new byte[4 + decrypted.length];
-                System.arraycopy(data, 0, result, 0, 4);
-                System.arraycopy(decrypted, 0, result, 4, decrypted.length);
-                incrementIv();
-                return result;
-            }
-            byte[] result = cipher.doFinal(data);
-            incrementIv();
-            return result;
-        } catch (GeneralSecurityException e) {
-            throw new RuntimeException("AES-128-GCM decryption failed", e);
-        }
-    }
-
-    private void incrementIv() {
-        // Increment the last 8 bytes of IV as a big-endian counter
-        for (int i = iv.length - 1; i >= iv.length - 8; i--) {
-            if (++iv[i] != 0) break;
-        }
+        return decryptWithAad(data, aad);
     }
 }

@@ -1,9 +1,7 @@
 package ssg.legoflow.media.rtsp.protocol;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link RangeHeader}.
  */

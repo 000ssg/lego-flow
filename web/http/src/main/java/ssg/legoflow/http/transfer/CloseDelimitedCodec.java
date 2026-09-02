@@ -2,10 +2,8 @@ package ssg.legoflow.http.transfer;
 
 import ssg.legoflow.blocks.AbstractDataFilter;
 import ssg.legoflow.blocks.Context;
-
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
-
 /**
  * Close-delimited message body codec per RFC 7230 §3.3.3.
  *

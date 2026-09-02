@@ -2,8 +2,6 @@ package ssg.legoflow.ftp.client;
 
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
-import java.util.List;
-
 class FtpListParserTest {
 
     @Test void testParseUnixFile() {

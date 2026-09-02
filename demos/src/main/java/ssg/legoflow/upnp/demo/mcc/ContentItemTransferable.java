@@ -1,11 +1,9 @@
 package ssg.legoflow.upnp.demo.mcc;
 
 import ssg.legoflow.upnp.mediaserver.ContentItem;
-
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
-
 /**
  * A custom {@link Transferable} that carries a {@link ContentItem} for drag-and-drop
  * operations within the Media Control Center.

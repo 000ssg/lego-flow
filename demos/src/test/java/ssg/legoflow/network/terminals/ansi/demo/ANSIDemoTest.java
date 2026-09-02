@@ -4,9 +4,7 @@ import ssg.legoflow.network.terminals.base.config.TerminalConfig;
 import ssg.legoflow.network.terminals.base.io.Terminal;
 import ssg.legoflow.network.terminals.ansi.ANSITerminal;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class ANSIDemoTest {
 
     @Test

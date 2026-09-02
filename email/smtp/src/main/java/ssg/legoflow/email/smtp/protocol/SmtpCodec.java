@@ -1,12 +1,10 @@
 package ssg.legoflow.email.smtp.protocol;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
-
 /**
  * Codec for encoding and decoding SMTP protocol messages.
  *

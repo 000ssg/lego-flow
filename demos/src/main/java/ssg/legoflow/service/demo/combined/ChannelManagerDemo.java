@@ -9,12 +9,10 @@ import ssg.legoflow.service.manager.SelectableChannelManager;
 import ssg.legoflow.service.user.ServiceUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 public class ChannelManagerDemo {
 
     private static final Logger LOG = LoggerFactory.getLogger(ChannelManagerDemo.class);
@@ -116,8 +114,10 @@ public class ChannelManagerDemo {
 
         @Override
         public void onRead(DataChannel channel, ByteBuffer data) {
-            var bytes = new byte[data.remaining()];
-            data.get(bytes);
+            // Use duplicate to avoid consuming the buffer for downstream handlers
+            var dup = data.duplicate();
+            var bytes = new byte[dup.remaining()];
+            dup.get(bytes);
             readData.add(bytes);
             events.add("READ:" + new String(bytes));
         }

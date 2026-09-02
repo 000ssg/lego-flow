@@ -5,12 +5,9 @@ import ssg.legoflow.ws.endpoint.AsyncEndpointInvoker;
 import ssg.legoflow.ws.endpoint.Endpoint;
 import ssg.legoflow.ws.endpoint.EndpointInvoker;
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Unit tests for async wrappers: {@link AsyncWebService},
  * {@link AsyncWebServiceRegistry}, and {@link AsyncEndpointInvoker}.

@@ -5,9 +5,7 @@ import ssg.legoflow.network.terminals.base.escape.CSIParams;
 import ssg.legoflow.network.terminals.base.io.TerminalFactory;
 import ssg.legoflow.network.terminals.base.io.Terminal;
 import ssg.legoflow.network.terminals.vt400.VT400Terminal;
-
 import java.util.Map;
-
 /**
  * VT500 terminal emulator.
  *

@@ -3,9 +3,7 @@ package ssg.legoflow.network.terminals.vt100.demo;
 import ssg.legoflow.network.terminals.base.config.TerminalConfig;
 import ssg.legoflow.network.terminals.base.io.Terminal;
 import ssg.legoflow.network.terminals.vt100.VT100Terminal;
-
 import java.util.List;
-
 /**
  * Demonstrates VT100 terminal emulation features.
  *
@@ -31,5 +29,8 @@ public final class VT100Demo {
         System.out.println("Type: " + terminal.type());
         System.out.println("Color: " + terminal.supportsColor());
         System.out.println("Cursor: " + terminal.cursor());
+    }
+    public static void main(String[] args) {
+        demonstrate();
     }
 }

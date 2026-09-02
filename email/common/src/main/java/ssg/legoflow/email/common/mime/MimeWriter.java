@@ -2,11 +2,9 @@ package ssg.legoflow.email.common.mime;
 
 import ssg.legoflow.email.common.encoding.Base64Codec;
 import ssg.legoflow.email.common.encoding.QuotedPrintableCodec;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
 /**
  * Serializes a {@link MimeMessage} to raw bytes.
  *

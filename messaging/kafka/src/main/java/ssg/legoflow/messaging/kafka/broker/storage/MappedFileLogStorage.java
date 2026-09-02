@@ -2,7 +2,6 @@ package ssg.legoflow.messaging.kafka.broker.storage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
@@ -14,7 +13,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-
 /**
  * Memory-mapped file {@link LogStorage} implementation with segment-based storage.
  *
@@ -60,7 +58,6 @@ public final class MappedFileLogStorage implements LogStorage {
     private static final int ENTRY_HEADER_SIZE = 24;
 
     /** Index entry size: offset(8) + segmentBaseOffset(8) + positionInSegment(4) = 20. */
-    private static final int INDEX_ENTRY_SIZE = 20;
 
     private final Path logDir;
     private final long segmentBytes;

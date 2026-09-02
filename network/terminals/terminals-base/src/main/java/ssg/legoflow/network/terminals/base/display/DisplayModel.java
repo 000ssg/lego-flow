@@ -1,10 +1,8 @@
 package ssg.legoflow.network.terminals.base.display;
 
 import ssg.legoflow.network.terminals.base.config.TerminalConfig;
-
 import java.util.List;
 import java.util.Objects;
-
 /**
  * High-level display model for terminal emulators.
  *

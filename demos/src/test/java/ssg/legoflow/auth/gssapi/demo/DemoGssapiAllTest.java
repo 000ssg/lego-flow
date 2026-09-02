@@ -1,9 +1,7 @@
 package ssg.legoflow.auth.gssapi.demo;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Runs the comprehensive GSSAPI demo and verifies all feature sections.
  *

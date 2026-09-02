@@ -3,9 +3,7 @@ package ssg.legoflow.upnp.mediaserver;
 import ssg.legoflow.upnp.dlna.DlnaProtocolInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Compliance tests for ConnectionManager full lifecycle:
  * PrepareForConnection, ConnectionComplete, GetCurrentConnectionIDs, GetCurrentConnectionInfo.

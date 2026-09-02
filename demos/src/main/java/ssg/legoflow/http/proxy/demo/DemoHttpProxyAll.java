@@ -13,15 +13,11 @@ import ssg.legoflow.http.proxy.forward.ProxyAccessControl;
 import ssg.legoflow.http.proxy.reverse.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.time.Duration;
 import java.util.List;
 import java.util.Set;
-
 /**
  * Comprehensive demo of all HTTP proxy module features.
  *

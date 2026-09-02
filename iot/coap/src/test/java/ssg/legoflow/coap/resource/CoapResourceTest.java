@@ -5,13 +5,10 @@ import ssg.legoflow.coap.protocol.CoapMessage;
 import ssg.legoflow.coap.protocol.CoapType;
 import ssg.legoflow.coap.protocol.ContentFormat;
 import org.junit.jupiter.api.Test;
-
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for {@link CoapResource}.
  *

@@ -2,16 +2,12 @@ package ssg.legoflow.network.common.ber;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.common.asn1.*;
-import ssg.legoflow.network.common.oid.ObjectIdentifier;
 import ssg.legoflow.network.common.oid.StandardOids;
-
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Round-trip tests for {@link BerEncoder} and {@link BerDecoder}.
  */

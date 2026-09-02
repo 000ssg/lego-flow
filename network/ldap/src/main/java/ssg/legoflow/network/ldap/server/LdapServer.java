@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import ssg.legoflow.network.ldap.codec.LdapCodec;
 import ssg.legoflow.network.ldap.control.LdapControl;
 import ssg.legoflow.network.ldap.protocol.*;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -15,7 +14,6 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
  * LDAP v3 server that accepts connections and dispatches operations
  * to a {@link DirectoryBackend} (RFC 4511).

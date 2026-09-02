@@ -4,11 +4,8 @@ import ssg.legoflow.email.smtp.auth.SmtpAuthException;
 import ssg.legoflow.email.smtp.protocol.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
-
 /**
  * SMTP client for sending email messages.
  *

@@ -2,11 +2,9 @@ package ssg.legoflow.http.connection;
 
 import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpResponse;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * HTTP pipelining support per RFC 7230 §6.3.2.
  *

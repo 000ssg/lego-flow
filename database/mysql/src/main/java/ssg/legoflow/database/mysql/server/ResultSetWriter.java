@@ -1,14 +1,11 @@
 package ssg.legoflow.database.mysql.server;
 
 import ssg.legoflow.database.mysql.protocol.*;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-
 /**
  * Writes MySQL result sets (text and binary protocol) to an output stream.
  *

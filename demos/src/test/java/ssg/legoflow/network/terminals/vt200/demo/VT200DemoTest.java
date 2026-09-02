@@ -4,9 +4,7 @@ import ssg.legoflow.network.terminals.base.config.TerminalConfig;
 import ssg.legoflow.network.terminals.base.io.Terminal;
 import ssg.legoflow.network.terminals.vt200.VT200Terminal;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class VT200DemoTest {
 
     @Test

@@ -3,17 +3,14 @@ package ssg.legoflow.network.dns.client;
 import ssg.legoflow.blocks.Context;
 import ssg.legoflow.blocks.ProcessorState;
 import ssg.legoflow.network.dns.protocol.DnsCodec;
-import ssg.legoflow.network.dns.protocol.DnsMessage;
 import ssg.legoflow.service.AbstractService;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
 import ssg.legoflow.service.channel.ChannelHandler;
-
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.function.Consumer;
-
 /**
  * Service-based DNS client adapter for composition within the service framework.
  * Data flows as ByteBuffer containing DNS query messages (DnsCodec encoded).

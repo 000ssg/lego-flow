@@ -3,10 +3,8 @@ package ssg.legoflow.upnp.demo.mcc;
 import ssg.legoflow.upnp.controlpoint.ControlPoint;
 import ssg.legoflow.upnp.controlpoint.DeviceListener;
 import ssg.legoflow.upnp.controlpoint.DeviceProxy;
-
 import javax.swing.*;
 import java.awt.*;
-
 /**
  * Bottom status bar showing discovery state and selected devices.
  *

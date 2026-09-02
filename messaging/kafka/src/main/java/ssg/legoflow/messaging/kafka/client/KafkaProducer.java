@@ -8,14 +8,12 @@ import ssg.legoflow.messaging.kafka.record.Record;
 import ssg.legoflow.messaging.kafka.record.RecordBatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * Kafka producer client.
  *

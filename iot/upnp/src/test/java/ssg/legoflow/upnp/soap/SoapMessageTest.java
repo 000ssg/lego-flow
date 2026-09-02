@@ -1,12 +1,9 @@
 package ssg.legoflow.upnp.soap;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.*;
-
 class SoapMessageTest {
 
     private static final String SERVICE_TYPE = "urn:schemas-upnp-org:service:ContentDirectory:1";

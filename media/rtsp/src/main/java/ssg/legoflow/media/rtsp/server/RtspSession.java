@@ -1,14 +1,12 @@
 package ssg.legoflow.media.rtsp.server;
 
 import ssg.legoflow.media.rtsp.protocol.TransportHeader;
-
 import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Server-side RTSP session representing a client connection.
  *

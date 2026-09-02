@@ -2,7 +2,6 @@ package ssg.legoflow.http.auth.saml;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -10,9 +9,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.SecureRandom;
 import java.util.Base64;
-
 import static org.assertj.core.api.Assertions.*;
-
 class SamlEncryptedAssertionTest {
 
     private KeyPair keyPair;

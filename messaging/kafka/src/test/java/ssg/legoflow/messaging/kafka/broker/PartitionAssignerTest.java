@@ -2,11 +2,8 @@ package ssg.legoflow.messaging.kafka.broker;
 
 import ssg.legoflow.messaging.kafka.common.TopicPartition;
 import org.junit.jupiter.api.Test;
-
 import java.util.*;
-
 import static org.assertj.core.api.Assertions.*;
-
 class PartitionAssignerTest {
 
     @Test

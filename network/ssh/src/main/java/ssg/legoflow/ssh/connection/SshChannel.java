@@ -2,10 +2,8 @@ package ssg.legoflow.ssh.connection;
 
 import ssg.legoflow.ssh.transport.SshTransport;
 import ssg.legoflow.ssh.transport.SshTransportCodec;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.BlockingQueue;
@@ -13,7 +11,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
  * Abstract SSH channel with windowed flow control per RFC 4254.
  *

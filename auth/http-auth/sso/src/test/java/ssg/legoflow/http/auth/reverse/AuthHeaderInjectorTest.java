@@ -5,12 +5,9 @@ import ssg.legoflow.http.core.HttpMethod;
 import ssg.legoflow.http.core.HttpRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.Map;
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.*;
-
 class AuthHeaderInjectorTest {
 
     private AuthHeaderInjector injector;

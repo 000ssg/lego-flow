@@ -5,13 +5,9 @@ import ssg.legoflow.network.terminals.base.config.TerminalConfig;
 import ssg.legoflow.network.terminals.base.display.Cursor;
 import ssg.legoflow.network.terminals.base.io.Terminal;
 import ssg.legoflow.network.terminals.base.io.TerminalFactory;
-
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 /**
  * Comprehensive tests for TN3270 terminal emulator.
  */

@@ -1,9 +1,7 @@
 package ssg.legoflow.blocks;
 
 import ssg.legoflow.blocks.exceptions.StateTransitionException;
-
 import java.util.concurrent.atomic.AtomicReference;
-
 public abstract class AbstractDataFilter<T> implements DataFilter<T> {
 
     private final AtomicReference<ProcessorState> state = new AtomicReference<>(ProcessorState.IDLE);

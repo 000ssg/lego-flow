@@ -2,7 +2,6 @@ package ssg.legoflow.rpc.graphql.transport.websocket;
 
 import ssg.legoflow.http.websocket.WebSocketFrame;
 import ssg.legoflow.http.websocket.WebSocketSession;
-import ssg.legoflow.rpc.graphql.execution.ExecutionResult;
 import ssg.legoflow.rpc.graphql.execution.SubscriptionPublisher;
 import ssg.legoflow.rpc.graphql.schema.GraphQLSchema;
 import ssg.legoflow.rpc.graphql.schema.ObjectType;
@@ -10,11 +9,8 @@ import ssg.legoflow.rpc.graphql.schema.FieldDefinition;
 import ssg.legoflow.rpc.graphql.schema.ScalarType;
 import ssg.legoflow.rpc.graphql.transport.JsonCodec;
 import org.junit.jupiter.api.*;
-
 import java.util.*;
-
 import static org.assertj.core.api.Assertions.*;
-
 class GraphQLWebSocketHandlerExtendedTest {
 
     private GraphQLSchema schema;

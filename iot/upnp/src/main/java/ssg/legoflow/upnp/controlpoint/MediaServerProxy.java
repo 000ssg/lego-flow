@@ -6,12 +6,10 @@ import ssg.legoflow.upnp.mediaserver.ContentDirectory;
 import ssg.legoflow.upnp.mediaserver.ContentItem;
 import ssg.legoflow.upnp.mediaserver.DidlLiteParser;
 import ssg.legoflow.upnp.mediaserver.MediaServerDevice;
-
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 /**
  * Proxy for a remote UPnP Media Server device.
  *

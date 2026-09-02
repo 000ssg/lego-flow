@@ -3,14 +3,11 @@ package ssg.legoflow.http3.demo;
 import ssg.legoflow.http.core.*;
 import ssg.legoflow.http3.Http3Connection;
 import ssg.legoflow.http3.config.Http3Config;
-import ssg.legoflow.http3.quic.QuicConnection;
 import ssg.legoflow.http3.quic.QuicStream;
 import ssg.legoflow.http3.server.Http3Server;
-
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
-
 /**
  * Demonstrates HTTP/3 server push with PUSH_PROMISE frames.
  *

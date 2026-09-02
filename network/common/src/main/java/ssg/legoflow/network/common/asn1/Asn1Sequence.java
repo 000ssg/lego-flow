@@ -1,9 +1,7 @@
 package ssg.legoflow.network.common.asn1;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-
 /**
  * ASN.1 SEQUENCE type (universal tag 0x30, constructed).
  *

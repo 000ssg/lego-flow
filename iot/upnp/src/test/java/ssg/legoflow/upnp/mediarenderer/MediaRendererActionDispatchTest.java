@@ -2,13 +2,9 @@ package ssg.legoflow.upnp.mediarenderer;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import ssg.legoflow.upnp.mediaserver.ConnectionManagerService;
-
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Integration tests for {@link MediaRendererDevice} action dispatch,
  * verifying that all new actions are correctly wired through handleAction.

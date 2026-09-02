@@ -3,10 +3,8 @@ package ssg.legoflow.network.ldap.codec;
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.ldap.protocol.*;
 import ssg.legoflow.network.ldap.filter.SearchFilter;
-
 import java.nio.ByteBuffer;
 import static org.assertj.core.api.Assertions.*;
-
 class LdapCodecExtendedTest {
 
     @Test void encodeDecodeBindRequest() {

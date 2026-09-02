@@ -1,11 +1,9 @@
 package ssg.legoflow.service;
 
 import ssg.legoflow.blocks.ProcessorState;
-
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
-
 public enum ServiceState {
 
     IDLE(ProcessorState.IDLE),

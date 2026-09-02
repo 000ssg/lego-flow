@@ -1,16 +1,9 @@
 package ssg.legoflow.network.cluster.core.hashing;
 
 import ssg.legoflow.network.cluster.core.ClusterNode;
-import ssg.legoflow.network.cluster.core.ClusterRole;
 import org.junit.jupiter.api.Test;
-
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 class ConsistentHashRingTest {
 
     @Test

@@ -1,11 +1,8 @@
 package ssg.legoflow.ftp.data;
 
 import org.junit.jupiter.api.Test;
-
 import java.net.InetAddress;
-
 import static org.assertj.core.api.Assertions.*;
-
 class DataConnectionFactoryTest {
 
     @Test

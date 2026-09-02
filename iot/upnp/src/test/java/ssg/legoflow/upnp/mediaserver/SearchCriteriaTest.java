@@ -1,11 +1,7 @@
 package ssg.legoflow.upnp.mediaserver;
 
 import org.junit.jupiter.api.Test;
-
-import java.util.function.Predicate;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link SearchCriteria} — UPnP ContentDirectory search query language.
  *

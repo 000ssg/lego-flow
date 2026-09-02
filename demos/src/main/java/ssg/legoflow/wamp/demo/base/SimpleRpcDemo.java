@@ -4,10 +4,7 @@ import ssg.legoflow.wamp.core.WampMessage;
 import ssg.legoflow.wamp.core.role.Callee;
 import ssg.legoflow.wamp.core.role.Caller;
 import ssg.legoflow.wamp.core.router.Dealer;
-
 import java.util.List;
-import java.util.Map;
-
 /**
  * Simple RPC demo: creates a Caller and Callee, wires them through a Dealer via InMemoryTransport,
  * registers an "add" procedure, and calls it.

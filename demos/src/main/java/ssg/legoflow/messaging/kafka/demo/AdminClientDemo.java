@@ -5,11 +5,9 @@ import ssg.legoflow.messaging.kafka.client.KafkaAdminClient;
 import ssg.legoflow.messaging.kafka.protocol.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-
 /**
  * Demo: admin client operations — topic CRUD, metadata, API versions.
  *

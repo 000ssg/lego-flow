@@ -5,11 +5,9 @@ import ssg.legoflow.http.core.HttpMethod;
 import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpResponse;
 import ssg.legoflow.http.core.HttpStatus;
-
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
-
 public class WebSocketHandshake {
 
     private static final String WEBSOCKET_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";

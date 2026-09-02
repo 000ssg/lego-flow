@@ -3,12 +3,9 @@ package ssg.legoflow.email.smtp.dsn;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import ssg.legoflow.email.smtp.protocol.EnhancedStatusCode;
-
 import java.time.Instant;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Comprehensive tests for {@link DeliveryStatus}, including parse/format round-trip.
  */

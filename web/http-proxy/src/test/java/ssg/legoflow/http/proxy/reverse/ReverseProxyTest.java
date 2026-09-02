@@ -5,11 +5,8 @@ import ssg.legoflow.http.proxy.ProxyFilter;
 import ssg.legoflow.http.proxy.ProxyHeaders;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class ReverseProxyTest {
 
     private ReverseProxy proxy;

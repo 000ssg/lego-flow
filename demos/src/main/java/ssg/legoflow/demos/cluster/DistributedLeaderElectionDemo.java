@@ -3,7 +3,6 @@ package ssg.legoflow.demos.cluster;
 import ssg.legoflow.service.cluster.coordination.EtcdConfig;
 import ssg.legoflow.service.cluster.coordination.EtcdLease;
 import ssg.legoflow.service.cluster.coordination.raft.RaftLogEntry;
-
 import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.*;
@@ -11,7 +10,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-
 /**
  * Demo: Distributed Leader Election.
  *

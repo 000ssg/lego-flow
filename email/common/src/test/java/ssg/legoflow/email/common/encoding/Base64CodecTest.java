@@ -1,12 +1,9 @@
 package ssg.legoflow.email.common.encoding;
 
 import org.junit.jupiter.api.Test;
-
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 /**
  * Tests for {@link Base64Codec}.
  */

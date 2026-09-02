@@ -3,11 +3,8 @@ package ssg.legoflow.database.redis.server;
 import org.junit.jupiter.api.*;
 import ssg.legoflow.database.redis.client.RedisClient;
 import ssg.legoflow.database.redis.protocol.RespType;
-
 import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for HyperLogLog commands: PFADD, PFCOUNT, PFMERGE.
  */

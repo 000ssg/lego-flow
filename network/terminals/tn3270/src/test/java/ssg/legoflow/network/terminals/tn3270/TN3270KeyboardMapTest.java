@@ -1,9 +1,7 @@
 package ssg.legoflow.network.terminals.tn3270;
 
 import org.junit.jupiter.api.*;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for TN3270 keyboard map.
  */

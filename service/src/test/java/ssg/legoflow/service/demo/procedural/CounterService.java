@@ -4,9 +4,7 @@ import ssg.legoflow.blocks.Context;
 import ssg.legoflow.service.AbstractService;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
-
 import java.util.concurrent.atomic.AtomicInteger;
-
 public class CounterService extends AbstractService<String, Integer> {
 
     private static final String COUNTER_KEY = "counter";

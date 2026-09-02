@@ -2,10 +2,8 @@ package ssg.legoflow.upnp.ssdp;
 
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
-
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-
 class SsdpExtendedTest {
 
     private static final SocketAddress LOCAL_ADDR = InetSocketAddress.createUnresolved("127.0.0.1", 9000);

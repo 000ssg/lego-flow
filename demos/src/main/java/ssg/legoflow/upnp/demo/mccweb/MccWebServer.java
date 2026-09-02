@@ -11,10 +11,8 @@ import ssg.legoflow.http.security.SslConfig;
 import ssg.legoflow.http.server.HttpRouter;
 import ssg.legoflow.http.server.HttpServer;
 import ssg.legoflow.upnp.controlpoint.ControlPoint;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -25,7 +23,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 /**
  * Main web server for the Media Control Center demo application.
  *

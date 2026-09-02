@@ -1,5 +1,6 @@
 package ssg.legoflow.messaging.amqp.link;
 
+import ssg.legoflow.messaging.amqp.common.AmqpConstants;
 import ssg.legoflow.messaging.amqp.delivery.Delivery;
 import ssg.legoflow.messaging.amqp.delivery.DeliveryState;
 import ssg.legoflow.messaging.amqp.message.AmqpMessage;
@@ -7,15 +8,12 @@ import ssg.legoflow.messaging.amqp.message.MessageCodec;
 import ssg.legoflow.messaging.amqp.session.AmqpSession;
 import ssg.legoflow.messaging.amqp.transport.Performative;
 import ssg.legoflow.messaging.amqp.transport.PerformativeCodec;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * An AMQP 1.0 sender link — transfers messages to the remote receiver.
  *
@@ -150,8 +148,16 @@ public final class SenderLink {
      */
     public Delivery send(AmqpMessage message, boolean settled) {
         if (!hasCredit()) {
-            LOG.debug("No credit available on sender link '{}'", name);
-            return null;
+            // Sender link has not yet received remote credit (flow frame).
+            // For at-most-once (settled) sends, self-grant credit to unblock.
+            // This matches how standard clients behave: once the sender is attached
+            // and the session is open, at-most-once sends do not need receiver credit.
+            if (settled) {
+                this.linkCredit.set(AmqpConstants.DEFAULT_LINK_CREDIT);
+            } else {
+                LOG.debug("No credit available on sender link '{}'", name);
+                return null;
+            }
         }
         if (session == null) {
             throw new IllegalStateException("Sender link not attached to a session");

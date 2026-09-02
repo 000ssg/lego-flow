@@ -1,13 +1,10 @@
 package ssg.legoflow.database.mysql.protocol;
 
 import org.junit.jupiter.api.Test;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link MysqlPacket}.
  */

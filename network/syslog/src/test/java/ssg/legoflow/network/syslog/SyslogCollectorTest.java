@@ -6,15 +6,12 @@ import ssg.legoflow.network.syslog.protocol.Facility;
 import ssg.legoflow.network.syslog.protocol.Severity;
 import ssg.legoflow.network.syslog.protocol.SyslogMessage;
 import ssg.legoflow.network.syslog.transport.UdpSender;
-
 import java.io.IOException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 /**
  * Tests for {@link SyslogCollector}.
  */

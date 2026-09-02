@@ -7,13 +7,11 @@ import ssg.legoflow.media.sip.header.SipHeaders;
 import ssg.legoflow.media.sip.protocol.SipMethod;
 import ssg.legoflow.media.sip.protocol.SipRequest;
 import ssg.legoflow.media.sip.protocol.SipResponse;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * SIP dialog per RFC 3261 section 12.
  *

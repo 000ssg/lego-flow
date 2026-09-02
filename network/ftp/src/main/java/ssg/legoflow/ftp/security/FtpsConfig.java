@@ -7,9 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
-import java.util.Arrays;
 import java.util.Objects;
-
 /**
  * TLS configuration for FTPS connections (RFC 4217).
  *

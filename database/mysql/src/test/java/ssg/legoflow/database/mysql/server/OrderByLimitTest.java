@@ -3,11 +3,8 @@ package ssg.legoflow.database.mysql.server;
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.database.mysql.client.MysqlClient;
 import ssg.legoflow.database.mysql.client.MysqlResult;
-
 import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for ORDER BY and LIMIT/OFFSET queries.
  */

@@ -1,9 +1,7 @@
 package ssg.legoflow.mqtt.broker;
 
 import ssg.legoflow.mqtt.protocol.PublishPacket;
-import ssg.legoflow.mqtt.protocol.QoS;
 import ssg.legoflow.mqtt.protocol.TopicSubscription;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,7 +10,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * Represents an MQTT client session on the broker.
  *

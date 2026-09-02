@@ -2,9 +2,7 @@ package ssg.legoflow.media.rtsp.server.service;
 
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
-
 import java.nio.ByteBuffer;
-
 /** Channel handler for RTSP server service. */
 public final class RtspServerChannelHandler implements ChannelHandler {
     private final RtspServerService rtspService;

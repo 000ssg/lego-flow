@@ -1,11 +1,9 @@
 package ssg.legoflow.media.common.codec;
 
 import ssg.legoflow.media.common.sdp.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 /**
  * Parses SDP text into a {@link SessionDescription}.
  *

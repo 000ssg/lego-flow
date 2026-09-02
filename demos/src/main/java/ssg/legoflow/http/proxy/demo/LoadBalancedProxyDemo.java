@@ -2,9 +2,7 @@ package ssg.legoflow.http.proxy.demo;
 
 import ssg.legoflow.http.core.*;
 import ssg.legoflow.http.proxy.reverse.*;
-
 import java.util.List;
-
 /**
  * Load-balanced reverse proxy demo.
  *

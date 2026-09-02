@@ -2,11 +2,8 @@ package ssg.legoflow.upnp.soap;
 
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
-
 import java.net.http.HttpClient;
 import java.time.Duration;
-import java.util.Map;
-
 class SoapClientExtendedTest {
 
     @Test void defaultConstructorCreatesClient() {

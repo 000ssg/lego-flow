@@ -3,11 +3,9 @@ package ssg.legoflow.network.ldap.server;
 import ssg.legoflow.network.ldap.dn.DistinguishedName;
 import ssg.legoflow.network.ldap.filter.SearchFilter;
 import ssg.legoflow.network.ldap.protocol.*;
-
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * In-memory directory backend for testing purposes.
  *
@@ -54,9 +52,13 @@ public final class InMemoryDirectoryBackend implements DirectoryBackend {
 
     @Override
     public LdapResult bind(BindRequest request) {
+        if (request.authentication() instanceof BindRequest.AuthenticationChoice.Anonymous) {
+            // Anonymous bind (RFC 4511)
+            return LdapResult.success();
+        }
         if (request.authentication() instanceof BindRequest.AuthenticationChoice.Simple simple) {
             if (request.name().isEmpty() && simple.password().isEmpty()) {
-                // Anonymous bind
+                // Anonymous bind (simple mode with empty credentials)
                 return LdapResult.success();
             }
             String expected = credentials.get(normalizeDn(request.name()));

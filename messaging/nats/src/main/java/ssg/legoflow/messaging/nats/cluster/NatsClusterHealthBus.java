@@ -1,14 +1,10 @@
 package ssg.legoflow.messaging.nats.cluster;
 
-import ssg.legoflow.messaging.nats.client.NatsClient;
-import ssg.legoflow.messaging.nats.client.NatsMessage;
 import ssg.legoflow.network.cluster.core.ClusterNode;
 import ssg.legoflow.network.cluster.core.ClusterNodeStatus;
 import ssg.legoflow.network.cluster.core.ClusterRole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -18,7 +14,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-
 /**
  * Health check bus using NATS for cluster-wide heartbeat exchange.
  *

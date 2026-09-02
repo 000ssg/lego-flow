@@ -1,9 +1,7 @@
 package ssg.legoflow.messaging.amqp.transport;
 
 import ssg.legoflow.messaging.amqp.types.AmqpType;
-
 import java.nio.ByteBuffer;
-
 /**
  * Represents an AMQP 1.0 frame.
  *

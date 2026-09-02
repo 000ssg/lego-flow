@@ -9,12 +9,9 @@ import ssg.legoflow.upnp.controlpoint.MediaRendererProxy;
 import ssg.legoflow.upnp.dlna.DlnaProtocolInfo;
 import ssg.legoflow.upnp.mediaserver.ContentItem;
 import ssg.legoflow.upnp.mediaserver.ContentItemType;
-
 import java.time.Duration;
 import java.util.Objects;
-
 import static ssg.legoflow.upnp.demo.mccweb.MccDeviceHandler.jsonResponse;
-
 /**
  * Handles playback control REST API requests for the Media Control Center.
  *

@@ -2,9 +2,7 @@ package ssg.legoflow.database.postgresql.server;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for aggregate functions (COUNT, SUM, AVG, MIN, MAX) with GROUP BY and HAVING.
  */

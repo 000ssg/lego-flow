@@ -1,11 +1,8 @@
 package ssg.legoflow.mqtt.codec;
 
 import ssg.legoflow.mqtt.protocol.*;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-
 /**
  * Encodes individual MQTT packet types into {@link ByteBuffer}.
  *

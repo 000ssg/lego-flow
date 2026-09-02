@@ -3,11 +3,9 @@ package ssg.legoflow.ws.endpoint;
 import ssg.legoflow.http.core.HttpContext;
 import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpResponse;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 /**
  * Asynchronous wrapper around a synchronous {@link EndpointInvoker}.
  *

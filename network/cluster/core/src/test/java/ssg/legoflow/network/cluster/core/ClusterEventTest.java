@@ -1,12 +1,9 @@
 package ssg.legoflow.network.cluster.core;
 
 import org.junit.jupiter.api.Test;
-
 import java.time.Instant;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 class ClusterEventTest {
 
     private static final Instant NOW = Instant.now();

@@ -1,18 +1,14 @@
 package ssg.legoflow.demos.cluster;
 
 import ssg.legoflow.network.cluster.core.*;
-import ssg.legoflow.network.cluster.core.hashing.ConsistentHasher;
 import ssg.legoflow.network.cluster.core.hashing.ConsistentHashRing;
 import ssg.legoflow.network.cluster.core.hashing.MurmurHash3;
-
 import java.time.Duration;
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
  * Simulation demo: 3-node in-memory cluster with consistent hashing.
  *

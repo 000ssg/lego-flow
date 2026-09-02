@@ -9,13 +9,9 @@ import ssg.legoflow.http.core.HttpStatus;
 import ssg.legoflow.network.cluster.core.ClusterNode;
 import ssg.legoflow.network.cluster.core.ClusterRole;
 import ssg.legoflow.network.cluster.core.ClusterNodeStatus;
-
-import java.time.Duration;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 class StickySessionRouterTest {
 
     private ClusterNode node(String id, int port) {

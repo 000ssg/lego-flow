@@ -5,13 +5,11 @@ import ssg.legoflow.messaging.kafka.protocol.RequestHeader;
 import ssg.legoflow.messaging.kafka.protocol.ResponseHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * Low-level TCP connection to a Kafka broker.
  *

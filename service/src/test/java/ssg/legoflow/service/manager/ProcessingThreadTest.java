@@ -4,15 +4,12 @@ import org.junit.jupiter.api.*;
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.ChannelPipeline;
 import ssg.legoflow.service.channel.DataChannel;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link ProcessingThread}.
  */

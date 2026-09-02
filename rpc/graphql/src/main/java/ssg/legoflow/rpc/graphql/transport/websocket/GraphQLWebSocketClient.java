@@ -3,7 +3,6 @@ package ssg.legoflow.rpc.graphql.transport.websocket;
 import ssg.legoflow.rpc.graphql.execution.ExecutionResult;
 import ssg.legoflow.rpc.graphql.transport.GraphQLTransport;
 import ssg.legoflow.rpc.graphql.transport.JsonCodec;
-
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
@@ -11,7 +10,6 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-
 /**
  * WebSocket client for GraphQL subscriptions using the graphql-ws protocol.
  *

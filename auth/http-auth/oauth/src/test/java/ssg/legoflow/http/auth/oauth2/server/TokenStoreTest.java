@@ -2,12 +2,9 @@ package ssg.legoflow.http.auth.oauth2.server;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.time.Duration;
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.*;
-
 class TokenStoreTest {
 
     private TokenStore store;

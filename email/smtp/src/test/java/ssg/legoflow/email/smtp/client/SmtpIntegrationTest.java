@@ -7,13 +7,10 @@ import ssg.legoflow.email.smtp.server.MailEnvelope;
 import ssg.legoflow.email.smtp.server.RelayConfig;
 import ssg.legoflow.email.smtp.server.SmtpHandler;
 import ssg.legoflow.email.smtp.server.SmtpServer;
-
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Integration tests for SMTP client against a real {@link SmtpServer}.
  */

@@ -1,9 +1,7 @@
 package ssg.legoflow.ssh.auth;
 
 import ssg.legoflow.ssh.transport.SshTransportCodec;
-
 import java.nio.ByteBuffer;
-
 /**
  * None authentication method for discovering allowed methods per RFC 4252.
  *

@@ -1,13 +1,9 @@
 package ssg.legoflow.messaging.kafka.demo;
 
 import ssg.legoflow.messaging.kafka.broker.KafkaBroker;
-import ssg.legoflow.messaging.kafka.broker.TransactionManager;
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.*;
-
 class TransactionalProducerDemoTest {
 
     @Test

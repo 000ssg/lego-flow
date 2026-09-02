@@ -4,10 +4,8 @@ import ssg.legoflow.email.smtp.auth.SmtpAuthException;
 import ssg.legoflow.email.smtp.protocol.SmtpReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.*;
-
 /**
  * High-level API for submitting email messages via SMTP.
  *

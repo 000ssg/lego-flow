@@ -7,7 +7,6 @@ import ssg.legoflow.service.cluster.coordination.EtcdKVStore;
 import ssg.legoflow.service.cluster.coordination.EtcdLease;
 import ssg.legoflow.service.cluster.coordination.EtcdTransaction;
 import ssg.legoflow.service.cluster.coordination.raft.RaftLogEntry;
-
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -15,11 +14,8 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 /**
  * Tests for etcd/Raft coordination components used in {@link EtcdCoordinationDemo}.
  *

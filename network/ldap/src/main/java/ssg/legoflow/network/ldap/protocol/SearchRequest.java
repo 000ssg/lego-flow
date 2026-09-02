@@ -1,9 +1,7 @@
 package ssg.legoflow.network.ldap.protocol;
 
 import ssg.legoflow.network.ldap.filter.SearchFilter;
-
 import java.util.List;
-
 /**
  * LDAP Search Request (APPLICATION 3) as defined in RFC 4511 Section 4.5.1.
  *

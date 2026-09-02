@@ -6,11 +6,8 @@ import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.common.oid.ObjectIdentifier;
 import ssg.legoflow.network.snmp.protocol.*;
 import ssg.legoflow.network.snmp.security.UsmEngine;
-
 import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for {@link SnmpAgent} request processing.
  *

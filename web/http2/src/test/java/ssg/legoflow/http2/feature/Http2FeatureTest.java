@@ -1,10 +1,8 @@
 package ssg.legoflow.http2.feature;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 import ssg.legoflow.http.feature.HttpFeatureCategory;
-
 class Http2FeatureTest {
 
     @Test void testName() {

@@ -3,12 +3,9 @@ package ssg.legoflow.email.smtp.client;
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.email.smtp.server.InMemoryMessageStore;
 import ssg.legoflow.email.smtp.server.SmtpHandler;
-
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class SmtpMessageSubmissionTest {
 
     @Test void testSendWithConfig() throws Exception {

@@ -3,13 +3,10 @@ package ssg.legoflow.http.staticcontent;
 import ssg.legoflow.http.core.*;
 import ssg.legoflow.http.header.MediaType;
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.*;
-
 class StaticContentHandlerTest {
 
     @Test

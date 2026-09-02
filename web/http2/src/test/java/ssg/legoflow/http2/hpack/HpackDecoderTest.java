@@ -2,9 +2,7 @@ package ssg.legoflow.http2.hpack;
 
 import ssg.legoflow.http.core.HttpHeaders;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class HpackDecoderTest {
 
     @Test

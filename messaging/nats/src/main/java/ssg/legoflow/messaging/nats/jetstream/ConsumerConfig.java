@@ -1,9 +1,7 @@
 package ssg.legoflow.messaging.nats.jetstream;
 
 import ssg.legoflow.messaging.nats.protocol.ServerInfo;
-
 import java.time.Duration;
-
 /**
  * JetStream consumer configuration.
  *

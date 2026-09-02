@@ -1,10 +1,6 @@
 package ssg.legoflow.coap.client;
 
-import ssg.legoflow.coap.codec.CoapCodec;
 import ssg.legoflow.coap.protocol.CoapCode;
-import ssg.legoflow.coap.protocol.CoapMessage;
-import ssg.legoflow.coap.protocol.CoapOption;
-import ssg.legoflow.coap.protocol.CoapType;
 import ssg.legoflow.coap.protocol.ContentFormat;
 import ssg.legoflow.coap.resource.CoapExchange;
 import ssg.legoflow.coap.resource.CoapResource;
@@ -13,16 +9,12 @@ import ssg.legoflow.coap.server.CoapServerConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for {@link CoapClient}.
  *

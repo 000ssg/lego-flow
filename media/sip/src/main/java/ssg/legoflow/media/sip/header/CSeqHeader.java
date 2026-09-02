@@ -1,9 +1,7 @@
 package ssg.legoflow.media.sip.header;
 
 import ssg.legoflow.media.sip.protocol.SipMethod;
-
 import java.util.Objects;
-
 /**
  * Parsed SIP CSeq header per RFC 3261 section 20.16.
  *

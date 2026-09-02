@@ -49,7 +49,7 @@ public record BindRequest(
      * @return the bind request
      */
     public static BindRequest anonymous() {
-        return new BindRequest(3, "", new AuthenticationChoice.Simple(""));
+        return new BindRequest(3, "", AuthenticationChoice.NULL);
     }
 
     /**
@@ -69,7 +69,8 @@ public record BindRequest(
      *
      * @since 0.1.0
      */
-    public sealed interface AuthenticationChoice {
+    public sealed interface AuthenticationChoice
+            permits AuthenticationChoice.Simple, AuthenticationChoice.Sasl, AuthenticationChoice.Anonymous {
 
         /**
          * Simple authentication (context tag 0) with a password.
@@ -85,5 +86,14 @@ public record BindRequest(
          * @param credentials the optional SASL credentials
          */
         record Sasl(String mechanism, byte[] credentials) implements AuthenticationChoice {}
+
+        /**
+         * NULL authentication — for true anonymous binds (RFC 4511).
+         * This is distinct from Simple("") which some servers reject.
+         */
+        record Anonymous() implements AuthenticationChoice {}
+
+        /** Constant for anonymous (NULL) authentication. */
+        AuthenticationChoice NULL = new Anonymous();
     }
 }

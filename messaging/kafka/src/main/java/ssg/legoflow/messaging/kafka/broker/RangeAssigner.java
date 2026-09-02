@@ -1,9 +1,7 @@
 package ssg.legoflow.messaging.kafka.broker;
 
 import ssg.legoflow.messaging.kafka.common.TopicPartition;
-
 import java.util.*;
-
 /**
  * Range partition assigner.
  *

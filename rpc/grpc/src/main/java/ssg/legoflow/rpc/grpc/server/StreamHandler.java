@@ -2,10 +2,8 @@ package ssg.legoflow.rpc.grpc.server;
 
 import ssg.legoflow.rpc.grpc.metadata.Metadata;
 import ssg.legoflow.rpc.grpc.protobuf.ProtoMessage;
-
 import java.util.List;
 import java.util.function.Consumer;
-
 /**
  * Handler for streaming gRPC calls (server streaming, client streaming, bidi streaming).
  */

@@ -3,15 +3,10 @@ package ssg.legoflow.network.telnet.gateway;
 import ssg.legoflow.network.telnet.base.*;
 import ssg.legoflow.network.telnet.negotiation.*;
 import ssg.legoflow.network.terminals.base.io.Terminal;
-
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-
 /**
  * Bridges a Telnet connection to a terminal emulator.
  *

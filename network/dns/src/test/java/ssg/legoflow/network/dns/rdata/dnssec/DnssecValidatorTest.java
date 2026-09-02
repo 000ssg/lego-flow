@@ -4,17 +4,13 @@ import ssg.legoflow.network.dns.protocol.*;
 import ssg.legoflow.network.dns.rdata.DnskeyRecord;
 import ssg.legoflow.network.dns.rdata.DsRecord;
 import ssg.legoflow.network.dns.rdata.RrsigRecord;
-
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Timeout;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for DnssecValidator covering signature verification and DS validation.
  */

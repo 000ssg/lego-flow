@@ -5,11 +5,9 @@ import ssg.legoflow.upnp.mediaserver.ContentContainer;
 import ssg.legoflow.upnp.mediaserver.ContentItem;
 import ssg.legoflow.upnp.mediaserver.ContentItemType;
 import ssg.legoflow.upnp.mediaserver.MediaServerDevice;
-
 import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
-
 /**
  * Demo application: UPnP Media Server hosting a sample content library.
  *

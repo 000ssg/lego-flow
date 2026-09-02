@@ -2,9 +2,7 @@ package ssg.legoflow.http.auth.session;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class InMemorySessionStoreTest {
 
     private InMemorySessionStore store;

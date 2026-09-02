@@ -7,16 +7,13 @@ import ssg.legoflow.email.imap.client.ImapClientConfig;
 import ssg.legoflow.email.imap.server.ImapServer;
 import ssg.legoflow.email.imap.server.InMemoryMailStore;
 import ssg.legoflow.email.imap.server.Mailbox;
-import ssg.legoflow.email.imap.server.StoredMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
-
 /**
  * Demonstrates a complete IMAP workflow: login, list, select, fetch, flag, delete.
  *

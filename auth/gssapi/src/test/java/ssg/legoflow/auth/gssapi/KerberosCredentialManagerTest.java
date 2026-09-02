@@ -1,12 +1,8 @@
 package ssg.legoflow.auth.gssapi;
 
-import org.ietf.jgss.GSSCredential;
 import org.junit.jupiter.api.Test;
-
 import javax.security.auth.Subject;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link KerberosCredentialManager}. Tests parameter validation and
  * error handling without requiring an actual KDC.

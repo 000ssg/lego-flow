@@ -3,7 +3,6 @@ package ssg.legoflow.media.rtsp.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ssg.legoflow.media.rtsp.protocol.*;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -14,7 +13,6 @@ import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
  * RTSP 2.0 server implementation supporting TCP connections.
  *

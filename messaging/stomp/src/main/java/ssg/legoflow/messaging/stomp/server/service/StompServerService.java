@@ -6,11 +6,9 @@ import ssg.legoflow.service.AbstractService;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
 import ssg.legoflow.service.channel.ChannelHandler;
-
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.function.Consumer;
-
 /** Service-based STOMP server adapter for composition within the service framework. */
 public final class StompServerService extends AbstractService<ByteBuffer, ByteBuffer> {
 

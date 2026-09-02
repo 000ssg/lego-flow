@@ -1,9 +1,7 @@
 package ssg.legoflow.http.header;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class RangeUnitTest {
 
     @Test

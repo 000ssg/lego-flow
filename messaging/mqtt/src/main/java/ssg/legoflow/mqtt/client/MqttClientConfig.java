@@ -3,11 +3,9 @@ package ssg.legoflow.mqtt.client;
 import ssg.legoflow.mqtt.broker.MqttTlsConfig;
 import ssg.legoflow.mqtt.protocol.MqttVersion;
 import ssg.legoflow.mqtt.protocol.WillMessage;
-
 import java.time.Duration;
 import java.util.Objects;
 import java.util.UUID;
-
 /**
  * Configuration for {@link MqttClient} with a fluent builder API.
  *

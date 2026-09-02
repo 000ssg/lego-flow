@@ -4,17 +4,14 @@ import ssg.legoflow.ssh.agent.AgentForwardingChannel;
 import ssg.legoflow.ssh.agent.SshAgent;
 import ssg.legoflow.ssh.transport.SshTransport;
 import ssg.legoflow.ssh.transport.SshTransportCodec;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-
 /**
  * SSH connection layer managing multiplexed channels per RFC 4254.
  *

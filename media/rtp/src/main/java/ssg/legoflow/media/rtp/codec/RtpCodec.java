@@ -3,14 +3,12 @@ package ssg.legoflow.media.rtp.codec;
 import ssg.legoflow.media.rtp.packet.HeaderExtension;
 import ssg.legoflow.media.rtp.packet.RtpHeader;
 import ssg.legoflow.media.rtp.packet.RtpPacket;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
 /**
  * Codec for encoding and decoding RTP packets to/from {@link ByteBuffer} (RFC 3550 Section 5).
  *

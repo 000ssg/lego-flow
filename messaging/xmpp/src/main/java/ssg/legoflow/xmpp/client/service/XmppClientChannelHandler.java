@@ -2,9 +2,7 @@ package ssg.legoflow.xmpp.client.service;
 
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
-
 import java.nio.ByteBuffer;
-
 /** Channel handler for XMPP client service. */
 public final class XmppClientChannelHandler implements ChannelHandler {
     private final XmppClientService xmppService;

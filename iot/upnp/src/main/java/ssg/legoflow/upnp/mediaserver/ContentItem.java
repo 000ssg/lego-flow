@@ -1,11 +1,9 @@
 package ssg.legoflow.upnp.mediaserver;
 
 import ssg.legoflow.upnp.dlna.DlnaProtocolInfo;
-
 import java.net.URL;
 import java.time.Duration;
 import java.util.Objects;
-
 /**
  * Represents a DLNA content item in a media library.
  *

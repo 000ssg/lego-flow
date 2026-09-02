@@ -2,11 +2,9 @@ package ssg.legoflow.coap.protocol;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-
 /**
  * Represents a CoAP message as defined in RFC 7252, Section 3.
  *

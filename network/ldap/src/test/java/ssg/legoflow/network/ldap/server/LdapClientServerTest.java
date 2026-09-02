@@ -6,12 +6,9 @@ import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.ldap.client.LdapClient;
 import ssg.legoflow.network.ldap.filter.SearchFilter;
 import ssg.legoflow.network.ldap.protocol.*;
-
 import java.io.IOException;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Integration tests for {@link LdapClient} and {@link LdapServer}.
  *

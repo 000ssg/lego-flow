@@ -2,11 +2,9 @@ package ssg.legoflow.network.ldap.codec;
 
 import ssg.legoflow.network.common.asn1.*;
 import ssg.legoflow.network.ldap.filter.SearchFilter;
-
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * BER encoder/decoder for LDAP search filters (RFC 4511 Section 4.5.1).
  *

@@ -3,11 +3,8 @@ package ssg.legoflow.ssh.connection;
 import ssg.legoflow.ssh.connection.X11ForwardingConfig;
 import ssg.legoflow.ssh.transport.SshTransport;
 import ssg.legoflow.ssh.transport.SshTransportCodec;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-
 /**
  * Session channel for terminal, exec, and subsystem requests per RFC 4254 section 6.
  *

@@ -1,9 +1,7 @@
 package ssg.legoflow.http3.demo;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Runs the comprehensive HTTP/3 demo and verifies all feature sections.
  *

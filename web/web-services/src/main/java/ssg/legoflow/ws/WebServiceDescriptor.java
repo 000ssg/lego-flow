@@ -2,10 +2,8 @@ package ssg.legoflow.ws;
 
 import ssg.legoflow.http.core.HttpMethod;
 import ssg.legoflow.http.header.MediaType;
-
 import java.util.List;
 import java.util.Set;
-
 public record WebServiceDescriptor(
         String path,
         Set<HttpMethod> methods,

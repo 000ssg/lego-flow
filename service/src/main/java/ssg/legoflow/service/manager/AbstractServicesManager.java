@@ -5,10 +5,8 @@ import ssg.legoflow.service.DefaultServiceContext;
 import ssg.legoflow.service.Service;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.user.ServiceUser;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
 public class AbstractServicesManager implements ServicesManager {
 
     private final Map<String, Service<?, ?>> services = new ConcurrentHashMap<>();

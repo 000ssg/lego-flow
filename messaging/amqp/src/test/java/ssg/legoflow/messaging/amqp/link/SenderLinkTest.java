@@ -5,13 +5,7 @@ import ssg.legoflow.messaging.amqp.delivery.DeliveryState;
 import ssg.legoflow.messaging.amqp.message.AmqpMessage;
 import ssg.legoflow.messaging.amqp.session.AmqpSession;
 import ssg.legoflow.messaging.amqp.transport.Performative;
-import ssg.legoflow.messaging.amqp.transport.PerformativeCodec;
-
-import java.nio.ByteBuffer;
-import java.util.concurrent.atomic.AtomicReference;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link SenderLink} — sender link and credit-based flow.
  */
@@ -63,12 +57,24 @@ class SenderLinkTest {
                 .isInstanceOf(IllegalStateException.class);
     }
 
-    @Test void testSendWithNoCredit() {
+    @Test void testSendWithNoCreditSettled() {
+        // Pre-settled (at-most-once) sends self-grant credit to unblock.
+        // This is documented behavior: settled transfers don't need receiver credit.
         var link = new SenderLink("sender", 0, null, "queue");
         var session = createMockSession();
         link.session(session);
         var delivery = link.send(AmqpMessage.of("test"), true);
-        assertThat(delivery).isNull(); // No credit
+        assertThat(delivery).isNotNull();
+        assertThat(delivery.isSenderSettled()).isTrue();
+    }
+
+    @Test void testSendWithNoCreditUnsettled() {
+        // Unsettled (at-least-once) sends require credit — return null when none.
+        var link = new SenderLink("sender", 0, null, "queue");
+        var session = createMockSession();
+        link.session(session);
+        var delivery = link.send(AmqpMessage.of("test"), false);
+        assertThat(delivery).isNull(); // No credit, not pre-settled
     }
 
     @Test void testSendPreSettled() {

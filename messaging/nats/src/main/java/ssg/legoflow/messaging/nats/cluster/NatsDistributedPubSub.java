@@ -1,11 +1,8 @@
 package ssg.legoflow.messaging.nats.cluster;
 
-import ssg.legoflow.messaging.nats.client.NatsClient;
-import ssg.legoflow.messaging.nats.client.NatsMessage;
 import ssg.legoflow.messaging.nats.client.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +10,6 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-
 /**
  * Distributed publish-subscribe over NATS for cluster-wide event dissemination.
  *

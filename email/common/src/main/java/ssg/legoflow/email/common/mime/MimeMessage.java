@@ -4,12 +4,9 @@ import ssg.legoflow.email.common.address.AddressParser;
 import ssg.legoflow.email.common.address.Mailbox;
 import ssg.legoflow.email.common.header.DateTimeParser;
 import ssg.legoflow.email.common.header.MessageId;
-
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
 /**
  * A complete MIME message consisting of headers and body.
  *

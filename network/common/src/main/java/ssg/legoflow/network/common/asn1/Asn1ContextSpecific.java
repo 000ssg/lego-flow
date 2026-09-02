@@ -1,8 +1,6 @@
 package ssg.legoflow.network.common.asn1;
 
 import java.util.Arrays;
-import java.util.List;
-
 /**
  * ASN.1 context-specific tagged value ({@code [0]}, {@code [1]}, etc.).
  *

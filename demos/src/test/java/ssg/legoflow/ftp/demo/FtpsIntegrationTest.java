@@ -4,11 +4,8 @@ import ssg.legoflow.ftp.security.FtpsConfig;
 import ssg.legoflow.ftp.security.FtpsHandler;
 import ssg.legoflow.ftp.security.FtpsMode;
 import org.junit.jupiter.api.Test;
-
 import javax.net.ssl.SSLContext;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Integration tests for FTPS functionality.
  */

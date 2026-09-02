@@ -6,13 +6,11 @@ import ssg.legoflow.xmpp.iot.control.ControlParameter;
 import ssg.legoflow.xmpp.iot.control.ControlRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Manages IoT control operations (XEP-0325).
  *

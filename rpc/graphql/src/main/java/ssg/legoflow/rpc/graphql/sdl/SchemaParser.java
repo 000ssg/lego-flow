@@ -4,9 +4,7 @@ import ssg.legoflow.rpc.graphql.language.GraphQLLexer;
 import ssg.legoflow.rpc.graphql.language.GraphQLSyntaxException;
 import ssg.legoflow.rpc.graphql.language.Token;
 import ssg.legoflow.rpc.graphql.schema.*;
-
 import java.util.*;
-
 /**
  * Parses a Schema Definition Language (SDL) string into a GraphQLSchema.
  *

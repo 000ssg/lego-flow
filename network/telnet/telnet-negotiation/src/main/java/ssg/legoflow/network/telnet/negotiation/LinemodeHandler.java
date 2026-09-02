@@ -1,11 +1,6 @@
 package ssg.legoflow.network.telnet.negotiation;
 
-import ssg.legoflow.network.telnet.base.TelnetOption;
-
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-
 /**
  * Handler for LINEMODE option subnegotiation (RFC 1143).
  *

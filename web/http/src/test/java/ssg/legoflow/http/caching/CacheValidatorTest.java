@@ -5,14 +5,10 @@ import ssg.legoflow.http.core.HttpMethod;
 import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpStatus;
 import org.junit.jupiter.api.Test;
-
-import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-
 import static org.assertj.core.api.Assertions.*;
-
 class CacheValidatorTest {
 
     private final CacheValidator validator = new CacheValidator();

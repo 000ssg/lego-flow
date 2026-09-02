@@ -3,14 +3,11 @@ package ssg.legoflow.demos.cluster;
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.cluster.dns.DnsSdConfig;
 import ssg.legoflow.network.cluster.dns.DnsSdServiceRecord;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Duration;
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for DNS-SD / mDNS discovery components used in {@link DnsSdDiscoveryDemo}.
  *

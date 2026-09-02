@@ -3,11 +3,9 @@ package ssg.legoflow.messaging.kafka.broker;
 import ssg.legoflow.messaging.kafka.common.TopicPartition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Manages multiple KafkaBroker instances in-process for multi-broker simulation.
  *

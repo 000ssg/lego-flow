@@ -7,13 +7,11 @@ import ssg.legoflow.media.rtp.codec.RtpCodec;
 import ssg.legoflow.media.rtp.packet.RtpPacket;
 import ssg.legoflow.media.rtp.rtcp.RtcpPacket;
 import ssg.legoflow.media.rtp.session.RtpSession;
-
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * RTP packet sender using UDP transport.
  *

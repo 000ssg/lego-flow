@@ -9,16 +9,13 @@ import ssg.legoflow.xmpp.presence.PresenceManager;
 import ssg.legoflow.xmpp.roster.Roster;
 import ssg.legoflow.xmpp.stream.XmppCodec;
 import ssg.legoflow.xmpp.stream.XmppStream;
-import ssg.legoflow.xmpp.stream.XmppStreamState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 /**
  * Full XMPP client with support for messaging, presence, roster, and IoT extensions.
  *

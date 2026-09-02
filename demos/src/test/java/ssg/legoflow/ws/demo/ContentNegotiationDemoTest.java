@@ -5,11 +5,8 @@ import ssg.legoflow.http.server.HttpRouter;
 import ssg.legoflow.ws.WebServiceRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ContentNegotiationDemoTest {
 
     private HttpRouter router;

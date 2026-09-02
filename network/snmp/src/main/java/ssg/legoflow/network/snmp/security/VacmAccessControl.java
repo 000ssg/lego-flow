@@ -2,12 +2,10 @@ package ssg.legoflow.network.snmp.security;
 
 import ssg.legoflow.network.common.oid.ObjectIdentifier;
 import ssg.legoflow.network.snmp.protocol.SecurityLevel;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 /**
  * View-based Access Control Model (VACM) as defined in RFC 3415.
  *

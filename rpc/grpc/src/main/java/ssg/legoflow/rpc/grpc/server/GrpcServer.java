@@ -1,19 +1,16 @@
 package ssg.legoflow.rpc.grpc.server;
 
 import ssg.legoflow.rpc.grpc.common.MethodDescriptor;
-import ssg.legoflow.rpc.grpc.common.MethodType;
 import ssg.legoflow.rpc.grpc.common.StatusException;
 import ssg.legoflow.rpc.grpc.metadata.Metadata;
 import ssg.legoflow.rpc.grpc.protobuf.MessageDescriptor;
 import ssg.legoflow.rpc.grpc.protobuf.ProtoMessage;
 import ssg.legoflow.rpc.grpc.protobuf.ProtobufCodec;
 import ssg.legoflow.rpc.grpc.transport.*;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 /**
  * gRPC server that processes requests over HTTP/2.
  * Supports all four call types and interceptor chains.

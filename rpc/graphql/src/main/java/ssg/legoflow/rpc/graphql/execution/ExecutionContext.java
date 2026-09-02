@@ -3,12 +3,10 @@ package ssg.legoflow.rpc.graphql.execution;
 import ssg.legoflow.rpc.graphql.language.FragmentDefinition;
 import ssg.legoflow.rpc.graphql.language.OperationDefinition;
 import ssg.legoflow.rpc.graphql.schema.GraphQLSchema;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
 /**
  * Per-execution context that holds state during query execution.
  *

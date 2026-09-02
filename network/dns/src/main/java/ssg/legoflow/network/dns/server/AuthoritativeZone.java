@@ -2,11 +2,9 @@ package ssg.legoflow.network.dns.server;
 
 import ssg.legoflow.network.dns.protocol.*;
 import ssg.legoflow.network.dns.rdata.*;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
 /**
  * Authoritative DNS zone containing resource records.
  *

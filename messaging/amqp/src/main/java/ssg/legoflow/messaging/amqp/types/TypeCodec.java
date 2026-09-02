@@ -2,12 +2,10 @@ package ssg.legoflow.messaging.amqp.types;
 
 import ssg.legoflow.messaging.amqp.common.AmqpError;
 import ssg.legoflow.messaging.amqp.common.AmqpException;
-
 import java.nio.ByteBuffer;
 import ssg.legoflow.service.util.BufferPool;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-
 /**
  * Encodes and decodes AMQP 1.0 type system values to/from binary wire format.
  *

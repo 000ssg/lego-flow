@@ -4,13 +4,10 @@ import ssg.legoflow.upnp.dlna.DlnaMediaFormat;
 import ssg.legoflow.upnp.dlna.DlnaProtocolInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.net.URI;
 import java.time.Duration;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link DidlLiteParser}.
  *

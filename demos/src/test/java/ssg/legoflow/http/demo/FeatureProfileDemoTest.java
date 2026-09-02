@@ -3,9 +3,7 @@ package ssg.legoflow.http.demo;
 import ssg.legoflow.http.config.StandardProfiles;
 import ssg.legoflow.http.feature.HttpFeatureCategory;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Demonstrates StandardProfiles and verifies that each profile level
  * includes the expected feature categories. Profiles progress from

@@ -1,8 +1,6 @@
 package ssg.legoflow.rpc.grpc.metadata;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-
 /**
  * A typed metadata key. gRPC metadata keys are case-insensitive ASCII strings.
  * Keys ending in "-bin" are binary and their values are base64-encoded.

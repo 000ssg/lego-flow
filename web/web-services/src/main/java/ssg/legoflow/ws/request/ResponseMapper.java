@@ -4,10 +4,8 @@ import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpResponse;
 import ssg.legoflow.http.core.HttpStatus;
 import ssg.legoflow.http.header.MediaType;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-
 public class ResponseMapper {
 
     public HttpResponse json(HttpStatus status, String jsonBody) {

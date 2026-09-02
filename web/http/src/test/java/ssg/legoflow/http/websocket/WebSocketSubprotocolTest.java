@@ -6,12 +6,9 @@ import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpResponse;
 import ssg.legoflow.http.core.HttpStatus;
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.*;
-
 class WebSocketSubprotocolTest {
 
     private final WebSocketSubprotocol handler = new WebSocketSubprotocol();

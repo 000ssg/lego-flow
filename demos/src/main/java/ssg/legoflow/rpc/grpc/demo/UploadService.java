@@ -3,9 +3,7 @@ package ssg.legoflow.rpc.grpc.demo;
 import ssg.legoflow.rpc.grpc.common.MethodDescriptor;
 import ssg.legoflow.rpc.grpc.protobuf.*;
 import ssg.legoflow.rpc.grpc.server.GrpcServer;
-
 import java.util.zip.CRC32;
-
 /**
  * Demo client-streaming service: upload chunks, respond with final checksum.
  *

@@ -5,9 +5,7 @@ import ssg.legoflow.messaging.amqp.common.AmqpException;
 import ssg.legoflow.messaging.amqp.types.AmqpType;
 import ssg.legoflow.messaging.amqp.types.Descriptors;
 import ssg.legoflow.messaging.amqp.types.TypeCodec;
-
 import java.util.*;
-
 /**
  * Encodes and decodes AMQP 1.0 performatives to/from described AMQP type values.
  *
@@ -180,9 +178,9 @@ public final class PerformativeCodec {
     private static AmqpType.Described encodeFlow(Performative.Flow f) {
         var fields = new ArrayList<AmqpType>();
         fields.add(f.nextIncomingId() != null ? new AmqpType.UInt(f.nextIncomingId()) : new AmqpType.Null());
-        fields.add(new AmqpType.UInt(f.incomingWindow()));
-        fields.add(new AmqpType.UInt(f.nextOutgoingId()));
-        fields.add(new AmqpType.UInt(f.outgoingWindow()));
+        fields.add(f.incomingWindow() != null ? new AmqpType.UInt(f.incomingWindow()) : new AmqpType.Null());
+        fields.add(f.nextOutgoingId() != null ? new AmqpType.UInt(f.nextOutgoingId()) : new AmqpType.Null());
+        fields.add(f.outgoingWindow() != null ? new AmqpType.UInt(f.outgoingWindow()) : new AmqpType.Null());
         fields.add(f.handle() != null ? new AmqpType.UInt(f.handle()) : new AmqpType.Null());
         fields.add(f.deliveryCount() != null ? new AmqpType.UInt(f.deliveryCount()) : new AmqpType.Null());
         fields.add(f.linkCredit() != null ? new AmqpType.UInt(f.linkCredit()) : new AmqpType.Null());
@@ -195,9 +193,9 @@ public final class PerformativeCodec {
 
     private static Performative.Flow decodeFlow(AmqpType.AmqpList list) {
         Long nextIncomingId = optUintFieldNullable(list, 0);
-        long incomingWindow = uintField(list, 1);
-        long nextOutgoingId = uintField(list, 2);
-        long outgoingWindow = uintField(list, 3);
+        Long incomingWindow = optUintFieldNullable(list, 1);
+        Long nextOutgoingId = optUintFieldNullable(list, 2);
+        Long outgoingWindow = optUintFieldNullable(list, 3);
         Long handle = optUintFieldNullable(list, 4);
         Long deliveryCount = optUintFieldNullable(list, 5);
         Long linkCredit = optUintFieldNullable(list, 6);
@@ -491,8 +489,9 @@ public final class PerformativeCodec {
      * @return the described source
      */
     public static AmqpType.Described encodeSource(String address) {
+        if (address == null) return null;
         var fields = new ArrayList<AmqpType>();
-        fields.add(address != null ? new AmqpType.AmqpString(address) : new AmqpType.Null());
+        fields.add(new AmqpType.AmqpString(address));
         return new AmqpType.Described(new AmqpType.ULong(Descriptors.SOURCE),
                 new AmqpType.AmqpList(trimNulls(fields)));
     }
@@ -501,11 +500,12 @@ public final class PerformativeCodec {
      * Encodes a target terminus as a described type.
      *
      * @param address the target address
-     * @return the described target
+     * @return the described target, or null if address is null
      */
     public static AmqpType.Described encodeTarget(String address) {
+        if (address == null) return null;
         var fields = new ArrayList<AmqpType>();
-        fields.add(address != null ? new AmqpType.AmqpString(address) : new AmqpType.Null());
+        fields.add(new AmqpType.AmqpString(address));
         return new AmqpType.Described(new AmqpType.ULong(Descriptors.TARGET),
                 new AmqpType.AmqpList(trimNulls(fields)));
     }

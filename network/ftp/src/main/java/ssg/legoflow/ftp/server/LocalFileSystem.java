@@ -3,7 +3,6 @@ package ssg.legoflow.ftp.server;
 import ssg.legoflow.ftp.client.FtpFileEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -12,7 +11,6 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
-
 /**
  * Filesystem implementation backed by the real local filesystem.
  *

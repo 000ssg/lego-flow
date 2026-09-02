@@ -2,9 +2,7 @@ package ssg.legoflow.service.demo.procedural;
 
 import ssg.legoflow.service.AsyncService;
 import ssg.legoflow.service.ServiceContext;
-
 import java.util.concurrent.CompletableFuture;
-
 /**
  * Simplest async demo: wraps {@link EchoService} with a {@link CompletableFuture}-based API
  * via the default {@code async()} bridge on {@code Service}.

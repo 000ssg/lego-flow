@@ -12,15 +12,8 @@ AMQP 1.0 (ISO 19464 / OASIS) is an open standard for business messaging. Unlike 
 
 ```mermaid
 graph TD
-    L1["Container / Client<br/>(connection management, SASL, API surface)"]
-    L2["Session Multiplexing<br/>(incoming/outgoing windows, transfer-id tracking,<br/>link registry by handle)"]
-    L3["Link Layer<br/>(credit-based flow control, sender/receiver,<br/>attach/detach lifecycle)"]
-    L4["Delivery Management<br/>(delivery-id/tag, settlement, outcomes:<br/>accepted/rejected/released/modified/transactional)"]
-    L5["Performative Codec<br/>(9 performatives as described lists,<br/>field encoding/decoding with null trimming)"]
-    L6["Type System Codec<br/>(22 primitive types + list/map/array/described,<br/>self-describing binary format, compact encoding)"]
-    L7["Frame Codec<br/>(8-byte header: SIZE/DOFF/TYPE/CHANNEL,<br/>performative body + optional payload)"]
-    L8["Transport SPI<br/>(AmqpTransport interface:<br/>TcpTransport, InMemoryTransport)"]
-    L9["service module (TCP)<br/>(SocketChannel, virtual threads)"]
+    L8["Transport SPI<br/>(AmqpTransport interface:<br/>PipelineTransport, InMemoryTransport)"]
+    L9["service module<br/>(SelectableChannelManager + virtual threads,<br/>ServiceContext, lifecycle)"]
     L10["blocks module<br/>(DP&lt;I,O&gt;, DF&lt;T&gt;, Context, State, Statistics)"]
 
     L1 --> L2 --> L3 --> L4 --> L5 --> L6 --> L7 --> L8 --> L9 --> L10
@@ -219,11 +212,13 @@ graph TD
 ```mermaid
 graph TD
     AT["AmqpTransport (interface)<br/>send(ByteBuffer), receive(ByteBuffer),<br/>close(), isOpen()"]
-    AT --> TCP["TcpTransport<br/>(SocketChannel wrapper)"]
+    AT --> PT["PipelineTransport<br/>(selector-driven, DataChannel)"]
     AT --> IM["InMemoryTransport<br/>(BlockingQueue pair)"]
+    PT --> SM["SelectableChannelManager<br/>(server-side multiplexing)"]
+    PT --> VC["Virtual thread + DataChannel<br/>(client via AmqpClientService)"]
 ```
 
-- **TcpTransport**: thin wrapper over `SocketChannel`, blocking I/O
+- **PipelineTransport**: primary transport for both client and server. Reads are driven by `SelectableChannelManager` (server) or `AmqpClientService` (client) via `DataChannel.fireRead()`. The transport only exposes the `AmqpTransport` SPI — it never touches `SocketChannel` directly.
 - **InMemoryTransport**: `createPair()` returns two connected transports using `LinkedBlockingQueue`
 - Container's `handleConnection(AmqpTransport)` is public, allowing direct injection of in-memory transports for testing
 
@@ -232,9 +227,16 @@ graph TD
 | Lego Flow Module | Usage in AMQP |
 |------------------|---------------|
 | `blocks` | DP<I,O> for message processing pipeline, DF<T> for message filtering, Statistics for metrics |
-| `service` | TCP channels for container/client connections, virtual thread pools, lifecycle management |
+| `service` | SelectableChannelManager for server/client multiplexing, AmqpClientService/AmqpContainerService wrappers |
 
-The AMQP module follows the framework's conventions: AutoCloseable resources, fluent builder APIs for configuration, virtual threads for concurrency.
+The AMQP module follows the framework's conventions: AutoCloseable resources, fluent builder APIs for configuration, DataChannel for I/O, DP/DF-based service wrappers.
+
+## Broker Compatibility
+
+| Broker | BrokerMode | Handshake | Auth |
+|--------|-----------|-----------|------|
+| RabbitMQ | `RABBITMQ` | SASL-first (proto-3) | ANONYMOUS, PLAIN |
+| Apache Artemis | `ARTEMIS` | SASL-first (proto-3) | PLAIN |
 
 ---
 
@@ -242,7 +244,3 @@ The AMQP module follows the framework's conventions: AutoCloseable resources, fl
 
 - [Module README](../README.md) | [Requirements](REQUIREMENTS.md) | [Compliance](COMPLIANCE.md)
 - [Root Architecture](../../doc/ARCHITECTURE.md) | [Root README](../../README.md)
-
----
-
-**Last Updated**: 2026-07-06

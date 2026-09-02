@@ -1,9 +1,7 @@
 package ssg.legoflow.messaging.nats.server.auth;
 
 import ssg.legoflow.messaging.nats.protocol.ConnectOptions;
-
 import java.util.Objects;
-
 /**
  * Token-based authenticator that validates against a configured token.
  *

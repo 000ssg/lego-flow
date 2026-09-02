@@ -4,7 +4,7 @@
 [![Java](https://img.shields.io/badge/Java-25+-orange.svg)](https://www.oracle.com/java/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](../LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-195-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-282-brightgreen.svg)]()
 [![Version](https://img.shields.io/badge/Version-0.1.0-SNAPSHOT-blue.svg)]()
 
 AMQP 1.0 protocol module for the Lego Flow framework, providing container (server) and client implementations for advanced message queuing.
@@ -13,16 +13,22 @@ AMQP 1.0 protocol module for the Lego Flow framework, providing container (serve
 
 This module implements AMQP 1.0 (ISO 19464 / OASIS), enabling Java applications to build message containers and clients for enterprise messaging. The architecture is transport-agnostic, layering protocol handling on top of the framework's service and blocks abstractions:
 
+```mermaid
+graph TD
+    API["Client / Container API"]
+    Sess["Session Multiplexing"]
+    Link["Link Layer (credit-based flow)"]
+    Deliv["Delivery Management"]
+    Perf["Performative Codec (9 types)"]
+    Types["Type System Codec (22 types)"]
+    Frame["Frame Codec"]
+    Trans["Transport SPI"]
+    Svc["service module"]
+
+    API --> Sess --> Link --> Deliv --> Perf --> Types --> Frame --> Trans --> Svc
 ```
-AMQP Container / Client (connection management, API surface)
-  -> Session Multiplexing (incoming/outgoing windows, transfer-id tracking)
-    -> Link Layer (credit-based flow control, sender/receiver attach/detach)
-      -> Delivery Management (delivery-id/tag, settlement, outcomes)
-        -> Performative Codec (9 performatives as described lists)
-          -> Type System Codec (22 primitive + composite types, self-describing)
-            -> Frame Codec (8-byte header + body encoding)
-              -> Transport SPI (TCP / in-memory adapters)
-```
+
+- **Service layer**: `AmqpClientService` and `AmqpContainerService` wire the protocol stack through `SelectableChannelManager` (server) or virtual threads (client)
 
 ## Features
 
@@ -106,17 +112,19 @@ var config = ClientConfig.builder()
 
 ```
 ssg.legoflow.messaging.amqp/
-|-- client/            -- Client: connect, session, sender/receiver links, SASL
-|-- container/         -- Container (server): accept, route, session/link management
-|-- common/            -- Constants, error conditions, connection state, exceptions
-|-- delivery/          -- Delivery tracking, delivery states (sealed), codec
-|-- link/              -- Sender and receiver links with credit-based flow control
-|-- message/           -- Message model (7 sections), message codec, header, properties
-|-- sasl/              -- SASL mechanisms (ANONYMOUS, PLAIN, EXTERNAL), authenticator
-|-- session/           -- Session multiplexing, flow control windows, link registry
-|-- transport/         -- Frame codec, performative codec, transport SPI, TCP/in-memory
-|-- types/             -- AMQP type system (22 types), binary codec, descriptors
-+-- demo/              -- Demo applications and examples
+├── client/            — Client: connect, session, sender/receiver links, SASL
+├── client/service/    — AmqpClientService (DP/DF-based service wrapper)
+├── container/         — Container (server): accept, route, session/link management
+├── container/service/ — AmqpContainerService (DP/DF-based service wrapper)
+├── common/            — Constants, error conditions, connection state, exceptions, event listener
+├── delivery/          — Delivery tracking, delivery states (sealed), codec
+├── link/              — Sender and receiver links with credit-based flow control
+├── message/           — Message model (7 sections), message codec, header, properties
+├── sasl/              — SASL mechanisms (ANONYMOUS, PLAIN, EXTERNAL), authenticator
+├── session/           — Session multiplexing, flow control windows, link registry
+├── transport/         — Frame codec, performative codec, transport SPI, PipelineTransport
+├── types/             — AMQP type system (22 types), binary codec, descriptors
+└── demo/              — Demo applications and examples
 ```
 
 ## Demo Applications

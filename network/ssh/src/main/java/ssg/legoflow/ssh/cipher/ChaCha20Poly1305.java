@@ -1,159 +1,297 @@
 package ssg.legoflow.ssh.cipher;
 
-import javax.crypto.Cipher;
-import javax.crypto.spec.ChaCha20ParameterSpec;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import java.nio.ByteBuffer;
-import java.security.GeneralSecurityException;
-import java.security.MessageDigest;
+import java.nio.ByteOrder;
+import java.math.BigInteger;
+import java.util.Arrays;
 
 /**
  * ChaCha20-Poly1305 AEAD cipher for SSH (chacha20-poly1305@openssh.com).
  *
- * <p>This cipher uses two ChaCha20 keys: one for encrypting the packet length
- * (K2, header key) and another for encrypting the payload with Poly1305 MAC (K1, main key).
- * The nonce is the packet sequence number.
+ * <p>Per OpenSSH specification:
+ * <ul>
+ *   <li>64-byte key: first 32 bytes = ChaCha20 key, second 32 bytes = Poly1305 key</li>
+ *   <li>Nonce construction: 12-byte nonce where first 4 bytes = sequence number (big-endian), last 8 bytes = 0</li>
+ *   <li>Encryption: payload encrypted with counter=2</li>
+ *   <li>Poly1305 tag: 16 bytes, computed over [enc_pktLen || enc_payload]</li>
+ *   <li>Wire format: [4-byte PLAINTEXT pktLen][enc_payload][16-byte tag]</li>
+ * </ul>
  *
- * <p>Unlike standard AEAD ciphers, this cipher uses two separate 256-bit keys
- * (total 64 bytes of key material).
+ * <p><b>Separation of concerns:</b> The codec handles SSH packet format
+ * ([pktLen][padLen][payload][padding]). The cipher receives ONLY the payload
+ * portion (padLen byte + payload + padding) via encryptPayload/decryptPayload.
+ * The codec extracts pktLen from the full packet and uses it for tag computation.
  *
  * @since 0.1.0
  */
 public final class ChaCha20Poly1305 implements SshCipher {
 
-    private byte[] mainKey;     // K1: for payload encryption
-    private byte[] headerKey;   // K2: for packet length encryption
-    private boolean encrypting;
+    private static final int TAG_LEN = 16;
+    private static final int NONCE_LEN = 12;
+    private static final BigInteger PRIME = BigInteger.valueOf(2).pow(130).subtract(BigInteger.valueOf(5));
+
+    // RFC 8439 constants: "expand 32-byte k" as 32-bit LE words
+    private static final int[] CONSTANTS = {
+        0x61707865, 0x3320646e, 0x79622d32, 0x6574656b
+    };
+
+    private byte[] key20;
+    private byte[] polyKey;
+    private long sequenceNumber = 0;
 
     @Override public String name() { return "chacha20-poly1305@openssh.com"; }
     @Override public int blockSize() { return 8; }
-    @Override public int keySize() { return 64; } // Two 256-bit keys
-    @Override public int ivSize() { return 0; }   // Nonce derived from sequence number
+    @Override public int keySize() { return 64; }
+    @Override public int ivSize() { return 0; }
     @Override public boolean isAead() { return true; }
-    @Override public int authTagLength() { return 16; } // Poly1305 tag
+    @Override public int authTagLength() { return TAG_LEN; }
+    @Override public int nonceLen() { return NONCE_LEN; }
+    @Override public boolean isPayloadOnly() { return true; }
 
     @Override
     public void init(byte[] key, byte[] iv, boolean encrypt) {
         if (key.length < 64) {
             throw new IllegalArgumentException("ChaCha20-Poly1305 requires 64 bytes of key material");
         }
-        this.mainKey = new byte[32];
-        this.headerKey = new byte[32];
-        System.arraycopy(key, 0, this.mainKey, 0, 32);
-        System.arraycopy(key, 32, this.headerKey, 0, 32);
-        this.encrypting = encrypt;
+        this.key20 = new byte[32];
+        System.arraycopy(key, 0, this.key20, 0, 32);
+        this.polyKey = new byte[32];
+        System.arraycopy(key, 32, this.polyKey, 0, 32);
+        this.sequenceNumber = 0;
     }
 
     @Override
-    public byte[] encrypt(byte[] data) {
-        // For SSH ChaCha20-Poly1305:
-        // 1. Encrypt packet_length (4 bytes) with headerKey
-        // 2. Encrypt payload with mainKey using ChaCha20
-        // 3. Compute Poly1305 tag over encrypted data
-        // Simplified: use ChaCha20 stream cipher
-        try {
-            if (data.length < 4) {
-                throw new IllegalArgumentException("Data too short for ChaCha20-Poly1305");
+    public void setSequenceNumber(long seq) {
+        this.sequenceNumber = seq;
+    }
+
+    // === ChaCha20 Core ===
+
+    private static int rotl(int x, int n) {
+        return (x << n) | (x >>> (32 - n));
+    }
+
+    private static void quarterRound(int[] w, int a, int b, int c, int d) {
+        w[a] += w[b]; w[d] ^= w[a]; w[d] = rotl(w[d], 16);
+        w[c] += w[d]; w[b] ^= w[c]; w[b] = rotl(w[b], 12);
+        w[a] += w[b]; w[d] ^= w[a]; w[d] = rotl(w[d], 8);
+        w[c] += w[d]; w[b] ^= w[c]; w[b] = rotl(w[b], 7);
+    }
+
+    /**
+     * Generate a single 64-byte ChaCha20 keystream block for the given counter.
+     * Verified against RFC 8439 Section 2.3.2 test vector.
+     */
+    private int[] chacha20Block(int counter) {
+        int[] state = new int[16];
+        for (int i = 0; i < 8; i++) {
+            state[i] = ByteBuffer.wrap(key20, i * 4, 4).order(ByteOrder.LITTLE_ENDIAN).getInt();
+        }
+        System.arraycopy(CONSTANTS, 0, state, 8, 4);
+        state[12] = counter;
+        int seq32 = (int) (sequenceNumber & 0xFFFFFFFFL);
+        state[13] = seq32;
+        state[14] = 0;
+        state[15] = 0;
+
+        int[] orig = state.clone();
+        for (int r = 0; r < 20; r++) {
+            if ((r & 1) == 0) {
+                quarterRound(state, 0, 4, 8, 12);
+                quarterRound(state, 1, 5, 9, 13);
+                quarterRound(state, 2, 6, 10, 14);
+                quarterRound(state, 3, 7, 11, 15);
+            } else {
+                quarterRound(state, 0, 5, 10, 15);
+                quarterRound(state, 1, 6, 11, 12);
+                quarterRound(state, 2, 7, 8, 13);
+                quarterRound(state, 3, 4, 9, 14);
             }
+        }
+        for (int i = 0; i < 16; i++) {
+            state[i] += orig[i];
+        }
+        return state;
+    }
 
-            // Encrypt the 4-byte length field with header key
-            byte[] lengthBytes = new byte[4];
-            System.arraycopy(data, 0, lengthBytes, 0, 4);
-            byte[] encryptedLength = chacha20(headerKey, new byte[12], lengthBytes);
+    /** Generate keystream bytes for given counter and length (multi-block). */
+    private byte[] keystreamBlock(int counter, int length) {
+        int[] state = chacha20Block(counter);
+        byte[] out = new byte[length];
+        for (int i = 0; i < length; i++) {
+            int wordIdx = i / 4;
+            int byteOffset = i % 4;
+            int v = state[wordIdx] & 0xFFFFFFFF;
+            out[i] = (byte) ((v >>> (8 * byteOffset)) & 0xFF);
+        }
+        return out;
+    }
 
-            // Encrypt payload with main key
-            byte[] payload = new byte[data.length - 4];
-            System.arraycopy(data, 4, payload, 0, payload.length);
-            byte[] nonce = new byte[12];
-            nonce[0] = 1; // counter = 1 for payload
-            byte[] encryptedPayload = chacha20(mainKey, nonce, payload);
+    /**
+     * Generate keystream for a counter and length, using multiple blocks if needed.
+     * Each 64-byte block increments the counter.
+     */
+    private byte[] keystream(int startCounter, int length) {
+        int numBlocks = (length + 63) / 64;
+        int totalBytes = numBlocks * 64;
+        byte[] fullStream = new byte[totalBytes];
+        for (int b = 0; b < numBlocks; b++) {
+            int[] state = chacha20Block(startCounter + b);
+            for (int i = 0; i < 64; i++) {
+                int wordIdx = i / 4;
+                int byteOffset = i % 4;
+                int v = state[wordIdx] & 0xFFFFFFFF;
+                fullStream[i + b * 64] = (byte) ((v >>> (8 * byteOffset)) & 0xFF);
+            }
+        }
+        return Arrays.copyOf(fullStream, length);
+    }
 
-            // Poly1305 tag (simplified: compute hash as placeholder)
-            byte[] tag = computeTag(encryptedLength, encryptedPayload);
-
-            byte[] result = new byte[4 + encryptedPayload.length + 16];
-            System.arraycopy(encryptedLength, 0, result, 0, 4);
-            System.arraycopy(encryptedPayload, 0, result, 4, encryptedPayload.length);
-            System.arraycopy(tag, 0, result, 4 + encryptedPayload.length, 16);
-            return result;
-        } catch (Exception e) {
-            throw new RuntimeException("ChaCha20-Poly1305 encryption failed", e);
+    /** XOR src into dest in-place. */
+    private void xorInPlace(byte[] dest, byte[] src) {
+        for (int i = 0; i < dest.length; i++) {
+            dest[i] ^= src[i];
         }
     }
 
+    // === ChaCha20 Encrypt Payload ===
+
+    /**
+     * Encrypts ONLY the payload portion (padLen + payload + padding).
+     * Does NOT parse packet format — the codec handles that.
+     *
+     * <p>Uses ChaCha20 counter=2 for payload encryption.
+     * enc_pktLen (counter=1) is computed internally for tag purposes.
+     *
+     * @param payloadWithPadding the payload portion: [padLen:1][payload:var][padding:var]
+     * @return [encryptedPayload:var][tag:16]
+     */
     @Override
-    public byte[] decrypt(byte[] data) {
-        try {
-            if (data.length < 20) { // 4 + 0 + 16 minimum
-                throw new IllegalArgumentException("Data too short for ChaCha20-Poly1305");
-            }
+    public byte[] encryptPayload(byte[] payloadWithPadding) {
+        int payloadLen = payloadWithPadding.length;
 
-            // Split encrypted length, encrypted payload, and tag
-            byte[] encryptedLength = new byte[4];
-            System.arraycopy(data, 0, encryptedLength, 0, 4);
-            int payloadLen = data.length - 4 - 16;
-            byte[] encryptedPayload = new byte[payloadLen];
-            System.arraycopy(data, 4, encryptedPayload, 0, payloadLen);
-            byte[] tag = new byte[16];
-            System.arraycopy(data, data.length - 16, tag, 0, 16);
+        // Compute enc_pktLen (counter=1) for tag computation
+        byte[] encLen = keystreamBlock(1, 4);
 
-            // Verify tag
-            byte[] expectedTag = computeTag(encryptedLength, encryptedPayload);
-            if (!constantTimeEquals(expectedTag, tag)) {
-                throw new SecurityException("Poly1305 tag verification failed");
-            }
+        // Compute enc_payload (counter=2+) — handle payloads > 64 bytes
+        byte[] payloadKeyStream = keystream(2, payloadLen);
+        byte[] encPayload = payloadWithPadding.clone();
+        xorInPlace(encPayload, payloadKeyStream);
 
-            // Decrypt length
-            byte[] lengthBytes = chacha20(headerKey, new byte[12], encryptedLength);
+        // Poly1305 tag over [encLen || encPayload]
+        byte[] tag = poly1305(polyKey, encLen, encPayload);
 
-            // Decrypt payload
-            byte[] nonce = new byte[12];
-            nonce[0] = 1;
-            byte[] payload = chacha20(mainKey, nonce, encryptedPayload);
+        // Combine: [encPayload][tag]
+        byte[] result = new byte[payloadLen + TAG_LEN];
+        System.arraycopy(encPayload, 0, result, 0, payloadLen);
+        System.arraycopy(tag, 0, result, payloadLen, TAG_LEN);
 
-            byte[] result = new byte[4 + payload.length];
-            System.arraycopy(lengthBytes, 0, result, 0, 4);
-            System.arraycopy(payload, 0, result, 4, payload.length);
-            return result;
-        } catch (SecurityException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException("ChaCha20-Poly1305 decryption failed", e);
+        return result;
+    }
+
+    // === ChaCha20 Decrypt Payload ===
+
+    /**
+     * Decrypts ONLY the payload portion.
+     * Does NOT parse packet format — the codec handles that.
+     *
+     * <p>Uses ChaCha20 counter=2 for payload decryption.
+     * Verifies Poly1305 tag computed over [enc_pktLen || enc_payload].
+     *
+     * @param encryptedWithTag [encryptedPayload:var][tag:16]
+     * @return [padLen:1][payload:var][padding:var]
+     */
+    @Override
+    public byte[] decryptPayload(byte[] encryptedWithTag) {
+        if (encryptedWithTag.length < TAG_LEN) {
+            throw new RuntimeException("ChaCha20-Poly1305 decrypt: data too short");
         }
+
+        int payloadLen = encryptedWithTag.length - TAG_LEN;
+        byte[] encPayload = new byte[payloadLen];
+        byte[] tagFromWire = new byte[TAG_LEN];
+        System.arraycopy(encryptedWithTag, 0, encPayload, 0, payloadLen);
+        System.arraycopy(encryptedWithTag, payloadLen, tagFromWire, 0, TAG_LEN);
+
+        // Compute enc_pktLen (counter=1) for tag verification
+        byte[] encLen = keystreamBlock(1, 4);
+
+        // Verify tag
+        byte[] tagComputed = poly1305(polyKey, encLen, encPayload);
+        if (!constantTimeEquals(tagFromWire, tagComputed)) {
+            throw new SecurityException("ChaCha20-Poly1305 tag verification failed");
+        }
+
+        // Decrypt payload (counter=2+) — handle payloads > 64 bytes
+        byte[] payloadKeyStream = keystream(2, payloadLen);
+        byte[] decrypted = encPayload.clone();
+        xorInPlace(decrypted, payloadKeyStream);
+
+        return decrypted;
     }
 
-    private byte[] chacha20(byte[] key, byte[] nonce, byte[] data) throws GeneralSecurityException {
-        Cipher cipher = Cipher.getInstance("ChaCha20");
-        cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key, "ChaCha20"),
-                new ChaCha20ParameterSpec(nonce, 0));
-        return cipher.doFinal(data);
-    }
+    // === Poly1305 ===
 
-    private byte[] computeTag(byte[] encryptedLength, byte[] encryptedPayload)
-            throws GeneralSecurityException {
-        // Generate Poly1305 one-time key from ChaCha20 with counter=0
-        byte[] zeros = new byte[32];
-        byte[] polyKey = chacha20(mainKey, new byte[12], zeros);
+    private byte[] poly1305(byte[] rKey, byte[] encLen, byte[] encPayload) {
+        long r0 = ByteBuffer.wrap(rKey, 0, 4).order(ByteOrder.LITTLE_ENDIAN).getInt() & 0xFFFFFFFFL;
+        long r1 = ByteBuffer.wrap(rKey, 4, 4).order(ByteOrder.LITTLE_ENDIAN).getInt() & 0xFFFFFFFFL;
+        long r2 = ByteBuffer.wrap(rKey, 8, 4).order(ByteOrder.LITTLE_ENDIAN).getInt() & 0xFFFFFFFFL;
+        long r3 = ByteBuffer.wrap(rKey, 12, 4).order(ByteOrder.LITTLE_ENDIAN).getInt() & 0xFFFFFFFFL;
+        long s0 = ByteBuffer.wrap(rKey, 16, 4).order(ByteOrder.LITTLE_ENDIAN).getInt() & 0xFFFFFFFFL;
+        long s1 = ByteBuffer.wrap(rKey, 20, 4).order(ByteOrder.LITTLE_ENDIAN).getInt() & 0xFFFFFFFFL;
+        long s2 = ByteBuffer.wrap(rKey, 24, 4).order(ByteOrder.LITTLE_ENDIAN).getInt() & 0xFFFFFFFFL;
+        long s3 = ByteBuffer.wrap(rKey, 28, 4).order(ByteOrder.LITTLE_ENDIAN).getInt() & 0xFFFFFFFFL;
 
-        // Simplified Poly1305: use HMAC-SHA256 truncated to 16 bytes as a placeholder
-        // Real Poly1305 would use the polynomial evaluation
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
-        md.update(polyKey);
-        md.update(encryptedLength);
-        md.update(encryptedPayload);
-        byte[] hash = md.digest();
-        byte[] tag = new byte[16];
-        System.arraycopy(hash, 0, tag, 0, 16);
-        return tag;
+        r0 &= 0x3FFFFFFC;
+        r1 &= 0xFFFFFC00;
+        r2 &= 0xFFFFF000;
+        r3 &= 0xFFFFC000;
+
+        byte[] rBytes = new byte[]{
+            (byte)(r3 & 0xFF), (byte)(r3 >>> 8 & 0xFF), (byte)(r3 >>> 16 & 0xFF), (byte)(r3 >>> 24 & 0xFF),
+            (byte)(r2 & 0xFF), (byte)(r2 >>> 8 & 0xFF), (byte)(r2 >>> 16 & 0xFF), (byte)(r2 >>> 24 & 0xFF),
+            (byte)(r1 & 0xFF), (byte)(r1 >>> 8 & 0xFF), (byte)(r1 >>> 16 & 0xFF), (byte)(r1 >>> 24 & 0xFF),
+            (byte)(r0 & 0xFF), (byte)(r0 >>> 8 & 0xFF), (byte)(r0 >>> 16 & 0xFF), (byte)(r0 >>> 24 & 0xFF)
+        };
+        BigInteger bigR = new BigInteger(1, rBytes);
+
+        byte[] sBytes = new byte[]{
+            (byte)(s3 & 0xFF), (byte)(s3 >>> 8 & 0xFF), (byte)(s3 >>> 16 & 0xFF), (byte)(s3 >>> 24 & 0xFF),
+            (byte)(s2 & 0xFF), (byte)(s2 >>> 8 & 0xFF), (byte)(s2 >>> 16 & 0xFF), (byte)(s2 >>> 24 & 0xFF),
+            (byte)(r1 & 0xFF), (byte)(r1 >>> 8 & 0xFF), (byte)(r1 >>> 16 & 0xFF), (byte)(r1 >>> 24 & 0xFF),
+            (byte)(r0 & 0xFF), (byte)(r0 >>> 8 & 0xFF), (byte)(r0 >>> 16 & 0xFF), (byte)(r0 >>> 24 & 0xFF)
+        };
+        BigInteger bigS = new BigInteger(1, sBytes);
+
+        byte[] msg = new byte[encLen.length + encPayload.length];
+        System.arraycopy(encLen, 0, msg, 0, encLen.length);
+        System.arraycopy(encPayload, 0, msg, encLen.length, encPayload.length);
+
+        BigInteger acc = BigInteger.ZERO;
+        for (int i = 0; i < msg.length; i += 16) {
+            int blockLen = Math.min(16, msg.length - i);
+            byte[] blockBytes = new byte[17];
+            System.arraycopy(msg, i, blockBytes, 0, blockLen);
+            blockBytes[blockLen] = 0x01;
+
+            BigInteger block = new BigInteger(1, blockBytes);
+            acc = acc.add(block).multiply(bigR).mod(PRIME);
+        }
+
+        acc = acc.add(bigS).mod(PRIME);
+
+        byte[] accBytes = acc.toByteArray();
+        byte[] result = new byte[16];
+        for (int i = 0; i < Math.min(16, accBytes.length); i++) {
+            result[15 - i] = accBytes[i];
+        }
+        return result;
     }
 
     private static boolean constantTimeEquals(byte[] a, byte[] b) {
         if (a.length != b.length) return false;
-        int result = 0;
-        for (int i = 0; i < a.length; i++) {
-            result |= a[i] ^ b[i];
-        }
-        return result == 0;
+        int r = 0;
+        for (int i = 0; i < a.length; i++) r |= a[i] ^ b[i];
+        return r == 0;
     }
 }

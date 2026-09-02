@@ -1,11 +1,8 @@
 package ssg.legoflow.upnp.dlna;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.EnumSet;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link DlnaHeaders} — DLNA HTTP headers.
  *

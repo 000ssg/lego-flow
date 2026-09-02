@@ -1,13 +1,11 @@
 package ssg.legoflow.http.client;
 
 import ssg.legoflow.http.core.*;
-
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
 /**
  * Handles HTTP 3xx redirects per RFC 7231 §6.4.
  *

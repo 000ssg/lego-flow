@@ -1,13 +1,11 @@
 package ssg.legoflow.ftp.server;
 
 import ssg.legoflow.ftp.client.FtpFileEntry;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.time.LocalDateTime;
 import java.util.List;
-
 /**
  * Interface for the virtual filesystem used by the FTP server.
  *

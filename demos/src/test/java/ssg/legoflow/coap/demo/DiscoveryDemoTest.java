@@ -2,19 +2,15 @@ package ssg.legoflow.coap.demo;
 
 import ssg.legoflow.coap.protocol.CoapCode;
 import ssg.legoflow.coap.protocol.CoapMessage;
-import ssg.legoflow.coap.protocol.CoapOption;
 import ssg.legoflow.coap.protocol.CoapType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Duration;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
-
 /**
  * Tests for {@link DiscoveryDemo}.
  *

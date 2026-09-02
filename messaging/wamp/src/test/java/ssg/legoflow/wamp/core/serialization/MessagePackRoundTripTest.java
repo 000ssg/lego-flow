@@ -1,12 +1,9 @@
 package ssg.legoflow.wamp.core.serialization;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Round-trip tests: encode then decode, verifying the result matches the original.
  */

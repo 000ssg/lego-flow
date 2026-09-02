@@ -2,12 +2,9 @@ package ssg.legoflow.http.security;
 
 import ssg.legoflow.blocks.DefaultContext;
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.*;
-
 class SslFilterTest {
 
     @Test

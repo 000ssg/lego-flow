@@ -1,16 +1,13 @@
 package ssg.legoflow.wamp.adapter.websocket;
 
-import ssg.legoflow.http.websocket.WebSocketFrame;
 import ssg.legoflow.http.websocket.WebSocketSession;
 import ssg.legoflow.wamp.core.WampMessage;
 import ssg.legoflow.wamp.core.WampSerializer;
 import ssg.legoflow.wamp.core.realm.Realm;
 import ssg.legoflow.wamp.core.realm.RealmManager;
 import ssg.legoflow.wamp.core.router.WampRouter;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Service that wires WAMP protocol handling over WebSocket connections.
  * Each incoming WebSocket session is assigned a {@link WebSocketWampTransport} and

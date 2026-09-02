@@ -4,11 +4,9 @@ import ssg.legoflow.network.terminals.base.config.TerminalConfig;
 import ssg.legoflow.network.terminals.base.display.Cursor;
 import ssg.legoflow.network.terminals.base.display.DisplayModel;
 import ssg.legoflow.network.terminals.base.display.TermAttr;
-import ssg.legoflow.network.terminals.base.event.TerminalEvent;
 import ssg.legoflow.network.terminals.base.event.TerminalEventListener;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for TerminalFactory — registry and creation of terminal instances.
  */

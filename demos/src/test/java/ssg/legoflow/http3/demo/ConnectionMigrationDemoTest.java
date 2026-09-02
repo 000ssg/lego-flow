@@ -1,11 +1,8 @@
 package ssg.legoflow.http3.demo;
 
 import org.junit.jupiter.api.Test;
-
 import java.net.InetSocketAddress;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ConnectionMigrationDemoTest {
 
     @Test

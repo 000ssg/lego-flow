@@ -1,9 +1,7 @@
 package ssg.legoflow.email.imap.client;
 
 import org.junit.jupiter.api.Test;
-import java.util.List;
 import static org.assertj.core.api.Assertions.*;
-
 class FolderViewTest {
     @Test void testCreation() {
         var view = new FolderView("INBOX");

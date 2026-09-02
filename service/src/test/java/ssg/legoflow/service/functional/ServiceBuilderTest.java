@@ -5,11 +5,8 @@ import ssg.legoflow.service.DefaultServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
 import ssg.legoflow.service.user.ServiceUser;
 import org.junit.jupiter.api.Test;
-
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ServiceBuilderTest {
 
     @Test

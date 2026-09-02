@@ -1,5 +1,10 @@
 package ssg.legoflow.messaging.amqp.client.service;
 
+import ssg.legoflow.messaging.amqp.common.AmqpCtxImpl;
+import ssg.legoflow.messaging.amqp.transport.AmqpFrameCodecImpl;
+import ssg.legoflow.service.DefaultServiceContext;
+import ssg.legoflow.service.manager.SelectableChannelManager;
+import ssg.legoflow.service.user.ServiceUser;
 import org.junit.jupiter.api.*;
 import static org.assertj.core.api.Assertions.*;
 
@@ -18,7 +23,9 @@ class AmqpClientServiceTest {
 
     @Test void testDisconnectBeforeConnectDoesNotThrow() {
         var service = AmqpClientService.builder("localhost", 5672).build();
-        try { service.disconnect(service.getServiceContext()); } catch (Exception e) { fail("should not throw"); }
+        var ctx = new DefaultServiceContext(ServiceUser.anonymous());
+        ctx.setAttribute("channelManager", new SelectableChannelManager(ctx));
+        try { service.disconnect(ctx); } catch (Exception e) { fail("should not throw: " + e.getMessage()); }
     }
 
     @Test void testBuilderWithPriority() {

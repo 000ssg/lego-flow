@@ -3,9 +3,7 @@ package ssg.legoflow.http3.feature;
 import ssg.legoflow.http.feature.HttpFeature;
 import ssg.legoflow.http.feature.HttpFeatureCategory;
 import ssg.legoflow.http.feature.HttpFeatureRegistry;
-
 import java.util.Map;
-
 /**
  * HTTP/3 feature for the HTTP feature system.
  *

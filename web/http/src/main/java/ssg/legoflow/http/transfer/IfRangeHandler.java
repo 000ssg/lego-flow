@@ -3,12 +3,10 @@ package ssg.legoflow.http.transfer;
 import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.header.EntityTag;
-
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-
 /**
  * Handles the If-Range header per RFC 7233 §2.2.
  *

@@ -3,14 +3,12 @@ package ssg.legoflow.network.dns.codec;
 import ssg.legoflow.network.dns.DnsMessage;
 import ssg.legoflow.network.dns.DnsQuestion;
 import ssg.legoflow.network.dns.DnsRecord;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
 /**
  * Codec for encoding and decoding DNS messages.
  * 

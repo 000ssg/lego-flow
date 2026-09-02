@@ -7,7 +7,6 @@ import ssg.legoflow.service.channel.DatagramPacketInfo;
 import ssg.legoflow.service.channel.UdpDataChannel;
 import ssg.legoflow.service.manager.ServiceGroup;
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -18,9 +17,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for SSDP integration with {@link ServiceGroup}.
  *

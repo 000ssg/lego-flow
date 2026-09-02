@@ -1,9 +1,7 @@
 package ssg.legoflow.ftp.server;
 
 import ssg.legoflow.ftp.security.FtpsConfig;
-
 import java.time.Duration;
-
 /**
  * Configuration for an FTP server.
  *

@@ -1,15 +1,11 @@
 package ssg.legoflow.network.dns.protocol;
 import org.junit.jupiter.api.Timeout;
-
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.dns.rdata.*;
-
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Extended codec tests covering all record types and edge cases for DnsCodec.
  */

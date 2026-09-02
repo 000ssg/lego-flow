@@ -2,11 +2,9 @@ package ssg.legoflow.xmpp.iot;
 
 import ssg.legoflow.xmpp.core.JID;
 import ssg.legoflow.xmpp.iot.sensor.SensorData;
-import ssg.legoflow.xmpp.iot.sensor.SensorDataRequest;
 import ssg.legoflow.xmpp.iot.sensor.SensorNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +12,6 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 /**
  * Manages IoT sensor operations (XEP-0323).
  *

@@ -3,14 +3,12 @@ package ssg.legoflow.interop.postgresql;
 import org.junit.jupiter.api.*;
 import ssg.legoflow.database.postgresql.client.PgClient;
 import ssg.legoflow.database.postgresql.client.PgResult;
-
 import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Interoperability test: Lego Flow PostgreSQL client ↔ real PostgreSQL server.
  */
+    @Tag("database-protocols")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PostgresqlInteropTest {
 

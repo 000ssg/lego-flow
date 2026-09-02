@@ -2,13 +2,10 @@ package ssg.legoflow.messaging.amqp.message;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.messaging.amqp.types.AmqpType;
-
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link MessageCodec} — AMQP message encoding/decoding.
  */

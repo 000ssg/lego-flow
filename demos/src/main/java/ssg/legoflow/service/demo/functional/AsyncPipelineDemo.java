@@ -2,12 +2,10 @@ package ssg.legoflow.service.demo.functional;
 
 import ssg.legoflow.service.functional.AsyncServicePipeline;
 import ssg.legoflow.service.functional.ServicePipeline;
-
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
 /**
  * Async pipeline demo: wraps a sync {@link ServicePipeline} with
  * {@link AsyncServicePipeline} for {@link CompletableFuture}-based processing.

@@ -1,12 +1,10 @@
 package ssg.legoflow.database.mysql.server;
 
 import ssg.legoflow.database.mysql.protocol.*;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
 import java.util.regex.Pattern;
-
 /**
  * Executes SQL queries against the in-memory database.
  *

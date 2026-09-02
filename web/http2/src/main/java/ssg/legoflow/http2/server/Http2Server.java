@@ -6,16 +6,12 @@ import ssg.legoflow.http2.config.Http2Config;
 import ssg.legoflow.http2.connection.Http2Connection;
 import ssg.legoflow.http2.connection.Http2Settings;
 import ssg.legoflow.http2.frame.*;
-import ssg.legoflow.http2.hpack.HpackEncoder;
 import ssg.legoflow.http2.stream.Http2Stream;
 import ssg.legoflow.http2.stream.Http2StreamState;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.Consumer;
-
 public class Http2Server {
 
     private final Http2Config config;

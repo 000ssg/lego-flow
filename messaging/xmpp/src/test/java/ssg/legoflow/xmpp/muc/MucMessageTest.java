@@ -2,11 +2,8 @@ package ssg.legoflow.xmpp.muc;
 
 import ssg.legoflow.xmpp.core.JID;
 import org.junit.jupiter.api.Test;
-
 import java.time.Instant;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link MucMessage}.
  *

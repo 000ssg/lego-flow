@@ -6,12 +6,8 @@ import ssg.legoflow.service.DefaultServiceContext;
 import ssg.legoflow.service.demo.procedural.EchoService;
 import ssg.legoflow.service.user.ServiceUser;
 import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ServiceLifecycleDemoTest {
 
     @Test

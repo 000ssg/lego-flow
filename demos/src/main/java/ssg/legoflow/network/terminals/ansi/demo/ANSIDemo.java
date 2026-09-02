@@ -26,4 +26,7 @@ public final class ANSIDemo {
         System.out.println("Type: " + terminal.type());
         System.out.println("Cursor: " + terminal.cursor().row() + "," + terminal.cursor().col());
     }
+    public static void main(String[] args) {
+        demonstrate();
+    }
 }

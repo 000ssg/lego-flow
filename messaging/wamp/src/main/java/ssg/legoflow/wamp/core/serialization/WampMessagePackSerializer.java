@@ -1,9 +1,7 @@
 package ssg.legoflow.wamp.core.serialization;
 
 import ssg.legoflow.wamp.core.WampMessage;
-
 import java.util.List;
-
 /**
  * Serializes and deserializes WAMP messages using MessagePack binary format.
  * WAMP messages are encoded as MessagePack arrays: {@code [type_code, ...fields]}.

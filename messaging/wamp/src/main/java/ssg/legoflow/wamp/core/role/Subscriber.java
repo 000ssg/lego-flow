@@ -2,12 +2,10 @@ package ssg.legoflow.wamp.core.role;
 
 import ssg.legoflow.wamp.core.WampMessage;
 import ssg.legoflow.wamp.core.transport.WampTransport;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
-
 /**
  * WAMP Subscriber role — subscribes to topics and receives events.
  *

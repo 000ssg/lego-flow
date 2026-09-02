@@ -1,12 +1,7 @@
 package ssg.legoflow.messaging.amqp.delivery;
 
 import ssg.legoflow.messaging.amqp.types.AmqpType;
-import ssg.legoflow.messaging.amqp.types.Descriptors;
-
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-
 /**
  * Sealed interface for AMQP 1.0 delivery states (section 3.4).
  *

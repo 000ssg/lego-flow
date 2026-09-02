@@ -5,13 +5,10 @@ import ssg.legoflow.upnp.mediarenderer.MediaRendererDevice;
 import ssg.legoflow.upnp.mediaserver.MediaServerDevice;
 import ssg.legoflow.upnp.ssdp.MultiInterfaceSsdpService;
 import ssg.legoflow.upnp.ssdp.SsdpEvent;
-import ssg.legoflow.upnp.ssdp.SsdpListener;
 import ssg.legoflow.upnp.ssdp.SsdpMessage;
 import ssg.legoflow.upnp.ssdp.SsdpService;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.NetworkInterface;
 import java.net.URI;
@@ -28,7 +25,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 /**
  * UPnP Control Point for discovering and controlling devices on the local network.
  *

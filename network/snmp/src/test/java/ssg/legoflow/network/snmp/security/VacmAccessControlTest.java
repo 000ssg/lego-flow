@@ -4,9 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.common.oid.ObjectIdentifier;
 import ssg.legoflow.network.snmp.protocol.SecurityLevel;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for {@link VacmAccessControl} access control.
  *

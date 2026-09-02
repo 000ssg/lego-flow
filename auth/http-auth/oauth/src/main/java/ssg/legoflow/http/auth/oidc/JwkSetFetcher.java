@@ -2,14 +2,12 @@ package ssg.legoflow.http.auth.oidc;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.security.PublicKey;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * Fetches and caches a JWK Set from a JWKS URI endpoint. Supports automatic
  * cache expiry for key rotation scenarios.

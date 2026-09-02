@@ -1,10 +1,8 @@
 package ssg.legoflow.media.sip.transport;
 
 import ssg.legoflow.media.sip.protocol.SipMessage;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
-
 /**
  * SIP transport abstraction per RFC 3261 section 18.
  *

@@ -3,11 +3,8 @@ package ssg.legoflow.messaging.kafka.broker;
 import ssg.legoflow.messaging.kafka.common.KafkaErrors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ConfigManagerTest {
 
     private ConfigManager configManager;

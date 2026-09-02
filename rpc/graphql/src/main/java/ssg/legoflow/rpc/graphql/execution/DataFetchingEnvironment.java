@@ -3,9 +3,7 @@ package ssg.legoflow.rpc.graphql.execution;
 import ssg.legoflow.rpc.graphql.schema.FieldDefinition;
 import ssg.legoflow.rpc.graphql.schema.GraphQLSchema;
 import ssg.legoflow.rpc.graphql.schema.GraphQLType;
-
 import java.util.Map;
-
 /**
  * Environment passed to data fetchers (resolvers) during field resolution.
  *

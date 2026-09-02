@@ -1,9 +1,7 @@
 package ssg.legoflow.database.postgresql.server;
 
 import ssg.legoflow.database.postgresql.protocol.BackendMessage.ColumnDescription;
-
 import java.util.List;
-
 /**
  * Query result with column descriptions and data rows.
  *

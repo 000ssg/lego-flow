@@ -3,14 +3,12 @@ package ssg.legoflow.interop.redis;
 import org.junit.jupiter.api.*;
 import ssg.legoflow.database.redis.client.RedisClient;
 import ssg.legoflow.database.redis.protocol.RespType;
-
 import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Interoperability test: Lego Flow Redis client ↔ real Redis server.
  */
+    @Tag("web-protocols")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RedisInteropTest {
 

@@ -1,9 +1,7 @@
 package ssg.legoflow.http3.demo;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ZeroRttDemoTest {
 
     @Test

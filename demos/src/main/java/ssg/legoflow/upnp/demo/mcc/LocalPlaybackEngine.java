@@ -2,10 +2,8 @@ package ssg.legoflow.upnp.demo.mcc;
 
 import ssg.legoflow.upnp.mediarenderer.PlaybackEvent;
 import ssg.legoflow.upnp.mediarenderer.PlaybackListener;
-import ssg.legoflow.upnp.mediarenderer.PositionInfo;
 import ssg.legoflow.upnp.mediaserver.ContentItem;
 import ssg.legoflow.upnp.mediaserver.ContentItemType;
-
 import javax.imageio.ImageIO;
 import javax.sound.sampled.*;
 import javax.swing.*;
@@ -15,7 +13,6 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
@@ -26,7 +23,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-
 /**
  * Local media playback engine for a UPnP/DLNA control point GUI.
  *

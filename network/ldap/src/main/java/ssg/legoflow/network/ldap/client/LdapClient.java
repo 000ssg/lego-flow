@@ -7,7 +7,6 @@ import ssg.legoflow.network.ldap.control.LdapControl;
 import ssg.legoflow.network.ldap.control.PagedResultsControl;
 import ssg.legoflow.network.ldap.filter.SearchFilter;
 import ssg.legoflow.network.ldap.protocol.*;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -17,7 +16,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * LDAP v3 client for connecting to LDAP servers (RFC 4511).
  *
@@ -45,7 +43,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class LdapClient implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(LdapClient.class);
-    private static final int DEFAULT_BUFFER_SIZE = 8192;
 
     private final Socket socket;
     private final InputStream input;
@@ -126,9 +123,12 @@ public final class LdapClient implements AutoCloseable {
      * @throws IOException if an I/O error occurs
      */
     public BindResponse bindAnonymous() throws IOException {
-        LdapMessage request = LdapMessage.of(nextMessageId(), BindRequest.anonymous());
+        // Use simple bind with empty DN/credentials — most compatible with OpenLDAP servers
+        // (NULL authentication is often rejected by real LDAP servers)
+        LdapMessage request = LdapMessage.of(nextMessageId(), BindRequest.simple("", ""));
         LdapMessage response = sendAndReceive(request);
         if (response.protocolOp() instanceof BindResponse bindResp) {
+            LOG.debug("Anonymous bind result: {}", bindResp.result().resultCode());
             return bindResp;
         }
         throw new LdapClientException("Unexpected response to anonymous bind");

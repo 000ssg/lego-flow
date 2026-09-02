@@ -2,10 +2,8 @@ package ssg.legoflow.rpc.graphql.execution;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.rpc.graphql.schema.*;
-
 import java.util.List;
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings("unchecked")

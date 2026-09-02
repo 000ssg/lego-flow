@@ -2,9 +2,7 @@ package ssg.legoflow.http.header;
 
 import ssg.legoflow.http.core.HttpHeaders;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class HttpHeadersTest {
 
     @Test

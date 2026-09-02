@@ -1,13 +1,11 @@
 package ssg.legoflow.coap.codec;
 
 import ssg.legoflow.coap.protocol.CoapOption;
-
 import java.nio.ByteBuffer;
 import ssg.legoflow.service.util.BufferPool;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-
 /**
  * Encoder and decoder for CoAP options using delta encoding as defined in RFC 7252, Section 3.1.
  *

@@ -29,6 +29,9 @@ public final class HmacSha256Etm implements SshMac {
             byte[] macKey = new byte[keyLength()];
             System.arraycopy(key, 0, macKey, 0, Math.min(key.length, keyLength()));
             mac.init(new SecretKeySpec(macKey, "HmacSHA256"));
+            StringBuilder sb = new StringBuilder();
+            for(int i=0;i<Math.min(macKey.length,8);i++) sb.append(String.format("%02x ", macKey[i]));
+            System.out.println("[HMAC-INIT] key=[" + sb.toString().trim() + "] algo=" + mac.getAlgorithm() + " len=" + mac.getMacLength());
         } catch (GeneralSecurityException e) {
             throw new RuntimeException("Failed to initialize HMAC-SHA-256-ETM", e);
         }
@@ -38,6 +41,7 @@ public final class HmacSha256Etm implements SshMac {
     public byte[] compute(long sequenceNumber, byte[] data) {
         try {
             Mac m = (Mac) mac.clone();
+            System.out.println("[HMAC-COMP] seq=" + sequenceNumber + " dataLen=" + data.length + " cloneOk=true");
             ByteBuffer seqBuf = ByteBuffer.allocate(4);
             seqBuf.putInt((int) sequenceNumber);
             m.update(seqBuf.array());

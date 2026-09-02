@@ -1,11 +1,9 @@
 package ssg.legoflow.network.dns.demo;
 
 import ssg.legoflow.network.dns.protocol.DnsMessage;
-import ssg.legoflow.network.dns.protocol.DnsName;
 import ssg.legoflow.network.dns.protocol.RecordType;
 import ssg.legoflow.network.dns.server.AuthoritativeZone;
 import ssg.legoflow.network.dns.server.ZoneFile;
-
 /**
  * Demonstrates zone management: creating zones, adding records, and zone file parsing.
  *
@@ -61,5 +59,8 @@ public final class ZoneManagementDemo {
         query = DnsMessage.query("nonexistent.example.org", RecordType.A);
         response = zone.handleQuery(query);
         System.out.println("Response for nonexistent: " + response.header().rCode());
+    }
+    public static void main(String[] args) {
+        run();
     }
 }

@@ -6,11 +6,9 @@ import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
-
 /**
  * HTTP Basic Authentication scheme (RFC 7617).
  * Decodes Base64-encoded username:password from the Authorization header

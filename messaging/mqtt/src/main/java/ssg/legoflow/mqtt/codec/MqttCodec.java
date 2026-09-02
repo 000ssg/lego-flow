@@ -3,12 +3,10 @@ package ssg.legoflow.mqtt.codec;
 import ssg.legoflow.blocks.AbstractDataFilter;
 import ssg.legoflow.blocks.Context;
 import ssg.legoflow.mqtt.protocol.*;
-
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * MQTT codec that encodes {@link MqttPacket} to {@link ByteBuffer} and vice versa.
  *

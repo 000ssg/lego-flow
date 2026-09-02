@@ -2,9 +2,7 @@ package ssg.legoflow.upnp.mediaserver;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Compliance tests for ContentDirectory:1 features: SystemUpdateID,
  * ContainerUpdateIDs, Search action, and search capabilities.

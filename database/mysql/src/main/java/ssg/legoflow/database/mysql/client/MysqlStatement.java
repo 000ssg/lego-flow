@@ -3,11 +3,9 @@ package ssg.legoflow.database.mysql.client;
 import ssg.legoflow.database.mysql.protocol.*;
 import ssg.legoflow.database.mysql.server.ColumnDefinition;
 import ssg.legoflow.database.mysql.server.ResultSetWriter;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * MySQL text query execution.
  *

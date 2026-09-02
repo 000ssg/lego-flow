@@ -1,9 +1,7 @@
 package ssg.legoflow.service.demo.functional;
 
 import ssg.legoflow.service.functional.ServicePipeline;
-
 import java.util.List;
-
 public class PipelineDemo {
 
     private final ServicePipeline<String> pipeline;

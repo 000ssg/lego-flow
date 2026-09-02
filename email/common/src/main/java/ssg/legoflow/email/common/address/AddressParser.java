@@ -1,10 +1,8 @@
 package ssg.legoflow.email.common.address;
 
 import ssg.legoflow.email.common.encoding.EncodedWordCodec;
-
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * Parses RFC 5322 address, mailbox, and group lists.
  *

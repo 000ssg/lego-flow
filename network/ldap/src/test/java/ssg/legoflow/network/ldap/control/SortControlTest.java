@@ -1,10 +1,7 @@
 package ssg.legoflow.network.ldap.control;
 
 import org.junit.jupiter.api.Test;
-import ssg.legoflow.network.ldap.control.LdapControl;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class SortControlTest {
 
     @Test

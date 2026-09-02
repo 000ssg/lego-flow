@@ -1,10 +1,8 @@
 package ssg.legoflow.xmpp.iot.control;
 
 import ssg.legoflow.xmpp.core.JID;
-
 import java.util.List;
 import java.util.Objects;
-
 /**
  * A control request for an IoT node (XEP-0325).
  *

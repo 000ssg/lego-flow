@@ -8,11 +8,8 @@ import ssg.legoflow.network.snmp.protocol.*;
 import ssg.legoflow.network.snmp.security.UsmEngine;
 import ssg.legoflow.network.snmp.server.MibTree;
 import ssg.legoflow.network.snmp.server.SnmpAgent;
-
 import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Integration tests for {@link SnmpManager} and {@link SnmpAgent}.
  *

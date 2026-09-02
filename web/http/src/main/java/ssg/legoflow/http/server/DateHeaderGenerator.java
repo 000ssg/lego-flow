@@ -2,12 +2,10 @@ package ssg.legoflow.http.server;
 
 import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpResponse;
-
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-
 /**
  * Auto-generates the Date header on HTTP responses per RFC 7231 §7.1.1.
  *

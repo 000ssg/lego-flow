@@ -3,9 +3,7 @@ package ssg.legoflow.email.smtp.dsn;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import ssg.legoflow.email.smtp.protocol.EnhancedStatusCode;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Extended tests for {@link DsnGenerator}.
  */

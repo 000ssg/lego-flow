@@ -4,9 +4,7 @@ import ssg.legoflow.ssh.auth.PasswordAuth;
 import ssg.legoflow.ssh.client.SshClient;
 import ssg.legoflow.ssh.connection.SessionChannel;
 import ssg.legoflow.ssh.scp.ScpClient;
-
 import java.nio.file.Path;
-
 /**
  * Demo: File upload and download via SCP.
  *

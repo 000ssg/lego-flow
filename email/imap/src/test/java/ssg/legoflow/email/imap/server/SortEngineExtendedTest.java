@@ -5,12 +5,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
 import static org.assertj.core.api.Assertions.*;
-
 import ssg.legoflow.email.imap.protocol.SortCriteria;
 import ssg.legoflow.email.imap.protocol.SortCriteria.SortKey;
 import ssg.legoflow.email.imap.protocol.SortCriteria.ThreadAlgorithm;
 import ssg.legoflow.email.imap.protocol.SearchCriteria;
-
 /**
  * Extended SortEngine tests covering reverse sorting, all sort keys, 
  * threading algorithms, parse methods, and edge cases.

@@ -1,8 +1,6 @@
 package ssg.legoflow.database.mysql.protocol;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
 /**
  * MySQL length-encoded integer encoding and decoding.
  *

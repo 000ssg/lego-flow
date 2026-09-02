@@ -2,9 +2,7 @@ package ssg.legoflow.media.sip.uri;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.media.sip.protocol.SipUri;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link SipUri}.
  */

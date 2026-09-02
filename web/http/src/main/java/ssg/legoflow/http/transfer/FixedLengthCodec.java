@@ -2,9 +2,7 @@ package ssg.legoflow.http.transfer;
 
 import ssg.legoflow.blocks.AbstractDataFilter;
 import ssg.legoflow.blocks.Context;
-
 import java.nio.ByteBuffer;
-
 public class FixedLengthCodec extends AbstractDataFilter<ByteBuffer> {
 
     private final long expectedLength;

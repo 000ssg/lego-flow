@@ -7,9 +7,7 @@ import ssg.legoflow.email.smtp.server.SmtpHandler;
 import ssg.legoflow.email.smtp.server.SmtpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.List;
-
 /**
  * Demo: sending a message to multiple recipients.
  *

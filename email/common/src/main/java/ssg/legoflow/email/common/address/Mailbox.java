@@ -1,9 +1,7 @@
 package ssg.legoflow.email.common.address;
 
 import ssg.legoflow.email.common.encoding.EncodedWordCodec;
-
 import java.util.Objects;
-
 /**
  * An RFC 5322 mailbox: optional display name plus email address.
  *

@@ -3,16 +3,12 @@ package ssg.legoflow.network.dns.server;
 import ssg.legoflow.network.dns.client.DnsClient;
 import ssg.legoflow.network.dns.protocol.*;
 import ssg.legoflow.network.dns.rdata.ARecord;
-import ssg.legoflow.network.dns.rdata.NsRecord;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Timeout;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Duration;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Integration tests for DnsServer covering server lifecycle,
  * zone management, and query handling via UDP.
@@ -95,6 +91,7 @@ class DnsServerIntegrationTest {
         }
     }
 
+    @Timeout(30)
     @Test
     void testServerQueryCounters() throws Exception {
         try (DnsClient client = new DnsClient(
@@ -104,10 +101,10 @@ class DnsServerIntegrationTest {
             
             client.query("example.com.", RecordType.A);
             
-            // Allow async virtual thread to update counters (retry on CI race condition)
-            int retries = 40;
+            // Allow async virtual thread to update counters (Windows CI can be slow with virtual thread scheduling)
+            int retries = 100;
             while (server.queriesReceived() <= queriesBefore && retries-- > 0) {
-                Thread.sleep(100);
+                Thread.sleep(200);
             }
             
             assertThat(server.queriesReceived()).isGreaterThan(queriesBefore);
@@ -173,10 +170,10 @@ class DnsServerIntegrationTest {
                 assertThat(response.header().rCode()).isEqualTo(ResponseCode.NOERROR);
             }
             
-            // Allow async virtual thread to update counters (retry on CI race condition)
-            int retries = 40;
+            // Allow async virtual thread to update counters (Windows CI can be slow with virtual thread scheduling)
+            int retries = 100;
             while (server.queriesReceived() < 5 && retries-- > 0) {
-                Thread.sleep(100);
+                Thread.sleep(200);
             }
             
             assertThat(server.queriesReceived()).isGreaterThanOrEqualTo(5);

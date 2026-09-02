@@ -2,7 +2,6 @@ package ssg.legoflow.ftp.security;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
@@ -10,7 +9,6 @@ import java.io.IOException;
 import java.net.Socket;
 import java.security.GeneralSecurityException;
 import java.util.Objects;
-
 /**
  * Handles FTPS (FTP over TLS) negotiation as defined in RFC 4217.
  *

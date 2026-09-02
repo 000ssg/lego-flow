@@ -7,17 +7,14 @@ import ssg.legoflow.ssh.kex.KexInit;
 import ssg.legoflow.ssh.transport.SshTransport;
 import ssg.legoflow.ssh.transport.SshTransportCodec;
 import ssg.legoflow.ssh.transport.SshVersion;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Objects;
-
 /**
  * SSH client implementation providing connect, authenticate, and session management.
  *
@@ -86,17 +83,16 @@ public final class SshClient implements AutoCloseable {
         // Read remote KEXINIT
         byte[] remoteKexPayload = transport.readPacket();
         KexInit remoteKexInit = KexInit.decode(remoteKexPayload);
+        transport.setRemoteKexInitBytes(remoteKexPayload);
 
         // Negotiate algorithms
         transport.negotiateAlgorithms(localKexInit, remoteKexInit);
 
-        // Send NEWKEYS
-        transport.sendNewKeys();
-
-        // Read NEWKEYS
-        byte[] newKeysPayload = transport.readPacket();
+        // Perform key exchange (DH exchange + applyNewKeys + NEWKEYS)
+        transport.performKeyExchange(
+            transport.localVersion().format(),
+            remoteVersion.format());
         LOG.debug("Key exchange completed");
-
         // Request ssh-userauth service
         transport.sendServiceRequest("ssh-userauth");
         byte[] serviceAccept = transport.readPacket();

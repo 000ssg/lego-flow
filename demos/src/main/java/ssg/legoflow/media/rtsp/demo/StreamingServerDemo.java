@@ -3,11 +3,8 @@ package ssg.legoflow.media.rtsp.demo;
 import ssg.legoflow.media.common.sdp.*;
 import ssg.legoflow.media.rtsp.server.MediaSource;
 import ssg.legoflow.media.rtsp.server.RtspServer;
-
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalInt;
-
 /**
  * Demo RTSP streaming server with a test media source.
  *

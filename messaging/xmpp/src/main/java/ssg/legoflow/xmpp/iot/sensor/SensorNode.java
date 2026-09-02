@@ -2,13 +2,11 @@ package ssg.legoflow.xmpp.iot.sensor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
-
 /**
  * An IoT sensor node that provides sensor data (XEP-0323).
  *

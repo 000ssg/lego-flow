@@ -2,13 +2,11 @@ package ssg.legoflow.upnp.gena;
 
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
-
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 class GenaSubscriberExtendedTest {
 
     @Test void eventMessageBasicConstruction() {

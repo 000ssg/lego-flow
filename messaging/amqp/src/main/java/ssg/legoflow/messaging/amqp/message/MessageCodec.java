@@ -5,10 +5,8 @@ import ssg.legoflow.messaging.amqp.common.AmqpException;
 import ssg.legoflow.messaging.amqp.types.AmqpType;
 import ssg.legoflow.messaging.amqp.types.Descriptors;
 import ssg.legoflow.messaging.amqp.types.TypeCodec;
-
 import java.nio.ByteBuffer;
 import java.util.*;
-
 /**
  * Encodes and decodes AMQP 1.0 messages to/from binary wire format.
  *
@@ -180,17 +178,17 @@ public final class MessageCodec {
         return new Properties(
                 optString(list, 0),
                 optBinary(list, 1),
-                optString(list, 2),
-                optString(list, 3),
-                optString(list, 4),
-                optString(list, 5),
-                optSymbol(list, 6),
-                optSymbol(list, 7),
+                optStringOrSymbol(list, 2),
+                optStringOrSymbol(list, 3),
+                optStringOrSymbol(list, 4),
+                optStringOrSymbol(list, 5),
+                optStringOrSymbol(list, 6),
+                optStringOrSymbol(list, 7),
                 optLong(list, 8, 0),
                 optLong(list, 9, 0),
-                optString(list, 10),
+                optStringOrSymbol(list, 10),
                 optLong(list, 11, 0),
-                optString(list, 12)
+                optStringOrSymbol(list, 12)
         );
     }
 
@@ -274,6 +272,13 @@ public final class MessageCodec {
     private static AmqpType.AmqpList asList(AmqpType type) {
         if (type instanceof AmqpType.AmqpList list) return list;
         return new AmqpType.AmqpList(List.of());
+    }
+
+    private static String optStringOrSymbol(AmqpType.AmqpList list, int index) {
+        AmqpType f = TypeCodec.getField(list, index);
+        if (f instanceof AmqpType.AmqpString s) return s.value();
+        if (f instanceof AmqpType.Symbol sym) return sym.value();
+        return f != null ? TypeCodec.toString(f) : null;
     }
 
     private static String optString(AmqpType.AmqpList list, int index) {

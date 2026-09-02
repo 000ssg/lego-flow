@@ -1,13 +1,11 @@
 package ssg.legoflow.http.server;
 
 import ssg.legoflow.http.core.*;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
 /**
  * HTTP request router with automatic OPTIONS and TRACE method handling.
  *

@@ -1,8 +1,6 @@
 package ssg.legoflow.email.common.encoding;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
-
 /**
  * Quoted-Printable encode/decode per RFC 2045 section 6.7.
  *

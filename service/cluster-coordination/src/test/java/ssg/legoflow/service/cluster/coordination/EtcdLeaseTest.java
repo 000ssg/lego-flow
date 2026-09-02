@@ -2,14 +2,10 @@ package ssg.legoflow.service.cluster.coordination;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.time.Duration;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 import static org.assertj.core.api.Assertions.*;
-
 class EtcdLeaseTest {
 
     private EtcdClient client;

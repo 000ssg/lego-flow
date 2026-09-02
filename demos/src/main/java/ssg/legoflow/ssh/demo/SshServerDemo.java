@@ -4,10 +4,7 @@ import ssg.legoflow.ssh.auth.AuthContext;
 import ssg.legoflow.ssh.hostkey.Ed25519;
 import ssg.legoflow.ssh.hostkey.SshKeyPair;
 import ssg.legoflow.ssh.server.*;
-
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-
 /**
  * Demo: Embedded SSH server with shell and SFTP.
  *

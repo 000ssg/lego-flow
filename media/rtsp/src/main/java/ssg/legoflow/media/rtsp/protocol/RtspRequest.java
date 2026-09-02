@@ -2,8 +2,6 @@ package ssg.legoflow.media.rtsp.protocol;
 
 import java.net.URI;
 import java.util.Objects;
-import java.util.Optional;
-
 /**
  * RTSP 2.0 request message.
  *

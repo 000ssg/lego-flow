@@ -1,11 +1,8 @@
 package ssg.legoflow.service;
 
-import ssg.legoflow.blocks.Context;
 import ssg.legoflow.blocks.ProcessorState;
 import ssg.legoflow.blocks.ProcessorStatistics;
-
 import java.util.concurrent.CompletableFuture;
-
 public interface AsyncService<I, O> {
 
     @SuppressWarnings("unchecked")

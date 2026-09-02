@@ -6,18 +6,13 @@ import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpResponse;
 import ssg.legoflow.http.core.HttpStatus;
 import org.junit.jupiter.api.Test;
-
-import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 /**
  * Tests for {@link HttpCacheInvalidator}.
  * Verifies spec: write interception, path extraction, event publishing,

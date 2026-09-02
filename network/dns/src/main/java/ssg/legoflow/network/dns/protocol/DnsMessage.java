@@ -3,9 +3,7 @@ package ssg.legoflow.network.dns.protocol;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
-
 /**
  * A complete DNS message consisting of a header, questions, and resource
  * record sections (answer, authority, additional) as defined in RFC 1035.

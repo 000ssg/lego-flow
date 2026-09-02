@@ -1,16 +1,13 @@
 package ssg.legoflow.http.auth.session;
 
-import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.Optional;
-
 /**
  * HTTP session manager that creates, retrieves, and destroys sessions.
  * Uses cookie-based session tracking with configurable session cookies.

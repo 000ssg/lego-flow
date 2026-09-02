@@ -2,9 +2,7 @@ package ssg.legoflow.http.config;
 
 import ssg.legoflow.http.feature.HttpFeatureCategory;
 import ssg.legoflow.http.feature.HttpFeatureSet;
-
 import java.util.Map;
-
 public class StandardProfiles {
 
     public static HttpFeatureSet serverMinimal() {

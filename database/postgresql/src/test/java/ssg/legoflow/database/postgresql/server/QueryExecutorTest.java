@@ -5,9 +5,7 @@ import org.junit.jupiter.api.Test;
 import ssg.legoflow.database.postgresql.common.PgSeverity;
 import ssg.legoflow.database.postgresql.common.SqlState;
 import ssg.legoflow.database.postgresql.protocol.BackendMessage;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link QueryExecutor}.
  */

@@ -1,11 +1,8 @@
 package ssg.legoflow.upnp.ssdp;
 
 import org.junit.jupiter.api.Test;
-
 import java.net.InetSocketAddress;
-
 import static org.assertj.core.api.Assertions.*;
-
 class SsdpMessageTest {
 
     @Test

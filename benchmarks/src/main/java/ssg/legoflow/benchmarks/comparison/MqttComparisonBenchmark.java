@@ -6,10 +6,8 @@ import ssg.legoflow.blocks.Context;
 import ssg.legoflow.blocks.DefaultContext;
 import ssg.legoflow.mqtt.codec.MqttCodec;
 import ssg.legoflow.mqtt.protocol.*;
-
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
-
 /**
  * Benchmarks comparing standalone MQTT operations vs service-pipeline MQTT operations.
  *
@@ -27,7 +25,6 @@ import java.util.concurrent.TimeUnit;
 public class MqttComparisonBenchmark {
 
     private static final int SMALL_PAYLOAD = 128;
-    private static final int LARGE_PAYLOAD = 8192;
 
     private MqttCodec codecV5;
     private PublishPacket qos0Publish;

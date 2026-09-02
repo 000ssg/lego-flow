@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ssg.legoflow.media.sip.protocol.SipCodec;
 import ssg.legoflow.media.sip.protocol.SipMessage;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -13,7 +12,6 @@ import java.nio.channels.SocketChannel;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
  * TCP SIP transport using {@link SocketChannel}.
  *

@@ -10,18 +10,14 @@ import ssg.legoflow.ws.content.XmlCodec;
 import ssg.legoflow.ws.endpoint.AsyncEndpointInvoker;
 import ssg.legoflow.ws.endpoint.Endpoint;
 import ssg.legoflow.ws.endpoint.EndpointInvoker;
-import ssg.legoflow.ws.request.RequestMapper;
 import ssg.legoflow.ws.request.ResponseMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-
 /**
  * Comprehensive demo of all Web Services module features.
  *

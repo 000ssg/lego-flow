@@ -7,11 +7,8 @@ import ssg.legoflow.rpc.grpc.common.StatusException;
 import ssg.legoflow.rpc.grpc.protobuf.*;
 import ssg.legoflow.rpc.grpc.server.GrpcServer;
 import ssg.legoflow.rpc.grpc.transport.GrpcStatus;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 class GrpcChannelTest {
 
     private static final MessageDescriptor REQ_DESC = MessageDescriptor.builder("Req")

@@ -7,11 +7,9 @@ import ssg.legoflow.http.config.ServerConfig;
 import ssg.legoflow.http.config.StandardProfiles;
 import ssg.legoflow.http.core.*;
 import ssg.legoflow.http.server.HttpServer;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * Demo with multiple backend servers and a round-robin load-balancing client.
  *

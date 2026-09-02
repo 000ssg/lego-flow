@@ -2,19 +2,14 @@ package ssg.legoflow.messaging.nats.service;
 
 import ssg.legoflow.blocks.Context;
 import ssg.legoflow.blocks.ProcessorState;
-import ssg.legoflow.messaging.nats.client.NatsMessage;
 import ssg.legoflow.messaging.nats.server.NatsServer;
 import ssg.legoflow.service.AbstractService;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
 import ssg.legoflow.service.channel.ChannelHandler;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-
 /**
  * Service-based NATS server adapter for composition within the service framework.
  * Wraps NatsServer to enable NATS broker operations through DP/DF pipeline.

@@ -3,11 +3,8 @@ package ssg.legoflow.http3.demo;
 import ssg.legoflow.http3.quic.QuicConnection;
 import ssg.legoflow.http3.quic.QuicSettings;
 import org.junit.jupiter.api.Test;
-
 import java.net.InetSocketAddress;
-
 import static org.assertj.core.api.Assertions.*;
-
 class MultiplexingDemoTest {
 
     @Test

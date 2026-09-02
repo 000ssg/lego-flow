@@ -2,10 +2,8 @@ package ssg.legoflow.http.auth.oauth2;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Objects;
 import java.util.Optional;
-
 /**
  * OAuth 2.0 client supporting Authorization Code, Client Credentials, Resource Owner
  * Password, Refresh Token flows, and PKCE extension (RFC 7636).

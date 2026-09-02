@@ -3,11 +3,9 @@ package ssg.legoflow.ws.content;
 import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.header.MediaType;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-
 public class ContentNegotiator {
 
     private final List<MediaType> supportedTypes;

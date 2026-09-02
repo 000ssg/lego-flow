@@ -27,4 +27,7 @@ public final class VT200Demo {
         System.out.println("Type: " + terminal.type());
         System.out.println("Color: " + terminal.supportsColor());
     }
+    public static void main(String[] args) {
+        demonstrate();
+    }
 }

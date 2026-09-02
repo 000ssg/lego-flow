@@ -5,11 +5,8 @@ import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpMethod;
 import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.header.MediaType;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for {@link ContentNegotiator}.
  *

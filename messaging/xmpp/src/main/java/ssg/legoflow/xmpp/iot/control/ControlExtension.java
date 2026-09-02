@@ -1,12 +1,10 @@
 package ssg.legoflow.xmpp.iot.control;
 
 import ssg.legoflow.xmpp.core.XmppExtension;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 /**
  * XMPP extension for IoT Control (XEP-0325).
  *

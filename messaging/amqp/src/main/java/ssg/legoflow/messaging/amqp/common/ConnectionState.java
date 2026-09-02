@@ -48,5 +48,48 @@ public enum ConnectionState {
     END,
 
     /** Connection failed due to an error. */
-    FAILED
+    FAILED;
+
+    /**
+     * Checks if transitioning from this state to the given state is valid.
+     *
+     * <p>Valid transitions follow the AMQP 1.0 connection lifecycle:
+     * {@code START -> HDR_SENT/HDR_RCVD -> HDR_EXCH -> OPEN_SENT/OPEN_RCVD -> OPENED
+     * -> CLOSE_SENT/CLOSE_RCVD -> END}
+     *
+     * @param target the target state
+     * @return true if the transition is valid
+     */
+    public boolean isValidTransition(ConnectionState target) {
+        if (this == target) return true;
+        switch (this) {
+            case START:
+                return target == HDR_SENT || target == HDR_RCVD;
+            case HDR_SENT:
+                return target == HDR_RCVD || target == HDR_EXCH;
+            case HDR_RCVD:
+                return target == HDR_SENT || target == HDR_EXCH;
+            case HDR_EXCH:
+                return target == OPEN_PIPE || target == OPEN_SENT || target == OPEN_RCVD;
+            case OPEN_PIPE:
+                return target == HDR_EXCH || target == OPEN_SENT || target == OPEN_RCVD || target == OPENED;
+            case OPEN_SENT:
+                return target == OPEN_RCVD || target == OPENED;
+            case OPEN_RCVD:
+                return target == OPENED;
+            case OPENED:
+                return target == CLOSE_PIPE || target == CLOSE_SENT || target == CLOSE_RCVD;
+            case CLOSE_PIPE:
+                return target == HDR_EXCH || target == CLOSE_SENT || target == CLOSE_RCVD || target == END;
+            case CLOSE_SENT:
+                return target == CLOSE_RCVD || target == END;
+            case CLOSE_RCVD:
+                return target == END;
+            case END:
+            case FAILED:
+                return false;
+            default:
+                return false;
+        }
+    }
 }

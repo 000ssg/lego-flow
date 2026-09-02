@@ -4,15 +4,11 @@ import ssg.legoflow.service.cluster.coordination.EtcdClient;
 import ssg.legoflow.service.cluster.coordination.EtcdConfig;
 import ssg.legoflow.service.cluster.coordination.EtcdElection;
 import ssg.legoflow.service.cluster.coordination.EtcdKVStore;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 import static org.assertj.core.api.Assertions.*;
-
 class RaftLeaderElectionTest {
 
     private EtcdClient client;

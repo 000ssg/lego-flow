@@ -3,10 +3,8 @@ package ssg.legoflow.messaging.amqp.demo;
 import ssg.legoflow.messaging.amqp.delivery.DeliveryState;
 import ssg.legoflow.messaging.amqp.message.AmqpMessage;
 import ssg.legoflow.messaging.amqp.message.Properties;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 /**
  * Transaction demo illustrating transactional delivery state.
  *

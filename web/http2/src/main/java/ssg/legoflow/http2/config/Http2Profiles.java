@@ -3,9 +3,7 @@ package ssg.legoflow.http2.config;
 import ssg.legoflow.http.feature.HttpFeatureCategory;
 import ssg.legoflow.http.feature.HttpFeatureSet;
 import ssg.legoflow.http2.feature.Http2Feature;
-
 import java.util.Map;
-
 public class Http2Profiles {
 
     public static HttpFeatureSet serverHttp2() {

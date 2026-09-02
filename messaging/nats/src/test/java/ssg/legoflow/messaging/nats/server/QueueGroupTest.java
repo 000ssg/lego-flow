@@ -1,9 +1,7 @@
 package ssg.legoflow.messaging.nats.server;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link QueueGroup}.
  */

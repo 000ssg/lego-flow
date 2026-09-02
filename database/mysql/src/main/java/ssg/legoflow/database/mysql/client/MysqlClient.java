@@ -1,15 +1,12 @@
 package ssg.legoflow.database.mysql.client;
 
 import ssg.legoflow.database.mysql.protocol.*;
-
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 /**
  * High-level MySQL client providing connection, queries, and prepared statements.
  *

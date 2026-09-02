@@ -4,9 +4,7 @@ import org.junit.jupiter.api.Test;
 import ssg.legoflow.rpc.grpc.common.MethodDescriptor;
 import ssg.legoflow.rpc.grpc.protobuf.MessageDescriptor;
 import ssg.legoflow.rpc.grpc.protobuf.ServiceDescriptor;
-
 import static org.assertj.core.api.Assertions.*;
-
 class GrpcServiceRegistryTest {
 
     @Test

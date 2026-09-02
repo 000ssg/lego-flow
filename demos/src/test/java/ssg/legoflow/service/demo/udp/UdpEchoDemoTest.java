@@ -1,21 +1,17 @@
 package ssg.legoflow.service.demo.udp;
 
 import ssg.legoflow.service.DefaultServiceContext;
-import ssg.legoflow.service.channel.DatagramPacketInfo;
 import ssg.legoflow.service.channel.UdpDataChannel;
 import ssg.legoflow.service.manager.UdpChannelManager;
 import ssg.legoflow.service.user.ServiceUser;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
-
 import static org.assertj.core.api.Assertions.*;
-
 class UdpEchoDemoTest {
 
     private UdpChannelManager manager;

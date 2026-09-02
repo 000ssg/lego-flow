@@ -1,20 +1,10 @@
 package ssg.legoflow.network.cluster.dns;
 
 import org.junit.jupiter.api.Test;
-import ssg.legoflow.network.dns.protocol.DnsCodec;
-import ssg.legoflow.network.dns.protocol.DnsMessage;
-import ssg.legoflow.network.dns.protocol.DnsQuestion;
-import ssg.legoflow.network.dns.protocol.RecordType;
-
-import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.net.MulticastSocket;
 import java.time.Duration;
-import java.util.Map;
-
 import static org.assertj.core.api.Assertions.*;
-
 class MdnsResponderTest {
 
     private static final InetAddress LOCAL_ADDR;

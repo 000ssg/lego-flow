@@ -4,9 +4,7 @@ import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSManager;
 import org.ietf.jgss.GSSName;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link GssContextWrapper}. Uses real GSS contexts where possible
  * and validates parameter checking, lifecycle, and error handling.

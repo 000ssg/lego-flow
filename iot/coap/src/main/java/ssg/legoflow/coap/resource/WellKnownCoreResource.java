@@ -2,16 +2,11 @@ package ssg.legoflow.coap.resource;
 
 import ssg.legoflow.coap.protocol.CoapCode;
 import ssg.legoflow.coap.protocol.ContentFormat;
-
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
-
 /**
  * The {@code /.well-known/core} resource for CoAP resource discovery (RFC 6690).
  *

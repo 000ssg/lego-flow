@@ -1,7 +1,6 @@
 package ssg.legoflow.interop.terminal;
 
 import org.junit.jupiter.api.*;
-
 import ssg.legoflow.network.terminals.base.config.TerminalConfig;
 import ssg.legoflow.network.terminals.base.display.Cursor;
 import ssg.legoflow.network.terminals.tn3270.TN3270FieldAttr;
@@ -10,12 +9,8 @@ import ssg.legoflow.network.terminals.tn3270.TN3270Terminal;
 import ssg.legoflow.network.terminals.tn5250.TN5250FieldAttr;
 import ssg.legoflow.network.terminals.tn5250.TN5250Screen;
 import ssg.legoflow.network.terminals.tn5250.TN5250Terminal;
-
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Interoperability tests for TN3270/TN5250 terminal emulators.
  *
@@ -35,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @since 0.2.0
  */
+    @Tag("terminal-protocols")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TN3270TN5250InteropTest {
 

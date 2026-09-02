@@ -2,10 +2,8 @@ package ssg.legoflow.wamp.core.transport;
 
 import ssg.legoflow.wamp.core.WampMessage;
 import ssg.legoflow.wamp.core.transport.WampTransport;
-
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-
 /**
  * In-memory WAMP transport for testing and demos.
  * Uses a pair of blocking queues to connect two endpoints.

@@ -3,7 +3,6 @@ package ssg.legoflow.http.proxy.cluster;
 import ssg.legoflow.http.proxy.reverse.BackendServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +15,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-
 /**
  * Monitors health of backend servers in a proxy cluster.
  *

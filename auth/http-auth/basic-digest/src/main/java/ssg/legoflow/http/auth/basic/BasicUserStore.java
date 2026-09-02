@@ -1,9 +1,7 @@
 package ssg.legoflow.http.auth.basic;
 
 import ssg.legoflow.http.auth.AuthPrincipal;
-
 import java.util.Optional;
-
 /**
  * Interface for user/password storage used by Basic authentication.
  * Implementations can store passwords in memory, in a database, or hashed.

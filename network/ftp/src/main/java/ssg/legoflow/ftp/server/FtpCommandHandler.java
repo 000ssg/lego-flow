@@ -6,7 +6,6 @@ import ssg.legoflow.ftp.data.*;
 import ssg.legoflow.ftp.protocol.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -14,7 +13,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-
 /**
  * Processes FTP commands for a connected client session.
  *

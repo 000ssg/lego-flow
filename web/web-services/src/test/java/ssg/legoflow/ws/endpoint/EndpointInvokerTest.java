@@ -2,11 +2,8 @@ package ssg.legoflow.ws.endpoint;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.http.core.*;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for {@link EndpointInvoker}.
  *

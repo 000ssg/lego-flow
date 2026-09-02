@@ -1,9 +1,7 @@
 package ssg.legoflow.ssh.transport;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link SshMessageType}.
  */

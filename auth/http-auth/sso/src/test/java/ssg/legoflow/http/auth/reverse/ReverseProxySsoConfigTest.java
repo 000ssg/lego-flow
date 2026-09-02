@@ -1,11 +1,8 @@
 package ssg.legoflow.http.auth.reverse;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ReverseProxySsoConfigTest {
 
     @Test

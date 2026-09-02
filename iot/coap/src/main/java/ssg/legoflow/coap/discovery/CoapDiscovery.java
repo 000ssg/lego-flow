@@ -3,15 +3,11 @@ package ssg.legoflow.coap.discovery;
 import ssg.legoflow.coap.codec.CoapCodec;
 import ssg.legoflow.coap.protocol.CoapCode;
 import ssg.legoflow.coap.protocol.CoapMessage;
-import ssg.legoflow.coap.protocol.CoapOption;
 import ssg.legoflow.coap.protocol.CoapType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
 import java.net.StandardProtocolFamily;
 import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
@@ -20,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
-
 /**
  * CoAP resource discovery using the {@code /.well-known/core} endpoint (RFC 6690)
  * and CoAP multicast (RFC 7252, Section 8).

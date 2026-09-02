@@ -1,12 +1,9 @@
 package ssg.legoflow.media.rtp.packet;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
 import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link RtpPacket}, {@link RtpHeader}, and {@link HeaderExtension}.
  */

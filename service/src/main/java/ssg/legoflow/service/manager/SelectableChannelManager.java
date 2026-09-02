@@ -4,9 +4,11 @@ import ssg.legoflow.service.Service;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.channel.ChannelPipeline;
 import ssg.legoflow.service.channel.DataChannel;
+import ssg.legoflow.service.channel.ServerDataChannel;
+import ssg.legoflow.service.channel.TcpDataChannel;
+import ssg.legoflow.service.channel.UdpDataChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.channels.ClosedSelectorException;
@@ -17,7 +19,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 public class SelectableChannelManager extends AbstractServicesManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(SelectableChannelManager.class);
@@ -32,6 +33,7 @@ public class SelectableChannelManager extends AbstractServicesManager {
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final Map<String, DataChannel> channelsByService = new ConcurrentHashMap<>();
     private final Map<String, ChannelPipeline> pipelinesByService = new ConcurrentHashMap<>();
+    private final Map<String, ServerDataChannel> serverChannelsByService = new ConcurrentHashMap<>();
     private volatile Thread selectorThread;
 
     public SelectableChannelManager(ServiceContext context) {
@@ -54,17 +56,100 @@ public class SelectableChannelManager extends AbstractServicesManager {
     public void registerChannel(Service<?, ?> service, DataChannel channel) {
         var name = service.getDescriptor().name();
         channelsByService.put(name, channel);
-        pipelinesByService.computeIfAbsent(name, _ -> new ChannelPipeline());
+        var pipeline = pipelinesByService.computeIfAbsent(name, _ -> new ChannelPipeline());
+
+        // Register with the selector
+        try {
+            if (channel instanceof TcpDataChannel tcp) {
+                var socketChannel = tcp.getSocketChannel();
+                // Initiate non-blocking connect — selector will fire OP_CONNECT
+                int ops = SelectionKey.OP_CONNECT;
+                var key = socketChannel.register(selector, ops,
+                        new ChannelRegistration(channel, pipeline));
+                tcp.setSelectionKey(key);
+                LOG.debug("Registered TCP channel for service: {} with OP_CONNECT", name);
+            } else if (channel instanceof UdpDataChannel udp) {
+                var key = udp.getDatagramChannel().register(selector, SelectionKey.OP_READ,
+                        new ChannelRegistration(channel, pipeline));
+                udp.setSelectionKey(key);
+            }
+        } catch (IOException e) {
+            channelsByService.remove(name);
+            pipelinesByService.remove(name);
+            throw new UncheckedIOException("Failed to register channel for service: " + name, e);
+        }
         LOG.debug("Registered channel for service: {}", name);
+    }
+
+    /**
+     * Update interest ops for an already-registered channel (e.g., after TCP connect,
+     * switch from OP_CONNECT to OP_READ | OP_WRITE).
+     */
+    public void updateChannelOps(Service<?, ?> service, int ops) {
+        var name = service.getDescriptor().name();
+        var channel = channelsByService.get(name);
+        if (channel instanceof TcpDataChannel tcp) {
+            var key = tcp.getSelectionKey();
+            if (key != null) {
+                key.interestOps(ops);
+                selector.wakeup(); // Force selector to see the new interest set
+                LOG.debug("Updated interest ops for service: {} to {} and woke up selector", name, ops);
+            }
+        }
+    }
+
+    public void registerServerChannel(Service<?, ?> service, ServerDataChannel channel) {
+        var name = service.getDescriptor().name();
+        serverChannelsByService.put(name, channel);
+        var pipeline = pipelinesByService.computeIfAbsent(name, _ -> new ChannelPipeline());
+
+        // Register with the selector for OP_ACCEPT
+        try {
+            channel.registerWith(selector);
+            var key = channel.getSelectionKey();
+            if (key != null) {
+                key.attach(new ServerChannelRegistration(channel, pipeline));
+            }
+            channel.setSelectionKey(key);
+            LOG.debug("Registered server channel for service: {} with OP_ACCEPT", name);
+        } catch (IOException e) {
+            serverChannelsByService.remove(name);
+            pipelinesByService.remove(name);
+            throw new UncheckedIOException("Failed to register server channel for service: " + name, e);
+        }
+    }
+
+    public void unregisterServerChannel(Service<?, ?> service) {
+        var name = service.getDescriptor().name();
+        var channel = serverChannelsByService.remove(name);
+        pipelinesByService.remove(name);
+        if (channel != null) {
+            try {
+                var key = channel.getSelectionKey();
+                if (key != null) key.cancel();
+                if (channel.isOpen()) channel.close();
+            } catch (IOException e) {
+                LOG.warn("Error closing server channel for service: {}", name, e);
+            }
+        }
+        LOG.debug("Unregistered server channel for service: {}", name);
     }
 
     public void unregisterChannel(Service<?, ?> service) {
         var name = service.getDescriptor().name();
         var channel = channelsByService.remove(name);
         pipelinesByService.remove(name);
-        if (channel != null && channel.isOpen()) {
+        if (channel != null) {
             try {
-                channel.close();
+                // Deregister from selector first
+                if (channel instanceof TcpDataChannel tcp) {
+                    var key = tcp.getSelectionKey();
+                    if (key != null) key.cancel();
+                } else if (channel instanceof UdpDataChannel udp) {
+                    var key = udp.getSelectionKey();
+                    if (key != null) key.cancel();
+                }
+                if (channel.isOpen()) channel.close();
             } catch (IOException e) {
                 LOG.warn("Error closing channel for service: {}", name, e);
             }
@@ -78,6 +163,10 @@ public class SelectableChannelManager extends AbstractServicesManager {
 
     public DataChannel getChannel(Service<?, ?> service) {
         return channelsByService.get(service.getDescriptor().name());
+    }
+
+    public ServerDataChannel getServerChannel(Service<?, ?> service) {
+        return serverChannelsByService.get(service.getDescriptor().name());
     }
 
     public void startEventLoop() {
@@ -146,20 +235,63 @@ public class SelectableChannelManager extends AbstractServicesManager {
      */
     private void dispatchKey(SelectionKey key) {
         var attachment = key.attachment();
+        if (attachment instanceof ServerChannelRegistration srvReg) {
+            // Server socket — accept new connections
+            if (key.isAcceptable()) {
+                processingPool.submit(() -> handleAccept(srvReg));
+            }
+            return;
+        }
         if (!(attachment instanceof ChannelRegistration reg)) return;
 
         var channel = reg.channel();
         var pipeline = reg.pipeline();
         var processingThread = new ProcessingThread(channel, pipeline, bufferSize);
 
+        // Diagnostic: trace key readiness
+        if (key.isReadable() || key.isWritable() || key.isConnectable()) {
+            System.out.println("[dispatchKey] readable=" + key.isReadable()
+                    + " writable=" + key.isWritable()
+                    + " ops=" + key.interestOps()
+                    + " ready=" + key.readyOps());
+        }
+
         if (key.isReadable()) {
-            processingPool.submit(processingThread::processReadable);
+            System.out.println("[dispatchKey] → submitting processReadable to processingPool");
+            processingPool.submit(() -> {
+                System.out.println("[processingThread] processReadable starting");
+                try {
+                    processingThread.processReadable();
+                    System.out.println("[processingThread] processReadable completed");
+                } catch (Exception e) {
+                    System.out.println("[processingThread] processReadable EXCEPTION: " + e);
+                    e.printStackTrace();
+                }
+                return null;
+            });
         }
         if (key.isWritable()) {
             processingPool.submit(processingThread::processWritable);
         }
         if (key.isConnectable()) {
             connectionPool.submit(processingThread::processConnectable);
+        }
+    }
+
+    private void handleAccept(ServerChannelRegistration srvReg) {
+        try {
+            var clientChannel = srvReg.serverChannel().accept();
+            if (clientChannel != null) {
+                var pipeline = srvReg.pipeline();
+                pipeline.fireConnect(clientChannel);
+                // Register the accepted client channel with the selector for read events
+                var key = clientChannel.getSocketChannel().register(selector, SelectionKey.OP_READ,
+                        new ChannelRegistration(clientChannel, pipeline));
+                clientChannel.setSelectionKey(key);
+                LOG.debug("Accepted client connection on server channel");
+            }
+        } catch (IOException e) {
+            LOG.warn("Error accepting connection", e);
         }
     }
 
@@ -174,6 +306,14 @@ public class SelectableChannelManager extends AbstractServicesManager {
             }
         });
         channelsByService.clear();
+        serverChannelsByService.values().forEach(channel -> {
+            try {
+                if (channel.isOpen()) channel.close();
+            } catch (IOException e) {
+                LOG.warn("Error closing server channel", e);
+            }
+        });
+        serverChannelsByService.clear();
         pipelinesByService.clear();
         connectionPool.close();
         processingPool.close();
@@ -190,4 +330,5 @@ public class SelectableChannelManager extends AbstractServicesManager {
     }
 
     record ChannelRegistration(DataChannel channel, ChannelPipeline pipeline) {}
+    record ServerChannelRegistration(ServerDataChannel serverChannel, ChannelPipeline pipeline) {}
 }

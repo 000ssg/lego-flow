@@ -1,11 +1,8 @@
 package ssg.legoflow.network.dns.resolver;
 
 import ssg.legoflow.network.dns.protocol.DnsMessage;
-import ssg.legoflow.network.dns.protocol.DnsName;
 import ssg.legoflow.network.dns.protocol.RecordType;
-
 import java.io.IOException;
-
 /**
  * Interface for DNS resolvers.
  *

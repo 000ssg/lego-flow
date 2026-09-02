@@ -5,9 +5,7 @@ import ssg.legoflow.http.config.StandardProfiles;
 import ssg.legoflow.http.core.*;
 import ssg.legoflow.http.security.SslConfig;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class HttpClientTest {
 
     @Test

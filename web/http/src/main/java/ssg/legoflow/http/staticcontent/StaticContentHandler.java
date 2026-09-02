@@ -2,9 +2,6 @@ package ssg.legoflow.http.staticcontent;
 
 import ssg.legoflow.http.caching.CacheControl;
 import ssg.legoflow.http.core.*;
-
-import java.nio.charset.StandardCharsets;
-
 public class StaticContentHandler {
 
     private final ContentResolver resolver;

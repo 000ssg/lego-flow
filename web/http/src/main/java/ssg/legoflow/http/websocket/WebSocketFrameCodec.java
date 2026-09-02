@@ -2,13 +2,11 @@ package ssg.legoflow.http.websocket;
 
 import ssg.legoflow.blocks.AbstractDataFilter;
 import ssg.legoflow.blocks.Context;
-
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import ssg.legoflow.service.util.BufferPool;
 import java.util.ArrayList;
 import java.util.List;
-
 public class WebSocketFrameCodec extends AbstractDataFilter<ByteBuffer> {
 
     private final Mode mode;

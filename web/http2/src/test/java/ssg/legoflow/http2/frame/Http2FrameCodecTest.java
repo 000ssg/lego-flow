@@ -2,11 +2,8 @@ package ssg.legoflow.http2.frame;
 
 import ssg.legoflow.blocks.DefaultContext;
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
-
 import static org.assertj.core.api.Assertions.*;
-
 class Http2FrameCodecTest {
 
     @Test

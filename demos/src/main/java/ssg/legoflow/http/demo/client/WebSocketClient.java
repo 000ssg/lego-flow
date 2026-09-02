@@ -9,9 +9,7 @@ import ssg.legoflow.http.core.HttpResponse;
 import ssg.legoflow.http.websocket.WebSocketFrame;
 import ssg.legoflow.http.websocket.WebSocketHandshake;
 import ssg.legoflow.http.websocket.WebSocketSession;
-
 import java.util.Base64;
-
 /**
  * WebSocket client demo that performs the upgrade handshake and manages frame exchange.
  *

@@ -3,12 +3,10 @@ package ssg.legoflow.upnp.mediarenderer;
 import ssg.legoflow.upnp.dlna.DlnaMediaFormat;
 import ssg.legoflow.upnp.dlna.DlnaProfile;
 import ssg.legoflow.upnp.mediaserver.ConnectionManagerService;
-
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-
 /**
  * Complete UPnP Media Renderer device implementation.
  *

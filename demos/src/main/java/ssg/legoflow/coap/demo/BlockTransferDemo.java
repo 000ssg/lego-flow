@@ -1,21 +1,14 @@
 package ssg.legoflow.coap.demo;
 
-import ssg.legoflow.coap.block.BlockOption;
-import ssg.legoflow.coap.block.BlockTransfer;
 import ssg.legoflow.coap.protocol.CoapCode;
-import ssg.legoflow.coap.protocol.CoapMessage;
-import ssg.legoflow.coap.protocol.CoapOption;
-import ssg.legoflow.coap.protocol.CoapType;
 import ssg.legoflow.coap.protocol.ContentFormat;
 import ssg.legoflow.coap.resource.CoapExchange;
 import ssg.legoflow.coap.resource.CoapResource;
 import ssg.legoflow.coap.server.CoapServer;
 import ssg.legoflow.coap.server.CoapServerConfig;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * Demonstrates large payload transfer using CoAP Block1 and Block2 options (RFC 7959).
  *

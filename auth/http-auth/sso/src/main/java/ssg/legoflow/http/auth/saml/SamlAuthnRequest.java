@@ -2,7 +2,6 @@ package ssg.legoflow.http.auth.saml;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -13,7 +12,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
-
 /**
  * Generates SAML 2.0 AuthnRequest XML for initiating SSO authentication.
  * Supports both HTTP-Redirect binding (deflate + base64) and HTTP-POST binding

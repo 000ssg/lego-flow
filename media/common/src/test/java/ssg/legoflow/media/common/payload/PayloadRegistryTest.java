@@ -1,11 +1,8 @@
 package ssg.legoflow.media.common.payload;
 
 import org.junit.jupiter.api.Test;
-
 import java.util.OptionalInt;
-
 import static org.assertj.core.api.Assertions.*;
-
 class PayloadRegistryTest {
 
     @Test

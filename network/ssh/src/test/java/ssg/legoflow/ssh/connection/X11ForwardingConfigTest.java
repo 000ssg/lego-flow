@@ -1,9 +1,7 @@
 package ssg.legoflow.ssh.connection;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class X11ForwardingConfigTest {
 
     @Test

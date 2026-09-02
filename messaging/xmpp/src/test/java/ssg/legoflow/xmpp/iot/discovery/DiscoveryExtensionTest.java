@@ -2,11 +2,8 @@ package ssg.legoflow.xmpp.iot.discovery;
 
 import ssg.legoflow.xmpp.core.JID;
 import org.junit.jupiter.api.Test;
-
 import java.util.Map;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link DiscoveryExtension}.
  *

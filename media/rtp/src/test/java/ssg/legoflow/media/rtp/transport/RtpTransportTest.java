@@ -1,13 +1,10 @@
 package ssg.legoflow.media.rtp.transport;
 
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link RtpTransport}.
  */

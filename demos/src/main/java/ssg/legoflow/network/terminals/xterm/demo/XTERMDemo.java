@@ -3,8 +3,6 @@ package ssg.legoflow.network.terminals.xterm.demo;
 import ssg.legoflow.network.terminals.base.config.TerminalConfig;
 import ssg.legoflow.network.terminals.base.io.Terminal;
 import ssg.legoflow.network.terminals.xterm.XTERMTerminal;
-import ssg.legoflow.network.terminals.xterm.XTERMTerminal.MouseMode;
-
 /**
  * Demonstrates XTERM terminal features.
  *
@@ -31,5 +29,8 @@ public final class XTERMDemo {
         System.out.println("Mouse mode: " + xterm.mouseMode());
         System.out.println("Bracketed paste: " + xterm.isBracketedPaste());
         System.out.println("Type: " + terminal.type());
+    }
+    public static void main(String[] args) {
+        demonstrate();
     }
 }

@@ -2,12 +2,8 @@ package ssg.legoflow.ftp.server;
 
 import ssg.legoflow.ftp.protocol.*;
 import org.junit.jupiter.api.*;
-
 import java.io.IOException;
-import java.net.Socket;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link FtpCommandHandler}.
  */

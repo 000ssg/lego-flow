@@ -1,12 +1,9 @@
 package ssg.legoflow.xmpp.iot.sensor;
 
 import org.junit.jupiter.api.Test;
-
 import java.time.Instant;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link SensorDataExtension}.
  *

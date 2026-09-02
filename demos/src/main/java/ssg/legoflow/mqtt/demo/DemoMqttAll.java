@@ -8,7 +8,6 @@ import ssg.legoflow.mqtt.codec.MqttCodec;
 import ssg.legoflow.mqtt.protocol.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -19,7 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 /**
  * Comprehensive demo of all MQTT module features.
  *

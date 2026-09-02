@@ -1,9 +1,7 @@
 package ssg.legoflow.upnp.dlna;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link DlnaDeviceClass} — DLNA device certification headers.
  *

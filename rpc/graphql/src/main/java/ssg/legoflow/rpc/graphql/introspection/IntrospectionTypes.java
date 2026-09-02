@@ -1,9 +1,7 @@
 package ssg.legoflow.rpc.graphql.introspection;
 
 import ssg.legoflow.rpc.graphql.schema.*;
-
 import java.util.List;
-
 /**
  * Defines the GraphQL introspection type system.
  *

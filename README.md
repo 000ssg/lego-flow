@@ -4,7 +4,7 @@
 [![Java](https://img.shields.io/badge/Java-25+-orange.svg)](https://www.oracle.com/java/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-12641-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-430-brightgreen.svg)]()
 [![Version](https://img.shields.io/badge/Version-0.2.0-SNAPSHOT-blue.svg)]()
 
 A composable data processing framework for Java built on JDK 25, providing layered abstractions from low-level data blocks to high-level protocol implementations.
@@ -461,7 +461,7 @@ Each module includes:
 - **API style tests** covering procedural sync, procedural async, functional sync, functional async
 - **Interoperability integration tests** validating protocols against real servers (requires Docker)
 
-Current test count: **8136+** across 42 leaf modules in 9 categories + interop-tests
+Current test count: **430** across 42 leaf modules in 9 categories + interop-tests
 
 ---
 
@@ -590,7 +590,7 @@ See [Cluster Master Plan](network/cluster/doc/plan/master.md) for detailed phase
 <a id="documentation"></a>
 ## Documentation
 
-> Root documentation: [Code Overview](doc/CODE_OVERVIEW.md) | [Architecture](doc/ARCHITECTURE.md) | [Requirements](doc/REQUIREMENTS.md) | [DP/DF Compliance](doc/COMPARISON.md) | [Benchmark Comparison](doc/COMPARISON.md)
+> Root documentation: [Code Overview](doc/CODE_OVERVIEW.md) | [Architecture](doc/ARCHITECTURE.md) | [Requirements](doc/REQUIREMENTS.md) | [Protocol Implementation Guidelines](doc/PROTOCOL-GUIDELINES.md) | [DP/DF Compliance](doc/COMPARISON.md) | [Benchmark Comparison](doc/COMPARISON.md)
 
 ### Module Documentation
 

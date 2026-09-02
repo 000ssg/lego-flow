@@ -1,11 +1,8 @@
 package ssg.legoflow.network.common.ber;
 
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link BerLength} encoding and decoding.
  */

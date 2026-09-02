@@ -1,22 +1,18 @@
 package ssg.legoflow.messaging.nats.server;
 
 import ssg.legoflow.messaging.nats.client.NatsClient;
-import ssg.legoflow.messaging.nats.client.NatsMessage;
 import ssg.legoflow.messaging.nats.protocol.ConnectOptions;
 import ssg.legoflow.messaging.nats.protocol.NatsHeaders;
 import ssg.legoflow.messaging.nats.server.auth.TokenAuthenticator;
 import ssg.legoflow.messaging.nats.server.auth.UserPassAuthenticator;
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link NatsServer} with client integration.
  */

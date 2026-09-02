@@ -5,12 +5,9 @@ import ssg.legoflow.service.DefaultServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
 import ssg.legoflow.service.user.SimpleServiceUser;
 import ssg.legoflow.service.user.UserType;
-
 import java.nio.ByteBuffer;
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for the DnsService demonstrating service-based DNS integration via DP/DF pipeline.
  */

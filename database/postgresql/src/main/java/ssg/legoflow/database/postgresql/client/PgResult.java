@@ -1,11 +1,9 @@
 package ssg.legoflow.database.postgresql.client;
 
 import ssg.legoflow.database.postgresql.protocol.BackendMessage.ColumnDescription;
-
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * Query result accessor for PostgreSQL query results.
  *

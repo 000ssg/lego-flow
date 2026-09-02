@@ -4,13 +4,10 @@ import ssg.legoflow.wamp.core.router.Broker;
 import ssg.legoflow.wamp.core.router.Dealer;
 import ssg.legoflow.wamp.core.transport.WampTransport;
 import org.junit.jupiter.api.Test;
-
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for reflection/introspection methods on Broker and Dealer.
  */

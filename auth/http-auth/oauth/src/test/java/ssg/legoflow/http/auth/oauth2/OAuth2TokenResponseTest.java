@@ -1,9 +1,7 @@
 package ssg.legoflow.http.auth.oauth2;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class OAuth2TokenResponseTest {
 
     @Test

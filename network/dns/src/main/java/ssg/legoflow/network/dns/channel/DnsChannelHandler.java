@@ -4,10 +4,8 @@ import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
 import ssg.legoflow.network.dns.DnsMessage;
 import ssg.legoflow.network.dns.codec.DnsCodec;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
-
 /**
  * Channel handler for processing DNS protocol messages.
  *

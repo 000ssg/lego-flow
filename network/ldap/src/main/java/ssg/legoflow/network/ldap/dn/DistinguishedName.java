@@ -1,9 +1,6 @@
 package ssg.legoflow.network.ldap.dn;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-
 /**
  * An LDAP Distinguished Name (DN) as defined in RFC 4514.
  *

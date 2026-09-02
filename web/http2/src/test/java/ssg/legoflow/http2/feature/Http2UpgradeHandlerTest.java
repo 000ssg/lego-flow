@@ -3,11 +3,9 @@ package ssg.legoflow.http2.feature;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 import ssg.legoflow.http.core.HttpRequest;
-import ssg.legoflow.http.core.HttpResponse;
 import ssg.legoflow.http.core.HttpMethod;
 import ssg.legoflow.http.core.HttpStatus;
 import ssg.legoflow.http.core.HttpHeaders;
-
 class Http2UpgradeHandlerTest {
 
     @Test void testConstants() {

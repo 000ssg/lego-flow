@@ -2,7 +2,6 @@ package ssg.legoflow.upnp.ssdp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.NetworkInterface;
@@ -12,7 +11,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 /**
  * SSDP discovery service that operates across multiple network interfaces simultaneously.
  *

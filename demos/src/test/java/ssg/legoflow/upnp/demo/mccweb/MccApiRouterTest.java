@@ -5,19 +5,14 @@ import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpResponse;
 import ssg.legoflow.http.core.HttpStatus;
 import ssg.legoflow.upnp.controlpoint.ControlPoint;
-import ssg.legoflow.upnp.controlpoint.MediaRendererProxy;
-import ssg.legoflow.upnp.controlpoint.MediaServerProxy;
 import ssg.legoflow.upnp.demo.SimpleMediaRendererDemo;
 import ssg.legoflow.upnp.demo.SimpleMediaServerDemo;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link MccApiRouter}.
  *

@@ -2,10 +2,8 @@ package ssg.legoflow.xmpp.server;
 
 import ssg.legoflow.xmpp.core.Stanza;
 import ssg.legoflow.xmpp.stream.XmppCodec;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -16,7 +14,6 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.Map;
 import java.util.Objects;
-
 /**
  * Minimal XMPP server that listens on a TCP port and delegates incoming stanzas.
  * Uses virtual threads for connection handling.

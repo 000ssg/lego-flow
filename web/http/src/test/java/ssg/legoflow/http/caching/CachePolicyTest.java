@@ -3,9 +3,7 @@ package ssg.legoflow.http.caching;
 import ssg.legoflow.http.core.HttpMethod;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class CachePolicyTest {
 
     private CachePolicy policy;

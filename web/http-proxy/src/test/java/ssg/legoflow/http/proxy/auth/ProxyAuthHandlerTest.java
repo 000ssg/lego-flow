@@ -4,9 +4,7 @@ import ssg.legoflow.http.core.*;
 import ssg.legoflow.http.proxy.ProxyHeaders;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class ProxyAuthHandlerTest {
 
     private ProxyAuthHandler handler;

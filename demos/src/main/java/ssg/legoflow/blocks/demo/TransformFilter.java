@@ -2,7 +2,6 @@ package ssg.legoflow.blocks.demo;
 
 import ssg.legoflow.blocks.AbstractDataFilter;
 import ssg.legoflow.blocks.Context;
-
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.function.UnaryOperator;

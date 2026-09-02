@@ -1,12 +1,10 @@
 package ssg.legoflow.blocks;
 
 import ssg.legoflow.blocks.exceptions.StateTransitionException;
-
 import java.lang.reflect.Array;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
-
 public abstract class AbstractDataProcessor<I, O> implements DataProcessor<I, O> {
 
     private final AtomicReference<ProcessorState> state = new AtomicReference<>(ProcessorState.IDLE);

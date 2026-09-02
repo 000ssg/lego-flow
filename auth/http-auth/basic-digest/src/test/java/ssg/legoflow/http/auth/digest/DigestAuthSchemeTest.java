@@ -5,11 +5,8 @@ import ssg.legoflow.http.auth.basic.InMemoryUserStore;
 import ssg.legoflow.http.core.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.*;
-
 class DigestAuthSchemeTest {
 
     private DigestAuthScheme scheme;

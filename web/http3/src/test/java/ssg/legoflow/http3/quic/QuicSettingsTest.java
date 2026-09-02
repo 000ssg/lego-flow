@@ -1,9 +1,7 @@
 package ssg.legoflow.http3.quic;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link QuicSettings} — defaults, builder, and validation.
  *

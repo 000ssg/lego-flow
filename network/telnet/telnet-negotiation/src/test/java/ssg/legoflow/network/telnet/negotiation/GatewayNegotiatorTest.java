@@ -3,11 +3,8 @@ package ssg.legoflow.network.telnet.negotiation;
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.network.telnet.base.TelnetCommand;
 import ssg.legoflow.network.telnet.base.TelnetOption;
-
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class GatewayNegotiatorTest {
 
     @Test

@@ -6,11 +6,8 @@ import ssg.legoflow.http.header.LanguageTag;
 import ssg.legoflow.http.header.MediaType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Demonstrates HTTP content negotiation using the ContentNegotiator.
  * Tests media type selection with quality values, encoding negotiation,

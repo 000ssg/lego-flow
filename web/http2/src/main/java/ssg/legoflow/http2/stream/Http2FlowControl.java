@@ -1,10 +1,7 @@
 package ssg.legoflow.http2.stream;
 
-import ssg.legoflow.http2.frame.Http2ErrorCode;
 import ssg.legoflow.http2.frame.Http2Frame;
-
 import java.util.concurrent.atomic.AtomicInteger;
-
 public class Http2FlowControl {
 
     public static final int DEFAULT_INITIAL_WINDOW_SIZE = 65535;

@@ -1,14 +1,11 @@
 package ssg.legoflow.service.functional;
 
 import ssg.legoflow.service.Service;
-import ssg.legoflow.service.ServiceContext;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-
 public class ServicePipeline<T> {
 
     private final List<Function<T, T>> mappers = new ArrayList<>();

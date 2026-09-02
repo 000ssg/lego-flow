@@ -9,7 +9,6 @@ import ssg.legoflow.network.dns.rdata.ARecord;
 import ssg.legoflow.network.dns.rdata.PtrRecord;
 import ssg.legoflow.network.dns.rdata.SrvRecord;
 import ssg.legoflow.network.dns.rdata.TxtRecord;
-
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
@@ -25,7 +24,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
-
 /**
  * mDNS querier that sends multicast DNS queries and processes responses.
  *

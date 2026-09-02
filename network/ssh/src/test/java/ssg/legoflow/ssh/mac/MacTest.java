@@ -1,9 +1,7 @@
 package ssg.legoflow.ssh.mac;
 
 import org.junit.jupiter.api.Test;
-import java.security.SecureRandom;
 import static org.assertj.core.api.Assertions.*;
-
 class MacTest {
 
     @Test

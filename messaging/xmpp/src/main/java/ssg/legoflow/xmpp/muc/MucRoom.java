@@ -1,13 +1,11 @@
 package ssg.legoflow.xmpp.muc;
 
 import ssg.legoflow.xmpp.core.JID;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 /**
  * Represents a Multi-User Chat room (XEP-0045).
  *

@@ -4,9 +4,7 @@ import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpStatus;
 import ssg.legoflow.http2.feature.Http2UpgradeHandler;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class H2cUpgradeDemoTest {
 
     @Test

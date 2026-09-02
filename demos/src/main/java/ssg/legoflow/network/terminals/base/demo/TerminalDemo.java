@@ -5,9 +5,7 @@ import ssg.legoflow.network.terminals.base.display.Cursor;
 import ssg.legoflow.network.terminals.base.io.KeyTranslator;
 import ssg.legoflow.network.terminals.base.io.Terminal;
 import ssg.legoflow.network.terminals.base.io.TerminalFactory;
-
 import java.util.List;
-
 /**
  * Demonstrates core terminal framework features.
  *

@@ -2,9 +2,7 @@ package ssg.legoflow.ftp.server;
 
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
-
 import java.nio.ByteBuffer;
-
 /** Channel handler for FTP server service, routing data between DataChannel and FTP transport. */
 public final class FtpServerChannelHandler implements ChannelHandler {
 

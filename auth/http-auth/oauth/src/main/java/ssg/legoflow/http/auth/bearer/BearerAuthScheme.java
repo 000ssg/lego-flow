@@ -8,11 +8,8 @@ import ssg.legoflow.http.core.HttpRequest;
 import ssg.legoflow.http.core.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-
 /**
  * OAuth 2.0 Bearer Token authentication scheme (RFC 6750).
  * Extracts Bearer tokens from the Authorization header and validates them

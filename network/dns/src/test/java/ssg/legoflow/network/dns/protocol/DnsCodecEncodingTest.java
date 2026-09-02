@@ -2,12 +2,7 @@ package ssg.legoflow.network.dns.protocol;
 
 import org.junit.jupiter.api.*;
 import ssg.legoflow.network.dns.rdata.*;
-
-import java.util.List;
-import java.net.InetAddress;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Focused DnsCodec encoding tests to cover more encode paths.
  */

@@ -5,7 +5,6 @@ import ssg.legoflow.messaging.nats.protocol.*;
 import ssg.legoflow.messaging.nats.server.auth.Authenticator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -15,7 +14,6 @@ import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * NATS server supporting TCP connections with virtual threads.
  *

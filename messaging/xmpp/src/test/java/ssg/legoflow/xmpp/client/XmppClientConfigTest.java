@@ -2,11 +2,8 @@ package ssg.legoflow.xmpp.client;
 
 import ssg.legoflow.xmpp.auth.SaslMechanism;
 import org.junit.jupiter.api.Test;
-
 import java.time.Duration;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests for {@link XmppClientConfig}.
  *

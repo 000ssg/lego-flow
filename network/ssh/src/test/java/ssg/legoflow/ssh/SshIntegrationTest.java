@@ -10,15 +10,11 @@ import ssg.legoflow.ssh.hostkey.SshKeyPair;
 import ssg.legoflow.ssh.server.CommandFactory;
 import ssg.legoflow.ssh.server.SshServer;
 import ssg.legoflow.ssh.server.ShellFactory;
-
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Timeout;
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * End-to-end integration tests for SSH client/server using the built-in SshServer.
  */
@@ -120,8 +116,11 @@ class SshIntegrationTest {
 
     @Test @Order(1)
     void testConnectAndDisconnect() throws Exception {
+        System.out.println("[TEST] Starting testConnectAndDisconnect, port=" + port);
         try (SshClient client = new SshClient()) {
+            System.out.println("[TEST] Calling client.connect");
             client.connect("localhost", port);
+            System.out.println("[TEST] client.connect returned, isConnected=" + client.isConnected());
             assertThat(client.isConnected()).isTrue();
             
             AuthResult authResult = client.authenticate(TEST_USER, new PasswordAuth(TEST_PASS));

@@ -5,16 +5,13 @@ import ssg.legoflow.http.websocket.WebSocketSession;
 import ssg.legoflow.wamp.core.WampMessage;
 import ssg.legoflow.wamp.core.WampSerializer;
 import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 class WebSocketWampTransportTest {
 
     private final WampSerializer serializer = new WampSerializer();

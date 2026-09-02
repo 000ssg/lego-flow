@@ -1,9 +1,7 @@
 package ssg.legoflow.http3.feature;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class Http3UpgradeHandlerTest {
 
     private final Http3UpgradeHandler handler = new Http3UpgradeHandler();

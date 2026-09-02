@@ -3,11 +3,8 @@ package ssg.legoflow.network.terminals.tn3270;
 import org.junit.jupiter.api.*;
 import ssg.legoflow.network.terminals.base.config.TerminalConfig;
 import ssg.legoflow.network.terminals.tn3270.TN3270DataStreamParser.*;
-
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for the TN3270 screen model.
  */

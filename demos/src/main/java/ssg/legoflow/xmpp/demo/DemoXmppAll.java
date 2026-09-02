@@ -1,22 +1,11 @@
 package ssg.legoflow.xmpp.demo;
 
 import ssg.legoflow.xmpp.client.XmppClient;
-import ssg.legoflow.xmpp.client.XmppClientConfig;
 import ssg.legoflow.xmpp.core.JID;
-import ssg.legoflow.xmpp.core.MessageStanza;
-import ssg.legoflow.xmpp.core.PresenceStanza;
 import ssg.legoflow.xmpp.core.PresenceStanza.PresenceShow;
-import ssg.legoflow.xmpp.iot.control.ControlParameter;
-import ssg.legoflow.xmpp.iot.discovery.ThingDescription;
-import ssg.legoflow.xmpp.iot.sensor.SensorField;
-import ssg.legoflow.xmpp.iot.sensor.SensorNode;
-import ssg.legoflow.xmpp.roster.RosterItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 import java.util.Map;
-
 /**
  * Comprehensive demo of all XMPP module features.
  *
@@ -25,7 +14,7 @@ import java.util.Map;
  * Runs anywhere without an XMPP server. Uses the built-in {@link XmppClient}
  * with loopback message delivery for deterministic demos.</p>
  *
- * <p><b>Alternative: External XMPP server (ejabberd, Prosody)</b> -- Set
+ * <p><b>Alternative: External XMPP server (Prosody)</b> -- Set
  * {@link #USE_EXTERNAL}{@code =true} and configure host/domain.
  * Required for TLS/STARTTLS testing, federation, and server-to-server flows.</p>
  *

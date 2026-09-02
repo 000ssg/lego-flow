@@ -2,17 +2,11 @@ package ssg.legoflow.email.smtp.client;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.email.smtp.protocol.SmtpExtension;
-import ssg.legoflow.email.smtp.protocol.SmtpReply;
 import ssg.legoflow.email.smtp.server.InMemoryMessageStore;
 import ssg.legoflow.email.smtp.server.SmtpHandler;
-
-import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 /**
  * Extended integration tests for SMTP client covering more session state transitions.
  */

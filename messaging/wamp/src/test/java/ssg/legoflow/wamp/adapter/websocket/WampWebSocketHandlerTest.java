@@ -4,9 +4,7 @@ import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpMethod;
 import ssg.legoflow.http.core.HttpRequest;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class WampWebSocketHandlerTest {
 
     private final WampWebSocketHandler handler = new WampWebSocketHandler();

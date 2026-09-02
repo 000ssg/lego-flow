@@ -4,15 +4,12 @@ import org.junit.jupiter.api.*;
 import ssg.legoflow.mqtt.client.MqttClient;
 import ssg.legoflow.mqtt.client.MqttClientConfig;
 import ssg.legoflow.mqtt.protocol.QoS;
-
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Interoperability test: Lego Flow MQTT client ↔ real Mosquitto broker.
  *
@@ -24,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * docker compose -f interop-tests/docker-compose.yml up -d mosquitto
  * }</pre>
  */
+    @Tag("messaging-protocols")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MqttMosquittoInteropTest {
 

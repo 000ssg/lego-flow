@@ -1,14 +1,9 @@
 package ssg.legoflow.http2.demo;
 
-import ssg.legoflow.http.core.HttpHeaders;
-import ssg.legoflow.http2.connection.Http2Connection;
-import ssg.legoflow.http2.frame.Http2Frame;
 import ssg.legoflow.http2.frame.Http2FrameType;
 import ssg.legoflow.http2.stream.Http2StreamState;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
-
 class ServerPushDemoTest {
 
     @Test

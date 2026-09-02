@@ -2,10 +2,8 @@ package ssg.legoflow.http.auth.oidc;
 
 import ssg.legoflow.http.auth.token.JwtClaims;
 import ssg.legoflow.http.auth.token.JwtTokenProvider;
-
 import java.util.Map;
 import java.util.Optional;
-
 /**
  * OpenID Connect ID Token with standard claims.
  *

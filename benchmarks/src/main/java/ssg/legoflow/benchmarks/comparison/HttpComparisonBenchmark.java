@@ -5,11 +5,8 @@ import org.openjdk.jmh.infra.Blackhole;
 import ssg.legoflow.blocks.Context;
 import ssg.legoflow.blocks.DefaultContext;
 import ssg.legoflow.http.core.*;
-
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
-
 /**
  * Benchmarks comparing standalone HTTP operations vs service-pipeline HTTP operations.
  */
@@ -22,7 +19,6 @@ import java.util.concurrent.TimeUnit;
 public class HttpComparisonBenchmark {
 
     private static final int SMALL_BODY = 256;
-    private static final int MEDIUM_BODY = 4096;
 
     private HttpProtocolCodec codec;
     private HttpRequest smallGetRequest;

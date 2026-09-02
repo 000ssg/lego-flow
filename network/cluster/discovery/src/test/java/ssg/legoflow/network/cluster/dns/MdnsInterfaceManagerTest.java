@@ -1,11 +1,8 @@
 package ssg.legoflow.network.cluster.dns;
 
 import org.junit.jupiter.api.Test;
-
 import java.net.NetworkInterface;
-
 import static org.assertj.core.api.Assertions.*;
-
 class MdnsInterfaceManagerTest {
 
     @Test

@@ -2,11 +2,6 @@ package ssg.legoflow.network.snmp.security;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ssg.legoflow.network.snmp.protocol.SnmpCodec;
-import ssg.legoflow.network.snmp.protocol.SnmpMessage;
-import ssg.legoflow.network.snmp.protocol.SecurityLevel;
-import ssg.legoflow.network.snmp.protocol.UsmSecurityParameters;
-
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import javax.crypto.spec.IvParameterSpec;
@@ -15,7 +10,6 @@ import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * USM (User-based Security Model) security engine as defined in RFC 3414.
  *

@@ -2,7 +2,6 @@ package ssg.legoflow.http.auth.oidc;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -10,7 +9,6 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.*;
-
 /**
  * JSON Web Key Set (JWK Set) per RFC 7517. Parses the {@code {"keys":[...]}} format
  * and extracts RSA public keys for JWT signature verification.

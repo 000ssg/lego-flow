@@ -2,9 +2,7 @@ package ssg.legoflow.network.dns.rdata;
 
 import ssg.legoflow.network.dns.protocol.DnsName;
 import ssg.legoflow.network.dns.protocol.RecordType;
-
 import java.util.Objects;
-
 /**
  * SOA record RDATA: start of authority (RFC 1035).
  *

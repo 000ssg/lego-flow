@@ -7,9 +7,7 @@ import ssg.legoflow.http.core.HttpResponse;
 import ssg.legoflow.http.core.HttpStatus;
 import ssg.legoflow.upnp.controlpoint.ControlPoint;
 import ssg.legoflow.upnp.controlpoint.DeviceProxy;
-
 import java.util.Objects;
-
 /**
  * Handles device-related REST API requests for the Media Control Center.
  *

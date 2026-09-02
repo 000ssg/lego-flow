@@ -1,9 +1,7 @@
 package ssg.legoflow.email.common.header;
 
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests for {@link HeaderField}.
  */

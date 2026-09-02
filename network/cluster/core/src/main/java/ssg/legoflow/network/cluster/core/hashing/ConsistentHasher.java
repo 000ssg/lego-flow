@@ -3,14 +3,9 @@ package ssg.legoflow.network.cluster.core.hashing;
 import ssg.legoflow.network.cluster.core.ClusterNode;
 import ssg.legoflow.network.cluster.core.ClusterMembership;
 import ssg.legoflow.network.cluster.core.ClusterStatus;
-
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-
 /**
  * Consistent hashing utility that maps keys to cluster nodes.
  *

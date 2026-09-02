@@ -4,14 +4,11 @@ import ssg.legoflow.http.core.HttpHeaders;
 import ssg.legoflow.http.core.HttpMethod;
 import ssg.legoflow.http.core.HttpRequest;
 import org.junit.jupiter.api.Test;
-
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-
 import static org.assertj.core.api.Assertions.*;
-
 class IfRangeHandlerTest {
 
     private final IfRangeHandler handler = new IfRangeHandler();

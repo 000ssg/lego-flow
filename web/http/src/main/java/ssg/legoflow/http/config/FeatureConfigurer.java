@@ -2,10 +2,7 @@ package ssg.legoflow.http.config;
 
 import ssg.legoflow.http.feature.HttpFeature;
 import ssg.legoflow.http.feature.HttpFeatureSet;
-
 import java.util.HashMap;
-import java.util.Map;
-
 public class FeatureConfigurer {
 
     private final HttpFeatureSet featureSet;

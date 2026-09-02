@@ -5,20 +5,14 @@ import ssg.legoflow.upnp.controlpoint.DeviceListener;
 import ssg.legoflow.upnp.controlpoint.DeviceProxy;
 import ssg.legoflow.upnp.controlpoint.MediaRendererProxy;
 import ssg.legoflow.upnp.controlpoint.MediaServerProxy;
-import ssg.legoflow.upnp.mediarenderer.MediaRendererDevice;
-import ssg.legoflow.upnp.mediaserver.MediaServerDevice;
-
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
-
 /**
  * Left-side panel displaying discovered UPnP devices in a tabbed layout with dark theme.
  *

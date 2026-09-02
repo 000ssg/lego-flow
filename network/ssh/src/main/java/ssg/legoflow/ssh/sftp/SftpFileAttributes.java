@@ -1,8 +1,6 @@
 package ssg.legoflow.ssh.sftp;
 
 import java.nio.ByteBuffer;
-import java.util.Objects;
-
 /**
  * SFTP file attributes per draft-ietf-secsh-filexfer-02.
  *

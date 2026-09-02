@@ -4,11 +4,8 @@ import ssg.legoflow.auth.gssapi.GssContextWrapper;
 import ssg.legoflow.auth.gssapi.GssException;
 import ssg.legoflow.auth.gssapi.GssOids;
 import ssg.legoflow.ssh.transport.SshTransportCodec;
-
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-
 /**
  * GSSAPI authentication method per RFC 4462 (SSH GSSAPI Authentication).
  *

@@ -1,13 +1,9 @@
 package ssg.legoflow.network.cluster.core;
 
 import org.junit.jupiter.api.Test;
-
 import java.net.InetAddress;
-import java.util.Map;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 class ClusterNodeTest {
 
     @Test

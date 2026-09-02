@@ -5,9 +5,7 @@ import org.ietf.jgss.GSSException;
 import org.ietf.jgss.MessageProp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Objects;
-
 /**
  * Wraps a {@link GSSContext} for simpler token exchange in Kerberos/SPNEGO flows.
  *

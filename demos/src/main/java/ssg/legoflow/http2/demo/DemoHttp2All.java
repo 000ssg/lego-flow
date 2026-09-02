@@ -1,27 +1,17 @@
 package ssg.legoflow.http2.demo;
 
 import ssg.legoflow.http.core.*;
-import ssg.legoflow.http2.client.Http2Client;
-import ssg.legoflow.http2.config.Http2Config;
 import ssg.legoflow.http2.connection.Http2Connection;
-import ssg.legoflow.http2.connection.Http2ConnectionPreface;
 import ssg.legoflow.http2.connection.Http2Settings;
-import ssg.legoflow.http2.feature.Http2UpgradeHandler;
 import ssg.legoflow.http2.frame.*;
 import ssg.legoflow.http2.hpack.HpackDecoder;
 import ssg.legoflow.http2.hpack.HpackEncoder;
 import ssg.legoflow.http2.server.Http2Server;
-import ssg.legoflow.http2.stream.Http2FlowControl;
-import ssg.legoflow.http2.stream.Http2Stream;
 import ssg.legoflow.http2.stream.Http2StreamState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Comprehensive demo of all HTTP/2 module features.
  *

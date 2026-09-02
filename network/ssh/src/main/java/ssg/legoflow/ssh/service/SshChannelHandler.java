@@ -2,10 +2,7 @@ package ssg.legoflow.ssh.service;
 
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
-
-import java.io.IOException;
 import java.nio.ByteBuffer;
-
 /**
  * Channel handler that bridges the service framework's {@link DataChannel} with
  * the SSH protocol layer ({@link SshService}).

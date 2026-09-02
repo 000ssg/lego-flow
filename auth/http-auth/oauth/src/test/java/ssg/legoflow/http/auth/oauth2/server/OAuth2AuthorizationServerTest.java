@@ -4,13 +4,10 @@ import ssg.legoflow.http.auth.AuthPrincipal;
 import ssg.legoflow.http.core.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.*;
-
 class OAuth2AuthorizationServerTest {
 
     private OAuth2AuthorizationServer server;

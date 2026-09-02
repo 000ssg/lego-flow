@@ -5,11 +5,8 @@ import ssg.legoflow.service.user.ServiceRole;
 import ssg.legoflow.service.user.ServiceUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.util.Set;
-
 import static org.assertj.core.api.Assertions.*;
-
 class AccessControlDemoTest {
 
     private AuthenticatedService authService;

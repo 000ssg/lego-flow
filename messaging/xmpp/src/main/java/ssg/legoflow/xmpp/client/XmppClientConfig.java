@@ -1,10 +1,8 @@
 package ssg.legoflow.xmpp.client;
 
 import ssg.legoflow.xmpp.auth.SaslMechanism;
-
 import java.time.Duration;
 import java.util.Objects;
-
 /**
  * Configuration for an XMPP client connection.
  *
@@ -18,6 +16,7 @@ public class XmppClientConfig {
     private final Duration connectTimeout;
     private final Duration keepAliveInterval;
     private final boolean enableTls;
+    private final boolean trustAllCerts;
     private final SaslMechanism saslMechanism;
 
     private XmppClientConfig(Builder builder) {
@@ -27,6 +26,7 @@ public class XmppClientConfig {
         this.connectTimeout = builder.connectTimeout;
         this.keepAliveInterval = builder.keepAliveInterval;
         this.enableTls = builder.enableTls;
+        this.trustAllCerts = builder.trustAllCerts;
         this.saslMechanism = builder.saslMechanism;
     }
 
@@ -46,7 +46,7 @@ public class XmppClientConfig {
      *
      * @param host   the server hostname
      * @param domain the XMPP domain
-     * @return a new builder
+     * @return a new default configuration
      */
     public static Builder builder(String host, String domain) {
         return new Builder(host, domain);
@@ -70,6 +70,9 @@ public class XmppClientConfig {
     /** @return whether TLS is enabled */
     public boolean enableTls() { return enableTls; }
 
+    /** @return whether to trust all certificates (useful for self-signed certs in CI) */
+    public boolean trustAllCerts() { return trustAllCerts; }
+
     /** @return the SASL mechanism */
     public SaslMechanism saslMechanism() { return saslMechanism; }
 
@@ -77,6 +80,7 @@ public class XmppClientConfig {
     public String toString() {
         return "XmppClientConfig{host=" + host + ", port=" + port +
                 ", domain=" + domain + ", tls=" + enableTls +
+                ", trustAllCerts=" + trustAllCerts +
                 ", sasl=" + saslMechanism + "}";
     }
 
@@ -92,6 +96,7 @@ public class XmppClientConfig {
         private Duration connectTimeout = Duration.ofSeconds(30);
         private Duration keepAliveInterval = Duration.ofMinutes(5);
         private boolean enableTls = true;
+        private boolean trustAllCerts = false;
         private SaslMechanism saslMechanism = SaslMechanism.PLAIN;
 
         private Builder(String host, String domain) {
@@ -124,7 +129,7 @@ public class XmppClientConfig {
         /**
          * Sets the keep-alive interval.
          *
-         * @param keepAliveInterval the interval duration
+         * @param keepAliveInterval the interval
          * @return this builder
          */
         public Builder keepAliveInterval(Duration keepAliveInterval) {
@@ -140,6 +145,20 @@ public class XmppClientConfig {
          */
         public Builder enableTls(boolean enableTls) {
             this.enableTls = enableTls;
+            return this;
+        }
+
+        /**
+         * Sets whether to trust all server certificates.
+         *
+         * <p>Useful in CI/test environments with self-signed certificates.
+         * <b>Never use in production.</b>
+         *
+         * @param trustAllCerts true to trust all certificates
+         * @return this builder
+         */
+        public Builder trustAllCerts(boolean trustAllCerts) {
+            this.trustAllCerts = trustAllCerts;
             return this;
         }
 

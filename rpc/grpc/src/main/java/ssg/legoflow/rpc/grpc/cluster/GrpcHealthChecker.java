@@ -2,7 +2,6 @@ package ssg.legoflow.rpc.grpc.cluster;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
@@ -13,7 +12,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-
 /**
  * Health checker for gRPC backends.
  *

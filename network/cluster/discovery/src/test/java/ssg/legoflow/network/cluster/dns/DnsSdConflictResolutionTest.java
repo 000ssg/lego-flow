@@ -1,13 +1,10 @@
 package ssg.legoflow.network.cluster.dns;
 
 import org.junit.jupiter.api.Test;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Duration;
-
 import static org.assertj.core.api.Assertions.*;
-
 class DnsSdConflictResolutionTest {
 
     private static final InetAddress LOCAL_ADDR;

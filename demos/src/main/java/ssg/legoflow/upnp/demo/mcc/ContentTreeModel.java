@@ -3,10 +3,8 @@ package ssg.legoflow.upnp.demo.mcc;
 import ssg.legoflow.upnp.controlpoint.MediaServerProxy;
 import ssg.legoflow.upnp.mediaserver.ContentItem;
 import ssg.legoflow.upnp.mediaserver.ContentItemType;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
@@ -15,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 /**
  * Lazy-loading {@link TreeModel} for browsing a media server content hierarchy.
  *

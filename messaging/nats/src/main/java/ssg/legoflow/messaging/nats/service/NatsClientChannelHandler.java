@@ -2,9 +2,7 @@ package ssg.legoflow.messaging.nats.service;
 
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
-
 import java.nio.ByteBuffer;
-
 /** Channel handler for NATS client service, routing data between DataChannel and NATS transport. */
 public final class NatsClientChannelHandler implements ChannelHandler {
 

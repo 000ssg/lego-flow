@@ -1,7 +1,5 @@
 package ssg.legoflow.coap.client;
 
-import ssg.legoflow.coap.block.BlockOption;
-import ssg.legoflow.coap.block.BlockTransfer;
 import ssg.legoflow.coap.codec.CoapCodec;
 import ssg.legoflow.coap.observe.ObserveRelation;
 import ssg.legoflow.coap.protocol.CoapCode;
@@ -10,13 +8,10 @@ import ssg.legoflow.coap.protocol.CoapOption;
 import ssg.legoflow.coap.protocol.CoapType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -25,7 +20,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * CoAP client for making requests to CoAP servers.
  *

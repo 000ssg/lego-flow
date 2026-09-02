@@ -2,9 +2,7 @@ package ssg.legoflow.mqtt.broker.service;
 
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
-
 import java.nio.ByteBuffer;
-
 /** Channel handler for MQTT broker service. */
 public final class MqttBrokerChannelHandler implements ChannelHandler {
     private final MqttBrokerService mqttService;

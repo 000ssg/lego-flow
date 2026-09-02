@@ -5,12 +5,9 @@ import ssg.legoflow.http.demo.server.UserManagementServer;
 import ssg.legoflow.http.server.HttpRouter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.*;
-
 /**
  * Demonstrates full CRUD operations on the UserManagementServer by dispatching
  * requests directly through the router. Tests create, read, update, delete,

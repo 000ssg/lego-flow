@@ -1,14 +1,8 @@
 package ssg.legoflow.network.telnet.gateway.demo;
 
-import ssg.legoflow.network.telnet.base.TelnetCommand;
-import ssg.legoflow.network.telnet.base.TelnetOption;
 import ssg.legoflow.network.telnet.gateway.TelnetGateway;
 import ssg.legoflow.network.terminals.ansi.ANSITerminal;
 import ssg.legoflow.network.terminals.base.config.TerminalConfig;
-import ssg.legoflow.network.terminals.base.display.Cursor;
-import ssg.legoflow.network.terminals.base.display.DisplayModel;
-import ssg.legoflow.network.terminals.base.display.TermAttr;
-import ssg.legoflow.network.terminals.base.event.TerminalEventListener;
 import ssg.legoflow.network.terminals.base.io.Terminal;
 import ssg.legoflow.network.terminals.vt100.VT100Terminal;
 import ssg.legoflow.network.terminals.vt200.VT200Terminal;
@@ -16,11 +10,8 @@ import ssg.legoflow.network.terminals.vt400.VT400Terminal;
 import ssg.legoflow.network.terminals.vt500.VT500Terminal;
 import ssg.legoflow.network.terminals.vt52.VT52Terminal;
 import ssg.legoflow.network.terminals.xterm.XTERMTerminal;
-
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-
 /**
  * Demonstrates the Telnet-to-terminal gateway with all terminal types
  * and all gateway features.
@@ -397,5 +388,8 @@ public final class GatewayDemo {
                 System.out.printf("    [%s]%n", event.typeLabel());
             }
         }
+    }
+    public static void main(String[] args) {
+        demonstrate();
     }
 }

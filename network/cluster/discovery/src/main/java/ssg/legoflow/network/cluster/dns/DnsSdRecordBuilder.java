@@ -9,16 +9,11 @@ import ssg.legoflow.network.dns.rdata.ARecord;
 import ssg.legoflow.network.dns.rdata.PtrRecord;
 import ssg.legoflow.network.dns.rdata.SrvRecord;
 import ssg.legoflow.network.dns.rdata.TxtRecord;
-
 import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
 /**
  * Builds DNS resource records for DNS-SD service registration per RFC 8305.
  *
