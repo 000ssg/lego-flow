@@ -59,6 +59,7 @@ jobs:
         run: ./gradlew clean compileJava test -PskipInteropTests=true --parallel --rerun-tasks --no-daemon
         env:
           CI: true
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
       # ── Upload test results (Gradle format) ───────────────────────────
       - name: Upload test results
@@ -100,6 +101,7 @@ jobs:
         run: .\gradlew.bat clean compileJava test -PskipInteropTests=true --parallel --rerun-tasks --no-daemon
         env:
           CI: true
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
       - name: Upload test results
         uses: actions/upload-artifact@v5
@@ -142,6 +144,7 @@ jobs:
         run: ./gradlew jacocoAggregateReport --no-daemon --rerun-tasks -PskipInteropTests=true
         env:
           CI: true
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
       # ── Upload JaCoCo HTML report for review ──────────────────────────
       - name: Upload JaCoCo report
@@ -194,6 +197,7 @@ jobs:
         run: ./gradlew -PskipInteropTests=true --parallel --no-daemon --rerun-tasks ${{ matrix.modules }}
         env:
           CI: true
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
   # ──────────────────────────────────────────────
   # 4. Interoperability tests (Gradle + Docker Compose)
