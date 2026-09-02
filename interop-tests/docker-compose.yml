@@ -1,7 +1,7 @@
-# AMQP 1.0 Interop Test Reference Servers
-# Usage: docker compose up -d
-# Verify: docker compose ps
-# Teardown: docker compose down
+# AMQP 1.0, MQTT, and STOMP Interop Test Reference Servers
+# Usage: docker compose -f interop-tests/docker-compose.yml up -d
+# Verify: docker compose -f interop-tests/docker-compose.yml ps
+# Teardown: docker compose -f interop-tests/docker-compose.yml down
 
 services:
   artemis:
@@ -24,13 +24,27 @@ services:
     container_name: rabbitmq-test
     ports:
       - "5672:5672"    # AMQP (includes AMQP 1.0 plugin)
+      - "61613:61613"  # STOMP
       - "15672:15672"  # Management UI
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
-    entrypoint: /bin/sh -c "./docker-entrypoint.sh && rabbitmq-plugins enable --online rabbitmq_amqp1_0 && rabbitmqadmin declare queue --name interop-test-queue --durable true && exec rabbitmq-server"
+    command: sh -c "rabbitmq-plugins enable --offline rabbitmq_amqp1_0 rabbitmq_stomp && rabbitmq-server"
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mosquitto-test
+    ports:
+      - "1883:1883"    # MQTT
+    volumes:
+      - ./docker/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 1883 || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 10

@@ -59,6 +59,25 @@ public class StompBroker implements AutoCloseable {
     private final AtomicLong sessionCounter = new AtomicLong(0);
     private volatile boolean running = true;
 
+    /** Protocol flow listener — set to null for no-ops. */
+    private volatile StompEventListener listener = null;
+
+    /**
+     * Sets the protocol event listener.
+     *
+     * @param listener the listener, or {@code null} to disable
+     */
+    public void setListener(StompEventListener listener) {
+        this.listener = listener;
+    }
+
+    /**
+     * Returns the current protocol event listener, or {@link StompEventListener#noOp()} if none.
+     */
+    public StompEventListener getListener() {
+        return listener != null ? listener : StompEventListener.noOp();
+    }
+
     /**
      * Internal subscription record.
      */
@@ -196,6 +215,10 @@ public class StompBroker implements AutoCloseable {
 
         transport.send(new StompFrame(StompCommand.CONNECTED, connectedHeaders));
         LOG.debug("Session {} connected (version {})", sessionId, negotiatedVersion);
+        StompEventListener ev = listener;
+        if (ev != null) {
+            ev.onEvent(StompEventListener.EventType.SESSION_CONNECTED, sessionId, negotiatedVersion);
+        }
         return sessionId;
     }
 
@@ -273,6 +296,10 @@ public class StompBroker implements AutoCloseable {
             var messageFrame = new StompFrame(StompCommand.MESSAGE, msgHeaders, sendFrame.body());
             try {
                 transport.send(messageFrame);
+                StompEventListener ev = listener;
+                if (ev != null) {
+                    ev.onEvent(StompEventListener.EventType.MESSAGE_DELIVERED, sub.sessionId(), destination);
+                }
             } catch (Exception e) {
                 LOG.debug("Failed to deliver message to session {}: {}", sub.sessionId(), e.getMessage());
             }
@@ -533,6 +560,10 @@ public class StompBroker implements AutoCloseable {
 
         sendReceipt(sessionId, frame);
         LOG.debug("Session {} committed transaction {} ({} frames)", sessionId, transactionId, buffered.size());
+        StompEventListener ev = listener;
+        if (ev != null) {
+            ev.onEvent(StompEventListener.EventType.TRANSACTION_COMMITTED, sessionId, transactionId);
+        }
     }
 
     /**
@@ -563,6 +594,10 @@ public class StompBroker implements AutoCloseable {
 
         sendReceipt(sessionId, frame);
         LOG.debug("Session {} aborted transaction {}", sessionId, transactionId);
+        StompEventListener ev = listener;
+        if (ev != null) {
+            ev.onEvent(StompEventListener.EventType.TRANSACTION_ABORTED, sessionId, transactionId);
+        }
     }
 
     /**
@@ -579,6 +614,10 @@ public class StompBroker implements AutoCloseable {
         // Do not call cleanupSession here — the finally block in handleConnection
         // will do it after this method returns and the transport is properly flushed.
         LOG.debug("Session {} disconnected", sessionId);
+        StompEventListener ev = listener;
+        if (ev != null) {
+            ev.onEvent(StompEventListener.EventType.SESSION_DISCONNECTED, sessionId, null);
+        }
     }
 
     /**

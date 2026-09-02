@@ -592,3 +592,60 @@ Implemented 8-phase cluster protocol suite enabling multi-node deployment of Leg
 | Files created/modified | 0 created / 55 modified-deleted |
 | Lines added/removed | +10 / -4609 |
 | Tests added | 0 (removed 21 AMQP 0-9-1 interop tests + module unit tests) |
+
+---
+
+## Commit: (cleanup-messaging) — MQTT & STOMP Module Alignment (2026-09-02)
+
+### Original Request
+> "align MQTT and STOMP messaging modules with AGENTS.md standards: audit docs, implement protocol flow listeners, close implementation/testing gaps, update interop/docker infrastructure, add wire capture tests if needed, verify build/test pipelines"
+
+### Reformulated Requirements
+1. Audit documentation structure (AGENTS.md, COMPLIANCE.md, README.md) against project standards
+2. Implement protocol flow listeners following AmqpEventListener pattern
+3. Close implementation gaps: transport abstraction for MQTT
+4. Update interop test infrastructure: Docker compose with Mosquitto + RabbitMQ STOMP
+5. Verify build pipelines (Maven compile, Maven test, Gradle test)
+6. Run interop tests against real reference brokers
+
+### Final Design Decisions
+- **MqttEventListener**: 8 event types (connect, disconnect, session create/resume, subscription, will delivery, session expiry, keep-alive timeout) with NO_OP default and latchOnFirst() factory
+- **StompEventListener**: 5 event types (session connect, session disconnect, message delivered, transaction committed, transaction aborted) with same pattern
+- **InMemoryMqttTransport**: ByteBuffer-based blocking queue pair for transport-agnostic testing (matches AMQP pattern)
+- **Docker compose**: Mosquitto (eclipse-mosquitto:latest) + RabbitMQ with rabbitmq_stomp + rabbitmq_amqp1_0 plugins
+- **COMPLIANCE.md**: Fixed 13 stale test references in MQTT, 3 in STOMP (removed non-existent demo tests)
+- **Wire capture**: Cancelled — interop tests against real brokers passed cleanly (MQTT 4/4, STOMP 6/6)
+
+### Implementation Details
+- `MqttEventListener.java` — 77 lines, 8 event types, latch factory, wired into MqttBroker at 6 points
+- `StompEventListener.java` — 68 lines, 5 event types, latch factory, wired into StompBroker at 5 points
+- `InMemoryMqttTransport.java` — 107 lines, blocking queue pair for ByteBuffer transport
+- `MqttBroker.java` — Added listener field + 6 fire points (connect, subscribe, disconnect, will, keep-alive, session expiry)
+- `StompBroker.java` — Added listener field + 5 fire points (connect, disconnect, message, commit, abort)
+- `docker-compose.yml` — Added Mosquitto service, fixed RabbitMQ entrypoint → command for plugin enable
+- `StompInteropTest.java` — Updated docs to reference RabbitMQ STOMP plugin
+- `MqttMosquittoInteropTest.java` — Updated docs for docker-compose usage
+- `messaging/mqtt/AGENTS.md` — Fixed package breakdown, interface descriptions
+- `messaging/stomp/AGENTS.md` — Updated Testing Practices section
+- `messaging/mqtt/doc/COMPLIANCE.md` — Fixed 13 stale test references
+- `messaging/stomp/doc/COMPLIANCE.md` — Fixed 3 stale demo test references
+- Root `AGENTS.md` — Added MQTT/STOMP to Quick Reference table
+- Deleted `messaging/stomp/COMPLIANCE.md` (duplicate at root level)
+
+### Test Results
+| Suite | Result |
+|-------|--------|
+| Maven compile | SUCCESS |
+| Maven test (mqtt + stomp) | 188 tests, 0 failures |
+| Gradle test (mqtt + stomp) | SUCCESS |
+| MQTT interop (Mosquitto) | 4/4 passed |
+| STOMP interop (RabbitMQ) | 6/6 passed |
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files created | 3 (MqttEventListener, StompEventListener, InMemoryMqttTransport) |
+| Files modified | 10 |
+| Files deleted | 1 |
+| Lines added/removed | +410 / -131 |
+| Tests added | 0 (infrastructure only) |

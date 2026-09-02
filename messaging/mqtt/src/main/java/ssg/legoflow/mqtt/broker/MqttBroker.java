@@ -39,6 +39,25 @@ public final class MqttBroker implements AutoCloseable {
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
     private final AtomicBoolean running = new AtomicBoolean(false);
 
+    /** Protocol flow listener — set to null for no-ops. */
+    private volatile MqttEventListener listener = null;
+
+    /**
+     * Sets the protocol event listener.
+     *
+     * @param listener the listener, or {@code null} to disable
+     */
+    public void setListener(MqttEventListener listener) {
+        this.listener = listener;
+    }
+
+    /**
+     * Returns the current protocol event listener, or {@link MqttEventListener#noOp()} if none.
+     */
+    public MqttEventListener getListener() {
+        return listener != null ? listener : MqttEventListener.noOp();
+    }
+
     private volatile ServerSocketChannel serverChannel;
     private volatile int boundPort;
     private volatile SSLContext sslContext;
@@ -288,6 +307,15 @@ public final class MqttBroker implements AutoCloseable {
             sendPacket(conn, connAck);
             LOG.info("Client connected: {}", clientId);
 
+            // Fire protocol events
+            MqttEventListener ev = listener;
+            if (ev != null) {
+                ev.onEvent(MqttEventListener.EventType.CLIENT_CONNECTED, clientId, null);
+                ev.onEvent(sessionPresent
+                        ? MqttEventListener.EventType.SESSION_RESUMED
+                        : MqttEventListener.EventType.SESSION_CREATED, clientId, null);
+            }
+
             // Re-subscribe persistent subscriptions
             if (sessionPresent) {
                 for (var sub : session.getSubscriptions().values()) {
@@ -425,9 +453,14 @@ public final class MqttBroker implements AutoCloseable {
     private void handleSubscribe(ClientConnection conn, MqttSession session,
                                  SubscribePacket sub) throws IOException {
         List<ReasonCode> reasonCodes = new ArrayList<>();
+        MqttEventListener ev = listener;
         for (var subscription : sub.subscriptions()) {
             session.addSubscription(subscription);
             topicTree.subscribe(subscription.topicFilter(), conn);
+            if (ev != null) {
+                ev.onEvent(MqttEventListener.EventType.SUBSCRIPTION_ADDED,
+                        conn.clientId(), subscription.topicFilter());
+            }
             reasonCodes.add(switch (subscription.qos()) {
                 case AT_MOST_ONCE -> ReasonCode.GRANTED_QOS_0;
                 case AT_LEAST_ONCE -> ReasonCode.GRANTED_QOS_1;
@@ -455,6 +488,7 @@ public final class MqttBroker implements AutoCloseable {
 
     private void disconnectClient(ClientConnection conn) {
         String clientId = conn.clientId();
+        MqttEventListener ev = listener;
         connectedClients.remove(clientId);
         MqttSession session = sessions.get(clientId);
         if (session != null) {
@@ -468,8 +502,16 @@ public final class MqttBroker implements AutoCloseable {
             }
         }
 
+        // Fire disconnect event
+        if (ev != null) {
+            ev.onEvent(MqttEventListener.EventType.CLIENT_DISCONNECTED, clientId, null);
+        }
+
         // Will message delivery
         if (!conn.isCleanDisconnect() && conn.getWillMessage() != null) {
+            if (ev != null) {
+                ev.onEvent(MqttEventListener.EventType.WILL_DELIVERED, clientId, null);
+            }
             WillMessage will = conn.getWillMessage();
             var pub = new PublishPacket(will.topic(), will.payload(), will.qos(),
                     will.retain(), false, 0, will.properties());
@@ -600,6 +642,10 @@ public final class MqttBroker implements AutoCloseable {
                         LOG.info("Keep-alive timeout for client {}: {}ms since last activity",
                                 conn.clientId(), elapsed);
                         conn.setCleanDisconnect(false); // Deliver will on keep-alive timeout
+                        MqttEventListener ev = listener;
+                        if (ev != null) {
+                            ev.onEvent(MqttEventListener.EventType.KEEP_ALIVE_TIMEOUT, conn.clientId(), null);
+                        }
                         conn.close();
                         break;
                     }
@@ -631,6 +677,9 @@ public final class MqttBroker implements AutoCloseable {
             MqttSession session = entry.getValue();
             if (session.isExpired()) {
                 LOG.info("Session expired for client: {}", entry.getKey());
+                if (listener != null) {
+                    listener.onEvent(MqttEventListener.EventType.SESSION_EXPIRED, entry.getKey(), null);
+                }
                 session.clear();
                 iterator.remove();
             }
