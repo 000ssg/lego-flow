@@ -91,15 +91,15 @@ The container's `handleConnection(AmqpTransport)` method is public, allowing dir
 - Transport tests: InMemoryTransport pair connectivity
 - Descriptor tests: all descriptor constants match spec values
 - All tests use InMemoryTransport or loopback TCP (no external broker required)
-- Test count: 10
+- Test count: 282
 
 ### AMQP-Specific Testing
 
-**`AmqpEventListener`** — server-side lifecycle listener for testing. Fires at `CONNECTION_STARTED`, `CONNECTION_OPENED`, `SESSION_CREATED`, `LINK_ATTACHED`, etc. Use `AmqpEventListener.latchOnFirst(EventType)` to synchronize tests with server-side protocol progress without `Thread.sleep`.
+**`AmqpEventListener`** — fires at `CONNECTION_STARTED`, `CONNECTION_OPENED`, `SESSION_CREATED`, `LINK_ATTACHED`. Use `AmqpEventListener.latchOnFirst(EventType)` to synchronize tests with server-side protocol progress without `Thread.sleep`. (This is the generic protocol flow listener pattern — see [doc/AGENTS_protocol_accuracy.md](../doc/AGENTS_protocol_accuracy.md) §11.)
 
-**In-memory transport** — `InMemoryTransport.createPair()` creates two linked transports. Use `AmqpContainer.handleConnection(transport)` to inject the server side. For in-process tests requiring two threads, run the server on a **platform thread** (`Thread.ofPlatform().start()`) to avoid carrier thread starvation on CI.
+**In-memory transport** — `InMemoryTransport.createPair()` creates two linked transports. Use `AmqpContainer.handleConnection(transport)` to inject the server side. For in-process tests requiring two threads, run the server on a **platform thread** (`Thread.ofPlatform().start()`) to avoid carrier thread starvation on CI. (See [doc/AGENTS_test_patterns.md](../doc/AGENTS_test_patterns.md) §8-9.)
 
-**Buffer clearing** — AMQP frame handlers reuse `ByteBuffer` instances. Always call `clear()` after reading before reusing the buffer for the next `readFully()` call.
+**Buffer clearing** — AMQP frame handlers reuse `ByteBuffer` instances. Always call `clear()` after reading before reusing the buffer for the next `readFully()` call. (See [doc/AGENTS_protocol_accuracy.md](../doc/AGENTS_protocol_accuracy.md) §10.)
 
 > **General test patterns**: See [../doc/AGENTS_test_patterns.md](../doc/AGENTS_test_patterns.md)
 > **Protocol accuracy rules**: See [../doc/AGENTS_protocol_accuracy.md](../doc/AGENTS_protocol_accuracy.md)

@@ -163,8 +163,9 @@ Every module MUST have all files. New modules without these are **non-compliant*
 2. **Client/server symmetry** — shared codec, separate lifecycle management
 3. **Frame codec tests first** — encode/decode round-trip for all wire formats
 4. **Use `AmqpEventListener` pattern** — lightweight lifecycle listener with NO_OP default
-5. **Session management** — connection → session → link hierarchy
-6. **Flow control** — credit-based for messaging, window-based for stream protocols
+5. **Protocol flow listener** — every protocol module provides a `ProtocolEventListener` with NO_OP default and `latchOnFirst()` factory for testing (see [doc/AGENTS_protocol_accuracy.md](doc/AGENTS_protocol_accuracy.md) §11)
+6. **Transport-agnostic testing** — core logic uses in-memory transport pairs; container exposes public `handleConnection()` for injection
+7. **Connection → session → link hierarchy** with proper lifecycle management
 
 > **Protocol accuracy rules**: See [doc/AGENTS_protocol_accuracy.md](doc/AGENTS_protocol_accuracy.md)
 > **Test patterns**: See [doc/AGENTS_test_patterns.md](doc/AGENTS_test_patterns.md)

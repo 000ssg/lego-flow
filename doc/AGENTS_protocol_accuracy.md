@@ -148,7 +148,9 @@ container.setListener(listener); // null = no-ops
 - Zero overhead when disabled (no `if (listener != null)` in hot path)
 - Fires at protocol transitions only (connection start, session create, etc.)
 - Never in the hot data path (frame reads/writes)
-- Provide a factory method for latch-based testing
+- Provide a factory method for latch-based testing (e.g. `latchOnFirst(EventType)`)
+
+**Reference**: `AmqpEventListener` in `messaging/amqp/`
 
 ## 12. Rule
 
