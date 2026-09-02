@@ -8,7 +8,7 @@
 #
 # Conditional execution:
 #   Set `skip-coverage` label on PR to skip coverage gate
-#   Set `skip-interop` label on PR to skip interoperability tests
+#   Set `run-interop` label on PR to enable interoperability tests (disabled by default)
 #   Set `run-windows` label on PR to enable slow Windows build (disabled by default)
 
 name: CI
@@ -198,13 +198,13 @@ jobs:
   # ──────────────────────────────────────────────
   # 4. Interoperability tests (Gradle + Docker Compose)
   #    Runs against real reference implementations via Gradle.
-  #    Can be skipped by adding 'skip-interop' label on PR.
+  #    Disabled by default — enable with 'run-interop' label on PR.
   # ──────────────────────────────────────────────
   interoperability-tests:
     name: "Interoperability Tests"
     runs-on: ubuntu-latest
     needs: build
-    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-interop') }}
+    if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-interop') }}
 
     steps:
       - name: Checkout repository
