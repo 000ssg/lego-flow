@@ -1,9 +1,9 @@
 package ssg.legoflow.interop.mqtt;
 
 import org.junit.jupiter.api.*;
-import ssg.legoflow.mqtt.client.MqttClient;
-import ssg.legoflow.mqtt.client.MqttClientConfig;
-import ssg.legoflow.mqtt.protocol.QoS;
+import ssg.legoflow.messaging.mqtt.client.MqttClient;
+import ssg.legoflow.messaging.mqtt.client.MqttClientConfig;
+import ssg.legoflow.messaging.mqtt.protocol.QoS;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
