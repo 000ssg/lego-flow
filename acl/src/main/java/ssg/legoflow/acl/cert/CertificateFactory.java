@@ -57,7 +57,8 @@ public final class CertificateFactory {
             var signer = new JcaContentSignerBuilder("SHA256withRSA").build(keyPair.getPrivate());
             var certHolder = builder.build(signer);
             var cert = new JcaX509CertificateConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME).getCertificate(certHolder);
-            return new CertificateEntry(alias, cert, keyPair.getPrivate());
+            // Self-signed: chain is just the cert itself
+            return new CertificateEntry(alias, cert, keyPair.getPrivate(), new X509Certificate[]{cert});
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate self-signed cert: " + subject, e);
         }
@@ -75,7 +76,9 @@ public final class CertificateFactory {
             keyGen.initialize(keySizeSpec);
             var keyPair = keyGen.generateKeyPair();
 
-            var issuerName = new X500Name(issuer.certificate().getIssuerX500Principal().getName());
+            // Re-encode issuer cert through BC to preserve the exact subject DN bytes
+            var issuerBcCert = new org.bouncycastle.cert.X509CertificateHolder(issuer.certificate().getEncoded());
+            var issuerName = issuerBcCert.toASN1Structure().getSubject();
             var subjectName = new X500Name(subject);
             var builder = new JcaX509v3CertificateBuilder(
                     issuerName,
@@ -86,7 +89,9 @@ public final class CertificateFactory {
             var signer = new JcaContentSignerBuilder("SHA256withRSA").build(issuer.privateKey());
             var certHolder = builder.build(signer);
             var cert = new JcaX509CertificateConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME).getCertificate(certHolder);
-            return new CertificateEntry(alias, cert, keyPair.getPrivate());
+            // CA-signed: chain is leaf + issuer
+            return new CertificateEntry(alias, cert, keyPair.getPrivate(),
+                    new X509Certificate[]{cert, issuer.certificate()});
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate CA-signed cert: " + subject, e);
         }

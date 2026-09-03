@@ -23,7 +23,6 @@ class SshKeyGeneratorTest {
         assertThat(pair.keyPair()).isNotNull();
     }
 
-    @Disabled("ECDSA key generation requires BC provider in JDK 25")
     @Test void generateEcDsaKeyPair() {
         var pair = SshKeyGenerator.generate("ECDSA");
         assertThat(pair.algorithm()).isEqualTo("ECDSA");

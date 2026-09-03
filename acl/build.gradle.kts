@@ -1,6 +1,18 @@
 // ACL module: access control, certificates, SSH keys, SASL utilities
 // Parent build.gradle.kts handles toolchain, test config, and common deps
 
+// Exclude from JaCoCo — the bytecode agent conflicts with BouncyCastle SSL internals,
+// causing handshake loops to hang indefinitely (6m+ per test).
+// Also adds --add-opens for Java SSL internals used by BouncyCastle.
+tasks.withType<Test> {
+    jvmArgs.removeIf { it.startsWith("-javaagent:") }
+    jvmArgs(
+        "--add-opens=java.base/sun.security.x509=ALL-UNNAMED",
+        "--add-opens=java.base/sun.security=ALL-UNNAMED",
+        "--add-opens=java.base/java.security=ALL-UNNAMED"
+    )
+}
+
 dependencies {
     // SLF4J (from parent, but explicit for clarity)
     implementation("org.slf4j:slf4j-api:1.7.36")
@@ -20,13 +32,4 @@ dependencies {
 
     // Test dependencies
     testRuntimeOnly("org.slf4j:slf4j-simple:2.0.9")
-}
-
-tasks.withType<Test> {
-    // Allow reflection into sun.security for CertificateFactory (JDK 25 sealed modules)
-    jvmArgs(
-        "--add-opens=java.base/sun.security.x509=ALL-UNNAMED",
-        "--add-opens=java.base/sun.security=ALL-UNNAMED",
-        "--add-opens=java.base/java.security=ALL-UNNAMED"
-    )
 }

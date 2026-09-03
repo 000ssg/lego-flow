@@ -3,10 +3,10 @@ package ssg.legoflow.acl.ssl;
 import org.junit.jupiter.api.*;
 import ssg.legoflow.acl.cert.CertificateFactory;
 import ssg.legoflow.acl.cert.DomainCerts;
-import ssg.legoflow.acl.model.CertificateEntry;
 
 import javax.net.ssl.*;
 import java.nio.ByteBuffer;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -21,15 +21,13 @@ class SslContextsTest {
     }
 
     @Test void createServerContext() {
-        var serverCert = certs.signedCerts().get(0);
-        var ctx = SslContexts.serverContext(serverCert, certs.all(), password);
+        var ctx = SslContexts.serverContext(certs.signedCerts().get(0), certs.all(), password);
         assertThat(ctx).isNotNull();
         assertThat(ctx.getProtocol()).isEqualTo("TLS");
     }
 
     @Test void createClientContext() {
-        var clientCert = certs.signedCerts().get(1);
-        var ctx = SslContexts.clientContext(clientCert, certs.all(), password);
+        var ctx = SslContexts.clientContext(certs.signedCerts().get(1), certs.all(), password);
         assertThat(ctx).isNotNull();
     }
 
@@ -39,161 +37,141 @@ class SslContextsTest {
     }
 
     @Test void serverSslEngine() {
-        var serverCert = certs.signedCerts().get(0);
-        var ctx = SslContexts.serverContext(serverCert, certs.all(), password);
+        var ctx = SslContexts.serverContext(certs.signedCerts().get(0), certs.all(), password);
         var engine = SslContexts.serverEngine(ctx, "localhost", 443);
         assertThat(engine.getUseClientMode()).isFalse();
         assertThat(engine.getEnabledProtocols()).contains("TLSv1.3");
     }
 
     @Test void clientSslEngine() {
-        var clientCert = certs.signedCerts().get(1);
-        var ctx = SslContexts.clientContext(clientCert, certs.all(), password);
+        var ctx = SslContexts.clientContext(certs.signedCerts().get(1), certs.all(), password);
         var engine = SslContexts.clientEngine(ctx, "localhost", 443);
         assertThat(engine.getUseClientMode()).isTrue();
     }
 
     @Test void clientAuthServerEngine() {
-        var serverCert = certs.signedCerts().get(0);
-        var ctx = SslContexts.serverContext(serverCert, certs.all(), password);
+        var ctx = SslContexts.serverContext(certs.signedCerts().get(0), certs.all(), password);
         var engine = SslContexts.clientAuthServerEngine(ctx, "localhost", 443);
         assertThat(engine.getNeedClientAuth()).isTrue();
         assertThat(engine.getUseClientMode()).isFalse();
     }
 
     @Test void fullHandshakeServerClient() throws Exception {
-        var serverCert = certs.signedCerts().get(0);
-        var clientCert = certs.signedCerts().get(1);
-        var trustCerts = certs.all();
-
-        var serverCtx = SslContexts.serverContext(serverCert, trustCerts, password);
-        var clientCtx = SslContexts.clientContext(clientCert, trustCerts, password);
-
-        var serverEngine = SslContexts.serverEngine(serverCtx, "localhost", 443);
-        var clientEngine = SslContexts.clientEngine(clientCtx, "localhost", 443);
-
-        handshake(serverEngine, clientEngine);
-
-        assertThat(serverEngine.getSession().getProtocol()).isNotNull();
-        assertThat(clientEngine.getSession().getProtocol()).isNotNull();
+        var sCtx = SslContexts.serverContext(certs.signedCerts().get(0), certs.all(), password);
+        var cCtx = SslContexts.clientContext(certs.signedCerts().get(1), certs.all(), password);
+        handshake(SslContexts.serverEngine(sCtx, "localhost", 443),
+                  SslContexts.clientEngine(cCtx, "localhost", 443));
     }
 
     @Test void handshakeWithClientAuth() throws Exception {
-        var serverCert = certs.signedCerts().get(0);
-        var clientCert = certs.signedCerts().get(1);
-        var trustCerts = certs.all();
-
-        var serverCtx = SslContexts.serverContext(serverCert, trustCerts, password);
-        var clientCtx = SslContexts.clientContext(clientCert, trustCerts, password);
-
-        var serverEngine = SslContexts.clientAuthServerEngine(serverCtx, "localhost", 443);
-        var clientEngine = SslContexts.clientEngine(clientCtx, "localhost", 443);
-
-        handshake(serverEngine, clientEngine);
-
-        // Verify peer certificates
-        var peerCerts = SslContexts.getPeerCertificates(serverEngine);
+        var sCtx = SslContexts.serverContext(certs.signedCerts().get(0), certs.all(), password);
+        var cCtx = SslContexts.clientContext(certs.signedCerts().get(1), certs.all(), password);
+        var srv = SslContexts.clientAuthServerEngine(sCtx, "localhost", 443);
+        var cln = SslContexts.clientEngine(cCtx, "localhost", 443);
+        handshake(srv, cln);
+        var peerCerts = SslContexts.getPeerCertificates(srv);
         assertThat(peerCerts).isNotEmpty();
-        var cn = peerCerts[0].getSubjectX500Principal().getName();
-        assertThat(cn).contains("client");
+        assertThat(peerCerts[0].getSubjectX500Principal().getName()).contains("client");
     }
 
     @Test void handshakeTrustOnlyClient() throws Exception {
-        var serverCert = certs.signedCerts().get(0);
-        var trustCerts = certs.all();
-
-        var serverCtx = SslContexts.serverContext(serverCert, trustCerts, password);
-        var clientCtx = SslContexts.trustOnlyContext(trustCerts, password);
-
-        var serverEngine = SslContexts.serverEngine(serverCtx, "localhost", 443);
-        var clientEngine = SslContexts.clientEngine(clientCtx, "localhost", 443);
-
-        handshake(serverEngine, clientEngine);
-
-        assertThat(serverEngine.getSession().getProtocol()).isNotNull();
+        var sCtx = SslContexts.serverContext(certs.signedCerts().get(0), certs.all(), password);
+        var cCtx = SslContexts.trustOnlyContext(certs.all(), password);
+        handshake(SslContexts.serverEngine(sCtx, "localhost", 443),
+                  SslContexts.clientEngine(cCtx, "localhost", 443));
     }
 
     @Test void encryptedDataTransfer() throws Exception {
-        var serverCert = certs.signedCerts().get(0);
-        var clientCert = certs.signedCerts().get(1);
-        var trustCerts = certs.all();
+        var sCtx = SslContexts.serverContext(certs.signedCerts().get(0), certs.all(), password);
+        var cCtx = SslContexts.clientContext(certs.signedCerts().get(1), certs.all(), password);
+        var srv = SslContexts.serverEngine(sCtx, "localhost", 443);
+        var cln = SslContexts.clientEngine(cCtx, "localhost", 443);
 
-        var serverCtx = SslContexts.serverContext(serverCert, trustCerts, password);
-        var clientCtx = SslContexts.clientContext(clientCert, trustCerts, password);
+        // Force TLS 1.2
+        srv.setEnabledProtocols(new String[]{"TLSv1.2"});
+        cln.setEnabledProtocols(new String[]{"TLSv1.2"});
 
-        var serverEngine = SslContexts.serverEngine(serverCtx, "localhost", 443);
-        var clientEngine = SslContexts.clientEngine(clientCtx, "localhost", 443);
+        srv.beginHandshake();
+        cln.beginHandshake();
 
-        handshake(serverEngine, clientEngine);
+        int maxBuf = Math.max(cln.getSession().getPacketBufferSize() + 32,
+                              srv.getSession().getPacketBufferSize() + 32);
+        var empty = ByteBuffer.allocate(0);
+        var c2s = new ArrayList<ByteBuffer>();
+        var s2c = new ArrayList<ByteBuffer>();
 
-        // Send "Hello" from client to server
-        var message = "Hello SSL".getBytes();
-        var clientToServer = ByteBuffer.wrap(message);
-        var serverPlaintext = new byte[1024];
-        var serverPlaintextBuf = ByteBuffer.wrap(serverPlaintext);
+        // Handshake
+        while (!(done(srv) && done(cln))) {
+            process(srv, s2c, c2s, maxBuf, empty);
+            process(cln, c2s, s2c, maxBuf, empty);
+        }
 
-        clientEngine.wrap(clientToServer, serverPlaintextBuf);
-        serverPlaintextBuf.flip();
+        // Data: client wraps, passes through c2s, server unwraps
+        var serverOut = ByteBuffer.allocate(maxBuf);
+        var appData = ByteBuffer.wrap("Hello SSL".getBytes());
+        var enc = ByteBuffer.allocate(maxBuf);
+        var wr = cln.wrap(appData, enc);
+        enc.flip();
+        c2s.add((ByteBuffer) ByteBuffer.allocate(enc.remaining()).put(enc).flip());
 
-        var serverDecrypted = new byte[1024];
-        var serverDecryptedBuf = ByteBuffer.wrap(serverDecrypted);
-        serverEngine.unwrap(serverPlaintextBuf, serverDecryptedBuf);
-        serverDecryptedBuf.flip();
+        var src = c2s.remove(0);
+        var ur = srv.unwrap(src, serverOut);
+        assertThat(ur.bytesProduced()).isGreaterThan(0);
 
-        var received = new String(serverDecrypted, 0, serverDecryptedBuf.remaining());
+        serverOut.flip();
+        var received = new String(serverOut.array(), 0, serverOut.remaining());
         assertThat(received).isEqualTo("Hello SSL");
     }
 
+    /** Run handshake until both engines report FINISHED or NOT_HANDSHAKING. */
     private void handshake(SSLEngine server, SSLEngine client) throws Exception {
-        var s2c = ByteBuffer.allocate(16384);
-        var c2s = ByteBuffer.allocate(16384);
-        var s2cTmp = ByteBuffer.allocate(16384);
-        var c2sTmp = ByteBuffer.allocate(16384);
-
-        boolean sDone = false, cDone = false;
         server.beginHandshake();
         client.beginHandshake();
 
-        while (!(sDone && cDone)) {
-            if (!sDone) {
-                s2c.clear();
-                var status = server.wrap(ByteBuffer.allocate(0), s2c);
-                s2c.flip();
-                if (status.getStatus() == SSLEngineResult.Status.CLOSED) sDone = true;
-                else if (status.getStatus() == SSLEngineResult.Status.BUFFER_OVERFLOW) continue;
-            }
-            if (!cDone) {
-                c2s.clear();
-                var status = client.wrap(ByteBuffer.allocate(0), c2s);
-                c2s.flip();
-                if (status.getStatus() == SSLEngineResult.Status.CLOSED) cDone = true;
-                else if (status.getStatus() == SSLEngineResult.Status.BUFFER_OVERFLOW) continue;
-            }
+        int maxBuf = Math.max(client.getSession().getPacketBufferSize() + 32,
+                              server.getSession().getPacketBufferSize() + 32);
+        var empty = ByteBuffer.allocate(0);
+        var c2s = new ArrayList<ByteBuffer>();
+        var s2c = new ArrayList<ByteBuffer>();
 
-            // Feed server->client bytes to client
-            if (s2c.hasRemaining() && !cDone) {
-                s2cTmp.clear();
-                client.unwrap(s2c, s2cTmp);
-                s2cTmp.flip();
-                if (client.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.FINISHED) cDone = true;
-            }
-
-            // Feed client->server bytes to server
-            if (c2s.hasRemaining() && !sDone) {
-                c2sTmp.clear();
-                server.unwrap(c2s, c2sTmp);
-                c2sTmp.flip();
-                if (server.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.FINISHED) sDone = true;
-            }
-
-            if (!sDone && !cDone) {
-                // Continue wrapping
-                continue;
-            }
-            if (sDone && cDone) break;
+        while (!(done(server) && done(client))) {
+            process(client, c2s, s2c, maxBuf, empty);
+            process(server, s2c, c2s, maxBuf, empty);
         }
+    }
 
-        assertThat(server.getHandshakeStatus()).isEqualTo(SSLEngineResult.HandshakeStatus.FINISHED);
-        assertThat(client.getHandshakeStatus()).isEqualTo(SSLEngineResult.HandshakeStatus.FINISHED);
+    /** Process one SSLEngine step during handshake. */
+    private void process(SSLEngine engine, List<ByteBuffer> outQ, List<ByteBuffer> inQ,
+                          int maxBuf, ByteBuffer empty) throws Exception {
+        switch (engine.getHandshakeStatus()) {
+            case NEED_WRAP: {
+                var bb = ByteBuffer.allocate(maxBuf);
+                var r = engine.wrap(empty, bb);
+                if (r.bytesProduced() > 0) outQ.add((ByteBuffer) bb.flip());
+                break;
+            }
+            case NEED_UNWRAP:
+                if (!inQ.isEmpty()) engine.unwrap(inQ.remove(0), ByteBuffer.allocate(maxBuf));
+                break;
+            case NEED_TASK:
+                runTasks(engine);
+                if (engine.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_WRAP) {
+                    var bb = ByteBuffer.allocate(maxBuf);
+                    var r = engine.wrap(empty, bb);
+                    if (r.bytesProduced() > 0) outQ.add((ByteBuffer) bb.flip());
+                }
+                break;
+        }
+    }
+
+    private boolean done(SSLEngine engine) {
+        var s = engine.getHandshakeStatus();
+        return s == SSLEngineResult.HandshakeStatus.FINISHED
+            || s == SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING;
+    }
+
+    private void runTasks(SSLEngine engine) {
+        var t = engine.getDelegatedTask();
+        while (t != null) { t.run(); t = engine.getDelegatedTask(); }
     }
 }

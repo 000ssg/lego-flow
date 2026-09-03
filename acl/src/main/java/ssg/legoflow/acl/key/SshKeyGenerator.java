@@ -13,6 +13,12 @@ import java.util.Base64;
 public final class SshKeyGenerator {
     private SshKeyGenerator() {}
 
+    static {
+        if (Security.getProvider("BC") == null) {
+            Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+        }
+    }
+
     public static SshKeyPair generate(String algorithm) { return generate(algorithm, 2048); }
 
     public static SshKeyPair generate(String algorithm, int keySize) {
@@ -32,7 +38,7 @@ public final class SshKeyGenerator {
                     wf = "ssh-ed25519";
                     break;
                 case "ecdsa":
-                    var ec = KeyPairGenerator.getInstance("EC");
+                    var ec = KeyPairGenerator.getInstance("EC", "BC");
                     ec.initialize(new ECGenParameterSpec("P-256"));
                     kp = ec.generateKeyPair();
                     wf = "ecdsa-sha2-nistp256";
