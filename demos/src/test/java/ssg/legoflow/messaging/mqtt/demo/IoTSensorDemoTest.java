@@ -1,10 +1,10 @@
-package ssg.legoflow.mqtt.demo;
+package ssg.legoflow.messaging.mqtt.demo;
 
-import ssg.legoflow.mqtt.broker.MqttBroker;
-import ssg.legoflow.mqtt.broker.MqttBrokerConfig;
-import ssg.legoflow.mqtt.client.MqttClient;
-import ssg.legoflow.mqtt.client.MqttClientConfig;
-import ssg.legoflow.mqtt.protocol.QoS;
+import ssg.legoflow.messaging.mqtt.broker.MqttBroker;
+import ssg.legoflow.messaging.mqtt.broker.MqttBrokerConfig;
+import ssg.legoflow.messaging.mqtt.client.MqttClient;
+import ssg.legoflow.messaging.mqtt.client.MqttClientConfig;
+import ssg.legoflow.messaging.mqtt.protocol.QoS;
 import org.junit.jupiter.api.Test;
 import java.nio.charset.StandardCharsets;
 import java.util.List;

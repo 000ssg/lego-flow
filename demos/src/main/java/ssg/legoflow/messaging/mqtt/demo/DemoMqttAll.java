@@ -1,11 +1,11 @@
-package ssg.legoflow.mqtt.demo;
+package ssg.legoflow.messaging.mqtt.demo;
 
-import ssg.legoflow.mqtt.broker.MqttBroker;
-import ssg.legoflow.mqtt.broker.MqttBrokerConfig;
-import ssg.legoflow.mqtt.client.MqttClient;
-import ssg.legoflow.mqtt.client.MqttClientConfig;
-import ssg.legoflow.mqtt.codec.MqttCodec;
-import ssg.legoflow.mqtt.protocol.*;
+import ssg.legoflow.messaging.mqtt.broker.MqttBroker;
+import ssg.legoflow.messaging.mqtt.broker.MqttBrokerConfig;
+import ssg.legoflow.messaging.mqtt.client.MqttClient;
+import ssg.legoflow.messaging.mqtt.client.MqttClientConfig;
+import ssg.legoflow.messaging.mqtt.codec.MqttCodec;
+import ssg.legoflow.messaging.mqtt.protocol.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.net.InetSocketAddress;
@@ -367,8 +367,8 @@ public final class DemoMqttAll {
         // The broker restores subscriptions to the topic tree, so a callback registered
         // before connect will receive messages published after reconnect.
         try (var sub2 = new MqttClient(persistConfig)) {
-            sub2.setCallback(new ssg.legoflow.mqtt.client.MqttCallback() {
-                @Override public void onMessage(String topic, ssg.legoflow.mqtt.protocol.PublishPacket message) {
+            sub2.setCallback(new ssg.legoflow.messaging.mqtt.client.MqttCallback() {
+                @Override public void onMessage(String topic, ssg.legoflow.messaging.mqtt.protocol.PublishPacket message) {
                     received.add(new String(message.payload(), StandardCharsets.UTF_8));
                     latch.countDown();
                 }
