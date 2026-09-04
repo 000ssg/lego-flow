@@ -208,6 +208,9 @@ public final class MqttBroker implements AutoCloseable {
             conn.setSession(session);
             conn.setKeepAlive(connectPacket.keepAlive());
 
+            // Receive maximum (MQTT 5.0) — client's max simultaneous QoS 1/2 messages
+            connectPacket.properties().getReceiveMaximum().ifPresent(session::setReceiveMaximum);
+
             // Store will message
             if (connectPacket.will() != null) {
                 conn.setWillMessage(connectPacket.will());
@@ -215,9 +218,13 @@ public final class MqttBroker implements AutoCloseable {
 
             connectedClients.put(clientId, conn);
 
-            // Send CONNACK
+            // Send CONNACK with broker's receive maximum (MQTT 5.0)
+            var connAckProps = new MqttProperties();
+            if (config.receiveMaximum() > 0) {
+                connAckProps.setReceiveMaximum(config.receiveMaximum());
+            }
             var connAck = new ConnAckPacket(sessionPresent, ConnectReturnCode.ACCEPTED,
-                    new MqttProperties());
+                    connAckProps);
             sendPacket(conn, connAck);
             LOG.info("Client connected: {}", clientId);
 
@@ -376,12 +383,17 @@ public final class MqttBroker implements AutoCloseable {
         return false;
     }
 
-    /** Delivers a publish packet to a subscriber with QoS downgrade. */
+    /** Delivers a publish packet to a subscriber with QoS downgrade and receive-max enforcement. */
     private void deliverToSubscriber(ClientConnection subscriber, String topic, PublishPacket pub) {
         MqttSession subSession = subscriber.getSession();
         if (subSession == null) return;
         if (subSession.isConnected()) {
             QoS effectiveQoS = downgradeQoS(pub.qos(), topic, subSession);
+            // Enforce receive maximum: if subscriber is at limit, queue the message
+            if (effectiveQoS != QoS.AT_MOST_ONCE && !subSession.canAcceptQos12Message()) {
+                subSession.queueMessage(pub);
+                return;
+            }
             int newPacketId = effectiveQoS == QoS.AT_MOST_ONCE ? 0 : subSession.nextPacketId();
             var forward = new PublishPacket(topic, pub.payload(), effectiveQoS,
                     false, false, newPacketId, pub.properties());

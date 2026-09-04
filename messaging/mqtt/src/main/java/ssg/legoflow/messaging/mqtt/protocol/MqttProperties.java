@@ -31,6 +31,7 @@ public final class MqttProperties {
     public static final int SERVER_KEEP_ALIVE = 0x13;
     public static final int AUTHENTICATION_METHOD = 0x15;
     public static final int AUTHENTICATION_DATA = 0x16;
+    public static final int RECEIVE_MAXIMUM = 0x21;
     public static final int TOPIC_ALIAS = 0x23;
     public static final int MAXIMUM_QOS = 0x24;
     public static final int RETAIN_AVAILABLE = 0x25;
@@ -148,6 +149,16 @@ public final class MqttProperties {
      */
     public Optional<Integer> getTopicAlias() {
         return getInt(TOPIC_ALIAS);
+    }
+
+    /**
+     * Returns the receive maximum — the maximum number of QoS 1/2 messages
+     * the sender is willing to process simultaneously.
+     *
+     * @return the receive maximum, or empty if not set
+     */
+    public Optional<Integer> getReceiveMaximum() {
+        return getInt(RECEIVE_MAXIMUM);
     }
 
     /**
@@ -326,6 +337,17 @@ public final class MqttProperties {
     }
 
     /**
+     * Sets the receive maximum.
+     *
+     * @param max the maximum number of simultaneous QoS 1/2 messages
+     * @return this properties instance for chaining
+     */
+    public MqttProperties setReceiveMaximum(int max) {
+        properties.put(RECEIVE_MAXIMUM, max);
+        return this;
+    }
+
+    /**
      * Sets the topic alias.
      *
      * @param alias the topic alias value
@@ -440,7 +462,7 @@ public final class MqttProperties {
                     buf.put((byte) id);
                     buf.put(((Integer) value).byteValue());
                 }
-                case SERVER_KEEP_ALIVE, TOPIC_ALIAS -> {
+                case SERVER_KEEP_ALIVE, TOPIC_ALIAS, RECEIVE_MAXIMUM -> {
                     buf.put((byte) id);
                     buf.putShort(((Integer) value).shortValue());
                 }
@@ -487,7 +509,7 @@ public final class MqttProperties {
                 case PAYLOAD_FORMAT_INDICATOR, MAXIMUM_QOS, RETAIN_AVAILABLE,
                      WILDCARD_SUBSCRIPTION_AVAILABLE, SUBSCRIPTION_IDENTIFIER_AVAILABLE,
                      SHARED_SUBSCRIPTION_AVAILABLE -> props.properties.put(id, (int) (buf.get() & 0xFF));
-                case SERVER_KEEP_ALIVE, TOPIC_ALIAS -> props.properties.put(id, (int) (buf.getShort() & 0xFFFF));
+                case SERVER_KEEP_ALIVE, TOPIC_ALIAS, RECEIVE_MAXIMUM -> props.properties.put(id, (int) (buf.getShort() & 0xFFFF));
                 case MESSAGE_EXPIRY_INTERVAL, SESSION_EXPIRY_INTERVAL, MAXIMUM_PACKET_SIZE ->
                         props.properties.put(id, buf.getInt() & 0xFFFFFFFFL);
                 case CONTENT_TYPE, RESPONSE_TOPIC, ASSIGNED_CLIENT_IDENTIFIER,

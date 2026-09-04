@@ -32,6 +32,8 @@ public final class MqttSession {
     private volatile long sessionExpiryInterval; // seconds, 0 = no expiry
     private volatile Instant disconnectedAt;
     private volatile boolean connected;
+    /** Receive maximum from CONNECT — max simultaneous QoS 1/2 messages (0 = unlimited). */
+    private volatile int receiveMaximum;
 
     /**
      * Creates a new session.
@@ -87,6 +89,20 @@ public final class MqttSession {
 
     /** Sets the session expiry interval in seconds. */
     public void setSessionExpiryInterval(long seconds) { this.sessionExpiryInterval = seconds; }
+
+    /** Returns the receive maximum (0 = unlimited). */
+    public int getReceiveMaximum() { return receiveMaximum; }
+
+    /** Sets the receive maximum. */
+    public void setReceiveMaximum(int max) { this.receiveMaximum = max; }
+
+    /** Returns whether the receive maximum allows more QoS 1/2 messages. */
+    public boolean canAcceptQos12Message() {
+        return receiveMaximum <= 0 || inflightMessages.size() < receiveMaximum;
+    }
+
+    /** Returns the number of in-flight messages. */
+    public int getInflightCount() { return inflightMessages.size(); }
 
     /** Returns the time when the client disconnected, or {@code null} if connected. */
     public Instant disconnectedAt() { return disconnectedAt; }

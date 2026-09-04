@@ -27,6 +27,7 @@ public record MqttBrokerConfig(
         boolean requireAuthentication,
         long sessionExpiryInterval,
         int maxQueuedMessages,
+        int receiveMaximum,
         MqttTlsConfig tlsConfig,
         MqttAuthenticator authenticator,
         MqttAclChecker aclChecker
@@ -40,7 +41,8 @@ public record MqttBrokerConfig(
                              boolean requireAuthentication, long sessionExpiryInterval,
                              int maxQueuedMessages) {
         this(host, port, maxConnections, maxMessageSize, maxTopicLevels, allowAnonymous,
-                requireAuthentication, sessionExpiryInterval, maxQueuedMessages, null, null, null);
+                requireAuthentication, sessionExpiryInterval, maxQueuedMessages,
+                0, null, null, null);
     }
 
     /**
@@ -50,7 +52,7 @@ public record MqttBrokerConfig(
      */
     public static MqttBrokerConfig defaults() {
         return new MqttBrokerConfig("0.0.0.0", 1883, 1000, 268435456, 128,
-                true, false, 0, 1000, null, null, null);
+                true, false, 0, 1000, 65535, null, null, null);
     }
 
     /**
@@ -60,6 +62,6 @@ public record MqttBrokerConfig(
      */
     public static MqttBrokerConfig minimal() {
         return new MqttBrokerConfig("localhost", 0, 10, 65536, 32,
-                true, false, 0, 100, null, null, null);
+                true, false, 0, 100, 65535, null, null, null);
     }
 }
