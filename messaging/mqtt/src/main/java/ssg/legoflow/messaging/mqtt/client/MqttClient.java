@@ -2,15 +2,11 @@ package ssg.legoflow.messaging.mqtt.client;
 
 import ssg.legoflow.messaging.mqtt.codec.MqttCodec;
 import ssg.legoflow.messaging.mqtt.protocol.*;
+import ssg.legoflow.messaging.mqtt.transport.MqttTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLEngineResult;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -22,9 +18,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * <p>Provides asynchronous connect, disconnect, publish, subscribe, and unsubscribe
  * operations. Supports automatic reconnect with configurable backoff, keep-alive
- * ping management, and QoS 1/2 message flow state tracking.
+ * ping management, and QoS 1/2 message flow state tracking.</p>
  *
- * @since 0.1.0
+ * <p>Transport-agnostic: uses {@link MqttTransport} for I/O. Always provide a transport
+ * explicitly — this class never creates sockets.</p>
+ *
+ * @since 0.2.0
  */
 public final class MqttClient implements AutoCloseable {
 
@@ -39,20 +38,24 @@ public final class MqttClient implements AutoCloseable {
     private final Map<String, MqttMessageListener> topicListeners = new ConcurrentHashMap<>();
     private final Map<Integer, PublishPacket> inflightMessages = new ConcurrentHashMap<>();
 
-    private volatile SocketChannel channel;
-    private volatile SSLEngine sslEngine;
+    private final MqttTransport transport;
     private volatile MqttCallback callback;
     private volatile ScheduledExecutorService keepAliveScheduler;
     private volatile Future<?> readerFuture;
 
     /**
-     * Creates a new MQTT client with the given configuration.
+     * Creates a new MQTT client backed by the given transport.
      *
-     * @param config the client configuration
+     * <p>The client uses the provided transport for all I/O. Call {@code connect()}
+     * to trigger the protocol handshake over the transport.</p>
+     *
+     * @param config    the client configuration
+     * @param transport the pre-configured transport (e.g. in-memory or pipeline)
      */
-    public MqttClient(MqttClientConfig config) {
+    public MqttClient(MqttClientConfig config, MqttTransport transport) {
         this.config = Objects.requireNonNull(config);
         this.codec = new MqttCodec(config.version());
+        this.transport = Objects.requireNonNull(transport);
     }
 
     /**
@@ -61,66 +64,36 @@ public final class MqttClient implements AutoCloseable {
      * @return a future that completes with the CONNACK packet
      */
     public CompletableFuture<ConnAckPacket> connect() {
-        return connect(config);
-    }
-
-    /**
-     * Connects to the MQTT broker using the given configuration.
-     *
-     * @param connectConfig the configuration for this connection attempt
-     * @return a future that completes with the CONNACK packet
-     */
-    public CompletableFuture<ConnAckPacket> connect(MqttClientConfig connectConfig) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                channel = SocketChannel.open(
-                        new InetSocketAddress(connectConfig.host(), connectConfig.port()));
-                channel.configureBlocking(true);
-
-                // TLS handshake if configured
-                if (connectConfig.tlsConfig() != null) {
-                    try {
-                        SSLContext sslCtx = connectConfig.tlsConfig().createSslContext();
-                        sslEngine = connectConfig.tlsConfig().createClientEngine(
-                                sslCtx, connectConfig.host(), connectConfig.port());
-                        performTlsHandshake(channel, sslEngine);
-                    } catch (java.security.GeneralSecurityException e) {
-                        throw new IOException("Failed to initialize TLS", e);
-                    }
-                }
-
                 var connectPacket = new ConnectPacket(
-                        connectConfig.version(),
-                        connectConfig.clientId(),
-                        connectConfig.cleanSession(),
-                        connectConfig.keepAlive(),
-                        connectConfig.username(),
-                        connectConfig.password(),
-                        connectConfig.will(),
+                        config.version(),
+                        config.clientId(),
+                        config.cleanSession(),
+                        config.keepAlive(),
+                        config.username(),
+                        config.password(),
+                        config.will(),
                         new MqttProperties()
                 );
 
                 sendPacket(connectPacket);
 
                 ByteBuffer response = ByteBuffer.allocate(4096);
-                if (sslEngine != null) {
-                    readTls(channel, sslEngine, response);
-                } else {
-                    channel.read(response);
-                }
+                int bytesRead = transport.receive(response);
+                if (bytesRead <= 0) throw new IOException("No response from broker");
                 response.flip();
 
                 MqttPacket packet = codec.decode(response);
                 if (packet instanceof ConnAckPacket connAck) {
                     if (connAck.returnCode() == ConnectReturnCode.ACCEPTED) {
                         connected.set(true);
-                        startKeepAlive(connectConfig.keepAlive());
+                        startKeepAlive(config.keepAlive());
                         startReader();
-                        LOG.info("Connected to MQTT broker {}:{} as {}",
-                                connectConfig.host(), connectConfig.port(), connectConfig.clientId());
+                        LOG.info("Connected to MQTT broker as {}", config.clientId());
                     } else {
                         LOG.warn("Connection refused: {}", connAck.returnCode());
-                        channel.close();
+                        transport.close();
                     }
                     return connAck;
                 }
@@ -146,12 +119,10 @@ public final class MqttClient implements AutoCloseable {
                     if (readerFuture != null) {
                         readerFuture.cancel(true);
                     }
-                    if (channel != null && channel.isOpen()) {
-                        channel.close();
-                    }
+                    transport.close();
                     LOG.info("Disconnected from MQTT broker");
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 LOG.error("Error during disconnect", e);
                 throw new CompletionException(e);
             }
@@ -160,12 +131,6 @@ public final class MqttClient implements AutoCloseable {
 
     /**
      * Publishes a message to the given topic.
-     *
-     * @param topic   the topic to publish to
-     * @param payload the message payload
-     * @param qos     the QoS level
-     * @param retain  whether the message should be retained
-     * @return a future that completes when the publish flow is done
      */
     public CompletableFuture<Void> publish(String topic, byte[] payload, QoS qos, boolean retain) {
         int packetId = (qos == QoS.AT_MOST_ONCE) ? 0 : nextPacketId();
@@ -185,11 +150,6 @@ public final class MqttClient implements AutoCloseable {
 
     /**
      * Subscribes to a topic with the given QoS and listener.
-     *
-     * @param topicFilter the topic filter
-     * @param qos         the maximum QoS level
-     * @param listener    the message listener
-     * @return a future that completes with the SUBACK packet
      */
     public CompletableFuture<SubAckPacket> subscribe(String topicFilter, QoS qos,
                                                      MqttMessageListener listener) {
@@ -198,10 +158,6 @@ public final class MqttClient implements AutoCloseable {
 
     /**
      * Subscribes to multiple topics with the given listener.
-     *
-     * @param subscriptions the list of topic subscriptions
-     * @param listener      the message listener
-     * @return a future that completes with the SUBACK packet
      */
     public CompletableFuture<SubAckPacket> subscribe(List<TopicSubscription> subscriptions,
                                                      MqttMessageListener listener) {
@@ -219,9 +175,6 @@ public final class MqttClient implements AutoCloseable {
 
     /**
      * Unsubscribes from the given topic filters.
-     *
-     * @param topicFilters the topic filters to unsubscribe from
-     * @return a future that completes when unsubscribed
      */
     public CompletableFuture<Void> unsubscribe(String... topicFilters) {
         int packetId = nextPacketId();
@@ -238,17 +191,13 @@ public final class MqttClient implements AutoCloseable {
 
     /**
      * Returns whether the client is currently connected.
-     *
-     * @return {@code true} if connected
      */
     public boolean isConnected() {
-        return connected.get() && channel != null && channel.isOpen();
+        return connected.get() && transport.isOpen();
     }
 
     /**
      * Sets the callback for lifecycle and message events.
-     *
-     * @param callback the callback
      */
     public void setCallback(MqttCallback callback) {
         this.callback = callback;
@@ -256,7 +205,7 @@ public final class MqttClient implements AutoCloseable {
 
     @Override
     public void close() {
-        disconnect().join();
+        try { disconnect().join(); } catch (Exception ignored) {}
         executor.shutdown();
     }
 
@@ -265,14 +214,8 @@ public final class MqttClient implements AutoCloseable {
     private void sendPacket(MqttPacket packet) {
         try {
             ByteBuffer encoded = codec.encode(packet);
-            if (sslEngine != null) {
-                writeTls(channel, sslEngine, encoded);
-            } else {
-                while (encoded.hasRemaining()) {
-                    channel.write(encoded);
-                }
-            }
-        } catch (IOException e) {
+            transport.send(encoded);
+        } catch (Exception e) {
             LOG.error("Failed to send packet: {}", packet.type(), e);
             handleConnectionLost(e);
         }
@@ -306,12 +249,7 @@ public final class MqttClient implements AutoCloseable {
             while (connected.get()) {
                 try {
                     readBuf.clear();
-                    int bytesRead;
-                    if (sslEngine != null) {
-                        bytesRead = readTls(channel, sslEngine, readBuf);
-                    } else {
-                        bytesRead = channel.read(readBuf);
-                    }
+                    int bytesRead = transport.receive(readBuf);
                     if (bytesRead == -1) {
                         handleConnectionLost(new IOException("Connection closed by broker"));
                         break;
@@ -323,7 +261,7 @@ public final class MqttClient implements AutoCloseable {
                             handleIncomingPacket(packet);
                         }
                     }
-                } catch (IOException e) {
+                } catch (Exception e) {
                     if (connected.get()) {
                         handleConnectionLost(e);
                     }
@@ -395,100 +333,6 @@ public final class MqttClient implements AutoCloseable {
             if (callback != null) {
                 callback.onConnectionLost(cause);
             }
-            if (config.autoReconnect()) {
-                scheduleReconnect();
-            }
-        }
-    }
-
-    private void scheduleReconnect() {
-        executor.submit(() -> {
-            while (!connected.get()) {
-                try {
-                    Thread.sleep(config.reconnectDelay().toMillis());
-                    LOG.info("Attempting reconnect to {}:{}", config.host(), config.port());
-                    connect(config).get(config.connectTimeout().toMillis(), TimeUnit.MILLISECONDS);
-                    if (connected.get() && callback != null) {
-                        callback.onReconnected();
-                    }
-                } catch (Exception e) {
-                    LOG.debug("Reconnect attempt failed: {}", e.getMessage());
-                }
-            }
-        });
-    }
-
-    // --- TLS support ---
-
-    private void performTlsHandshake(SocketChannel ch, SSLEngine engine) throws IOException {
-        try {
-            engine.beginHandshake();
-            SSLEngineResult.HandshakeStatus hs = engine.getHandshakeStatus();
-
-            int netBufSize = engine.getSession().getPacketBufferSize();
-            int appBufSize = engine.getSession().getApplicationBufferSize();
-            ByteBuffer myNetData = ByteBuffer.allocate(netBufSize);
-            ByteBuffer peerNetData = ByteBuffer.allocate(netBufSize);
-            ByteBuffer myAppData = ByteBuffer.allocate(appBufSize);
-            ByteBuffer peerAppData = ByteBuffer.allocate(appBufSize);
-
-            while (hs != SSLEngineResult.HandshakeStatus.FINISHED
-                    && hs != SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
-                switch (hs) {
-                    case NEED_UNWRAP -> {
-                        if (ch.read(peerNetData) < 0) {
-                            throw new IOException("TLS handshake: connection closed");
-                        }
-                        peerNetData.flip();
-                        SSLEngineResult res = engine.unwrap(peerNetData, peerAppData);
-                        peerNetData.compact();
-                        hs = res.getHandshakeStatus();
-                    }
-                    case NEED_WRAP -> {
-                        myNetData.clear();
-                        SSLEngineResult res = engine.wrap(myAppData, myNetData);
-                        hs = res.getHandshakeStatus();
-                        // If wrap returns BUFFER_UNDERFLOW, we need peer data first
-                        if (res.getStatus() == SSLEngineResult.Status.BUFFER_UNDERFLOW) {
-                            hs = SSLEngineResult.HandshakeStatus.NEED_UNWRAP;
-                        }
-                        myNetData.flip();
-                        while (myNetData.hasRemaining()) {
-                            ch.write(myNetData);
-                        }
-                    }
-                    case NEED_TASK -> {
-                        Runnable task;
-                        while ((task = engine.getDelegatedTask()) != null) {
-                            task.run();
-                        }
-                        hs = engine.getHandshakeStatus();
-                    }
-                    default -> throw new IOException("Unexpected handshake status: " + hs);
-                }
-            }
-        } catch (Exception e) {
-            throw new IOException("TLS handshake failed", e);
-        }
-    }
-
-    private int readTls(SocketChannel ch, SSLEngine engine, ByteBuffer appBuf) throws IOException {
-        int netBufSize = engine.getSession().getPacketBufferSize();
-        ByteBuffer netBuf = ByteBuffer.allocate(netBufSize);
-        int bytesRead = ch.read(netBuf);
-        if (bytesRead <= 0) return bytesRead;
-        netBuf.flip();
-        SSLEngineResult res = engine.unwrap(netBuf, appBuf);
-        return res.bytesProduced();
-    }
-
-    private void writeTls(SocketChannel ch, SSLEngine engine, ByteBuffer appBuf) throws IOException {
-        int netBufSize = engine.getSession().getPacketBufferSize();
-        ByteBuffer netBuf = ByteBuffer.allocate(netBufSize);
-        engine.wrap(appBuf, netBuf);
-        netBuf.flip();
-        while (netBuf.hasRemaining()) {
-            ch.write(netBuf);
         }
     }
 }

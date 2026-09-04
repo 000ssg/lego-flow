@@ -6,14 +6,19 @@ import ssg.legoflow.service.AbstractService;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
 import ssg.legoflow.service.channel.ChannelHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.function.Consumer;
 /** Service-based MQTT client adapter for DP/DF composition. */
 public final class MqttClientService extends AbstractService<ByteBuffer, ByteBuffer> {
 
+    private static final Logger LOG = LoggerFactory.getLogger(MqttClientService.class);
+
     private final String host;
     private final int port;
+    private final String name;
     private volatile ssg.legoflow.messaging.mqtt.client.MqttClient client;
     private volatile Consumer<MqttResult> messageCallback;
 
@@ -28,16 +33,42 @@ public final class MqttClientService extends AbstractService<ByteBuffer, ByteBuf
                         builder.priority, builder.dependencies));
         this.host = builder.host;
         this.port = builder.port;
+        this.name = builder.name;
     }
 
     @Override
     protected void doConnect(ServiceContext ctx) {
         try {
             transitionTo(ProcessorState.CONNECTING);
+            // 1. Open non-blocking socket
+            var socketChannel = java.nio.channels.SocketChannel.open();
+            socketChannel.configureBlocking(false);
+            var dataChannel = new ssg.legoflow.service.channel.TcpDataChannel(socketChannel);
+
+            // 2. Create transport and handler
+            var transport = new ssg.legoflow.messaging.mqtt.transport.MqttPipelineTransport(dataChannel);
+            var handler = new MqttClientChannelHandler(this, transport);
+            var latch = new java.util.concurrent.CountDownLatch(1);
+            handler.setConnectLatch(latch);
+
+            // 3. Register channel with manager + handler
+            ctx.registerChannel(this, dataChannel, handler);
+
+            // 4. Start async connect
+            socketChannel.connect(new java.net.InetSocketAddress(host, port));
+
+            // 5. Wait for TCP connect
+            if (!latch.await(5000, java.util.concurrent.TimeUnit.MILLISECONDS)) {
+                throw new RuntimeException("MQTT connection timeout: " + host + ":" + port);
+            }
+
+            // 6. Create client with transport and trigger MQTT connect
             var config = ssg.legoflow.messaging.mqtt.client.MqttClientConfig.defaults()
-                    .host(host).port(port).build();
-            this.client = new ssg.legoflow.messaging.mqtt.client.MqttClient(config);
+                    .clientId("mqtt-" + name).build();
+            this.client = new ssg.legoflow.messaging.mqtt.client.MqttClient(config, transport);
             client.connect().join();
+
+            LOG.info("MQTT client connected to {}:{}", host, port);
         } catch (Exception e) {
             throw new RuntimeException("MQTT client failed to connect: " + host + ":" + port, e);
         }
@@ -69,8 +100,6 @@ public final class MqttClientService extends AbstractService<ByteBuffer, ByteBuf
     private void processInbound(ByteBuffer data) {
         if (messageCallback != null) messageCallback.accept(MqttResult.ok("mqtt", data.asReadOnlyBuffer()));
     }
-
-    public ChannelHandler createChannelHandler() { return new MqttClientChannelHandler(this); }
 
     public static class Builder {
         private final String host;

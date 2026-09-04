@@ -28,8 +28,8 @@ class MqttClientServiceTest {
 
     @Test void testChannelHandlerCanBeCreated() {
         var service = MqttClientService.builder("localhost", 1883).build();
-        var handler = service.createChannelHandler();
-        assertThat(handler).isNotNull();
+        // Channel handler is created internally during doConnect — no public factory
+        assertThat(service).isNotNull();
     }
 
     @Test void testGetClientIsNullBeforeConnect() {

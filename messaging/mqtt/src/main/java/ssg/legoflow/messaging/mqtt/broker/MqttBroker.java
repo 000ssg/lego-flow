@@ -2,28 +2,25 @@ package ssg.legoflow.messaging.mqtt.broker;
 
 import ssg.legoflow.messaging.mqtt.codec.MqttCodec;
 import ssg.legoflow.messaging.mqtt.protocol.*;
+import ssg.legoflow.messaging.mqtt.transport.MqttTransport;
 import ssg.legoflow.messaging.mqtt.topic.TopicTree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLEngineResult;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * Lightweight MQTT message broker.
  *
- * <p>Accepts client connections, manages sessions (clean and persistent),
- * routes PUBLISH messages to matching subscribers via a {@link TopicTree},
- * supports QoS 0/1/2 delivery, retained messages, will message delivery,
- * TLS encrypted connections, pluggable authentication, session expiry,
- * keep-alive timeout enforcement, and QoS downgrade.
+ * <p>Transport-agnostic: accepts {@link MqttTransport} instances via {@link #handleConnection(MqttTransport)}.
+ * TLS, TCP, WebSocket — all handled by transport wrappers. The broker only does protocol logic.</p>
+ *
+ * <p>Manages sessions (clean and persistent), routes PUBLISH messages to matching subscribers
+ * via a {@link TopicTree}, supports QoS 0/1/2 delivery, retained messages, will message delivery,
+ * pluggable authentication, session expiry, keep-alive timeout enforcement, and QoS downgrade.</p>
  *
  * @since 0.1.0
  */
@@ -42,6 +39,8 @@ public final class MqttBroker implements AutoCloseable {
     /** Protocol flow listener — set to null for no-ops. */
     private volatile MqttEventListener listener = null;
 
+    private volatile ScheduledExecutorService sessionExpiryScheduler;
+
     /**
      * Sets the protocol event listener.
      *
@@ -58,11 +57,6 @@ public final class MqttBroker implements AutoCloseable {
         return listener != null ? listener : MqttEventListener.noOp();
     }
 
-    private volatile ServerSocketChannel serverChannel;
-    private volatile int boundPort;
-    private volatile SSLContext sslContext;
-    private volatile ScheduledExecutorService sessionExpiryScheduler;
-
     /**
      * Creates a new MQTT broker with the given configuration.
      *
@@ -73,42 +67,13 @@ public final class MqttBroker implements AutoCloseable {
     }
 
     /**
-     * Starts the broker and binds to the configured host and port.
-     *
-     * @throws IOException if the broker cannot bind
+     * Initializes the broker and starts session expiry sweep.
+     * Called by {@code MqttBrokerService.doConnect()}.
      */
-    public void start() throws IOException {
-        bind(config.host(), config.port());
-    }
-
-    /**
-     * Binds the broker to the given host and port and starts accepting connections.
-     *
-     * @param host the bind address
-     * @param port the port (0 for ephemeral)
-     * @throws IOException if binding fails
-     */
-    public void bind(String host, int port) throws IOException {
-        // Initialize TLS if configured
-        if (config.tlsConfig() != null) {
-            try {
-                sslContext = config.tlsConfig().createSslContext();
-                LOG.info("TLS enabled for MQTT broker");
-            } catch (Exception e) {
-                throw new IOException("Failed to initialize TLS", e);
-            }
-        }
-
-        serverChannel = ServerSocketChannel.open();
-        serverChannel.bind(new InetSocketAddress(host, port));
-        boundPort = ((InetSocketAddress) serverChannel.getLocalAddress()).getPort();
+    public void start() {
         running.set(true);
-        LOG.info("MQTT broker started on {}:{}", host, boundPort);
-
-        executor.submit(this::acceptLoop);
-
-        // Start session expiry sweep if configured
         startSessionExpirySweep();
+        LOG.info("MQTT broker initialized");
     }
 
     /**
@@ -125,60 +90,27 @@ public final class MqttBroker implements AutoCloseable {
                     conn.close();
                 }
                 connectedClients.clear();
-                if (serverChannel != null && serverChannel.isOpen()) {
-                    serverChannel.close();
-                }
                 executor.shutdown();
                 LOG.info("MQTT broker stopped");
-            } catch (IOException e) {
+            } catch (Exception e) {
                 LOG.error("Error stopping broker", e);
             }
         }
     }
 
-    /**
-     * Returns the set of currently connected client IDs.
-     *
-     * @return the connected client IDs
-     */
+    /** Returns the set of currently connected client IDs. */
     public Set<String> getConnectedClients() {
         return Collections.unmodifiableSet(connectedClients.keySet());
     }
 
-    /**
-     * Returns the port the broker is bound to.
-     *
-     * @return the bound port
-     */
-    public int getPort() {
-        return boundPort;
-    }
-
-    /**
-     * Returns the retain store.
-     *
-     * @return the retain store
-     */
+    /** Returns the retain store. */
     public RetainStore getRetainStore() {
         return retainStore;
     }
 
-    /**
-     * Returns the session store (for testing/inspection).
-     *
-     * @return the sessions map (unmodifiable view)
-     */
+    /** Returns the session store (for testing/inspection). */
     public Map<String, MqttSession> getSessions() {
         return Collections.unmodifiableMap(sessions);
-    }
-
-    /**
-     * Returns whether TLS is enabled.
-     *
-     * @return {@code true} if TLS is configured
-     */
-    public boolean isTlsEnabled() {
-        return sslContext != null;
     }
 
     @Override
@@ -186,46 +118,27 @@ public final class MqttBroker implements AutoCloseable {
         stop();
     }
 
-    // --- Private methods ---
+    // --- Connection handling (transport-agnostic) ---
 
-    private void acceptLoop() {
-        while (running.get()) {
-            try {
-                SocketChannel clientChannel = serverChannel.accept();
-                if (clientChannel != null) {
-                    executor.submit(() -> handleClient(clientChannel));
-                }
-            } catch (IOException e) {
-                if (running.get()) {
-                    LOG.error("Error accepting connection", e);
-                }
-            }
-        }
+    /**
+     * Handles a new client connection via the given transport.
+     * Spawns a virtual thread for the connection lifecycle.
+     *
+     * @param transport the transport for this connection (TLS already applied if needed)
+     */
+    public void handleConnection(MqttTransport transport) {
+        executor.submit(() -> handleClient(transport));
     }
 
-    private void handleClient(SocketChannel clientChannel) {
+    private void handleClient(MqttTransport transport) {
         ClientConnection conn = null;
         try {
-            clientChannel.configureBlocking(true);
-
-            // TLS handshake if enabled
-            SSLEngine sslEngine = null;
-            if (sslContext != null) {
-                sslEngine = config.tlsConfig().createServerEngine(sslContext);
-                performTlsHandshake(clientChannel, sslEngine);
-            }
-
             ByteBuffer buf = ByteBuffer.allocate(65536);
 
-            // Read CONNECT packet (through TLS if enabled)
-            int bytesRead;
-            if (sslEngine != null) {
-                bytesRead = readTls(clientChannel, sslEngine, buf);
-            } else {
-                bytesRead = clientChannel.read(buf);
-            }
+            // Read CONNECT packet
+            int bytesRead = transport.receive(buf);
             if (bytesRead <= 0) {
-                clientChannel.close();
+                transport.close();
                 return;
             }
             buf.flip();
@@ -237,12 +150,12 @@ public final class MqttBroker implements AutoCloseable {
             MqttPacket packet = codec.decode(buf);
 
             if (!(packet instanceof ConnectPacket connectPacket)) {
-                clientChannel.close();
+                transport.close();
                 return;
             }
 
             String clientId = connectPacket.clientId();
-            conn = new ClientConnection(clientId, clientChannel, codec, version, sslEngine,
+            conn = new ClientConnection(clientId, transport, codec, version,
                     connectPacket.username());
 
             // Authentication check
@@ -252,7 +165,7 @@ public final class MqttBroker implements AutoCloseable {
                             new MqttProperties());
                     sendPacket(conn, connAck);
                     LOG.info("Client authentication failed: {}", clientId);
-                    clientChannel.close();
+                    transport.close();
                     return;
                 }
             }
@@ -263,11 +176,9 @@ public final class MqttBroker implements AutoCloseable {
 
             if (existingSession != null) {
                 if (connectPacket.cleanSession()) {
-                    // Clean Start = true: discard any existing session state
                     existingSession.clear();
                     sessions.remove(clientId);
                 } else {
-                    // Clean Start = false: resume existing session
                     sessionPresent = true;
                 }
                 // Disconnect existing client with same ID
@@ -287,7 +198,6 @@ public final class MqttBroker implements AutoCloseable {
                 sessions.put(clientId, session);
             } else {
                 session = existingSession;
-                // Update expiry interval from CONNECT properties if present
                 connectPacket.properties().getSessionExpiryInterval()
                         .ifPresent(session::setSessionExpiryInterval);
             }
@@ -335,11 +245,7 @@ public final class MqttBroker implements AutoCloseable {
             // Main read loop
             while (running.get() && conn.isOpen()) {
                 buf.clear();
-                if (sslEngine != null) {
-                    bytesRead = readTls(clientChannel, sslEngine, buf);
-                } else {
-                    bytesRead = clientChannel.read(buf);
-                }
+                bytesRead = transport.receive(buf);
                 if (bytesRead == -1) break;
                 if (bytesRead > 0) {
                     buf.flip();
@@ -386,10 +292,8 @@ public final class MqttBroker implements AutoCloseable {
     private void handleDisconnect(ClientConnection conn, DisconnectPacket disconnect) {
         ReasonCode reason = disconnect.reasonCode();
         if (reason == ReasonCode.DISCONNECT_WITH_WILL) {
-            // v5.0: Disconnect with Will — publish the will message
             conn.setCleanDisconnect(false);
         } else {
-            // Normal disconnection — do not publish will
             conn.setCleanDisconnect(true);
         }
         LOG.debug("Client {} sent DISCONNECT with reason: {}", conn.clientId(), reason);
@@ -422,12 +326,10 @@ public final class MqttBroker implements AutoCloseable {
         // Route to subscribers with QoS downgrade
         Set<ClientConnection> subscribers = topicTree.getMatchingSubscribers(pub.topic());
         for (var subscriber : subscribers) {
-            if (subscriber == conn) continue; // Don't echo back
+            if (subscriber == conn) continue;
             MqttSession subSession = subscriber.getSession();
             if (subSession != null && subSession.isConnected()) {
-                // QoS downgrade: deliver at min(pub QoS, subscriber's max QoS)
                 QoS effectiveQoS = downgradeQoS(pub.qos(), pub.topic(), subSession);
-
                 int newPacketId = effectiveQoS == QoS.AT_MOST_ONCE ? 0 : subSession.nextPacketId();
                 var forward = new PublishPacket(pub.topic(), pub.payload(), effectiveQoS,
                         false, false, newPacketId, pub.properties());
@@ -441,10 +343,6 @@ public final class MqttBroker implements AutoCloseable {
         }
     }
 
-    /**
-     * Downgrades QoS to the minimum of the published QoS and the subscriber's
-     * maximum QoS for the matching topic filter.
-     */
     private QoS downgradeQoS(QoS publishQoS, String topic, MqttSession subscriberSession) {
         QoS subscriberMaxQoS = publishQoS;
         for (var sub : subscriberSession.getSubscriptions().values()) {
@@ -481,7 +379,6 @@ public final class MqttBroker implements AutoCloseable {
                 case AT_LEAST_ONCE -> ReasonCode.GRANTED_QOS_1;
                 case EXACTLY_ONCE -> ReasonCode.GRANTED_QOS_2;
             });
-
             // Send retained messages
             for (var retained : retainStore.getMatching(subscription.topicFilter())) {
                 sendPacket(conn, retained);
@@ -508,7 +405,6 @@ public final class MqttBroker implements AutoCloseable {
         MqttSession session = sessions.get(clientId);
         if (session != null) {
             session.setConnected(false);
-            // Unsubscribe from topic tree
             for (var sub : session.getSubscriptions().values()) {
                 topicTree.unsubscribe(sub.topicFilter(), conn);
             }
@@ -516,12 +412,9 @@ public final class MqttBroker implements AutoCloseable {
                 sessions.remove(clientId);
             }
         }
-
-        // Fire disconnect event
         if (ev != null) {
             ev.onEvent(MqttEventListener.EventType.CLIENT_DISCONNECTED, clientId, null);
         }
-
         // Will message delivery
         if (!conn.isCleanDisconnect() && conn.getWillMessage() != null) {
             if (ev != null) {
@@ -542,23 +435,13 @@ public final class MqttBroker implements AutoCloseable {
                 }
             }
         }
-
         conn.close();
         LOG.info("Client disconnected: {}", clientId);
     }
 
     private void sendPacket(ClientConnection conn, MqttPacket packet) throws IOException {
         ByteBuffer encoded = conn.codec().encode(packet);
-        if (conn.sslEngine() != null) {
-            writeTls(conn.channel(), conn.sslEngine(), encoded);
-        } else {
-            SocketChannel ch = conn.channel();
-            if (ch != null && ch.isOpen()) {
-                while (encoded.hasRemaining()) {
-                    ch.write(encoded);
-                }
-            }
-        }
+        conn.transport().send(encoded);
     }
 
     private MqttVersion detectVersion(ByteBuffer buf) {
@@ -574,76 +457,6 @@ public final class MqttBroker implements AutoCloseable {
         int protocolLevel = buf.get() & 0xFF;
         buf.position(pos); // restore
         return MqttVersion.fromProtocolLevel(protocolLevel);
-    }
-
-    // --- TLS support ---
-
-    private void performTlsHandshake(SocketChannel channel, SSLEngine engine) throws IOException {
-        engine.beginHandshake();
-        SSLEngineResult.HandshakeStatus hs = engine.getHandshakeStatus();
-
-        int appBufSize = engine.getSession().getApplicationBufferSize();
-        int netBufSize = engine.getSession().getPacketBufferSize();
-        ByteBuffer myNetData = ByteBuffer.allocate(netBufSize);
-        ByteBuffer peerNetData = ByteBuffer.allocate(netBufSize);
-        ByteBuffer myAppData = ByteBuffer.allocate(appBufSize);
-        ByteBuffer peerAppData = ByteBuffer.allocate(appBufSize);
-
-        while (hs != SSLEngineResult.HandshakeStatus.FINISHED
-                && hs != SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
-            switch (hs) {
-                case NEED_UNWRAP -> {
-                    if (channel.read(peerNetData) < 0) {
-                        throw new IOException("TLS handshake: connection closed");
-                    }
-                    peerNetData.flip();
-                    SSLEngineResult res = engine.unwrap(peerNetData, peerAppData);
-                    peerNetData.compact();
-                    hs = res.getHandshakeStatus();
-                }
-                case NEED_WRAP -> {
-                    myNetData.clear();
-                    SSLEngineResult res = engine.wrap(myAppData, myNetData);
-                    hs = res.getHandshakeStatus();
-                    // If wrap returns BUFFER_UNDERFLOW, we need peer data first
-                    if (res.getStatus() == SSLEngineResult.Status.BUFFER_UNDERFLOW) {
-                        hs = SSLEngineResult.HandshakeStatus.NEED_UNWRAP;
-                    }
-                    myNetData.flip();
-                    while (myNetData.hasRemaining()) {
-                        channel.write(myNetData);
-                    }
-                }
-                case NEED_TASK -> {
-                    Runnable task;
-                    while ((task = engine.getDelegatedTask()) != null) {
-                        task.run();
-                    }
-                    hs = engine.getHandshakeStatus();
-                }
-                default -> throw new IOException("Unexpected handshake status: " + hs);
-            }
-        }
-    }
-
-    private int readTls(SocketChannel channel, SSLEngine engine, ByteBuffer appBuf) throws IOException {
-        int netBufSize = engine.getSession().getPacketBufferSize();
-        ByteBuffer netBuf = ByteBuffer.allocate(netBufSize);
-        int bytesRead = channel.read(netBuf);
-        if (bytesRead <= 0) return bytesRead;
-        netBuf.flip();
-        SSLEngineResult res = engine.unwrap(netBuf, appBuf);
-        return res.bytesProduced();
-    }
-
-    private void writeTls(SocketChannel channel, SSLEngine engine, ByteBuffer appBuf) throws IOException {
-        int netBufSize = engine.getSession().getPacketBufferSize();
-        ByteBuffer netBuf = ByteBuffer.allocate(netBufSize);
-        SSLEngineResult res = engine.wrap(appBuf, netBuf);
-        netBuf.flip();
-        while (netBuf.hasRemaining()) {
-            channel.write(netBuf);
-        }
     }
 
     // --- Keep-alive timeout enforcement ---
@@ -710,10 +523,9 @@ public final class MqttBroker implements AutoCloseable {
      */
     static final class ClientConnection implements AutoCloseable {
         private final String clientId;
-        private final SocketChannel channel;
+        private final MqttTransport transport;
         private final MqttCodec codec;
         private final MqttVersion version;
-        private final SSLEngine sslEngine;
         private final String username;
         private volatile MqttSession session;
         private volatile boolean cleanDisconnect = false;
@@ -721,22 +533,20 @@ public final class MqttBroker implements AutoCloseable {
         private volatile int keepAlive;
         private volatile long lastActivityTime;
 
-        ClientConnection(String clientId, SocketChannel channel,
-                         MqttCodec codec, MqttVersion version, SSLEngine sslEngine, String username) {
+        ClientConnection(String clientId, MqttTransport transport,
+                         MqttCodec codec, MqttVersion version, String username) {
             this.clientId = clientId;
-            this.channel = channel;
+            this.transport = transport;
             this.codec = codec;
             this.version = version;
-            this.sslEngine = sslEngine;
             this.username = username;
             this.lastActivityTime = System.currentTimeMillis();
         }
 
         String clientId() { return clientId; }
-        SocketChannel channel() { return channel; }
+        MqttTransport transport() { return transport; }
         MqttCodec codec() { return codec; }
         MqttVersion version() { return version; }
-        SSLEngine sslEngine() { return sslEngine; }
         String username() { return username; }
         MqttSession getSession() { return session; }
         void setSession(MqttSession session) { this.session = session; }
@@ -748,15 +558,11 @@ public final class MqttBroker implements AutoCloseable {
         void setKeepAlive(int keepAlive) { this.keepAlive = keepAlive; }
         long lastActivityTime() { return lastActivityTime; }
         void updateLastActivity() { this.lastActivityTime = System.currentTimeMillis(); }
-        boolean isOpen() { return channel.isOpen(); }
+        boolean isOpen() { return transport.isOpen(); }
 
         @Override
         public void close() {
-            try {
-                if (channel.isOpen()) channel.close();
-            } catch (IOException e) {
-                // ignore
-            }
+            transport.close();
         }
     }
 }

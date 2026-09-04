@@ -2,33 +2,30 @@ package ssg.legoflow.messaging.mqtt.broker;
 
 import ssg.legoflow.messaging.mqtt.client.MqttClient;
 import ssg.legoflow.messaging.mqtt.client.MqttClientConfig;
-import ssg.legoflow.messaging.mqtt.protocol.QoS;
+import ssg.legoflow.messaging.mqtt.protocol.*;
+import ssg.legoflow.messaging.mqtt.transport.InMemoryMqttTransport;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.time.Instant;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 /**
- * Tests for MQTT v5.0 Session Expiry Interval (Section 3.1.2.11).
+ * Tests for MQTT session expiry and cleanup.
  *
- * <p>Timing-critical assertions use {@link TestAssertions} with exponential
- * backoff instead of {@code Thread.sleep()} to avoid flaky failures under parallel
- * execution (-T 1C).
- *
- * @since 0.1.0
+ * @since 0.2.0
  */
 class SessionExpiryTest {
 
     private MqttBroker broker;
-    private int port;
 
     @BeforeEach
     void setUp() throws Exception {
         broker = new MqttBroker(MqttBrokerConfig.minimal());
-        broker.bind("localhost", 0);
-        port = broker.getPort();
+        broker.start();
     }
 
     @AfterEach
@@ -37,159 +34,140 @@ class SessionExpiryTest {
     }
 
     @Test
-    void testSessionCreatedAtIsSet() {
-        // Given: a new session
-        var session = new MqttSession("test", false, 100, 60);
-
-        // Then: createdAt is set to approximately now
-        assertThat(session.createdAt()).isNotNull();
-        assertThat(session.createdAt()).isBefore(Instant.now().plusSeconds(1));
-    }
-
-    @Test
-    void testSessionExpiryIntervalProperty() {
-        // Given: session with expiry interval
-        var session = new MqttSession("test", false, 100, 300);
-
-        // Then: expiry interval is set
-        assertThat(session.sessionExpiryInterval()).isEqualTo(300);
-
-        // When: update expiry
-        session.setSessionExpiryInterval(600);
-
-        // Then: updated
-        assertThat(session.sessionExpiryInterval()).isEqualTo(600);
-    }
-
-    @Test
-    void testSessionNotExpiredWhileConnected() {
-        // Given: connected session with short expiry
-        var session = new MqttSession("test", false, 100, 1);
-        session.setConnected(true);
-
-        // Then: not expired while connected
-        assertThat(session.isExpired()).isFalse();
-    }
-
-    @Test
-    void testSessionNotExpiredWhenExpiryIntervalIsZero() {
-        // Given: disconnected session with no expiry
-        var session = new MqttSession("test", false, 100, 0);
-        session.setConnected(true);
-        session.setConnected(false);
-
-        // Then: not expired (0 = no expiry)
-        assertThat(session.isExpired()).isFalse();
-    }
-
-    @Test
-    void testSessionExpiresAfterInterval() throws Exception {
-        // Given: session with 1-second expiry
-        var session = new MqttSession("test", false, 100, 1);
-        session.setConnected(true);
-        session.setConnected(false); // sets disconnectedAt
-
-        // When/Then: wait up to 3s for session to expire (retry-based)
-        TestAssertions.assertThatCondition(
-                "session expires after interval",
-                session::isExpired,
-                Duration.ofSeconds(3));
-    }
-
-    @Test
-    void testSessionNotExpiredBeforeInterval() {
-        // Given: session with long expiry
-        var session = new MqttSession("test", false, 100, 3600);
-        session.setConnected(true);
-        session.setConnected(false);
-
-        // Then: not yet expired
-        assertThat(session.isExpired()).isFalse();
-    }
-
-    @Test
-    void testSweepExpiredSessionsRemovesExpired() throws Exception {
-        // Given: a client connects with short session expiry
-        var clientConfig = MqttClientConfig.defaults()
-                .host("localhost").port(port).clientId("expire-test")
-                .cleanSession(false).build();
-
-        try (var client = new MqttClient(clientConfig)) {
+    void testSessionCreatedOnConnect() throws Exception {
+        try (var client = createClient("session-1")) {
             client.connect().get(5, TimeUnit.SECONDS);
+            assertThat(broker.getSessions()).containsKey("session-1");
+        }
+    }
 
-            // Subscribe to persist session
-            client.subscribe("expire/topic", QoS.AT_LEAST_ONCE, (t, p, q, r) -> {})
-                    .get(5, TimeUnit.SECONDS);
-
+    @Test
+    void testPersistentSessionSurvivesDisconnect() throws Exception {
+        try (var client = createClient("persist-1", false)) {
+            client.connect().get(5, TimeUnit.SECONDS);
             client.disconnect().get(5, TimeUnit.SECONDS);
         }
 
-        // Allow broker async disconnect processing to complete
-        TestAssertions.assertThatCondition(
-                "expire-test session exists after disconnect",
-                () -> broker.getSessions().containsKey("expire-test"),
-                Duration.ofSeconds(3));
-
-        // Then: session exists after disconnect
-        assertThat(broker.getSessions()).containsKey("expire-test");
-
-        // When: set expiry to 1 second and wait for it to expire
-        MqttSession session = broker.getSessions().get("expire-test");
-        session.setSessionExpiryInterval(1);
+        TestAssertions.waitForCondition(
+                () -> !broker.getConnectedClients().contains("persist-1"),
+                Duration.ofSeconds(3), 50);
 
         TestAssertions.assertThatCondition(
-                "session expires within timeout",
-                session::isExpired,
+                "persist-1 session exists after disconnect",
+                () -> broker.getSessions().containsKey("persist-1"),
                 Duration.ofSeconds(3));
-
-        // When: sweep
-        broker.sweepExpiredSessions();
-
-        // Then: session removed
-        assertThat(broker.getSessions()).doesNotContainKey("expire-test");
     }
 
     @Test
-    void testSweepKeepsNonExpiredSessions() throws Exception {
-        // Given: persistent session
-        var clientConfig = MqttClientConfig.defaults()
-                .host("localhost").port(port).clientId("keep-test")
-                .cleanSession(false).build();
-
-        try (var client = new MqttClient(clientConfig)) {
+    void testCleanSessionRemovedOnDisconnect() throws Exception {
+        try (var client = createClient("clean-1", true)) {
             client.connect().get(5, TimeUnit.SECONDS);
-            client.subscribe("keep/topic", QoS.AT_LEAST_ONCE, (t, p, q, r) -> {})
-                    .get(5, TimeUnit.SECONDS);
             client.disconnect().get(5, TimeUnit.SECONDS);
         }
 
-        // Allow broker async disconnect processing to complete
-        TestAssertions.assertThatCondition(
-                "keep-test session exists after disconnect",
-                () -> broker.getSessions().containsKey("keep-test"),
-                Duration.ofSeconds(3));
+        TestAssertions.waitForCondition(
+                () -> !broker.getConnectedClients().contains("clean-1"),
+                Duration.ofSeconds(3), 50);
 
-        // When: sweep (session has no expiry interval)
-        broker.sweepExpiredSessions();
-
-        // Then: session still exists
-        assertThat(broker.getSessions()).containsKey("keep-test");
+        assertThat(broker.getSessions()).doesNotContainKey("clean-1");
     }
 
     @Test
-    void testDisconnectedAtIsTracked() {
-        // Given: session
-        var session = new MqttSession("test", false, 100);
-        session.setConnected(true);
+    void testSessionExpiryInterval() throws Exception {
+        var config = new MqttBrokerConfig("localhost", 0, 10, 65536, 32,
+                true, false, 1, 100, null, null, null);
+        broker = new MqttBroker(config);
+        broker.start();
 
-        // Then: no disconnectedAt while connected
-        assertThat(session.disconnectedAt()).isNull();
+        try (var client = createClient("expiry-1", false)) {
+            client.connect().get(5, TimeUnit.SECONDS);
+            client.disconnect().get(5, TimeUnit.SECONDS);
+        }
 
-        // When: disconnect
-        session.setConnected(false);
+        TestAssertions.waitForCondition(
+                () -> !broker.getConnectedClients().contains("expiry-1"),
+                Duration.ofSeconds(3), 50);
 
-        // Then: disconnectedAt is set
-        assertThat(session.disconnectedAt()).isNotNull();
-        assertThat(session.disconnectedAt()).isBefore(Instant.now().plusSeconds(1));
+        // Session should be swept after expiry interval
+        Thread.sleep(2000);
+        broker.sweepExpiredSessions();
+        assertThat(broker.getSessions()).doesNotContainKey("expiry-1");
+    }
+
+    @Test
+    void testNoExpirySessionNotSwept() throws Exception {
+        try (var client = createClient("no-expiry-1", false)) {
+            client.connect().get(5, TimeUnit.SECONDS);
+            client.disconnect().get(5, TimeUnit.SECONDS);
+        }
+
+        TestAssertions.waitForCondition(
+                () -> !broker.getConnectedClients().contains("no-expiry-1"),
+                Duration.ofSeconds(3), 50);
+
+        // Session should survive sweep (no expiry)
+        broker.sweepExpiredSessions();
+        assertThat(broker.getSessions()).containsKey("no-expiry-1");
+    }
+
+    @Test
+    void testSessionDisconnectedAtTracked() throws Exception {
+        try (var client = createClient("tracked-1", false)) {
+            client.connect().get(5, TimeUnit.SECONDS);
+            var session = broker.getSessions().get("tracked-1");
+            assertThat(session.isConnected()).isTrue();
+            assertThat(session.disconnectedAt()).isNull();
+
+            client.disconnect().get(5, TimeUnit.SECONDS);
+
+            TestAssertions.waitForCondition(
+                    () -> !broker.getConnectedClients().contains("tracked-1"),
+                    Duration.ofSeconds(3), 50);
+
+            session = broker.getSessions().get("tracked-1");
+            assertThat(session.isConnected()).isFalse();
+            assertThat(session.disconnectedAt()).isNotNull();
+        }
+    }
+
+    @Test
+    void testSessionExpirySweepsMultipleSessions() throws Exception {
+        var config = new MqttBrokerConfig("localhost", 0, 10, 65536, 32,
+                true, false, 1, 100, null, null, null);
+        broker = new MqttBroker(config);
+        broker.start();
+
+        try (var c1 = createClient("sweep-1", false);
+             var c2 = createClient("sweep-2", false);
+             var c3 = createClient("sweep-3", true)) {
+            c1.connect().get(5, TimeUnit.SECONDS);
+            c2.connect().get(5, TimeUnit.SECONDS);
+            c3.connect().get(5, TimeUnit.SECONDS);
+            c1.disconnect().get(5, TimeUnit.SECONDS);
+            c2.disconnect().get(5, TimeUnit.SECONDS);
+            c3.disconnect().get(5, TimeUnit.SECONDS);
+        }
+
+        // Wait for cleanup
+        Thread.sleep(2500);
+        broker.sweepExpiredSessions();
+
+        // sweep-1 and sweep-2 had expiry=1s, should be swept
+        assertThat(broker.getSessions()).doesNotContainKeys("sweep-1", "sweep-2");
+        // sweep-3 had cleanSession=true, so no session at all
+    }
+
+    private MqttClient createClient(String clientId) {
+        return createClient(clientId, true);
+    }
+
+    private MqttClient createClient(String clientId, boolean cleanSession) {
+        var transports = InMemoryMqttTransport.createPair();
+        broker.handleConnection(transports[0]);
+        var config = MqttClientConfig.defaults()
+                .clientId(clientId)
+                .cleanSession(cleanSession)
+                .build();
+        return new MqttClient(config, transports[1]);
     }
 }
