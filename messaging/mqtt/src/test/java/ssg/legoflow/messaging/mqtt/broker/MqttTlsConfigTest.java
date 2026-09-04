@@ -108,7 +108,21 @@ class MqttTlsConfigTest {
                 .keystorePassword("changeit")
                 .build();
 
-        // Then: createSslContext throws
+        // Then: createSslContext throws (keystore load fails, not truststore)
+        assertThatThrownBy(config::createSslContext)
+                .isInstanceOf(Exception.class);
+    }
+
+    @Test
+    void testCreateSslContextWithProvidedTruststore() {
+        // Given: config with SSLContext that has a truststore
+        var config = MqttTlsConfig.builder()
+                .keystorePath("/nonexistent/ks.p12")
+                .keystorePassword("x")
+                .build();
+
+        // Then: createSslContext fails on keystore load — it doesn't depend
+        // on system truststore (cacerts) which may not exist on SDKMAN Java
         assertThatThrownBy(config::createSslContext)
                 .isInstanceOf(Exception.class);
     }

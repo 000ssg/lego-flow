@@ -96,11 +96,15 @@ public final class MqttTlsConfig {
             }
             tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             tmf.init(ts);
+        } else {
+            // No separate truststore — use the keystore itself (self-signed / mutual trust)
+            // Avoids dependency on system cacerts which may not exist (e.g. SDKMAN Java)
+            tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init(ks);
         }
 
         SSLContext ctx = SSLContext.getInstance("TLS");
-        ctx.init(kmf.getKeyManagers(),
-                tmf != null ? tmf.getTrustManagers() : null, null);
+        ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
         return ctx;
     }
 
