@@ -26,7 +26,7 @@
 | Section | Requirement | Status | Verification |
 |---------|------------|--------|-------------|
 | CONNECTED | Connection confirmation with version, server, session | ✅ Implemented | `StompBroker.handleConnect()`; `StompBrokerTest`, `StompClientTest` |
-| MESSAGE | Deliver message with destination, message-id, subscription | ✅ Implemented | `StompBroker.deliverMessage()`; `StompBrokerTest`, `SimplePubSubDemoTest` |
+| MESSAGE | Deliver message with destination, message-id, subscription | ✅ Implemented | `StompBroker.deliverMessage()`; `StompBrokerTest`, `StompClientTest` |
 | RECEIPT | Confirm frame receipt with receipt-id | ✅ Implemented | `StompBroker.sendReceipt()`; `StompBrokerTest` |
 | ERROR | Error notification with message header | ✅ Implemented | `StompBroker.sendError()`; `StompBrokerTest` |
 
@@ -78,8 +78,8 @@
 | Section | Requirement | Status | Verification |
 |---------|------------|--------|-------------|
 | BEGIN | Start named transaction | ✅ Implemented | `StompBroker.handleBegin()`; `StompBrokerTest`, `StompTransactionTest` |
-| COMMIT | Apply all buffered frames atomically | ✅ Implemented | `StompBroker.handleCommit()`; `StompBrokerTest`, `TransactionalDemoTest` |
-| ABORT | Discard all buffered frames | ✅ Implemented | `StompBroker.handleAbort()`; `StompBrokerTest`, `TransactionalDemoTest` |
+| COMMIT | Apply all buffered frames atomically | ✅ Implemented | `StompBroker.handleCommit()`; `StompBrokerTest`, `StompClientTest` |
+| ABORT | Discard all buffered frames | ✅ Implemented | `StompBroker.handleAbort()`; `StompBrokerTest`, `StompClientTest` |
 | Buffer SEND | SEND within transaction is buffered | ✅ Implemented | `StompTransaction.buffer()`; `StompTransactionTest` |
 | Buffer ACK/NACK | ACK/NACK within transaction is buffered | ✅ Implemented | `StompTransaction.buffer()`; `StompTransactionTest` |
 | Duplicate BEGIN | ERROR if transaction already active | ✅ Implemented | `StompBroker.handleBegin()`; `StompBrokerTest` |
@@ -139,5 +139,4 @@
 
 - Total tests: 157
 - Key unit test classes: `StompCodecTest` (43), `StompHeadersTest` (14), `StompFrameTest` (10), `StompCommandTest` (5), `StompSessionTest` (10), `StompTransactionTest` (9), `HeartbeatMonitorTest` (17), `StompBrokerTest` (20), `StompClientTest` (12), `TcpStompAdapterTest` (8)
-- Key demo test classes: `SimplePubSubDemoTest`, `RequestReplyDemoTest`, `TransactionalDemoTest` (9 total)
 - Sections fully covered: all 16 commands (codec), frame format, header escaping, version negotiation, heart-beats, all 3 ack modes, transactions, receipts, TCP transport

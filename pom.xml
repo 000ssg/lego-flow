@@ -12,6 +12,7 @@
         <!-- Core modules -->
         <module>blocks</module>
         <module>service</module>
+        <module>acl</module>
         <module>service/cluster-coordination</module>
         <!-- Category aggregator modules -->
         <module>web</module>
@@ -61,6 +62,11 @@
             <dependency>
                 <groupId>ssg</groupId>
                 <artifactId>lego-flow-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ssg</groupId>
+                <artifactId>lego-flow-acl</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

@@ -13,20 +13,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Interoperability test: Lego Flow STOMP client ↔ real STOMP broker.
  *
- * <p>Connects to a real ActiveMQ or similar STOMP broker to verify
+ * <p>Connects to a real STOMP broker (RabbitMQ with rabbitmq_stomp plugin) to verify
  * that the Lego Flow client can establish connections, send messages,
  * and manage subscriptions.
  *
  * <p>Configuration via system properties:
  *   interop.stomp.host (default: localhost)
  *   interop.stomp.port (default: 61613)
- *   interop.stomp.vhost (default: /)
- *   interop.stomp.login (default: guest)
- *   interop.stomp.passcode (default: guest)
  *
- * <p>To run against ActiveMQ:
- *   docker run -d --rm -p 61613:61613 -e ACTIVEMQ_ENABLE_SMS=false apache/activemq:latest
- *   mvn verify -Dinterop.stomp.host=localhost -DskipInteropTests=false
+ * <p>To run against RabbitMQ (STOMP plugin on port 61613):
+ *   docker compose -f interop-tests/docker-compose.yml up -d rabbitmq
+ *   mvn verify -pl interop-tests -DskipInteropTests=false
  */
     @Tag("messaging-protocols")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
