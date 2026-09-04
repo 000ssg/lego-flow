@@ -145,7 +145,12 @@ public final class TopicFilter {
 
     // --- Private helpers ---
 
-    private String getEffectiveFilter() {
+    /**
+     * Returns the effective topic filter (strips $share/group/ prefix for shared subscriptions).
+     *
+     * @return the effective filter string
+     */
+    public String getEffectiveFilter() {
         if (isSharedSubscription()) {
             int secondSlash = filter.indexOf('/', 7);
             return filter.substring(secondSlash + 1);

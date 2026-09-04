@@ -2,8 +2,10 @@ package ssg.legoflow.messaging.mqtt.broker;
 
 import ssg.legoflow.messaging.mqtt.codec.MqttCodec;
 import ssg.legoflow.messaging.mqtt.protocol.*;
-import ssg.legoflow.messaging.mqtt.transport.MqttTransport;
+import ssg.legoflow.messaging.mqtt.topic.SharedSubscriptionRegistry;
+import ssg.legoflow.messaging.mqtt.topic.TopicFilter;
 import ssg.legoflow.messaging.mqtt.topic.TopicTree;
+import ssg.legoflow.messaging.mqtt.transport.MqttTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -30,6 +32,7 @@ public final class MqttBroker implements AutoCloseable {
 
     private final MqttBrokerConfig config;
     private final TopicTree<ClientConnection> topicTree = new TopicTree<>();
+    private final SharedSubscriptionRegistry<ClientConnection> sharedSubs = new SharedSubscriptionRegistry<>();
     private final RetainStore retainStore = new RetainStore();
     private final Map<String, MqttSession> sessions = new ConcurrentHashMap<>();
     private final Map<String, ClientConnection> connectedClients = new ConcurrentHashMap<>();
@@ -324,22 +327,57 @@ public final class MqttBroker implements AutoCloseable {
         }
 
         // Route to subscribers with QoS downgrade
-        Set<ClientConnection> subscribers = topicTree.getMatchingSubscribers(pub.topic());
-        for (var subscriber : subscribers) {
+        Set<ClientConnection> allSubscribers = topicTree.getMatchingSubscribers(pub.topic());
+        for (var subscriber : allSubscribers) {
+            // Skip shared subscription subscribers — handled separately
+            if (isSharedSubscriber(subscriber, pub.topic())) continue;
             if (subscriber == conn) continue;
-            MqttSession subSession = subscriber.getSession();
-            if (subSession != null && subSession.isConnected()) {
-                QoS effectiveQoS = downgradeQoS(pub.qos(), pub.topic(), subSession);
-                int newPacketId = effectiveQoS == QoS.AT_MOST_ONCE ? 0 : subSession.nextPacketId();
-                var forward = new PublishPacket(pub.topic(), pub.payload(), effectiveQoS,
-                        false, false, newPacketId, pub.properties());
-                sendPacket(subscriber, forward);
-                if (effectiveQoS != QoS.AT_MOST_ONCE) {
-                    subSession.addInflightMessage(newPacketId, forward);
+            deliverToSubscriber(subscriber, pub);
+        }
+        // Shared subscriptions: round-robin per group
+        for (String group : sharedSubs.getGroups()) {
+            ClientConnection target = sharedSubs.selectNext(group);
+            if (target != null && target != conn && target.isOpen()) {
+                var targetSession = target.getSession();
+                if (targetSession != null && targetSession.isConnected()) {
+                    deliverToSubscriber(target, pub);
                 }
-            } else if (subSession != null && !subSession.isCleanSession()) {
-                subSession.queueMessage(pub);
             }
+        }
+    }
+
+    /** Checks if this connection is a shared subscription member for the given topic. */
+    private boolean isSharedSubscriber(ClientConnection conn, String topic) {
+        MqttSession session = conn.getSession();
+        if (session == null) return false;
+        for (var sub : session.getSubscriptions().values()) {
+            var tf = new TopicFilter(sub.topicFilter());
+            if (tf.isSharedSubscription() && tf.matches(topic)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Delivers a publish packet to a subscriber with QoS downgrade. */
+    private void deliverToSubscriber(ClientConnection subscriber, PublishPacket pub) {
+        MqttSession subSession = subscriber.getSession();
+        if (subSession == null) return;
+        if (subSession.isConnected()) {
+            QoS effectiveQoS = downgradeQoS(pub.qos(), pub.topic(), subSession);
+            int newPacketId = effectiveQoS == QoS.AT_MOST_ONCE ? 0 : subSession.nextPacketId();
+            var forward = new PublishPacket(pub.topic(), pub.payload(), effectiveQoS,
+                    false, false, newPacketId, pub.properties());
+            try {
+                sendPacket(subscriber, forward);
+            } catch (Exception e) {
+                LOG.debug("Failed to deliver to {} for topic {}", subscriber.clientId(), pub.topic());
+            }
+            if (effectiveQoS != QoS.AT_MOST_ONCE) {
+                subSession.addInflightMessage(newPacketId, forward);
+            }
+        } else if (!subSession.isCleanSession()) {
+            subSession.queueMessage(pub);
         }
     }
 
@@ -361,6 +399,7 @@ public final class MqttBroker implements AutoCloseable {
         List<ReasonCode> reasonCodes = new ArrayList<>();
         MqttEventListener ev = listener;
         for (var subscription : sub.subscriptions()) {
+            var tf = new TopicFilter(subscription.topicFilter());
             // ACL check — deny subscribe if not allowed
             if (config.aclChecker() != null
                     && !config.aclChecker().check(conn.username(), subscription.topicFilter(), "sub")) {
@@ -369,7 +408,15 @@ public final class MqttBroker implements AutoCloseable {
                 continue;
             }
             session.addSubscription(subscription);
-            topicTree.subscribe(subscription.topicFilter(), conn);
+            // Shared subscriptions: register with round-robin registry
+            if (tf.isSharedSubscription()) {
+                String group = tf.getShareGroup();
+                String effectiveFilter = tf.getEffectiveFilter();
+                sharedSubs.register(group, effectiveFilter, conn);
+                topicTree.subscribe(effectiveFilter, conn);
+            } else {
+                topicTree.subscribe(subscription.topicFilter(), conn);
+            }
             if (ev != null) {
                 ev.onEvent(MqttEventListener.EventType.SUBSCRIPTION_ADDED,
                         conn.clientId(), subscription.topicFilter());
@@ -392,7 +439,15 @@ public final class MqttBroker implements AutoCloseable {
         List<ReasonCode> reasonCodes = new ArrayList<>();
         for (var topic : unsub.topics()) {
             session.removeSubscription(topic);
-            topicTree.unsubscribe(topic, conn);
+            var tf = new TopicFilter(topic);
+            if (tf.isSharedSubscription()) {
+                String group = tf.getShareGroup();
+                String effectiveFilter = tf.getEffectiveFilter();
+                sharedSubs.unregister(group, effectiveFilter, conn);
+                topicTree.unsubscribe(effectiveFilter, conn);
+            } else {
+                topicTree.unsubscribe(topic, conn);
+            }
             reasonCodes.add(ReasonCode.SUCCESS);
         }
         sendPacket(conn, new UnsubAckPacket(unsub.packetId(), reasonCodes, new MqttProperties()));
@@ -405,8 +460,17 @@ public final class MqttBroker implements AutoCloseable {
         MqttSession session = sessions.get(clientId);
         if (session != null) {
             session.setConnected(false);
+            // Unsubscribe all subscriptions from topic tree and shared registry
             for (var sub : session.getSubscriptions().values()) {
-                topicTree.unsubscribe(sub.topicFilter(), conn);
+                var tf = new TopicFilter(sub.topicFilter());
+                if (tf.isSharedSubscription()) {
+                    String group = tf.getShareGroup();
+                    String effectiveFilter = tf.getEffectiveFilter();
+                    sharedSubs.unregister(group, effectiveFilter, conn);
+                    topicTree.unsubscribe(effectiveFilter, conn);
+                } else {
+                    topicTree.unsubscribe(sub.topicFilter(), conn);
+                }
             }
             if (session.isCleanSession()) {
                 sessions.remove(clientId);
