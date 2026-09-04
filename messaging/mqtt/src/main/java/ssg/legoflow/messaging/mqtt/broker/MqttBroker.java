@@ -305,16 +305,33 @@ public final class MqttBroker implements AutoCloseable {
 
     private void handlePublish(ClientConnection conn, MqttSession session,
                                PublishPacket pub) throws IOException {
+        // Resolve topic alias (MQTT 5.0)
+        String topic = pub.topic();
+        var aliasOptional = pub.properties().getTopicAlias();
+        if (topic.isEmpty() && aliasOptional.isPresent()) {
+            // Topic is empty — alias represents the actual topic
+            int alias = aliasOptional.get();
+            topic = conn.resolveTopicAlias(alias);
+            if (topic == null) {
+                // Unknown alias — drop the message
+                LOG.warn("Unknown topic alias {} from {}", alias, conn.clientId());
+                return;
+            }
+        } else if (!topic.isEmpty() && aliasOptional.isPresent()) {
+            // Register alias for this connection
+            conn.putTopicAlias(aliasOptional.get(), topic);
+        }
+
         // ACL check — deny publish if not allowed
-        if (config.aclChecker() != null && !config.aclChecker().check(conn.username(), pub.topic(), "pub")) {
-            LOG.info("ACL denied publish from {} on {}", conn.clientId(), pub.topic());
+        if (config.aclChecker() != null && !config.aclChecker().check(conn.username(), topic, "pub")) {
+            LOG.info("ACL denied publish from {} on {}", conn.clientId(), topic);
             sendPacket(conn, new PubAckPacket(pub.packetId(), ReasonCode.NOT_AUTHORIZED,
                     new MqttProperties()));
             return;
         }
         // Retain handling
         if (pub.retain()) {
-            retainStore.put(pub.topic(), pub.payload());
+            retainStore.put(topic, pub.payload());
         }
 
         // QoS acknowledgements
@@ -327,12 +344,12 @@ public final class MqttBroker implements AutoCloseable {
         }
 
         // Route to subscribers with QoS downgrade
-        Set<ClientConnection> allSubscribers = topicTree.getMatchingSubscribers(pub.topic());
+        Set<ClientConnection> allSubscribers = topicTree.getMatchingSubscribers(topic);
         for (var subscriber : allSubscribers) {
             // Skip shared subscription subscribers — handled separately
-            if (isSharedSubscriber(subscriber, pub.topic())) continue;
+            if (isSharedSubscriber(subscriber, topic)) continue;
             if (subscriber == conn) continue;
-            deliverToSubscriber(subscriber, pub);
+            deliverToSubscriber(subscriber, topic, pub);
         }
         // Shared subscriptions: round-robin per group
         for (String group : sharedSubs.getGroups()) {
@@ -340,7 +357,7 @@ public final class MqttBroker implements AutoCloseable {
             if (target != null && target != conn && target.isOpen()) {
                 var targetSession = target.getSession();
                 if (targetSession != null && targetSession.isConnected()) {
-                    deliverToSubscriber(target, pub);
+                    deliverToSubscriber(target, topic, pub);
                 }
             }
         }
@@ -360,18 +377,18 @@ public final class MqttBroker implements AutoCloseable {
     }
 
     /** Delivers a publish packet to a subscriber with QoS downgrade. */
-    private void deliverToSubscriber(ClientConnection subscriber, PublishPacket pub) {
+    private void deliverToSubscriber(ClientConnection subscriber, String topic, PublishPacket pub) {
         MqttSession subSession = subscriber.getSession();
         if (subSession == null) return;
         if (subSession.isConnected()) {
-            QoS effectiveQoS = downgradeQoS(pub.qos(), pub.topic(), subSession);
+            QoS effectiveQoS = downgradeQoS(pub.qos(), topic, subSession);
             int newPacketId = effectiveQoS == QoS.AT_MOST_ONCE ? 0 : subSession.nextPacketId();
-            var forward = new PublishPacket(pub.topic(), pub.payload(), effectiveQoS,
+            var forward = new PublishPacket(topic, pub.payload(), effectiveQoS,
                     false, false, newPacketId, pub.properties());
             try {
                 sendPacket(subscriber, forward);
             } catch (Exception e) {
-                LOG.debug("Failed to deliver to {} for topic {}", subscriber.clientId(), pub.topic());
+                LOG.debug("Failed to deliver to {} for topic {}", subscriber.clientId(), topic);
             }
             if (effectiveQoS != QoS.AT_MOST_ONCE) {
                 subSession.addInflightMessage(newPacketId, forward);
@@ -596,6 +613,8 @@ public final class MqttBroker implements AutoCloseable {
         private volatile WillMessage willMessage;
         private volatile int keepAlive;
         private volatile long lastActivityTime;
+        // Topic alias (MQTT 5.0): maps alias number -> topic name for this connection
+        private final Map<Integer, String> topicAliasMap = new ConcurrentHashMap<>();
 
         ClientConnection(String clientId, MqttTransport transport,
                          MqttCodec codec, MqttVersion version, String username) {
@@ -623,6 +642,17 @@ public final class MqttBroker implements AutoCloseable {
         long lastActivityTime() { return lastActivityTime; }
         void updateLastActivity() { this.lastActivityTime = System.currentTimeMillis(); }
         boolean isOpen() { return transport.isOpen(); }
+
+        // Topic alias management (MQTT 5.0)
+        Map<Integer, String> getTopicAliasMap() { return topicAliasMap; }
+        void putTopicAlias(int alias, String topic) {
+            if (alias >= 1 && alias <= 200) {
+                topicAliasMap.put(alias, topic);
+            }
+        }
+        String resolveTopicAlias(int alias) {
+            return topicAliasMap.get(alias);
+        }
 
         @Override
         public void close() {
