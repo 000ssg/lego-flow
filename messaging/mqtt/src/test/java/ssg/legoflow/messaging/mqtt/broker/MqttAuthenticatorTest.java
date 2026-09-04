@@ -27,7 +27,7 @@ class MqttAuthenticatorTest {
                 .addUser("user1", "pass1");
 
         var config = new MqttBrokerConfig("localhost", 0, 10, 65536, 32,
-                false, true, 0, 100, null, auth);
+                false, true, 0, 100, null, auth, null);
         broker = new MqttBroker(config);
         broker.bind("localhost", 0);
         port = broker.getPort();

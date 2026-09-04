@@ -448,6 +448,10 @@ public final class MqttClient implements AutoCloseable {
                         myNetData.clear();
                         SSLEngineResult res = engine.wrap(myAppData, myNetData);
                         hs = res.getHandshakeStatus();
+                        // If wrap returns BUFFER_UNDERFLOW, we need peer data first
+                        if (res.getStatus() == SSLEngineResult.Status.BUFFER_UNDERFLOW) {
+                            hs = SSLEngineResult.HandshakeStatus.NEED_UNWRAP;
+                        }
                         myNetData.flip();
                         while (myNetData.hasRemaining()) {
                             ch.write(myNetData);

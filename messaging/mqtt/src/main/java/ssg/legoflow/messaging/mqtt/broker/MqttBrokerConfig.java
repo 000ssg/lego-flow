@@ -14,6 +14,7 @@ package ssg.legoflow.messaging.mqtt.broker;
  * @param maxQueuedMessages       the maximum number of queued messages per session
  * @param tlsConfig               optional TLS configuration for MQTTS (may be {@code null})
  * @param authenticator           optional client authenticator (may be {@code null})
+ * @param aclChecker              optional topic-level ACL checker (may be {@code null})
  * @since 0.1.0
  */
 public record MqttBrokerConfig(
@@ -27,18 +28,19 @@ public record MqttBrokerConfig(
         long sessionExpiryInterval,
         int maxQueuedMessages,
         MqttTlsConfig tlsConfig,
-        MqttAuthenticator authenticator
+        MqttAuthenticator authenticator,
+        MqttAclChecker aclChecker
 ) {
 
     /**
-     * Backwards-compatible constructor without TLS or authenticator.
+     * Backwards-compatible constructor without TLS, authenticator, or ACL.
      */
     public MqttBrokerConfig(String host, int port, int maxConnections, int maxMessageSize,
                              int maxTopicLevels, boolean allowAnonymous,
                              boolean requireAuthentication, long sessionExpiryInterval,
                              int maxQueuedMessages) {
         this(host, port, maxConnections, maxMessageSize, maxTopicLevels, allowAnonymous,
-                requireAuthentication, sessionExpiryInterval, maxQueuedMessages, null, null);
+                requireAuthentication, sessionExpiryInterval, maxQueuedMessages, null, null, null);
     }
 
     /**
@@ -48,7 +50,7 @@ public record MqttBrokerConfig(
      */
     public static MqttBrokerConfig defaults() {
         return new MqttBrokerConfig("0.0.0.0", 1883, 1000, 268435456, 128,
-                true, false, 0, 1000, null, null);
+                true, false, 0, 1000, null, null, null);
     }
 
     /**
@@ -58,6 +60,6 @@ public record MqttBrokerConfig(
      */
     public static MqttBrokerConfig minimal() {
         return new MqttBrokerConfig("localhost", 0, 10, 65536, 32,
-                true, false, 0, 100, null, null);
+                true, false, 0, 100, null, null, null);
     }
 }

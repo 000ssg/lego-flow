@@ -242,7 +242,8 @@ public final class MqttBroker implements AutoCloseable {
             }
 
             String clientId = connectPacket.clientId();
-            conn = new ClientConnection(clientId, clientChannel, codec, version, sslEngine);
+            conn = new ClientConnection(clientId, clientChannel, codec, version, sslEngine,
+                    connectPacket.username());
 
             // Authentication check
             if (config.authenticator() != null) {
@@ -397,6 +398,13 @@ public final class MqttBroker implements AutoCloseable {
 
     private void handlePublish(ClientConnection conn, MqttSession session,
                                PublishPacket pub) throws IOException {
+        // ACL check — deny publish if not allowed
+        if (config.aclChecker() != null && !config.aclChecker().check(conn.username(), pub.topic(), "pub")) {
+            LOG.info("ACL denied publish from {} on {}", conn.clientId(), pub.topic());
+            sendPacket(conn, new PubAckPacket(pub.packetId(), ReasonCode.NOT_AUTHORIZED,
+                    new MqttProperties()));
+            return;
+        }
         // Retain handling
         if (pub.retain()) {
             retainStore.put(pub.topic(), pub.payload());
@@ -455,6 +463,13 @@ public final class MqttBroker implements AutoCloseable {
         List<ReasonCode> reasonCodes = new ArrayList<>();
         MqttEventListener ev = listener;
         for (var subscription : sub.subscriptions()) {
+            // ACL check — deny subscribe if not allowed
+            if (config.aclChecker() != null
+                    && !config.aclChecker().check(conn.username(), subscription.topicFilter(), "sub")) {
+                LOG.info("ACL denied subscribe from {} on {}", conn.clientId(), subscription.topicFilter());
+                reasonCodes.add(ReasonCode.NOT_AUTHORIZED);
+                continue;
+            }
             session.addSubscription(subscription);
             topicTree.subscribe(subscription.topicFilter(), conn);
             if (ev != null) {
@@ -590,6 +605,10 @@ public final class MqttBroker implements AutoCloseable {
                     myNetData.clear();
                     SSLEngineResult res = engine.wrap(myAppData, myNetData);
                     hs = res.getHandshakeStatus();
+                    // If wrap returns BUFFER_UNDERFLOW, we need peer data first
+                    if (res.getStatus() == SSLEngineResult.Status.BUFFER_UNDERFLOW) {
+                        hs = SSLEngineResult.HandshakeStatus.NEED_UNWRAP;
+                    }
                     myNetData.flip();
                     while (myNetData.hasRemaining()) {
                         channel.write(myNetData);
@@ -695,6 +714,7 @@ public final class MqttBroker implements AutoCloseable {
         private final MqttCodec codec;
         private final MqttVersion version;
         private final SSLEngine sslEngine;
+        private final String username;
         private volatile MqttSession session;
         private volatile boolean cleanDisconnect = false;
         private volatile WillMessage willMessage;
@@ -702,12 +722,13 @@ public final class MqttBroker implements AutoCloseable {
         private volatile long lastActivityTime;
 
         ClientConnection(String clientId, SocketChannel channel,
-                         MqttCodec codec, MqttVersion version, SSLEngine sslEngine) {
+                         MqttCodec codec, MqttVersion version, SSLEngine sslEngine, String username) {
             this.clientId = clientId;
             this.channel = channel;
             this.codec = codec;
             this.version = version;
             this.sslEngine = sslEngine;
+            this.username = username;
             this.lastActivityTime = System.currentTimeMillis();
         }
 
@@ -716,6 +737,7 @@ public final class MqttBroker implements AutoCloseable {
         MqttCodec codec() { return codec; }
         MqttVersion version() { return version; }
         SSLEngine sslEngine() { return sslEngine; }
+        String username() { return username; }
         MqttSession getSession() { return session; }
         void setSession(MqttSession session) { this.session = session; }
         boolean isCleanDisconnect() { return cleanDisconnect; }

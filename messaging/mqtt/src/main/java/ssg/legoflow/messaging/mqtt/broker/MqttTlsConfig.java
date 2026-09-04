@@ -29,6 +29,7 @@ public final class MqttTlsConfig {
     private final String truststorePassword;
     private final List<String> protocols;
     private final List<String> cipherSuites;
+    private final javax.net.ssl.SSLContext sslContext;
 
     private MqttTlsConfig(Builder builder) {
         this.keystorePath = builder.keystorePath;
@@ -37,6 +38,7 @@ public final class MqttTlsConfig {
         this.truststorePassword = builder.truststorePassword;
         this.protocols = List.copyOf(builder.protocols);
         this.cipherSuites = List.copyOf(builder.cipherSuites);
+        this.sslContext = builder.sslContext;
     }
 
     /** Returns the keystore file path. */
@@ -57,14 +59,27 @@ public final class MqttTlsConfig {
     /** Returns the enabled cipher suites (empty list means JVM defaults). */
     public List<String> cipherSuites() { return cipherSuites; }
 
+    /** Returns the pre-built SSL context, or {@code null} if using file-based keystores. */
+    public javax.net.ssl.SSLContext sslContext() { return sslContext; }
+
     /**
      * Creates an {@link SSLContext} from this configuration.
+     *
+     * <p>If a context was provided via {@link Builder#sslContext(SSLContext)}, it is returned directly.
+     * Otherwise, file-based keystores are loaded.</p>
      *
      * @return the configured SSL context
      * @throws GeneralSecurityException if keystore/truststore loading fails
      * @throws IOException              if reading keystore/truststore files fails
+     * @throws IllegalStateException    if neither keystore nor SSL context is configured
      */
     public SSLContext createSslContext() throws GeneralSecurityException, IOException {
+        if (sslContext != null) {
+            return sslContext;
+        }
+        if (keystorePath == null || keystorePassword == null) {
+            throw new IllegalStateException("Keystore path and password, or pre-built SSLContext, are required");
+        }
         KeyStore ks = KeyStore.getInstance("PKCS12");
         try (var fis = new FileInputStream(keystorePath)) {
             ks.load(fis, keystorePassword.toCharArray());
@@ -83,10 +98,10 @@ public final class MqttTlsConfig {
             tmf.init(ts);
         }
 
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(kmf.getKeyManagers(),
+        SSLContext ctx = SSLContext.getInstance("TLS");
+        ctx.init(kmf.getKeyManagers(),
                 tmf != null ? tmf.getTrustManagers() : null, null);
-        return sslContext;
+        return ctx;
     }
 
     /**
@@ -148,6 +163,7 @@ public final class MqttTlsConfig {
         private String truststorePassword;
         private List<String> protocols = List.of("TLSv1.3", "TLSv1.2");
         private List<String> cipherSuites = List.of();
+        private javax.net.ssl.SSLContext sslContext;
 
         /** Sets the keystore file path. */
         public Builder keystorePath(String keystorePath) {
@@ -186,14 +202,23 @@ public final class MqttTlsConfig {
         }
 
         /**
+         * Sets a pre-built SSL context (e.g. from in-memory certificates).
+         * When set, {@link #createSslContext()} returns this directly without loading files.
+         */
+        public Builder sslContext(javax.net.ssl.SSLContext sslContext) {
+            this.sslContext = Objects.requireNonNull(sslContext);
+            return this;
+        }
+
+        /**
          * Builds the TLS configuration.
          *
          * @return a new immutable TLS configuration
-         * @throws IllegalStateException if keystore path or password is not set
+         * @throws IllegalStateException if neither keystore nor SSLContext is provided
          */
         public MqttTlsConfig build() {
-            if (keystorePath == null || keystorePassword == null) {
-                throw new IllegalStateException("Keystore path and password are required");
+            if (sslContext == null && (keystorePath == null || keystorePassword == null)) {
+                throw new IllegalStateException("Keystore path and password, or pre-built SSLContext, are required");
             }
             return new MqttTlsConfig(this);
         }
