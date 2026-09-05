@@ -107,6 +107,9 @@ public final class MqttSession {
     /** Returns the time when the client disconnected, or {@code null} if connected. */
     public Instant disconnectedAt() { return disconnectedAt; }
 
+    /** Sets the disconnect time. */
+    void setDisconnectedAt(Instant at) { this.disconnectedAt = at; }
+
     /**
      * Returns whether this session has expired based on the session expiry interval.
      *

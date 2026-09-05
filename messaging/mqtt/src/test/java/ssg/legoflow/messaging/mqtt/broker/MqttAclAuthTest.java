@@ -30,7 +30,7 @@ class MqttAclAuthTest {
 
         MqttAclChecker acl = (String user, String topic, String action) -> true;
         var config = new MqttBrokerConfig("localhost", 0, 10, 65536, 32,
-                true, true, 0, 100, 0, null, auth, acl);
+                true, true, 0, 100, 0, null, auth, acl, null);
         broker = new MqttBroker(config);
         broker.start();
     }

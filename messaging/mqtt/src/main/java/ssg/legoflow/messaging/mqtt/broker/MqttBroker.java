@@ -1,6 +1,7 @@
 package ssg.legoflow.messaging.mqtt.broker;
 
 import ssg.legoflow.messaging.mqtt.codec.MqttCodec;
+import ssg.legoflow.messaging.mqtt.persistence.MqttPersistenceAdapter;
 import ssg.legoflow.messaging.mqtt.protocol.*;
 import ssg.legoflow.messaging.mqtt.topic.SharedSubscriptionRegistry;
 import ssg.legoflow.messaging.mqtt.topic.TopicFilter;
@@ -10,9 +11,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * Lightweight MQTT message broker.
@@ -38,6 +41,7 @@ public final class MqttBroker implements AutoCloseable {
     private final Map<String, ClientConnection> connectedClients = new ConcurrentHashMap<>();
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
     private final AtomicBoolean running = new AtomicBoolean(false);
+    private MqttPersistenceAdapter persistence; // null = no persistence
 
     /** Protocol flow listener — set to null for no-ops. */
     private volatile MqttEventListener listener = null;
@@ -67,6 +71,7 @@ public final class MqttBroker implements AutoCloseable {
      */
     public MqttBroker(MqttBrokerConfig config) {
         this.config = Objects.requireNonNull(config);
+        this.persistence = config.persistenceAdapter();
     }
 
     /**
@@ -76,6 +81,12 @@ public final class MqttBroker implements AutoCloseable {
     public void start() {
         running.set(true);
         startSessionExpirySweep();
+        // Load retained messages from persistence if available
+        if (persistence != null) {
+            for (var retained : persistence.loadAllRetained()) {
+                retainStore.put(retained.topic(), retained.payload());
+            }
+        }
         LOG.info("MQTT broker initialized");
     }
 
@@ -94,6 +105,14 @@ public final class MqttBroker implements AutoCloseable {
                 }
                 connectedClients.clear();
                 executor.shutdown();
+                // Close persistence adapter
+                if (persistence != null) {
+                    try {
+                        persistence.close();
+                    } catch (Exception e) {
+                        LOG.warn("Error closing persistence adapter", e);
+                    }
+                }
                 LOG.info("MQTT broker stopped");
             } catch (Exception e) {
                 LOG.error("Error stopping broker", e);
@@ -339,6 +358,9 @@ public final class MqttBroker implements AutoCloseable {
         // Retain handling
         if (pub.retain()) {
             retainStore.put(topic, pub.payload());
+            if (persistence != null) {
+                persistence.saveRetained(topic, pub.payload(), pub.qos().value());
+            }
         }
 
         // QoS acknowledgements
@@ -489,6 +511,7 @@ public final class MqttBroker implements AutoCloseable {
         MqttSession session = sessions.get(clientId);
         if (session != null) {
             session.setConnected(false);
+            session.setDisconnectedAt(Instant.now());
             // Unsubscribe all subscriptions from topic tree and shared registry
             for (var sub : session.getSubscriptions().values()) {
                 var tf = new TopicFilter(sub.topicFilter());
@@ -499,6 +522,25 @@ public final class MqttBroker implements AutoCloseable {
                     topicTree.unsubscribe(effectiveFilter, conn);
                 } else {
                     topicTree.unsubscribe(sub.topicFilter(), conn);
+                }
+            }
+            // Save persistent session to storage
+            if (persistence != null && !session.isCleanSession()) {
+                try {
+                    List<MqttPersistenceAdapter.MqttSubscriptionData> subs =
+                            session.getSubscriptions().values().stream()
+                                    .map(s -> new MqttPersistenceAdapter.MqttSubscriptionData(
+                                            s.topicFilter(), s.qos().value()))
+                                    .collect(Collectors.toList());
+                    var will = conn.getWillMessage();
+                    persistence.saveSession(clientId, false, session.sessionExpiryInterval(),
+                            subs,
+                            will == null ? null : will.topic(),
+                            will == null ? null : will.payload(),
+                            will == null ? 0 : will.qos().value(),
+                            will == null ? false : will.retain());
+                } catch (Exception e) {
+                    LOG.warn("Failed to persist session for {}", clientId, e);
                 }
             }
             if (session.isCleanSession()) {

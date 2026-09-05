@@ -75,7 +75,7 @@ class SessionExpiryTest {
     @Test
     void testSessionExpiryInterval() throws Exception {
         var config = new MqttBrokerConfig("localhost", 0, 10, 65536, 32,
-                true, false, 1, 100, 0, null, null, null);
+                true, false, 1, 100, 0, null, null, null, null);
         broker = new MqttBroker(config);
         broker.start();
 
@@ -133,7 +133,7 @@ class SessionExpiryTest {
     @Test
     void testSessionExpirySweepsMultipleSessions() throws Exception {
         var config = new MqttBrokerConfig("localhost", 0, 10, 65536, 32,
-                true, false, 1, 100, 0, null, null, null);
+                true, false, 1, 100, 0, null, null, null, null);
         broker = new MqttBroker(config);
         broker.start();
 

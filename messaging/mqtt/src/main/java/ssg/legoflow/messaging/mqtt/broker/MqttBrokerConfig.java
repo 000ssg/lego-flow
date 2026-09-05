@@ -1,5 +1,7 @@
 package ssg.legoflow.messaging.mqtt.broker;
 
+import ssg.legoflow.messaging.mqtt.persistence.MqttPersistenceAdapter;
+
 /**
  * Configuration for {@link MqttBroker}.
  *
@@ -30,7 +32,8 @@ public record MqttBrokerConfig(
         int receiveMaximum,
         MqttTlsConfig tlsConfig,
         MqttAuthenticator authenticator,
-        MqttAclChecker aclChecker
+        MqttAclChecker aclChecker,
+        MqttPersistenceAdapter persistenceAdapter
 ) {
 
     /**
@@ -42,7 +45,7 @@ public record MqttBrokerConfig(
                              int maxQueuedMessages) {
         this(host, port, maxConnections, maxMessageSize, maxTopicLevels, allowAnonymous,
                 requireAuthentication, sessionExpiryInterval, maxQueuedMessages,
-                0, null, null, null);
+                0, null, null, null, null);
     }
 
     /**
@@ -52,7 +55,7 @@ public record MqttBrokerConfig(
      */
     public static MqttBrokerConfig defaults() {
         return new MqttBrokerConfig("0.0.0.0", 1883, 1000, 268435456, 128,
-                true, false, 0, 1000, 65535, null, null, null);
+                true, false, 0, 1000, 65535, null, null, null, null);
     }
 
     /**
@@ -62,6 +65,6 @@ public record MqttBrokerConfig(
      */
     public static MqttBrokerConfig minimal() {
         return new MqttBrokerConfig("localhost", 0, 10, 65536, 32,
-                true, false, 0, 100, 65535, null, null, null);
+                true, false, 0, 100, 65535, null, null, null, null);
     }
 }
