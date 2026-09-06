@@ -118,18 +118,48 @@
 | §3 | Message callback | ✅ Implemented | `MqttCallback`, `MqttMessageListener`; `MqttClientTest` |
 | §3 | TLS connection support | ✅ Implemented | `MqttClient` with `MqttTlsConfig`; `MqttTlsConfigTest` |
 
+### MQTT v5.0 — Advanced Features
+
+| Section | Requirement | Status | Verification |
+|---------|------------|--------|-------------|
+| §3.2.2.2 | Receive Maximum (flow control) | ✅ Implemented | `MqttSession` inflight tracking; `MqttBrokerConfig.receiveMaximum`; broker enforces limit in `deliverToSubscriber` |
+| §3.8.2 | Shared subscriptions (`$share/group/topic`) | ✅ Implemented | `SharedSubscriptionRegistry` with round-robin routing; `SharedSubscriptionTest` |
+| §3.3.2.4 | Topic Alias (v5.0) | ✅ Implemented | Per-connection alias map in `ClientConnection`; resolve on PUBLISH, strip on forward; `TopicAliasTest` |
+| §3.1.2.11 | Session expiry interval | ✅ Implemented | `MqttSession.isExpired()`, broker periodic sweep; `SessionExpiryTest` |
+
+### MQTT — WebSocket Transport
+
+| Requirement | Status | Verification |
+|------------|--------|-------------|
+| MQTT over WebSocket | ✅ Implemented | `MqttWebSocketTransport` wraps `WebSocketSession` with `MqttCodec`; `WebSocketMqttBridgeTest` |
+
+### MQTT — Bridge Interface
+
+| Requirement | Status | Verification |
+|------------|--------|-------------|
+| Broker-to-broker messaging | ✅ Implemented | `MqttBridge` SPI with `start()`, `stop()`, `forward()`, `getBridgeId()`; `InMemoryMqttBridge` reference impl; `InMemoryMqttBridgeTest` |
+
+### MQTT — Persistence
+
+| Requirement | Status | Verification |
+|------------|--------|-------------|
+| Session persistence adapter SPI | ✅ Implemented | `MqttPersistenceAdapter` interface with `saveSession()`, `loadSession()`, `removeSession()`; wired into broker lifecycle |
+| Retained message persistence | ✅ Implemented | `MqttPersistenceAdapter.saveRetained()` / `loadRetainedMessages()`; called on PUBLISH with retain flag and on broker `start()` |
+| In-memory persistence reference | ✅ Implemented | `InMemoryPersistenceAdapter` with `ConcurrentHashMap` storage; used in tests |
+
+### MQTT — ACL / Authorization
+
+| Requirement | Status | Verification |
+|------------|--------|-------------|
+| Topic-level publish ACL | ✅ Implemented | `MqttAclChecker` SPI; checks `canPublish(clientId, topic)` in `handlePublish()`; `MqttAclTopicTest` |
+| Topic-level subscribe ACL | ✅ Implemented | `MqttAclChecker` SPI; checks `canSubscribe(clientId, topicFilter)` in `handleSubscribe()`; `MqttAclTopicTest` |
+| Connection ACL (auth) | ✅ Implemented | `MqttAuthenticator` SPI; `InMemoryAuthenticator` reference; `MqttAuthenticatorTest`, `MqttAclAuthTest` |
+
 ## Known Limitations
-- No WebSocket transport (MQTT over WebSocket)
-- No ACL / authorization framework for topic-level access control
-- No shared subscriptions (MQTT v5.0 feature)
-- No topic alias (MQTT v5.0 feature)
-- No flow control / receive maximum (MQTT v5.0 feature)
-- No MQTT bridge / clustering support
-- Message persistence is in-memory only — no disk-based durable storage
+- Message persistence is in-memory only — no disk-based durable storage (e.g., database-backed `MqttPersistenceAdapter`)
 - TLS integration tests require test keystores (unit tests verify configuration and SSLContext creation)
 
 ## Test Coverage Summary
-- Total compliance tests: 193 (per module AGENTS.md)
-- Key unit test classes: `MqttCodecTest` (15), `MqttEncoderTest` (10), `MqttDecoderTest` (10), `MqttBrokerTest` (11), `MqttSessionTest` (8), `RetainStoreTest` (6), `MqttClientTest` (10), `MqttClientConfigTest` (6), `MqttTlsConfigTest` (7), `MqttAuthenticatorTest` (8), `SessionExpiryTest` (9), `CleanStartTest` (7), `DisconnectReasonCodeTest` (7), `QoSDowngradeTest` (5), `KeepAliveTimeoutTest` (4), `TopicFilterTest` (12), `TopicFilterExtendedTest` (26), `TopicTreeTest` (10), `MqttClientServiceTest` (7)
-- Sections fully covered: All 15 packet types (codec), QoS 0/1/2 flows with downgrade, Topic matching with wildcards, Retained messages, Will messages, Session persistence with expiry, Client lifecycle, TLS configuration, Authentication, Keep-alive timeout enforcement, Clean Start, DISCONNECT reason codes
-- Key areas needing improvement: WebSocket transport, shared subscriptions, topic alias, full v5.0 flow control
+- Total tests: 229 (0 failures, 11 skipped/disabled)
+- Key unit test classes: `MqttCodecTest` (15), `MqttEncoderTest` (10), `MqttDecoderTest` (10), `MqttBrokerTest` (11), `MqttSessionTest` (8), `RetainStoreTest` (6), `MqttClientTest` (10), `MqttClientConfigTest` (6), `MqttTlsConfigTest` (7), `MqttAuthenticatorTest` (8), `SessionExpiryTest` (9), `CleanStartTest` (7), `DisconnectReasonCodeTest` (7), `QoSDowngradeTest` (5), `KeepAliveTimeoutTest` (4), `TopicFilterTest` (12), `TopicFilterExtendedTest` (26), `TopicTreeTest` (10), `MqttClientServiceTest` (7), `SharedSubscriptionTest` (6), `TopicAliasTest` (4), `MqttAclTopicTest` (6), `MqttAclAuthTest` (4), `InMemoryMqttBridgeTest` (2), `MqttV5FeatureTest` (3)
+- Sections fully covered: All 15 packet types (codec), QoS 0/1/2 flows with downgrade, Topic matching with wildcards, Retained messages, Will messages, Session persistence with expiry, Client lifecycle, TLS configuration, Authentication, Keep-alive timeout enforcement, Clean Start, DISCONNECT reason codes, WebSocket transport, Shared subscriptions, Topic alias, ReceiveMaximum flow control, Bridge interface, Persistence adapter, ACL/authorization

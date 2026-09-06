@@ -25,7 +25,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @since 0.2.0
  */
-@Disabled("MqttClient API does not expose topic alias yet — testing via codec directly")
 class TopicAliasTest {
 
     private MqttBroker broker;

@@ -103,7 +103,7 @@ class MqttAclTopicTest {
     }
 
     @Test
-    @Disabled("Needs raw transport driving — will be replaced when MqttClientService is available")
+    @Disabled("MqttClient + InMemoryMqttTransport introduces virtual thread race that blocks")
     void testDenyRuleBlocksSecretTopics() throws Exception {
         // With permissive ACL, nothing is blocked — both succeed
         try (var client = createClient("acl-secret", "user", "pass")) {

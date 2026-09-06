@@ -123,7 +123,6 @@ class SharedSubscriptionTest {
         sub3.disconnect();
     }
 
-    @Disabled("Timing-dependent with in-memory transport — needs MqttClientService driving")
     @Test
     void testSharedAndRegularSubscriptionsCoexist() throws Exception {
         var pub = createClient("pub");

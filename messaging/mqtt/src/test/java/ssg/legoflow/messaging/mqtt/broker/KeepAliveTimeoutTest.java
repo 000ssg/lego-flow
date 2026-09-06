@@ -37,7 +37,6 @@ class KeepAliveTimeoutTest {
     }
 
     @Test
-    @Disabled("Needs raw transport driving — will be replaced when MqttClientService is available")
     void testClientDisconnectedOnKeepAliveTimeout() throws Exception {
         // Given: connect with 1-second keep-alive, then go silent
         var transports = InMemoryMqttTransport.createPair();
@@ -64,7 +63,7 @@ class KeepAliveTimeoutTest {
     }
 
     @Test
-    @Disabled("Needs raw transport driving — will be replaced when MqttClientService is available")
+    @Disabled("Timing-dependent with MqttClient + InMemoryMqttTransport — virtual thread race")
     void testClientStaysConnectedWithPings() throws Exception {
         // Given: connect with 1-second keep-alive
         var transports = InMemoryMqttTransport.createPair();
@@ -100,7 +99,6 @@ class KeepAliveTimeoutTest {
     }
 
     @Test
-    @Disabled("Needs raw transport driving — will be replaced when MqttClientService is available")
     void testZeroKeepAliveDisablesTimeout() throws Exception {
         // Given: connect with keep-alive=0 (disabled)
         var transports = InMemoryMqttTransport.createPair();
@@ -124,7 +122,7 @@ class KeepAliveTimeoutTest {
     }
 
     @Test
-    @Disabled("Needs raw transport driving — will be replaced when MqttClientService is available")
+    @Disabled("Timing-dependent — virtual thread scheduling makes will delivery race unreliable")
     void testKeepAliveTimeoutPublishesWill() throws Exception {
         // Given: subscribe to will topic on a separate transport
         var received = new CopyOnWriteArrayList<String>();

@@ -53,8 +53,8 @@ class InMemoryMqttBridgeTest {
         }
     }
 
-    @Disabled("Needs MqttClientService transport driving for callback threading")
     @Test
+    @Disabled("Callback threading timing issue — MqttClient listener not triggered before assertion")
     void testMessageForwardsFromLocalToRemote() throws Exception {
         try (var bridge = new InMemoryMqttBridge(localBroker, remoteBroker, "bridge-1")) {
             bridge.start();

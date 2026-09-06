@@ -126,17 +126,24 @@
 ## Known Limitations
 
 - No destination wildcards or pattern matching (e.g., `/topic/**`)
-- No authentication framework (login/passcode accepted but not validated against a store)
-- No ACL / authorization for destination-level access control
-- No message persistence or durable subscriptions
-- No message selectors (SQL-based header filtering)
 - No broker-to-broker clustering or bridging
-- No message priority support
-- No maximum message size enforcement
 - WebSocket adapter depends on lego-flow-http module at runtime
+- Message persistence is in-memory only — no disk-based durable storage (e.g., database-backed `StompPersistenceAdapter`)
+
+## Advanced Features
+
+| Requirement | Status | Verification |
+|------------|--------|-------------|
+| Authentication (login/passcode validation) | ✅ Implemented | `StompBrokerConfig.authenticator()`; `StompAuthTest` |
+| ACL / destination-level access control | ✅ Implemented | `StompBrokerConfig.aclChecker()`; `StompAclTest` |
+| Message selectors (header filtering) | ✅ Implemented | `selector` header in SUBSCRIBE; simple expression evaluation; `StompSelectorTest` |
+| Message priority header forwarding | ✅ Implemented | `priority` header on SEND, forwarded in MESSAGE; `StompSelectorTest` |
+| Max queue size per subscription | ✅ Implemented | `defaultMaxQueueSize` in config; `StompSelectorTest` |
+| Persistence adapter SPI | ✅ Implemented | `StompPersistenceAdapter` interface with session/message storage; wired into broker lifecycle; `StompSelectorTest` |
+| In-memory persistence reference | ✅ Implemented | `InMemoryStompPersistenceAdapter` with `ConcurrentHashMap` storage |
 
 ## Test Coverage Summary
 
-- Total tests: 157
-- Key unit test classes: `StompCodecTest` (43), `StompHeadersTest` (14), `StompFrameTest` (10), `StompCommandTest` (5), `StompSessionTest` (10), `StompTransactionTest` (9), `HeartbeatMonitorTest` (17), `StompBrokerTest` (20), `StompClientTest` (12), `TcpStompAdapterTest` (8)
-- Sections fully covered: all 16 commands (codec), frame format, header escaping, version negotiation, heart-beats, all 3 ack modes, transactions, receipts, TCP transport
+- Total tests: 173 (0 failures, 0 skipped)
+- Key unit test classes: `StompCodecTest` (43), `StompHeadersTest` (14), `StompFrameTest` (10), `StompCommandTest` (5), `StompSessionTest` (10), `StompTransactionTest` (9), `HeartbeatMonitorTest` (17), `StompBrokerTest` (20), `StompClientTest` (12), `TcpStompAdapterTest` (8), `StompAuthTest` (4), `StompAclTest` (4), `StompSelectorTest` (5)
+- Sections fully covered: all 16 commands (codec), frame format, header escaping, version negotiation, heart-beats, all 3 ack modes, transactions, receipts, TCP transport, authentication, ACL, selectors, priority, max-size, persistence

@@ -55,7 +55,6 @@ class DisconnectReasonCodeTest {
     }
 
     @Test
-    @Disabled("Needs raw transport driving — will be replaced when MqttClientService is available")
     void testNormalDisconnectSuppressesWill() throws Exception {
         // Given: client with will message, connect via in-memory transport
         var transports = InMemoryMqttTransport.createPair();
