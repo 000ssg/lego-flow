@@ -105,3 +105,49 @@ var ecdsa = SshKeyGenerator.generate("ECDSA");
 
 - **JaCoCo**: Exclude this module from JaCoCo coverage. The parent build's JaCoCo agent modifies bytecode and causes `SSLEngine` handshake infinite loops with BouncyCastle in Gradle.
 - **TLS 1.3 in tests**: Force TLS 1.2 for in-memory handshake tests. TLS 1.3 `HelloRetryRequest` requires additional state machine handling not supported by the simple `process()` loop.
+
+---
+
+## Testing MQTT/STOMP ACL Integration
+
+Both MQTT and STOMP brokers support ACL checking via `MqttAclChecker` and `StompAclChecker` SPIs.
+
+### MQTT ACL Testing
+
+```java
+// Create broker with ACL checker
+var config = MqttBrokerConfig.minimal()
+    .aclChecker((clientId, topic, action) -> {
+        if ("admin".equals(clientId)) return true;
+        return topic.startsWith("public/");
+    });
+var broker = new MqttBroker(config);
+```
+
+- `MqttAclTopicTest`: validates publish/subscribe ACL enforcement
+- `MqttAclAuthTest`: validates authentication + ACL combined
+- Run: `mvn test -pl messaging/mqtt -Dtest='MqttAclTopicTest'`
+
+### STOMP ACL Testing
+
+```java
+// Create broker with ACL checker
+var config = StompBrokerConfig.defaults()
+    .aclChecker((login, destination, action) -> {
+        if ("admin".equals(login)) return true;
+        return action.equals("subscribe"); // read-only
+    });
+var broker = new StompBroker(config);
+```
+
+- `StompAclTest`: validates send/subscribe ACL enforcement
+- Run: `mvn test -pl messaging/stomp -Dtest='StompAclTest'`
+
+### Coverage Targets
+
+| Module | Target | Measurement |
+|--------|--------|-------------|
+| MQTT   | 80%+   | JaCoCo instruction coverage |
+| STOMP  | 80%+   | JaCoCo instruction coverage |
+| AMQP   | 80%+   | JaCoCo instruction coverage |
+| ACL    | N/A (excluded) | JaCoCo exclus...[truncated]
