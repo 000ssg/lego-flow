@@ -2,14 +2,10 @@ package ssg.legoflow.messaging.stomp.core;
 
 import org.junit.jupiter.api.*;
 import ssg.legoflow.messaging.stomp.core.transport.InMemoryStompTransport;
-import ssg.legoflow.messaging.stomp.core.transport.StompTransport;
-import java.nio.charset.StandardCharsets;
+import ssg.legoflow.messaging.stomp.transport.StompFrameCodec;
 import java.util.concurrent.*;
 import static org.assertj.core.api.Assertions.*;
 
-/**
- * Tests for STOMP ACL enforcement.
- */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class StompAclTest {
 
@@ -25,13 +21,13 @@ class StompAclTest {
         var transports = InMemoryStompTransport.createPair();
         broker = new StompBroker(StompBrokerConfig.defaults());
         broker.setHeartbeatCapability(0, 0);
-        broker.accept(transports[0]);
+        Thread.startVirtualThread(() -> broker.accept(transports[0]));
 
-        connect(transports[1]);
+        var codec = new StompFrameCodec(transports[1]);
+        connectCodec(codec);
         // Subscribe (no receipt header, so no response expected)
         var headers = subHeaders("sub-1", "test/acl", "auto");
-        transports[1].send(new StompFrame(StompCommand.SUBSCRIBE, headers));
-        // With ack=auto and no receipt, there's no response. Just check the session has the subscription.
+        codec.send(new StompFrame(StompCommand.SUBSCRIBE, headers));
         Thread.sleep(100);
         assertThat(broker.getSessionCount()).isEqualTo(1);
         assertThat(broker.getSubscriptionCount("test/acl")).isEqualTo(1);
@@ -44,14 +40,14 @@ class StompAclTest {
                 .aclChecker((login, dest, action) -> !"send".equals(action));
         broker = new StompBroker(config);
         broker.setHeartbeatCapability(0, 0);
-        broker.accept(transports[0]);
+        Thread.startVirtualThread(() -> broker.accept(transports[0]));
 
-        connectWithLogin(transports[1], "reader");
-        // Try to send — ACL denies all sends
+        var codec = new StompFrameCodec(transports[1]);
+        connectWithLoginCodec(codec, "reader");
         var sendFrame = StompFrame.withText(StompCommand.SEND, destHeaders("test/acl"), "hello");
-        transports[1].send(sendFrame);
+        codec.send(sendFrame);
 
-        var response = transports[1].receive();
+        var response = codec.receive();
         assertThat(response.command()).isEqualTo(StompCommand.ERROR);
     }
 
@@ -62,14 +58,14 @@ class StompAclTest {
                 .aclChecker((login, dest, action) -> !"subscribe".equals(action));
         broker = new StompBroker(config);
         broker.setHeartbeatCapability(0, 0);
-        broker.accept(transports[0]);
+        Thread.startVirtualThread(() -> broker.accept(transports[0]));
 
-        connectWithLogin(transports[1], "user");
-        // Try to subscribe — ACL denies all subscribes
+        var codec = new StompFrameCodec(transports[1]);
+        connectWithLoginCodec(codec, "user");
         var subFrame = new StompFrame(StompCommand.SUBSCRIBE, subHeaders("sub-1", "test/data", "auto"));
-        transports[1].send(subFrame);
+        codec.send(subFrame);
 
-        var response = transports[1].receive();
+        var response = codec.receive();
         assertThat(response.command()).isEqualTo(StompCommand.ERROR);
     }
 
@@ -87,45 +83,37 @@ class StompAclTest {
                 });
         broker = new StompBroker(config);
         broker.setHeartbeatCapability(0, 0);
-        broker.accept(pubTransports[0]);
-        broker.accept(subTransports[0]);
+        Thread.startVirtualThread(() -> broker.accept(pubTransports[0]));
+        Thread.startVirtualThread(() -> broker.accept(subTransports[0]));
 
-        connectWithLogin(pubTransports[1], "writer");
-        connectWithLogin(subTransports[1], "reader");
+        var pubCodec = new StompFrameCodec(pubTransports[1]);
+        var subCodec = new StompFrameCodec(subTransports[1]);
+        connectWithLoginCodec(pubCodec, "writer");
+        connectWithLoginCodec(subCodec, "reader");
 
-        // Reader tries to subscribe → denied (reader can only subscribe, but test says reader CAN subscribe)
-        // Actually: reader CAN subscribe. So let's test reader trying to send.
-        // Reader tries to send → denied (reader's ACL: subscribe only)
+        // Reader tries to send → denied
         var sendFrame = StompFrame.withText(StompCommand.SEND, destHeaders("test/t"), "msg");
-        subTransports[1].send(sendFrame);
-        var err = subTransports[1].receive();
+        subCodec.send(sendFrame);
+        var err = subCodec.receive();
         assertThat(err.command()).isEqualTo(StompCommand.ERROR);
 
-        // Writer tries to subscribe → denied (writer's ACL: send only)
+        // Writer tries to subscribe → denied
         var subFrame = new StompFrame(StompCommand.SUBSCRIBE, subHeaders("s1", "test/t", "auto"));
-        pubTransports[1].send(subFrame);
-        err = pubTransports[1].receive();
+        pubCodec.send(subFrame);
+        err = pubCodec.receive();
         assertThat(err.command()).isEqualTo(StompCommand.ERROR);
     }
 
-    private void connect(StompTransport transport) throws Exception {
-        transport.send(new StompFrame(StompCommand.CONNECT, new StompHeaders()));
-        transport.receive();
+    private void connectCodec(StompFrameCodec codec) throws Exception {
+        codec.send(new StompFrame(StompCommand.CONNECT, new StompHeaders()));
+        codec.receive();
     }
 
-    private void connectWithLogin(StompTransport transport, String login) throws Exception {
+    private void connectWithLoginCodec(StompFrameCodec codec, String login) throws Exception {
         var headers = new StompHeaders();
         headers.put(StompHeaders.LOGIN, login);
-        transport.send(new StompFrame(StompCommand.CONNECT, headers));
-        transport.receive();
-    }
-
-    private CountDownLatch subscribe(StompTransport transport, String dest, String id) throws Exception {
-        var latch = new CountDownLatch(1);
-        var headers = subHeaders(id, dest, "auto");
-        transport.send(new StompFrame(StompCommand.SUBSCRIBE, headers));
-        transport.receive(); // RECEIPT
-        return latch;
+        codec.send(new StompFrame(StompCommand.CONNECT, headers));
+        codec.receive();
     }
 
     private StompHeaders destHeaders(String dest) {

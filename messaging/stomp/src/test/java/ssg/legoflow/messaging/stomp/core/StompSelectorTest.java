@@ -2,7 +2,8 @@ package ssg.legoflow.messaging.stomp.core;
 
 import org.junit.jupiter.api.*;
 import ssg.legoflow.messaging.stomp.core.transport.InMemoryStompTransport;
-import ssg.legoflow.messaging.stomp.core.transport.StompTransport;
+import ssg.legoflow.messaging.stomp.transport.StompFrameCodec;
+import ssg.legoflow.messaging.stomp.transport.StompTransport;
 import java.util.concurrent.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import static org.assertj.core.api.Assertions.*;
@@ -22,19 +23,19 @@ class StompSelectorTest {
 
     @Test
     void testSelectorFiltersMessages() throws Exception {
-        var subTransports = InMemoryStompTransport.createPair();
+        var pair = InMemoryStompTransport.createPair();
         broker = new StompBroker(StompBrokerConfig.defaults());
         broker.setHeartbeatCapability(0, 0);
-        broker.accept(subTransports[0]);
+        Thread.startVirtualThread(() -> broker.accept(pair[0]));
+        var codec = new StompFrameCodec(pair[1]);
+        connectCodec(codec);
 
-        connect(subTransports[1]);
         var headers = new StompHeaders();
         headers.put(StompHeaders.ID, "sub-1");
         headers.put(StompHeaders.DESTINATION, "test/selector");
         headers.put(StompHeaders.ACK, "auto");
         headers.put("selector", "priority > 5");
-        subTransports[1].send(new StompFrame(StompCommand.SUBSCRIBE, headers));
-        // SUBSCRIBE with no receipt → no response, don't block on receive()
+        codec.send(new StompFrame(StompCommand.SUBSCRIBE, headers));
 
         var latch = new CountDownLatch(1);
         broker.setListener((type, data1, data2) -> {
@@ -44,25 +45,26 @@ class StompSelectorTest {
         var sendHeaders = new StompHeaders();
         sendHeaders.put(StompHeaders.DESTINATION, "test/selector");
         sendHeaders.put("priority", "8");
-        subTransports[1].send(StompFrame.withText(StompCommand.SEND, sendHeaders, "high"));
+        codec.send(StompFrame.withText(StompCommand.SEND, sendHeaders, "high"));
 
         assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
     }
 
     @Test
     void testSelectorExcludesLowPriority() throws Exception {
-        var subTransports = InMemoryStompTransport.createPair();
+        var pair = InMemoryStompTransport.createPair();
         broker = new StompBroker(StompBrokerConfig.defaults());
         broker.setHeartbeatCapability(0, 0);
-        broker.accept(subTransports[0]);
+        Thread.startVirtualThread(() -> broker.accept(pair[0]));
+        var codec = new StompFrameCodec(pair[1]);
+        connectCodec(codec);
 
-        connect(subTransports[1]);
         var headers = new StompHeaders();
         headers.put(StompHeaders.ID, "sub-1");
         headers.put(StompHeaders.DESTINATION, "test/filter");
         headers.put(StompHeaders.ACK, "auto");
         headers.put("selector", "priority > 5");
-        subTransports[1].send(new StompFrame(StompCommand.SUBSCRIBE, headers));
+        codec.send(new StompFrame(StompCommand.SUBSCRIBE, headers));
 
         var deliveredLatch = new CountDownLatch(1);
         broker.setListener((type, data1, data2) -> {
@@ -72,7 +74,7 @@ class StompSelectorTest {
         var sendHeaders = new StompHeaders();
         sendHeaders.put(StompHeaders.DESTINATION, "test/filter");
         sendHeaders.put("priority", "2");
-        subTransports[1].send(StompFrame.withText(StompCommand.SEND, sendHeaders, "low"));
+        codec.send(StompFrame.withText(StompCommand.SEND, sendHeaders, "low"));
 
         Thread.sleep(500);
         // No message should have been delivered
@@ -81,18 +83,19 @@ class StompSelectorTest {
 
     @Test
     void testSelectorWithStringComparison() throws Exception {
-        var subTransports = InMemoryStompTransport.createPair();
+        var pair = InMemoryStompTransport.createPair();
         broker = new StompBroker(StompBrokerConfig.defaults());
         broker.setHeartbeatCapability(0, 0);
-        broker.accept(subTransports[0]);
+        Thread.startVirtualThread(() -> broker.accept(pair[0]));
+        var codec = new StompFrameCodec(pair[1]);
+        connectCodec(codec);
 
-        connect(subTransports[1]);
         var headers = new StompHeaders();
         headers.put(StompHeaders.ID, "sub-1");
         headers.put(StompHeaders.DESTINATION, "test/type");
         headers.put(StompHeaders.ACK, "auto");
         headers.put("selector", "type = 'alert'");
-        subTransports[1].send(new StompFrame(StompCommand.SUBSCRIBE, headers));
+        codec.send(new StompFrame(StompCommand.SUBSCRIBE, headers));
 
         var latch = new CountDownLatch(1);
         broker.setListener((type, data1, data2) -> {
@@ -102,25 +105,26 @@ class StompSelectorTest {
         var sendHeaders = new StompHeaders();
         sendHeaders.put(StompHeaders.DESTINATION, "test/type");
         sendHeaders.put("type", "alert");
-        subTransports[1].send(StompFrame.withText(StompCommand.SEND, sendHeaders, "alert-msg"));
+        codec.send(StompFrame.withText(StompCommand.SEND, sendHeaders, "alert-msg"));
 
         assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
     }
 
     @Test
     void testMaxSizeLimitsQueue() throws Exception {
-        var subTransports = InMemoryStompTransport.createPair();
+        var pair = InMemoryStompTransport.createPair();
         var config = StompBrokerConfig.defaults().defaultMaxQueueSize(2);
         broker = new StompBroker(config);
         broker.setHeartbeatCapability(0, 0);
-        broker.accept(subTransports[0]);
+        Thread.startVirtualThread(() -> broker.accept(pair[0]));
+        var codec = new StompFrameCodec(pair[1]);
+        connectCodec(codec);
 
-        connect(subTransports[1]);
         var headers = new StompHeaders();
         headers.put(StompHeaders.ID, "sub-1");
         headers.put(StompHeaders.DESTINATION, "test/max");
         headers.put(StompHeaders.ACK, "auto");
-        subTransports[1].send(new StompFrame(StompCommand.SUBSCRIBE, headers));
+        codec.send(new StompFrame(StompCommand.SUBSCRIBE, headers));
 
         var deliveredLatch = new CountDownLatch(3);
         broker.setListener((type, data1, data2) -> {
@@ -130,7 +134,7 @@ class StompSelectorTest {
         for (int i = 0; i < 3; i++) {
             var sendHeaders = new StompHeaders();
             sendHeaders.put(StompHeaders.DESTINATION, "test/max");
-            subTransports[1].send(StompFrame.withText(StompCommand.SEND, sendHeaders, "msg-" + i));
+            codec.send(StompFrame.withText(StompCommand.SEND, sendHeaders, "msg-" + i));
             Thread.sleep(50);
         }
 
@@ -142,22 +146,23 @@ class StompSelectorTest {
     @Test
     void testPersistenceAdapterStoresMessages() throws Exception {
         var persistence = new InMemoryStompPersistenceAdapter();
-        var subTransports = InMemoryStompTransport.createPair();
+        var pair = InMemoryStompTransport.createPair();
         var config = StompBrokerConfig.defaults().persistenceAdapter(persistence);
         broker = new StompBroker(config);
         broker.setHeartbeatCapability(0, 0);
-        broker.accept(subTransports[0]);
+        Thread.startVirtualThread(() -> broker.accept(pair[0]));
+        var codec = new StompFrameCodec(pair[1]);
+        connectCodec(codec);
 
-        connect(subTransports[1]);
         var headers = new StompHeaders();
         headers.put(StompHeaders.ID, "sub-1");
         headers.put(StompHeaders.DESTINATION, "test/persist");
         headers.put(StompHeaders.ACK, "auto");
-        subTransports[1].send(new StompFrame(StompCommand.SUBSCRIBE, headers));
+        codec.send(new StompFrame(StompCommand.SUBSCRIBE, headers));
 
         var sendHeaders = new StompHeaders();
         sendHeaders.put(StompHeaders.DESTINATION, "test/persist");
-        subTransports[1].send(StompFrame.withText(StompCommand.SEND, sendHeaders, "persisted"));
+        codec.send(StompFrame.withText(StompCommand.SEND, sendHeaders, "persisted"));
 
         Thread.sleep(300);
 
@@ -166,8 +171,8 @@ class StompSelectorTest {
         persistence.close();
     }
 
-    private void connect(StompTransport transport) throws Exception {
-        transport.send(new StompFrame(StompCommand.CONNECT, new StompHeaders()));
-        transport.receive();
+    private void connectCodec(StompFrameCodec codec) throws Exception {
+        codec.send(new StompFrame(StompCommand.CONNECT, new StompHeaders()));
+        codec.receive();
     }
 }

@@ -1,82 +1,130 @@
 package ssg.legoflow.messaging.stomp.server.service;
 
 import ssg.legoflow.blocks.Context;
-import ssg.legoflow.blocks.ProcessorState;
+import ssg.legoflow.messaging.stomp.core.StompBroker;
+import ssg.legoflow.messaging.stomp.core.StompBrokerConfig;
+import ssg.legoflow.messaging.stomp.core.StompEventListener;
+import ssg.legoflow.messaging.stomp.transport.PipelineTransport;
 import ssg.legoflow.service.AbstractService;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.ServiceDescriptor;
 import ssg.legoflow.service.channel.ChannelHandler;
+import ssg.legoflow.service.channel.ServerDataChannel;
+import ssg.legoflow.service.channel.TcpDataChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.ServerSocketChannel;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
-/** Service-based STOMP server adapter for composition within the service framework. */
+
+/**
+ * STOMP server service — listens through {@link ssg.legoflow.service.manager.SelectableChannelManager}.
+ *
+ * <p>Creates a {@link ServerSocketChannel}, wraps it in {@link ServerDataChannel},
+ * registers it with the service manager via {@link ServiceContext#registerServerChannel}.
+ * Accepted connections are wrapped in {@link PipelineTransport} and handed to {@link StompBroker#accept}.
+ */
 public final class StompServerService extends AbstractService<ByteBuffer, ByteBuffer> {
 
-    private final int port;
-    private volatile ssg.legoflow.messaging.stomp.adapter.tcp.TcpStompServer server;
-    private volatile Consumer<StompResult> messageCallback;
+    private static final Logger LOG = LoggerFactory.getLogger(StompServerService.class);
 
-    public record StompResult(boolean success, String destination, ByteBuffer payload) {
-        public static StompResult ok(String dest, ByteBuffer data) { return new StompResult(true, dest, data); }
-        public static StompResult error(String msg) { return new StompResult(false, null, null); }
-    }
+    private final int port;
+    private final String host;
+    private final StompBrokerConfig config;
+
+    private volatile StompBroker broker;
+    volatile ServerDataChannel serverChannel;
 
     StompServerService(Builder builder) {
         super(ByteBuffer.class, ByteBuffer.class,
-                new ServiceDescriptor(builder.name, "STOMP Server Service", builder.priority, builder.dependencies));
+                new ServiceDescriptor(builder.name, "STOMP Server Service",
+                        builder.priority, builder.dependencies));
         this.port = builder.port;
+        this.host = builder.host != null ? builder.host : "localhost";
+        this.config = builder.config != null ? builder.config : StompBrokerConfig.defaults();
     }
 
     @Override
     protected void doConnect(ServiceContext ctx) {
         try {
-            transitionTo(ProcessorState.CONNECTING);
-            var broker = new ssg.legoflow.messaging.stomp.core.StompBroker();
-            this.server = new ssg.legoflow.messaging.stomp.adapter.tcp.TcpStompServer(broker, port);
-            server.start();
+            // Create and bind server socket
+            var serverSocketChannel = ServerSocketChannel.open();
+            serverSocketChannel.bind(new InetSocketAddress(host, port));
+            this.serverChannel = new ServerDataChannel(serverSocketChannel);
+
+            // Register with service manager's selector
+            ctx.registerServerChannel(this, serverChannel);
+
+            // Add handler to the server pipeline so accepted connections are dispatched
+            var pipeline = ctx.getChannelManager().getChannelPipeline(this);
+            if (pipeline != null) {
+                pipeline.addLast(createChannelHandler());
+            }
+
+            // Create and start broker
+            this.broker = new StompBroker(config);
+            LOG.info("STOMP broker listening on port {}", port);
         } catch (Exception e) {
-            throw new RuntimeException("STOMP server service failed to start on port " + port, e);
+            throw new RuntimeException("STOMP broker failed to start on " + host + ":" + port, e);
         }
     }
 
     @Override
     protected void doDisconnect(ServiceContext ctx) {
-        if (server != null) { try { server.close(); } catch (Exception ignored) {} }
-        transitionTo(ProcessorState.STOPPED);
+        try { if (broker != null) broker.close(); } catch (Exception ignored) {}
+        try {
+            var mgr = ctx.getChannelManager();
+            if (mgr != null) mgr.unregisterServerChannel(this);
+        } catch (Exception ignored) {}
+        try { if (serverChannel != null) serverChannel.close(); } catch (Exception ignored) {}
     }
 
-    public ssg.legoflow.messaging.stomp.adapter.tcp.TcpStompServer getServer() { return server; }
-    public void setMessageCallback(Consumer<StompResult> cb) { this.messageCallback = cb; }
+    /** Returns the underlying broker (after connect). */
+    public StompBroker getBroker() { return broker; }
+
+    /** Returns the port the service is listening on. */
+    public int port() {
+        return serverChannel != null ? serverChannel.getServerSocketChannel().socket().getLocalPort() : -1;
+    }
+
+    /** Sets the protocol event listener. */
+    public void setListener(StompEventListener listener) {
+        if (broker != null) broker.setListener(listener);
+    }
+
+    public ChannelHandler createChannelHandler() {
+        return new StompServerChannelHandler(this);
+    }
+
+    /** Returns this service for handler lookup. */
+    public StompServerService getService() { return this; }
 
     @Override
-    protected ByteBuffer[] convertToOutput(Context ctx, ByteBuffer... input) {
-        for (ByteBuffer buf : input) {
-            try { if (buf != null && buf.hasRemaining()) processInbound(buf); }
-            catch (Exception e) { ctx.handleError(e); }
-        }
-        return new ByteBuffer[0];
-    }
+    protected ByteBuffer[] convertToOutput(Context ctx, ByteBuffer... input) { return new ByteBuffer[0]; }
 
-    @Override protected ByteBuffer[] convertToInput(Context ctx, ByteBuffer... output) { return new ByteBuffer[0]; }
-
-    private void processInbound(ByteBuffer data) {
-        if (messageCallback != null) messageCallback.accept(StompResult.ok("server", data.asReadOnlyBuffer()));
-    }
-
-    public ChannelHandler createChannelHandler() { return new StompServerChannelHandler(this); }
+    @Override
+    protected ByteBuffer[] convertToInput(Context ctx, ByteBuffer... output) { return new ByteBuffer[0]; }
 
     public static class Builder {
-        private final int port;
         private String name = "stomp-server";
-        private List<String> dependencies = List.of();
+        private final List<String> dependencies = new ArrayList<>();
         private int priority = 100;
+        private int port = 61613;
+        private String host;
+        private StompBrokerConfig config;
 
-        public Builder(int port) { this.port = port; }
+        public Builder port(int p) { this.port = p; return this; }
+        public Builder host(String h) { this.host = h; return this; }
+        public Builder config(StompBrokerConfig c) { this.config = c; return this; }
         public Builder name(String n) { this.name = n; return this; }
-        public Builder dependencies(String... d) { this.dependencies = List.of(d); return this; }
+        public Builder dependencies(String... d) { for (String dep : d) dependencies.add(dep); return this; }
         public Builder priority(int p) { this.priority = p; return this; }
         public StompServerService build() { return new StompServerService(this); }
     }
 
-    public static Builder builder(int port) { return new Builder(port); }
+    public static Builder builder() { return new Builder(); }
+    public static Builder builder(String host, int port) { return new Builder().host(host).port(port); }
 }

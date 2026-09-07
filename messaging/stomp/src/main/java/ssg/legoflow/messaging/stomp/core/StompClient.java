@@ -2,7 +2,8 @@ package ssg.legoflow.messaging.stomp.core;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ssg.legoflow.messaging.stomp.core.transport.StompTransport;
+import ssg.legoflow.messaging.stomp.transport.StompFrameCodec;
+import ssg.legoflow.messaging.stomp.transport.StompTransport;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
@@ -25,7 +26,7 @@ public class StompClient implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(StompClient.class);
 
-    private final StompTransport transport;
+    private final StompFrameCodec codec;
     private final StompSession session;
     private final HeartbeatMonitor heartbeatMonitor = new HeartbeatMonitor();
 
@@ -41,10 +42,10 @@ public class StompClient implements AutoCloseable {
     /**
      * Creates a new STOMP client over the given transport.
      *
-     * @param transport the transport to use
+     * @param transport the byte-level transport to use
      */
     public StompClient(StompTransport transport) {
-        this.transport = transport;
+        this.codec = new StompFrameCodec(transport);
         this.session = new StompSession("client-" + System.nanoTime());
     }
 
@@ -71,11 +72,11 @@ public class StompClient implements AutoCloseable {
                     HeartbeatMonitor.formatHeartbeat(heartbeatSend, heartbeatRecv));
         }
 
-        transport.send(new StompFrame(StompCommand.STOMP, headers));
+        codec.send(new StompFrame(StompCommand.STOMP, headers));
         session.setState(StompSession.State.CONNECTING);
 
         // Wait for CONNECTED
-        StompFrame response = transport.receive();
+        StompFrame response = codec.receive();
         if (response.command() == StompCommand.ERROR) {
             session.setState(StompSession.State.DISCONNECTED);
             throw new StompProtocolException("Connection refused: " + response.bodyAsText());
@@ -145,7 +146,7 @@ public class StompClient implements AutoCloseable {
         if (body.length > 0) {
             headers.put(StompHeaders.CONTENT_LENGTH, String.valueOf(body.length));
         }
-        transport.send(new StompFrame(StompCommand.SEND, headers, body));
+        codec.send(new StompFrame(StompCommand.SEND, headers, body));
         heartbeatMonitor.markSent();
     }
 
@@ -169,7 +170,7 @@ public class StompClient implements AutoCloseable {
         if (bodyBytes.length > 0) {
             headers.put(StompHeaders.CONTENT_LENGTH, String.valueOf(bodyBytes.length));
         }
-        transport.send(new StompFrame(StompCommand.SEND, headers, bodyBytes));
+        codec.send(new StompFrame(StompCommand.SEND, headers, bodyBytes));
         heartbeatMonitor.markSent();
     }
 
@@ -197,7 +198,7 @@ public class StompClient implements AutoCloseable {
         if (bodyBytes.length > 0) {
             headers.put(StompHeaders.CONTENT_LENGTH, String.valueOf(bodyBytes.length));
         }
-        transport.send(new StompFrame(StompCommand.SEND, headers, bodyBytes));
+        codec.send(new StompFrame(StompCommand.SEND, headers, bodyBytes));
         heartbeatMonitor.markSent();
         return future;
     }
@@ -220,7 +221,7 @@ public class StompClient implements AutoCloseable {
         headers.put(StompHeaders.DESTINATION, destination);
         headers.put(StompHeaders.ACK, ackMode);
 
-        transport.send(new StompFrame(StompCommand.SUBSCRIBE, headers));
+        codec.send(new StompFrame(StompCommand.SUBSCRIBE, headers));
         session.addSubscription(subId, destination);
         heartbeatMonitor.markSent();
 
@@ -251,7 +252,7 @@ public class StompClient implements AutoCloseable {
 
         var headers = new StompHeaders();
         headers.put(StompHeaders.ID, subscriptionId);
-        transport.send(new StompFrame(StompCommand.UNSUBSCRIBE, headers));
+        codec.send(new StompFrame(StompCommand.UNSUBSCRIBE, headers));
         heartbeatMonitor.markSent();
     }
 
@@ -264,7 +265,7 @@ public class StompClient implements AutoCloseable {
         checkConnected();
         var headers = new StompHeaders();
         headers.put(StompHeaders.ID, ackId);
-        transport.send(new StompFrame(StompCommand.ACK, headers));
+        codec.send(new StompFrame(StompCommand.ACK, headers));
         heartbeatMonitor.markSent();
     }
 
@@ -279,7 +280,7 @@ public class StompClient implements AutoCloseable {
         var headers = new StompHeaders();
         headers.put(StompHeaders.ID, ackId);
         headers.put(StompHeaders.TRANSACTION, transactionId);
-        transport.send(new StompFrame(StompCommand.ACK, headers));
+        codec.send(new StompFrame(StompCommand.ACK, headers));
         heartbeatMonitor.markSent();
     }
 
@@ -292,7 +293,7 @@ public class StompClient implements AutoCloseable {
         checkConnected();
         var headers = new StompHeaders();
         headers.put(StompHeaders.ID, ackId);
-        transport.send(new StompFrame(StompCommand.NACK, headers));
+        codec.send(new StompFrame(StompCommand.NACK, headers));
         heartbeatMonitor.markSent();
     }
 
@@ -305,7 +306,7 @@ public class StompClient implements AutoCloseable {
         checkConnected();
         var headers = new StompHeaders();
         headers.put(StompHeaders.TRANSACTION, transactionId);
-        transport.send(new StompFrame(StompCommand.BEGIN, headers));
+        codec.send(new StompFrame(StompCommand.BEGIN, headers));
         session.beginTransaction(transactionId);
         heartbeatMonitor.markSent();
     }
@@ -319,7 +320,7 @@ public class StompClient implements AutoCloseable {
         checkConnected();
         var headers = new StompHeaders();
         headers.put(StompHeaders.TRANSACTION, transactionId);
-        transport.send(new StompFrame(StompCommand.COMMIT, headers));
+        codec.send(new StompFrame(StompCommand.COMMIT, headers));
         session.endTransaction(transactionId);
         heartbeatMonitor.markSent();
     }
@@ -333,7 +334,7 @@ public class StompClient implements AutoCloseable {
         checkConnected();
         var headers = new StompHeaders();
         headers.put(StompHeaders.TRANSACTION, transactionId);
-        transport.send(new StompFrame(StompCommand.ABORT, headers));
+        codec.send(new StompFrame(StompCommand.ABORT, headers));
         session.endTransaction(transactionId);
         heartbeatMonitor.markSent();
     }
@@ -355,7 +356,7 @@ public class StompClient implements AutoCloseable {
         session.setState(StompSession.State.DISCONNECTING);
         var headers = new StompHeaders();
         headers.put(StompHeaders.RECEIPT, receiptId);
-        transport.send(new StompFrame(StompCommand.DISCONNECT, headers));
+        codec.send(new StompFrame(StompCommand.DISCONNECT, headers));
         return future;
     }
 
@@ -392,7 +393,7 @@ public class StompClient implements AutoCloseable {
      * @return {@code true} if connected
      */
     public boolean isConnected() {
-        return session.isConnected() && transport.isOpen();
+        return session.isConnected() && codec.getTransport().isOpen();
     }
 
     @Override
@@ -402,7 +403,7 @@ public class StompClient implements AutoCloseable {
         if (receiverThread != null) {
             receiverThread.interrupt();
         }
-        transport.close();
+        codec.getTransport().close();
     }
 
     /**
@@ -413,10 +414,10 @@ public class StompClient implements AutoCloseable {
             try {
                 while ((session.isConnected()
                         || session.getState() == StompSession.State.DISCONNECTING)
-                        && transport.isOpen()) {
+                        && codec.getTransport().isOpen()) {
                     StompFrame frame;
                     try {
-                        frame = transport.receive();
+                        frame = codec.receive();
                     } catch (Exception e) {
                         if (session.isConnected()) {
                             LOG.debug("Receiver error: {}", e.getMessage());

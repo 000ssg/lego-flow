@@ -2,7 +2,8 @@ package ssg.legoflow.messaging.stomp.core;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ssg.legoflow.messaging.stomp.core.transport.StompTransport;
+import ssg.legoflow.messaging.stomp.transport.StompFrameCodec;
+import ssg.legoflow.messaging.stomp.transport.StompTransport;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -41,7 +42,7 @@ public class StompBroker implements AutoCloseable {
     private int brokerReceiveDesire;
 
     private final Map<String, StompSession> sessions = new ConcurrentHashMap<>();
-    private final Map<String, StompTransport> transports = new ConcurrentHashMap<>();
+    private final Map<String, StompFrameCodec> codecs = new ConcurrentHashMap<>();
     private final Map<String, HeartbeatMonitor> heartbeats = new ConcurrentHashMap<>();
 
     // Subscriptions: destination → priority queue of QueuedSubscription
@@ -128,21 +129,22 @@ public class StompBroker implements AutoCloseable {
     /**
      * Accepts a new STOMP connection and processes frames on a virtual thread.
      *
-     * @param transport the transport for this connection
+     * @param transport the byte-level transport for this connection
      */
     public void accept(StompTransport transport) {
-        Thread.startVirtualThread(() -> handleConnection(transport));
+        var codec = new StompFrameCodec(transport);
+        Thread.startVirtualThread(() -> handleConnection(codec));
     }
 
     /**
      * Handles the lifecycle of a single client connection.
      */
-    private void handleConnection(StompTransport transport) {
+    private void handleConnection(StompFrameCodec codec) {
         String sessionId = null;
         boolean gracefulDisconnect = false;
         try {
-            while (running && transport.isOpen()) {
-                StompFrame frame = transport.receive();
+            while (running && codec.getTransport().isOpen()) {
+                StompFrame frame = codec.receive();
                 if (frame == null) break;
 
                 if (frame.isHeartbeat()) {
@@ -154,7 +156,7 @@ public class StompBroker implements AutoCloseable {
                 }
 
                 switch (frame.command()) {
-                    case CONNECT, STOMP -> sessionId = handleConnect(transport, frame);
+                    case CONNECT, STOMP -> sessionId = handleConnect(codec, frame);
                     case SEND -> handleSend(sessionId, frame);
                     case SUBSCRIBE -> handleSubscribe(sessionId, frame);
                     case UNSUBSCRIBE -> handleUnsubscribe(sessionId, frame);
@@ -183,7 +185,7 @@ public class StompBroker implements AutoCloseable {
     /**
      * Handles CONNECT/STOMP frame.
      */
-    private String handleConnect(StompTransport transport, StompFrame frame) {
+    private String handleConnect(StompFrameCodec codec, StompFrame frame) {
         // Version negotiation
         String acceptVersion = frame.header(StompHeaders.ACCEPT_VERSION);
         String negotiatedVersion = negotiateVersion(acceptVersion);
@@ -193,8 +195,8 @@ public class StompBroker implements AutoCloseable {
             errorHeaders.put(StompHeaders.CONTENT_TYPE, "text/plain");
             var errorFrame = StompFrame.withText(StompCommand.ERROR, errorHeaders,
                     "Supported protocol versions are " + SUPPORTED_VERSIONS);
-            transport.send(errorFrame);
-            transport.close();
+            codec.send(errorFrame);
+            codec.getTransport().close();
             return null;
         }
 
@@ -206,8 +208,8 @@ public class StompBroker implements AutoCloseable {
             errorHeaders.put(StompHeaders.CONTENT_TYPE, "text/plain");
             var errorFrame = StompFrame.withText(StompCommand.ERROR, errorHeaders,
                     "Bad login or passcode");
-            transport.send(errorFrame);
-            transport.close();
+            codec.send(errorFrame);
+            codec.getTransport().close();
             return null;
         }
 
@@ -218,7 +220,7 @@ public class StompBroker implements AutoCloseable {
         session.setState(StompSession.State.CONNECTED);
 
         sessions.put(sessionId, session);
-        transports.put(sessionId, transport);
+        codecs.put(sessionId, codec);
 
         // Heart-beat negotiation
         var connectedHeaders = new StompHeaders();
@@ -250,7 +252,7 @@ public class StompBroker implements AutoCloseable {
             heartbeats.put(sessionId, hbMonitor);
         }
 
-        transport.send(new StompFrame(StompCommand.CONNECTED, connectedHeaders));
+        codec.send(new StompFrame(StompCommand.CONNECTED, connectedHeaders));
         LOG.debug("Session {} connected (version {})", sessionId, negotiatedVersion);
         StompEventListener ev = listener;
         if (ev != null) {
@@ -309,8 +311,8 @@ public class StompBroker implements AutoCloseable {
 
         for (var sub : subs) {
             var session = sessions.get(sub.sessionId());
-            var transport = transports.get(sub.sessionId());
-            if (session == null || transport == null || !transport.isOpen()) continue;
+            var codec = codecs.get(sub.sessionId());
+            if (session == null || codec == null || !codec.getTransport().isOpen()) continue;
 
             // Selector filtering
             if (sub.selector() != null && !evaluateSelector(sub.selector(), sendFrame)) {
@@ -365,7 +367,7 @@ public class StompBroker implements AutoCloseable {
             sub.messageQueue().add(messageFrame);
 
             try {
-                transport.send(messageFrame);
+                codec.send(messageFrame);
                 StompEventListener ev = listener;
                 if (ev != null) {
                     ev.onEvent(StompEventListener.EventType.MESSAGE_DELIVERED, sub.sessionId(), destination);
@@ -785,9 +787,9 @@ public class StompBroker implements AutoCloseable {
             var receiptHeaders = new StompHeaders();
             receiptHeaders.put(StompHeaders.RECEIPT_ID, receiptId);
             var receiptFrame = new StompFrame(StompCommand.RECEIPT, receiptHeaders);
-            var transport = transports.get(sessionId);
-            if (transport != null && transport.isOpen()) {
-                transport.send(receiptFrame);
+            var codec = codecs.get(sessionId);
+            if (codec != null && codec.getTransport().isOpen()) {
+                codec.send(receiptFrame);
             }
         }
     }
@@ -797,8 +799,8 @@ public class StompBroker implements AutoCloseable {
      */
     void sendError(String sessionId, String message, String receiptId) {
         if (sessionId == null) return;
-        var transport = transports.get(sessionId);
-        if (transport == null || !transport.isOpen()) return;
+        var codec = codecs.get(sessionId);
+        if (codec == null || !codec.getTransport().isOpen()) return;
 
         var headers = new StompHeaders();
         headers.put(StompHeaders.MESSAGE_HEADER, message);
@@ -808,7 +810,7 @@ public class StompBroker implements AutoCloseable {
         }
 
         var errorFrame = StompFrame.withText(StompCommand.ERROR, headers, message);
-        transport.send(errorFrame);
+        codec.send(errorFrame);
         LOG.debug("Sent error to session {}: {}", sessionId, message);
     }
 
@@ -851,7 +853,7 @@ public class StompBroker implements AutoCloseable {
      */
     private void cleanupSession(String sessionId, boolean closeTransport) {
         sessions.remove(sessionId);
-        var transport = transports.remove(sessionId);
+        var codec = codecs.remove(sessionId);
         var hb = heartbeats.remove(sessionId);
         if (hb != null) hb.stop();
 
@@ -868,9 +870,9 @@ public class StompBroker implements AutoCloseable {
         pendingAcks.entrySet().removeIf(e -> e.getValue().sessionId().equals(sessionId));
         ackOrder.entrySet().removeIf(e -> e.getKey().startsWith(sessionId + ":"));
 
-        if (closeTransport && transport != null && transport.isOpen()) {
+        if (closeTransport && codec != null && codec.getTransport().isOpen()) {
             try {
-                transport.close();
+                codec.getTransport().close();
             } catch (Exception e) {
                 LOG.debug("Error closing transport for session {}: {}", sessionId, e.getMessage());
             }

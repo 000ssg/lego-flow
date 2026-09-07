@@ -94,7 +94,28 @@ public final class StompCodec {
      * @return the parsed frame
      * @throws StompProtocolException if the frame is malformed
      */
+    /**
+     * Decodes STOMP frame bytes into a {@link StompFrame}.
+     *
+     * @param data the raw frame bytes
+     * @return the decoded frame
+     * @throws StompProtocolException if the frame is malformed
+     */
     public static StompFrame decode(byte[] data) {
+        return decode(data, true);
+    }
+
+    /**
+     * Decodes STOMP frame bytes into a {@link StompFrame} with configurable
+     * NULL terminator handling.
+     *
+     * @param data the raw frame bytes
+     * @param strictNull if true, throws when NULL terminator is missing after
+     *        a body without content-length; if false, accepts rest of data as body
+     * @return the decoded frame
+     * @throws StompProtocolException if the frame is malformed
+     */
+    public static StompFrame decode(byte[] data, boolean strictNull) {
         if (data == null || data.length == 0) {
             throw new StompProtocolException("Empty frame data");
         }
@@ -195,6 +216,9 @@ public final class StompCodec {
             // Read until NULL terminator
             int nullIdx = indexOf(data, NULL, pos);
             if (nullIdx < 0) {
+                if (strictNull && (command != StompCommand.HEARTBEAT)) {
+                    throw new StompProtocolException("Missing NULL terminator after body");
+                }
                 // No NULL found — use rest of data as body
                 body = Arrays.copyOfRange(data, pos, data.length);
             } else {
