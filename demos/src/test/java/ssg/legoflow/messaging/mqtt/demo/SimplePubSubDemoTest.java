@@ -5,6 +5,7 @@ import ssg.legoflow.messaging.mqtt.broker.MqttBrokerConfig;
 import ssg.legoflow.messaging.mqtt.client.MqttClient;
 import ssg.legoflow.messaging.mqtt.client.MqttClientConfig;
 import ssg.legoflow.messaging.mqtt.protocol.QoS;
+import ssg.legoflow.messaging.mqtt.transport.InMemoryMqttTransport;
 import org.junit.jupiter.api.Test;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -14,6 +15,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for {@link SimplePubSubDemo} scenarios.
  *
+ * <p>All tests run against an in-house {@link MqttBroker} over in-memory transport
+ * pairs — no network.</p>
+ *
  * @since 0.1.0
  */
 class SimplePubSubDemoTest {
@@ -22,13 +26,17 @@ class SimplePubSubDemoTest {
     void testSingleMessageDelivery() throws Exception {
         // Given: broker and two clients
         try (var broker = new MqttBroker(MqttBrokerConfig.minimal())) {
-            broker.bind("localhost", 0);
-            int port = broker.getPort();
+            broker.start();
             var received = new CopyOnWriteArrayList<String>();
             var latch = new CountDownLatch(1);
 
-            try (var sub = client(port, "simple-sub");
-                 var pub = client(port, "simple-pub")) {
+            var subPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(subPair[0]);
+            var pubPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(pubPair[0]);
+
+            try (var sub = new MqttClient(MqttClientConfig.defaults().clientId("simple-sub").build(), subPair[1]);
+                 var pub = new MqttClient(MqttClientConfig.defaults().clientId("simple-pub").build(), pubPair[1])) {
                 sub.connect().get(5, TimeUnit.SECONDS);
                 pub.connect().get(5, TimeUnit.SECONDS);
 
@@ -52,13 +60,17 @@ class SimplePubSubDemoTest {
     void testMultipleMessages() throws Exception {
         // Given: setup
         try (var broker = new MqttBroker(MqttBrokerConfig.minimal())) {
-            broker.bind("localhost", 0);
-            int port = broker.getPort();
+            broker.start();
             var received = new CopyOnWriteArrayList<String>();
             var latch = new CountDownLatch(3);
 
-            try (var sub = client(port, "multi-msg-sub");
-                 var pub = client(port, "multi-msg-pub")) {
+            var subPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(subPair[0]);
+            var pubPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(pubPair[0]);
+
+            try (var sub = new MqttClient(MqttClientConfig.defaults().clientId("multi-msg-sub").build(), subPair[1]);
+                 var pub = new MqttClient(MqttClientConfig.defaults().clientId("multi-msg-pub").build(), pubPair[1])) {
                 sub.connect().get(5, TimeUnit.SECONDS);
                 pub.connect().get(5, TimeUnit.SECONDS);
 
@@ -84,13 +96,17 @@ class SimplePubSubDemoTest {
     void testEmptyPayload() throws Exception {
         // Given: setup
         try (var broker = new MqttBroker(MqttBrokerConfig.minimal())) {
-            broker.bind("localhost", 0);
-            int port = broker.getPort();
+            broker.start();
             var received = new CopyOnWriteArrayList<byte[]>();
             var latch = new CountDownLatch(1);
 
-            try (var sub = client(port, "empty-sub");
-                 var pub = client(port, "empty-pub")) {
+            var subPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(subPair[0]);
+            var pubPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(pubPair[0]);
+
+            try (var sub = new MqttClient(MqttClientConfig.defaults().clientId("empty-sub").build(), subPair[1]);
+                 var pub = new MqttClient(MqttClientConfig.defaults().clientId("empty-pub").build(), pubPair[1])) {
                 sub.connect().get(5, TimeUnit.SECONDS);
                 pub.connect().get(5, TimeUnit.SECONDS);
 
@@ -114,12 +130,16 @@ class SimplePubSubDemoTest {
     void testDifferentTopicsIsolated() throws Exception {
         // Given: setup
         try (var broker = new MqttBroker(MqttBrokerConfig.minimal())) {
-            broker.bind("localhost", 0);
-            int port = broker.getPort();
+            broker.start();
             var received = new CopyOnWriteArrayList<String>();
 
-            try (var sub = client(port, "iso-sub");
-                 var pub = client(port, "iso-pub")) {
+            var subPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(subPair[0]);
+            var pubPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(pubPair[0]);
+
+            try (var sub = new MqttClient(MqttClientConfig.defaults().clientId("iso-sub").build(), subPair[1]);
+                 var pub = new MqttClient(MqttClientConfig.defaults().clientId("iso-pub").build(), pubPair[1])) {
                 sub.connect().get(5, TimeUnit.SECONDS);
                 pub.connect().get(5, TimeUnit.SECONDS);
 
@@ -135,10 +155,5 @@ class SimplePubSubDemoTest {
                 assertThat(received).isEmpty();
             }
         }
-    }
-
-    private MqttClient client(int port, String clientId) {
-        return new MqttClient(MqttClientConfig.defaults()
-                .host("localhost").port(port).clientId(clientId).build());
     }
 }

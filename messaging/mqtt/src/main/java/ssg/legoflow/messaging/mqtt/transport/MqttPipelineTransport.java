@@ -124,7 +124,11 @@ public final class MqttPipelineTransport implements MqttTransport {
     public void onWrite(DataChannel ch) {
         ByteBuffer buf;
         while ((buf = outboundQueue.poll()) != null) {
-            buf.flip();
+            // Buffers are queued in READ mode (MqttCodec.encode flips on encode; the
+            // in-memory transport flips its copy). Do NOT re-flip — a read-mode buffer
+            // and a fully-written write-mode buffer are indistinguishable by position/
+            // limit/capacity, so re-flipping discards the frame. Just write what's there.
+            if (!buf.hasRemaining()) continue;
             try {
                 while (buf.hasRemaining()) {
                     if (ch.write(buf) <= 0) break;
@@ -134,9 +138,8 @@ public final class MqttPipelineTransport implements MqttTransport {
                 break;
             }
             if (buf.hasRemaining()) {
-                buf.flip();
                 outboundQueue.offer(buf);
-                break;
+                break; // Wait for next writable event
             }
         }
     }

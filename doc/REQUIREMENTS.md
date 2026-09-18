@@ -658,3 +658,21 @@ Implemented 8-phase cluster protocol suite enabling multi-node deployment of Leg
 - SSL context helpers for Java SSL engine testing
 - TestDomain factory with 10-year self-signed certs for all protocol tests
 - 105 tests, 0 failures (Maven), 98 tests, 0 failures (Gradle)
+
+## 2026-09-18: STOMP TCP message-loss fix (frame reassembly) + messaging interop verification
+
+- Root cause: `StompFrameCodec.receive()` drained the whole read buffer but decoded only the FIRST frame; on real TCP a single read carries all batched bytes (e.g. 5 MESSAGE frames), so trailing frames were silently dropped and partial frames threw, killing the receiver thread. Reproduced as `StompInteropTest.testMultipleMessages` 0/5 in the combined single-JVM interop run.
+- Fix: rewrote `StompFrameCodec.receive()` as a stream reassembler on `StompCodec.findFrameEnd()` — accumulate all bytes, decode exactly one complete frame per call, keep the remainder; `FrameIncompleteException` = wait for more bytes; read timeout with no data does NOT end the caller's loop (only transport close returns null). Applies to both client (background receiver) and broker (per-connection loop).
+- Regression tests: 6 new cases in `StompFrameCodecTest` with a chunked fake transport (batched frames in one read, split frame, split + trailing next frame, heartbeat + frame, timeout survival, close-with-partial → null).
+- Verified: stomp module 233 unit tests green; messaging interop group (AmqpInteropTest + MqttMosquittoInteropTest + StompInteropTest) 12/12 in two consecutive combined runs; full Maven unit suite (all modules, no benchmarks) BUILD SUCCESS; Gradle clean test BUILD SUCCESSFUL.
+
+## 2026-09-18: Messaging transport redesign follow-up — service-layer NIO transports, MQTT/AMQP/STOMP client fixes, interop infrastructure
+
+Part 1 of the cleanup-messaging verification series (part 2 = the STOMP frame reassembly fix, same day).
+
+- **Service layer (SelectableChannelManager)**: TCP connect lifecycle moved fully into the selector thread (finishConnect, interestOps, close); protocol channel handlers no longer touch SocketChannel/SelectionKey directly; `TcpDataFlowTest` added.
+- **MQTT**: `MqttPipelineTransport.onWrite` double-flip fix (codec returns read-mode buffer; re-flip made CONNECT write 0 bytes on real TCP); `MqttClientService.doConnect` illegal CONNECTING->CONNECTING self-transition removed; `MqttTlsTransport` rewritten around SSLEngine; new `MqttMosquittoInteropTest` (real broker via MqttClientService).
+- **AMQP**: client service-layer wiring on the new channel handler; ClientConfig documents the live-verified Artemis SASL-first (proto-3) acceptor behavior; interop target moved to Artemis 5675 (artemis/guest), RabbitMQ 5672 kept as wire-capture reference.
+- **STOMP**: `StompClientService`/`StompClientChannelHandler` on the byte-level SPI + selector-thread lifecycle; `StompCodec` gains `findFrameEnd()` / ranged decode / `FrameIncompleteException` (reassembly primitives); `PipelineTransport` ring-buffer + enqueue-then-OP_WRITE outbound; new channel-handler/persistence/event-listener/pipeline tests; acl test dependency added to the module POM.
+- **Interop infra**: docker-compose Artemis creds fixed (ARTEMIS_USER entrypoint var, artemis/guest, port 5675); `interop-tests/pom.xml` AMQP port 5672->5675; new logback.xml for surefire; demos migrated to the in-memory transport pair API.
+- **Verified**: full Maven unit suite (all modules, no benchmarks) BUILD SUCCESS; Gradle clean test BUILD SUCCESSFUL; messaging interop group 12/12 in two consecutive combined single-JVM runs (AmqpInteropTest 6/6 Artemis, MqttMosquittoInteropTest 3/3, StompInteropTest 3/3); demos 771/771; benchmarks BUILD SUCCESS.

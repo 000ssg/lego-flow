@@ -39,7 +39,9 @@ public final class MqttClientService extends AbstractService<ByteBuffer, ByteBuf
     @Override
     protected void doConnect(ServiceContext ctx) {
         try {
-            transitionTo(ProcessorState.CONNECTING);
+            // NOTE: the base AbstractService.connect() has already transitioned the
+            // processor to CONNECTING. We must NOT transition again here — that is an
+            // illegal CONNECTING -> CONNECTING transition.
             // 1. Open non-blocking socket
             var socketChannel = java.nio.channels.SocketChannel.open();
             socketChannel.configureBlocking(false);

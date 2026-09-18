@@ -5,6 +5,7 @@ import ssg.legoflow.messaging.mqtt.broker.MqttBrokerConfig;
 import ssg.legoflow.messaging.mqtt.client.MqttClient;
 import ssg.legoflow.messaging.mqtt.client.MqttClientConfig;
 import ssg.legoflow.messaging.mqtt.protocol.QoS;
+import ssg.legoflow.messaging.mqtt.transport.InMemoryMqttTransport;
 import org.junit.jupiter.api.Test;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -16,6 +17,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for {@link IoTSensorDemo} scenarios.
  *
+ * <p>All tests run against an in-house {@link MqttBroker} over in-memory transport
+ * pairs — no network.</p>
+ *
  * @since 0.1.0
  */
 class IoTSensorDemoTest {
@@ -24,12 +28,13 @@ class IoTSensorDemoTest {
     void testSingleSensorPublishesData() throws Exception {
         // Given: dashboard subscriber
         try (var broker = new MqttBroker(MqttBrokerConfig.minimal())) {
-            broker.bind("localhost", 0);
-            int port = broker.getPort();
+            broker.start();
             var received = new ConcurrentHashMap<String, List<String>>();
             var latch = new CountDownLatch(1);
 
-            try (var dashboard = client(port, "iot-dash-1")) {
+            var dashPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(dashPair[0]);
+            try (var dashboard = new MqttClient(MqttClientConfig.defaults().clientId("iot-dash-1").build(), dashPair[1])) {
                 dashboard.connect().get(5, TimeUnit.SECONDS);
                 dashboard.subscribe("iot/sensors/#", QoS.AT_LEAST_ONCE, (t, p, q, r) -> {
                     received.computeIfAbsent(t, k -> new CopyOnWriteArrayList<>())
@@ -37,7 +42,9 @@ class IoTSensorDemoTest {
                     latch.countDown();
                 }).get(5, TimeUnit.SECONDS);
 
-                try (var sensor = client(port, "sensor-1")) {
+                var sensorPair = InMemoryMqttTransport.createPair();
+                broker.handleConnection(sensorPair[0]);
+                try (var sensor = new MqttClient(MqttClientConfig.defaults().clientId("sensor-1").build(), sensorPair[1])) {
                     sensor.connect().get(5, TimeUnit.SECONDS);
                     sensor.publish("iot/sensors/sensor-1/temp", "25.0".getBytes(),
                             QoS.AT_LEAST_ONCE, false).get(5, TimeUnit.SECONDS);
@@ -53,12 +60,13 @@ class IoTSensorDemoTest {
     void testMultipleSensorsPublish() throws Exception {
         // Given: dashboard and 3 sensors
         try (var broker = new MqttBroker(MqttBrokerConfig.minimal())) {
-            broker.bind("localhost", 0);
-            int port = broker.getPort();
+            broker.start();
             var received = new ConcurrentHashMap<String, List<String>>();
             var latch = new CountDownLatch(3);
 
-            try (var dashboard = client(port, "iot-dash-2")) {
+            var dashPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(dashPair[0]);
+            try (var dashboard = new MqttClient(MqttClientConfig.defaults().clientId("iot-dash-2").build(), dashPair[1])) {
                 dashboard.connect().get(5, TimeUnit.SECONDS);
                 dashboard.subscribe("iot/sensors/#", QoS.AT_LEAST_ONCE, (t, p, q, r) -> {
                     received.computeIfAbsent(t, k -> new CopyOnWriteArrayList<>())
@@ -67,7 +75,9 @@ class IoTSensorDemoTest {
                 }).get(5, TimeUnit.SECONDS);
 
                 for (int i = 1; i <= 3; i++) {
-                    try (var sensor = client(port, "s-" + i)) {
+                    var sensorPair = InMemoryMqttTransport.createPair();
+                    broker.handleConnection(sensorPair[0]);
+                    try (var sensor = new MqttClient(MqttClientConfig.defaults().clientId("s-" + i).build(), sensorPair[1])) {
                         sensor.connect().get(5, TimeUnit.SECONDS);
                         sensor.publish("iot/sensors/s-" + i + "/temp", String.valueOf(20 + i).getBytes(),
                                 QoS.AT_LEAST_ONCE, false).get(5, TimeUnit.SECONDS);
@@ -84,19 +94,22 @@ class IoTSensorDemoTest {
     void testDashboardReceivesDifferentMetrics() throws Exception {
         // Given: sensor publishing temp and humidity
         try (var broker = new MqttBroker(MqttBrokerConfig.minimal())) {
-            broker.bind("localhost", 0);
-            int port = broker.getPort();
+            broker.start();
             var topics = new CopyOnWriteArrayList<String>();
             var latch = new CountDownLatch(2);
 
-            try (var dashboard = client(port, "iot-dash-3")) {
+            var dashPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(dashPair[0]);
+            try (var dashboard = new MqttClient(MqttClientConfig.defaults().clientId("iot-dash-3").build(), dashPair[1])) {
                 dashboard.connect().get(5, TimeUnit.SECONDS);
                 dashboard.subscribe("iot/sensors/#", QoS.AT_LEAST_ONCE, (t, p, q, r) -> {
                     topics.add(t);
                     latch.countDown();
                 }).get(5, TimeUnit.SECONDS);
 
-                try (var sensor = client(port, "multi-metric")) {
+                var sensorPair = InMemoryMqttTransport.createPair();
+                broker.handleConnection(sensorPair[0]);
+                try (var sensor = new MqttClient(MqttClientConfig.defaults().clientId("multi-metric").build(), sensorPair[1])) {
                     sensor.connect().get(5, TimeUnit.SECONDS);
                     sensor.publish("iot/sensors/multi-metric/temp", "22".getBytes(),
                             QoS.AT_LEAST_ONCE, false).get(5, TimeUnit.SECONDS);
@@ -116,19 +129,22 @@ class IoTSensorDemoTest {
     void testSelectiveSubscription() throws Exception {
         // Given: subscriber only to temperature
         try (var broker = new MqttBroker(MqttBrokerConfig.minimal())) {
-            broker.bind("localhost", 0);
-            int port = broker.getPort();
+            broker.start();
             var received = new CopyOnWriteArrayList<String>();
             var latch = new CountDownLatch(1);
 
-            try (var dashboard = client(port, "iot-dash-4")) {
+            var dashPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(dashPair[0]);
+            try (var dashboard = new MqttClient(MqttClientConfig.defaults().clientId("iot-dash-4").build(), dashPair[1])) {
                 dashboard.connect().get(5, TimeUnit.SECONDS);
                 dashboard.subscribe("iot/sensors/+/temp", QoS.AT_LEAST_ONCE, (t, p, q, r) -> {
                     received.add(t);
                     latch.countDown();
                 }).get(5, TimeUnit.SECONDS);
 
-                try (var sensor = client(port, "selective-s")) {
+                var sensorPair = InMemoryMqttTransport.createPair();
+                broker.handleConnection(sensorPair[0]);
+                try (var sensor = new MqttClient(MqttClientConfig.defaults().clientId("selective-s").build(), sensorPair[1])) {
                     sensor.connect().get(5, TimeUnit.SECONDS);
                     sensor.publish("iot/sensors/selective-s/temp", "25".getBytes(),
                             QoS.AT_LEAST_ONCE, false).get(5, TimeUnit.SECONDS);
@@ -148,10 +164,11 @@ class IoTSensorDemoTest {
     void testSensorRetainedData() throws Exception {
         // Given: sensor publishes retained
         try (var broker = new MqttBroker(MqttBrokerConfig.minimal())) {
-            broker.bind("localhost", 0);
-            int port = broker.getPort();
+            broker.start();
 
-            try (var sensor = client(port, "retain-sensor")) {
+            var sensorPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(sensorPair[0]);
+            try (var sensor = new MqttClient(MqttClientConfig.defaults().clientId("retain-sensor").build(), sensorPair[1])) {
                 sensor.connect().get(5, TimeUnit.SECONDS);
                 sensor.publish("iot/sensors/retain-sensor/temp", "28.5".getBytes(),
                         QoS.AT_LEAST_ONCE, true).get(5, TimeUnit.SECONDS);
@@ -162,7 +179,9 @@ class IoTSensorDemoTest {
             var received = new CopyOnWriteArrayList<String>();
             var latch = new CountDownLatch(1);
 
-            try (var dashboard = client(port, "late-dash")) {
+            var dashPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(dashPair[0]);
+            try (var dashboard = new MqttClient(MqttClientConfig.defaults().clientId("late-dash").build(), dashPair[1])) {
                 dashboard.connect().get(5, TimeUnit.SECONDS);
                 dashboard.subscribe("iot/sensors/#", QoS.AT_LEAST_ONCE, (t, p, q, r) -> {
                     received.add(new String(p, StandardCharsets.UTF_8));
@@ -173,10 +192,5 @@ class IoTSensorDemoTest {
                 assertThat(received).contains("28.5");
             }
         }
-    }
-
-    private MqttClient client(int port, String clientId) {
-        return new MqttClient(MqttClientConfig.defaults()
-                .host("localhost").port(port).clientId(clientId).build());
     }
 }

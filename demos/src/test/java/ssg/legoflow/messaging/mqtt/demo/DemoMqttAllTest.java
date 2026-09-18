@@ -5,9 +5,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Runs the comprehensive MQTT demo and verifies all feature sections.
  *
- * <p>By default, uses the in-house {@code MqttBroker}. To test against
- * an external Mosquitto/HiveMQ/EMQX, set {@code DemoMqttAll.USE_EXTERNAL = true}
- * and configure host/port before running.</p>
+ * <p>Runs against the in-house {@code MqttBroker} over in-memory transport
+ * pairs — no network required. For external-broker interop (Mosquitto/HiveMQ/EMQX)
+ * see the {@code interop-tests} module.</p>
  */
 class DemoMqttAllTest {
 

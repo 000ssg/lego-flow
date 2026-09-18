@@ -65,7 +65,6 @@ public final class StompClientService extends AbstractService<ByteBuffer, ByteBu
     @Override
     protected void doConnect(ServiceContext ctx) {
         try {
-            transitionTo(ProcessorState.CONNECTING);
             // 1. Open non-blocking socket
             var socketChannel = SocketChannel.open();
             socketChannel.configureBlocking(false);

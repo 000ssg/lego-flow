@@ -46,7 +46,8 @@ public final class PipelineTransport implements StompTransport {
     /** Called by the pipeline when data arrives from the channel. */
     public void onRead(DataChannel ch, ByteBuffer data) {
         if (!open.get()) return;
-        int n = add(data);
+        int n = data == null ? 0 : data.remaining();
+        int added = add(data);
         if (n > 0) available.release(1);
     }
 
@@ -131,17 +132,18 @@ public final class PipelineTransport implements StompTransport {
     @Override
     public void send(ByteBuffer data) {
         if (!open.get()) return;
-        var slice = data.slice();
-        try {
-            int written = channel.write(slice);
-            if (written == slice.remaining()) {
-                return;
-            }
-        } catch (IOException e) {
-            LOG.debug("Immediate write failed: {}", e.getMessage());
+        // Enqueue and let the selector thread perform the write (OP_WRITE).
+        // We must NOT write to the socket from the calling thread — the
+        // SocketChannel is owned by the SelectableChannelManager's selector
+        // thread, and a concurrent write here races with its read/write and
+        // causes flaky message loss (the MQTT transport follows this same
+        // enqueue-then-OP_WRITE pattern).
+        var dup = data.duplicate();
+        outboundQueue.offer(dup);
+        var key = channel.getSelectionKey();
+        if (key != null) {
+            key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
         }
-        outboundQueue.offer(slice);
-        registerOps();
     }
 
     @Override
@@ -149,39 +151,30 @@ public final class PipelineTransport implements StompTransport {
         return receiveWithTimeout(buffer, 5, TimeUnit.SECONDS);
     }
 
+    /**
+     * Receives raw bytes: returns what is available in the ring immediately,
+     * or waits for the next read event until the timeout.
+     *
+     * <p>Must NOT keep filling the caller's buffer until the deadline: STOMP
+     * frames are self-delimiting, so a reader that has drained the ring should
+     * block for the NEXT read, not wait for the buffer to fill.
+     *
+     * @return bytes fetched (>= 0), or -1 if the transport closed (or the
+     *         wait for the next read event timed out with nothing to read)
+     */
     @Override
     public int receiveWithTimeout(ByteBuffer buffer, long timeout, TimeUnit unit) {
         if (!open.get()) return -1;
-
-        long deadline = System.currentTimeMillis() + unit.toMillis(timeout);
-        int fetched = 0;
-
-        while (buffer.hasRemaining()) {
-            long remainingMs = deadline - System.currentTimeMillis();
-            if (remainingMs <= 0) return fetched > 0 ? fetched : -1;
-
-            if (peek() >= buffer.remaining()) {
-                int n = fetch(buffer);
-                fetched += n;
-                if (n == 0) break;
-                continue;
-            }
-
-            try {
-                if (!available.tryAcquire(1, remainingMs, TimeUnit.MILLISECONDS)) {
-                    return fetched > 0 ? fetched : -1;
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return fetched > 0 ? fetched : -1;
-            }
-
-            int n = fetch(buffer);
-            fetched += n;
-            if (n == 0) continue;
+        if (count > 0) {
+            return fetch(buffer);
         }
-
-        return fetched;
+        try {
+            if (!available.tryAcquire(timeout, unit)) return -1;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return -1;
+        }
+        return fetch(buffer);
     }
 
     @Override

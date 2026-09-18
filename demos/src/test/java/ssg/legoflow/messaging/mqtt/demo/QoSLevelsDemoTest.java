@@ -5,6 +5,7 @@ import ssg.legoflow.messaging.mqtt.broker.MqttBrokerConfig;
 import ssg.legoflow.messaging.mqtt.client.MqttClient;
 import ssg.legoflow.messaging.mqtt.client.MqttClientConfig;
 import ssg.legoflow.messaging.mqtt.protocol.QoS;
+import ssg.legoflow.messaging.mqtt.transport.InMemoryMqttTransport;
 import org.junit.jupiter.api.Test;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -14,6 +15,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for {@link QoSLevelsDemo} scenarios.
  *
+ * <p>All tests run against an in-house {@link MqttBroker} over in-memory transport
+ * pairs — no network.</p>
+ *
  * @since 0.1.0
  */
 class QoSLevelsDemoTest {
@@ -22,13 +26,17 @@ class QoSLevelsDemoTest {
     void testQoS0FireAndForget() throws Exception {
         // Given: setup
         try (var broker = new MqttBroker(MqttBrokerConfig.minimal())) {
-            broker.bind("localhost", 0);
-            int port = broker.getPort();
+            broker.start();
             var received = new CopyOnWriteArrayList<String>();
             var latch = new CountDownLatch(1);
 
-            try (var sub = client(port, "q0-sub");
-                 var pub = client(port, "q0-pub")) {
+            var subPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(subPair[0]);
+            var pubPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(pubPair[0]);
+
+            try (var sub = new MqttClient(MqttClientConfig.defaults().clientId("q0-sub").build(), subPair[1]);
+                 var pub = new MqttClient(MqttClientConfig.defaults().clientId("q0-pub").build(), pubPair[1])) {
                 sub.connect().get(5, TimeUnit.SECONDS);
                 pub.connect().get(5, TimeUnit.SECONDS);
 
@@ -51,13 +59,17 @@ class QoSLevelsDemoTest {
     void testQoS1Acknowledged() throws Exception {
         // Given: QoS 1 setup
         try (var broker = new MqttBroker(MqttBrokerConfig.minimal())) {
-            broker.bind("localhost", 0);
-            int port = broker.getPort();
+            broker.start();
             var received = new CopyOnWriteArrayList<String>();
             var latch = new CountDownLatch(1);
 
-            try (var sub = client(port, "q1-sub");
-                 var pub = client(port, "q1-pub")) {
+            var subPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(subPair[0]);
+            var pubPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(pubPair[0]);
+
+            try (var sub = new MqttClient(MqttClientConfig.defaults().clientId("q1-sub").build(), subPair[1]);
+                 var pub = new MqttClient(MqttClientConfig.defaults().clientId("q1-pub").build(), pubPair[1])) {
                 sub.connect().get(5, TimeUnit.SECONDS);
                 pub.connect().get(5, TimeUnit.SECONDS);
 
@@ -79,13 +91,17 @@ class QoSLevelsDemoTest {
     void testQoS2ExactlyOnce() throws Exception {
         // Given: QoS 2 setup
         try (var broker = new MqttBroker(MqttBrokerConfig.minimal())) {
-            broker.bind("localhost", 0);
-            int port = broker.getPort();
+            broker.start();
             var received = new CopyOnWriteArrayList<String>();
             var latch = new CountDownLatch(1);
 
-            try (var sub = client(port, "q2-sub");
-                 var pub = client(port, "q2-pub")) {
+            var subPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(subPair[0]);
+            var pubPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(pubPair[0]);
+
+            try (var sub = new MqttClient(MqttClientConfig.defaults().clientId("q2-sub").build(), subPair[1]);
+                 var pub = new MqttClient(MqttClientConfig.defaults().clientId("q2-pub").build(), pubPair[1])) {
                 sub.connect().get(5, TimeUnit.SECONDS);
                 pub.connect().get(5, TimeUnit.SECONDS);
 
@@ -107,13 +123,17 @@ class QoSLevelsDemoTest {
     void testAllQoSLevelsDeliver() throws Exception {
         // Given: setup with all 3 QoS levels
         try (var broker = new MqttBroker(MqttBrokerConfig.minimal())) {
-            broker.bind("localhost", 0);
-            int port = broker.getPort();
+            broker.start();
             var received = new CopyOnWriteArrayList<String>();
             var latch = new CountDownLatch(3);
 
-            try (var sub = client(port, "all-q-sub");
-                 var pub = client(port, "all-q-pub")) {
+            var subPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(subPair[0]);
+            var pubPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(pubPair[0]);
+
+            try (var sub = new MqttClient(MqttClientConfig.defaults().clientId("all-q-sub").build(), subPair[1]);
+                 var pub = new MqttClient(MqttClientConfig.defaults().clientId("all-q-pub").build(), pubPair[1])) {
                 sub.connect().get(5, TimeUnit.SECONDS);
                 pub.connect().get(5, TimeUnit.SECONDS);
 
@@ -133,10 +153,5 @@ class QoSLevelsDemoTest {
                 assertThat(received).hasSize(3);
             }
         }
-    }
-
-    private MqttClient client(int port, String clientId) {
-        return new MqttClient(MqttClientConfig.defaults()
-                .host("localhost").port(port).clientId(clientId).build());
     }
 }

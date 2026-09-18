@@ -5,6 +5,7 @@ import ssg.legoflow.messaging.mqtt.broker.MqttBrokerConfig;
 import ssg.legoflow.messaging.mqtt.client.MqttClient;
 import ssg.legoflow.messaging.mqtt.client.MqttClientConfig;
 import ssg.legoflow.messaging.mqtt.protocol.QoS;
+import ssg.legoflow.messaging.mqtt.transport.InMemoryMqttTransport;
 import org.junit.jupiter.api.Test;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -12,6 +13,9 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for {@link WildcardTopicsDemo} scenarios.
+ *
+ * <p>All tests run against an in-house {@link MqttBroker} over in-memory transport
+ * pairs — no network.</p>
  *
  * @since 0.1.0
  */
@@ -21,13 +25,17 @@ class WildcardTopicsDemoTest {
     void testSingleLevelWildcard() throws Exception {
         // Given: subscriber to sensors/+/temp
         try (var broker = new MqttBroker(MqttBrokerConfig.minimal())) {
-            broker.bind("localhost", 0);
-            int port = broker.getPort();
+            broker.start();
             var received = new CopyOnWriteArrayList<String>();
             var latch = new CountDownLatch(2);
 
-            try (var sub = client(port, "wc1-sub");
-                 var pub = client(port, "wc1-pub")) {
+            var subPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(subPair[0]);
+            var pubPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(pubPair[0]);
+
+            try (var sub = new MqttClient(MqttClientConfig.defaults().clientId("wc1-sub").build(), subPair[1]);
+                 var pub = new MqttClient(MqttClientConfig.defaults().clientId("wc1-pub").build(), pubPair[1])) {
                 sub.connect().get(5, TimeUnit.SECONDS);
                 pub.connect().get(5, TimeUnit.SECONDS);
 
@@ -51,13 +59,17 @@ class WildcardTopicsDemoTest {
     void testMultiLevelWildcard() throws Exception {
         // Given: subscriber to sensors/#
         try (var broker = new MqttBroker(MqttBrokerConfig.minimal())) {
-            broker.bind("localhost", 0);
-            int port = broker.getPort();
+            broker.start();
             var received = new CopyOnWriteArrayList<String>();
             var latch = new CountDownLatch(3);
 
-            try (var sub = client(port, "wc2-sub");
-                 var pub = client(port, "wc2-pub")) {
+            var subPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(subPair[0]);
+            var pubPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(pubPair[0]);
+
+            try (var sub = new MqttClient(MqttClientConfig.defaults().clientId("wc2-sub").build(), subPair[1]);
+                 var pub = new MqttClient(MqttClientConfig.defaults().clientId("wc2-pub").build(), pubPair[1])) {
                 sub.connect().get(5, TimeUnit.SECONDS);
                 pub.connect().get(5, TimeUnit.SECONDS);
 
@@ -80,12 +92,16 @@ class WildcardTopicsDemoTest {
     void testWildcardDoesNotMatchDifferentPrefix() throws Exception {
         // Given: subscriber to sensors/+/temp
         try (var broker = new MqttBroker(MqttBrokerConfig.minimal())) {
-            broker.bind("localhost", 0);
-            int port = broker.getPort();
+            broker.start();
             var received = new CopyOnWriteArrayList<String>();
 
-            try (var sub = client(port, "wc3-sub");
-                 var pub = client(port, "wc3-pub")) {
+            var subPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(subPair[0]);
+            var pubPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(pubPair[0]);
+
+            try (var sub = new MqttClient(MqttClientConfig.defaults().clientId("wc3-sub").build(), subPair[1]);
+                 var pub = new MqttClient(MqttClientConfig.defaults().clientId("wc3-pub").build(), pubPair[1])) {
                 sub.connect().get(5, TimeUnit.SECONDS);
                 pub.connect().get(5, TimeUnit.SECONDS);
 
@@ -105,12 +121,16 @@ class WildcardTopicsDemoTest {
     void testPlusDoesNotMatchMultipleLevels() throws Exception {
         // Given: + only matches single level
         try (var broker = new MqttBroker(MqttBrokerConfig.minimal())) {
-            broker.bind("localhost", 0);
-            int port = broker.getPort();
+            broker.start();
             var received = new CopyOnWriteArrayList<String>();
 
-            try (var sub = client(port, "wc4-sub");
-                 var pub = client(port, "wc4-pub")) {
+            var subPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(subPair[0]);
+            var pubPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(pubPair[0]);
+
+            try (var sub = new MqttClient(MqttClientConfig.defaults().clientId("wc4-sub").build(), subPair[1]);
+                 var pub = new MqttClient(MqttClientConfig.defaults().clientId("wc4-pub").build(), pubPair[1])) {
                 sub.connect().get(5, TimeUnit.SECONDS);
                 pub.connect().get(5, TimeUnit.SECONDS);
 
@@ -130,13 +150,17 @@ class WildcardTopicsDemoTest {
     void testHashAloneMatchesAll() throws Exception {
         // Given: subscriber to #
         try (var broker = new MqttBroker(MqttBrokerConfig.minimal())) {
-            broker.bind("localhost", 0);
-            int port = broker.getPort();
+            broker.start();
             var received = new CopyOnWriteArrayList<String>();
             var latch = new CountDownLatch(2);
 
-            try (var sub = client(port, "wc5-sub");
-                 var pub = client(port, "wc5-pub")) {
+            var subPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(subPair[0]);
+            var pubPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(pubPair[0]);
+
+            try (var sub = new MqttClient(MqttClientConfig.defaults().clientId("wc5-sub").build(), subPair[1]);
+                 var pub = new MqttClient(MqttClientConfig.defaults().clientId("wc5-pub").build(), pubPair[1])) {
                 sub.connect().get(5, TimeUnit.SECONDS);
                 pub.connect().get(5, TimeUnit.SECONDS);
 
@@ -154,10 +178,5 @@ class WildcardTopicsDemoTest {
                 assertThat(received).hasSize(2);
             }
         }
-    }
-
-    private MqttClient client(int port, String clientId) {
-        return new MqttClient(MqttClientConfig.defaults()
-                .host("localhost").port(port).clientId(clientId).build());
     }
 }

@@ -26,8 +26,10 @@ public final class MqttBrokerChannelHandler implements ChannelHandler {
     private static final Logger LOG = LoggerFactory.getLogger(MqttBrokerChannelHandler.class);
 
     private final MqttBrokerService service;
-    /** Maps DataChannel → inner pipeline transport (for routing pipeline events). */
-    private final ConcurrentHashMap<DataChannel, MqttPipelineTransport> transportByChannel = new ConcurrentHashMap<>();
+    /** Maps DataChannel → outer transport (pipeline, or TLS wrapping pipeline). */
+    private final ConcurrentHashMap<DataChannel, MqttTransport> transportByChannel = new ConcurrentHashMap<>();
+    /** Maps DataChannel → inner pipeline transport (for routing pipeline write events). */
+    private final ConcurrentHashMap<DataChannel, MqttPipelineTransport> pipelineByChannel = new ConcurrentHashMap<>();
 
     public MqttBrokerChannelHandler(MqttBrokerService service) {
         this.service = service;
@@ -58,20 +60,23 @@ public final class MqttBrokerChannelHandler implements ChannelHandler {
                 }
             }
 
-            // Always store the inner pipeline transport for routing pipeline events
-            transportByChannel.put(channel, pipeline);
+            // Store both: outer transport for reads (TLS unwraps), pipeline for writes
+            transportByChannel.put(channel, transport);
+            pipelineByChannel.put(channel, pipeline);
             try {
                 if (broker != null) {
                     broker.handleConnection(transport);
                 } else {
                     LOG.error("Broker not initialized for service: {}", service.getDescriptor().name());
                     transportByChannel.remove(channel);
+                    pipelineByChannel.remove(channel);
                     transport.close();
                     try { channel.close(); } catch (Exception ignored) {}
                 }
             } catch (Exception e) {
                 LOG.error("Failed to handle connection: {}", e.getMessage(), e);
                 transportByChannel.remove(channel);
+                pipelineByChannel.remove(channel);
                 transport.close();
                 try { channel.close(); } catch (Exception ignored) {}
             }
@@ -80,8 +85,12 @@ public final class MqttBrokerChannelHandler implements ChannelHandler {
 
     @Override
     public void onRead(DataChannel channel, ByteBuffer data) {
-        var mapped = transportByChannel.get(channel);
-        if (mapped instanceof MqttPipelineTransport pt) {
+        var transport = transportByChannel.get(channel);
+        if (transport instanceof MqttTlsTransport tls) {
+            // TLS transport handles handshake + unwrap
+            tls.onRead(channel, data);
+        } else if (transport instanceof MqttPipelineTransport pt) {
+            // Plain pipeline transport
             pt.onRead(channel, data);
         } else {
             LOG.debug("No transport mapped for channel in onRead");
@@ -90,11 +99,11 @@ public final class MqttBrokerChannelHandler implements ChannelHandler {
 
     @Override
     public void onWrite(DataChannel channel) {
-        var mapped = transportByChannel.get(channel);
-        if (mapped instanceof MqttPipelineTransport pt) {
-            pt.onWrite(channel);
+        var pipeline = pipelineByChannel.get(channel);
+        if (pipeline != null) {
+            pipeline.onWrite(channel);
         } else {
-            LOG.debug("No transport mapped for channel in onWrite");
+            LOG.debug("No pipeline mapped for channel in onWrite");
         }
     }
 
@@ -104,6 +113,7 @@ public final class MqttBrokerChannelHandler implements ChannelHandler {
         if (transport != null) {
             transport.close();
         }
+        pipelineByChannel.remove(channel);
         LOG.debug("Client channel disconnected from broker");
     }
 

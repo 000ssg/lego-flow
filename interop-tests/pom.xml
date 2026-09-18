@@ -237,8 +237,8 @@
                         <interop.telnet.port>2223</interop.telnet.port>
                         <!-- P2 protocols -->
                         <interop.amqp.host>localhost</interop.amqp.host>
-                        <interop.amqp.port>5672</interop.amqp.port>
-                        <interop.amqp.username>guest</interop.amqp.username>
+                        <interop.amqp.port>5675</interop.amqp.port>
+                        <interop.amqp.username>artemis</interop.amqp.username>
                         <interop.amqp.password>guest</interop.amqp.password>
                         <interop.amqp.vhost>/</interop.amqp.vhost>
                         <interop.amqp.queue>interop-test-queue</interop.amqp.queue>
@@ -296,8 +296,8 @@
                         <interop.telnet.port>2223</interop.telnet.port>
                         <!-- P2 protocols -->
                         <interop.amqp.host>localhost</interop.amqp.host>
-                        <interop.amqp.port>5672</interop.amqp.port>
-                        <interop.amqp.username>guest</interop.amqp.username>
+                        <interop.amqp.port>5675</interop.amqp.port>
+                        <interop.amqp.username>artemis</interop.amqp.username>
                         <interop.amqp.password>guest</interop.amqp.password>
                         <interop.amqp.vhost>/</interop.amqp.vhost>
                         <interop.amqp.queue>interop-test-queue</interop.amqp.queue>

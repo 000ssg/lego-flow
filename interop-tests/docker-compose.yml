@@ -11,8 +11,11 @@ services:
       - "5675:5672"    # AMQP
       - "8161:8161"    # Web console
     environment:
-      - ARTEMIS_USER=guest
-      - ARTEMIS_PASSWORD=amq
+      # Creates the single broker user used by AmqpInteropTest
+      # (interop.amqp.username=artemis, interop.amqp.password=guest).
+      # NOTE: ARTEMIS_USERNAME is NOT read by the entrypoint; ARTEMIS_USER is.
+      - ARTEMIS_USER=artemis
+      - ARTEMIS_PASSWORD=guest
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 5672 || exit 1"]
       interval: 5s

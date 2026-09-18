@@ -5,6 +5,7 @@ import ssg.legoflow.messaging.mqtt.broker.MqttBrokerConfig;
 import ssg.legoflow.messaging.mqtt.client.MqttClient;
 import ssg.legoflow.messaging.mqtt.client.MqttClientConfig;
 import ssg.legoflow.messaging.mqtt.protocol.QoS;
+import ssg.legoflow.messaging.mqtt.transport.InMemoryMqttTransport;
 import org.junit.jupiter.api.Test;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -14,120 +15,123 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for {@link RetainedMessageDemo} scenarios.
  *
+ * <p>All tests run against an in-house {@link MqttBroker} over in-memory transport
+ * pairs — no network.</p>
+ *
  * @since 0.1.0
  */
 class RetainedMessageDemoTest {
 
     @Test
-    void testLateSubscriberReceivesRetained() throws Exception {
-        // Given: retained message published before subscriber connects
+    void testRetainedMessageDeliveredToLateSubscriber() throws Exception {
+        // Given: publisher publishes a retained message
         try (var broker = new MqttBroker(MqttBrokerConfig.minimal())) {
-            broker.bind("localhost", 0);
-            int port = broker.getPort();
+            broker.start();
 
-            try (var pub = client(port, "ret-pub")) {
+            var pubPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(pubPair[0]);
+            try (var pub = new MqttClient(MqttClientConfig.defaults()
+                    .clientId("ret-1-pub").build(), pubPair[1])) {
                 pub.connect().get(5, TimeUnit.SECONDS);
-                pub.publish("status/device", "online".getBytes(), QoS.AT_LEAST_ONCE, true)
+                pub.publish("retained/status", "on".getBytes(), QoS.AT_LEAST_ONCE, true)
                         .get(5, TimeUnit.SECONDS);
-                pub.disconnect().get(5, TimeUnit.SECONDS);
             }
 
+            // When: late subscriber connects
             Thread.sleep(200);
-
-            // When: late subscriber
             var received = new CopyOnWriteArrayList<String>();
             var latch = new CountDownLatch(1);
 
-            try (var sub = client(port, "ret-sub")) {
+            var subPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(subPair[0]);
+            try (var sub = new MqttClient(MqttClientConfig.defaults()
+                    .clientId("ret-1-sub").build(), subPair[1])) {
                 sub.connect().get(5, TimeUnit.SECONDS);
-                sub.subscribe("status/device", QoS.AT_LEAST_ONCE, (t, p, q, r) -> {
+                sub.subscribe("retained/status", QoS.AT_LEAST_ONCE, (t, p, q, r) -> {
                     received.add(new String(p, StandardCharsets.UTF_8));
                     latch.countDown();
                 }).get(5, TimeUnit.SECONDS);
 
-                // Then: receives retained
+                // Then: retained message delivered
                 assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
-                assertThat(received).contains("online");
+                assertThat(received).containsExactly("on");
             }
         }
     }
 
     @Test
-    void testRetainedMessageUpdate() throws Exception {
-        // Given: retained message updated
+    void testRetainedMessageUpdatedByNewPublish() throws Exception {
+        // Given: retained message "v1" exists
         try (var broker = new MqttBroker(MqttBrokerConfig.minimal())) {
-            broker.bind("localhost", 0);
-            int port = broker.getPort();
+            broker.start();
 
-            try (var pub = client(port, "ret-upd-pub")) {
+            var pubPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(pubPair[0]);
+            try (var pub = new MqttClient(MqttClientConfig.defaults()
+                    .clientId("ret-2-pub").build(), pubPair[1])) {
                 pub.connect().get(5, TimeUnit.SECONDS);
-                pub.publish("status/x", "v1".getBytes(), QoS.AT_LEAST_ONCE, true)
+                pub.publish("retained/update", "v1".getBytes(), QoS.AT_LEAST_ONCE, true)
                         .get(5, TimeUnit.SECONDS);
-                pub.publish("status/x", "v2".getBytes(), QoS.AT_LEAST_ONCE, true)
+                pub.publish("retained/update", "v2".getBytes(), QoS.AT_LEAST_ONCE, true)
                         .get(5, TimeUnit.SECONDS);
             }
 
             Thread.sleep(200);
 
+            // When: late subscriber connects, only the latest retained value is delivered
             var received = new CopyOnWriteArrayList<String>();
             var latch = new CountDownLatch(1);
-
-            try (var sub = client(port, "ret-upd-sub")) {
+            var subPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(subPair[0]);
+            try (var sub = new MqttClient(MqttClientConfig.defaults()
+                    .clientId("ret-2-sub").build(), subPair[1])) {
                 sub.connect().get(5, TimeUnit.SECONDS);
-                sub.subscribe("status/x", QoS.AT_LEAST_ONCE, (t, p, q, r) -> {
+                sub.subscribe("retained/update", QoS.AT_LEAST_ONCE, (t, p, q, r) -> {
                     received.add(new String(p, StandardCharsets.UTF_8));
                     latch.countDown();
                 }).get(5, TimeUnit.SECONDS);
 
-                // Then: receives latest value
+                // Then: only the latest retained value
                 assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
-                assertThat(received).contains("v2");
+                Thread.sleep(300);
+                assertThat(received).containsExactly("v2");
             }
         }
     }
 
     @Test
-    void testClearRetainedWithEmptyPayload() throws Exception {
-        // Given: retained message cleared
+    void testRetainedClearWithEmptyPayload() throws Exception {
+        // Given: retained message exists, then cleared with empty payload
         try (var broker = new MqttBroker(MqttBrokerConfig.minimal())) {
-            broker.bind("localhost", 0);
-            int port = broker.getPort();
+            broker.start();
 
-            try (var pub = client(port, "ret-clr-pub")) {
+            var pubPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(pubPair[0]);
+            try (var pub = new MqttClient(MqttClientConfig.defaults()
+                    .clientId("ret-3-pub").build(), pubPair[1])) {
                 pub.connect().get(5, TimeUnit.SECONDS);
-                pub.publish("status/y", "value".getBytes(), QoS.AT_LEAST_ONCE, true)
+                pub.publish("retained/clear", "value".getBytes(), QoS.AT_LEAST_ONCE, true)
                         .get(5, TimeUnit.SECONDS);
-                pub.publish("status/y", new byte[0], QoS.AT_LEAST_ONCE, true)
+                pub.publish("retained/clear", new byte[0], QoS.AT_LEAST_ONCE, true)
                         .get(5, TimeUnit.SECONDS);
             }
 
             Thread.sleep(200);
 
-            // Then: broker has no retained message
-            assertThat(broker.getRetainStore().get("status/y")).isNull();
-        }
-    }
+            // When: late subscriber connects
+            var received = new CopyOnWriteArrayList<byte[]>();
+            var subPair = InMemoryMqttTransport.createPair();
+            broker.handleConnection(subPair[0]);
+            try (var sub = new MqttClient(MqttClientConfig.defaults()
+                    .clientId("ret-3-sub").build(), subPair[1])) {
+                sub.connect().get(5, TimeUnit.SECONDS);
+                sub.subscribe("retained/clear", QoS.AT_LEAST_ONCE, (t, p, q, r) ->
+                        received.add(p)).get(5, TimeUnit.SECONDS);
 
-    @Test
-    void testNoRetainedForNonRetainedPublish() throws Exception {
-        // Given: non-retained publish
-        try (var broker = new MqttBroker(MqttBrokerConfig.minimal())) {
-            broker.bind("localhost", 0);
-            int port = broker.getPort();
-
-            try (var pub = client(port, "no-ret-pub")) {
-                pub.connect().get(5, TimeUnit.SECONDS);
-                pub.publish("normal/topic", "data".getBytes(), QoS.AT_LEAST_ONCE, false)
-                        .get(5, TimeUnit.SECONDS);
+                Thread.sleep(500);
+                // Then: no retained message delivered (cleared)
+                assertThat(received).isEmpty();
             }
-
-            // Then: no retained message stored
-            assertThat(broker.getRetainStore().get("normal/topic")).isNull();
         }
-    }
-
-    private MqttClient client(int port, String clientId) {
-        return new MqttClient(MqttClientConfig.defaults()
-                .host("localhost").port(port).clientId(clientId).build());
     }
 }

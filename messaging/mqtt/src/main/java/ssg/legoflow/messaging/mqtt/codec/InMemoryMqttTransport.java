@@ -1,5 +1,7 @@
 package ssg.legoflow.messaging.mqtt.codec;
 
+import ssg.legoflow.messaging.mqtt.transport.MqttTransport;
+import ssg.legoflow.service.channel.DataChannel;
 import java.nio.ByteBuffer;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -14,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @since 0.2.0
  */
-public final class InMemoryMqttTransport {
+public final class InMemoryMqttTransport implements MqttTransport {
 
     private final BlockingQueue<ByteBuffer> inbound;
     private final BlockingQueue<ByteBuffer> outbound;
@@ -103,5 +105,12 @@ public final class InMemoryMqttTransport {
      */
     public boolean isOpen() {
         return open.get();
+    }
+
+    /**
+     * Returns null — in-memory transport has no underlying DataChannel.
+     */
+    public DataChannel getChannel() {
+        return null;
     }
 }

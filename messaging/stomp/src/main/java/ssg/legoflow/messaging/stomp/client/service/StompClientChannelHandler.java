@@ -2,18 +2,20 @@ package ssg.legoflow.messaging.stomp.client.service;
 
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
-import ssg.legoflow.service.channel.TcpDataChannel;
-import ssg.legoflow.messaging.stomp.transport.PipelineTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
-import java.nio.channels.SelectionKey;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Channel handler for STOMP client service. Bridges pipeline events
  * to the transport and handles the connection lifecycle.
+ *
+ * <p><b>Responsibility separation:</b> TCP lifecycle (finishConnect, interestOps,
+ * close) is handled entirely by {@code SelectableChannelManager} in the
+ * selector thread — protocol handlers never touch sockets or selector keys.
+ * This handler only signals protocol readiness.
  */
 public final class StompClientChannelHandler implements ChannelHandler {
 
@@ -21,6 +23,7 @@ public final class StompClientChannelHandler implements ChannelHandler {
 
     private final StompClientService service;
     private CountDownLatch connectLatch;
+    private final AtomicBoolean connectHandled = new AtomicBoolean(false);
 
     public StompClientChannelHandler(StompClientService service, ssg.legoflow.service.ServiceContext ctx) {
         this.service = service;
@@ -30,31 +33,19 @@ public final class StompClientChannelHandler implements ChannelHandler {
         this.connectLatch = latch;
     }
 
+    /**
+     * Called when TCP connect completes (fired by the manager after
+     * finishConnect). Only signals readiness for protocol processing.
+     */
     @Override
     public void onConnect(DataChannel channel) {
-        if (channel instanceof TcpDataChannel) {
-            try {
-                var socketChannel = ((TcpDataChannel) channel).getSocketChannel();
-                socketChannel.finishConnect();
-
-                // Enable OP_READ|OP_WRITE
-                var key = channel.getSelectionKey();
-                if (key != null) {
-                    key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-                }
-
-                // Signal connect complete
-                if (connectLatch != null) {
-                    connectLatch.countDown();
-                }
-                LOG.debug("STOMP client channel connected");
-            } catch (Exception e) {
-                LOG.error("STOMP client connection failed: {}", e.getMessage(), e);
-                if (connectLatch != null) {
-                    connectLatch.countDown();
-                }
-            }
+        if (!connectHandled.compareAndSet(false, true)) {
+            return; // Already handled
         }
+        if (connectLatch != null) {
+            connectLatch.countDown();
+        }
+        LOG.debug("STOMP client channel connected");
     }
 
     @Override
