@@ -7,6 +7,8 @@ import ssg.legoflow.messaging.stomp.core.StompFrame;
 import ssg.legoflow.messaging.stomp.core.StompHeaders;
 import ssg.legoflow.messaging.stomp.core.StompCodec;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 class StompFrameCodecTest {
@@ -118,6 +120,140 @@ class StompFrameCodecTest {
         var buf = ByteBuffer.allocate(1024);
         int n = pair[1].receiveWithTimeout(buf, 50, TimeUnit.MILLISECONDS);
         assertThat(n).isEqualTo(-1);
+    }
+
+    // --- Stream reassembly (TCP semantics: batched + split frames) ---
+
+    /**
+     * A transport that delivers exactly the chunks injected via
+     * {@link #deliver(String)} — one chunk per read, like a TCP read.
+     */
+    static final class FrameChunkTransport implements StompTransport {
+        final LinkedBlockingQueue<ByteBuffer> chunks = new LinkedBlockingQueue<>();
+        volatile boolean open = true;
+        volatile long receiveTimeoutMs = 5000;
+
+        void deliver(String s) {
+            chunks.offer(ByteBuffer.wrap(s.getBytes(StandardCharsets.UTF_8)));
+        }
+
+        @Override
+        public void send(ByteBuffer data) {
+            // No peer: outgoing frames are ignored.
+        }
+
+        @Override
+        public int receiveWithTimeout(ByteBuffer buffer, long timeout, TimeUnit unit) {
+            if (!open) return -1;
+            try {
+                ByteBuffer chunk = chunks.poll(Math.min(timeout, receiveTimeoutMs), unit);
+                if (chunk == null) return -1;
+                int n = Math.min(buffer.remaining(), chunk.remaining());
+                ByteBuffer src = chunk;
+                if (n < chunk.remaining()) {
+                    src = chunk.duplicate();
+                    src.limit(n);
+                }
+                buffer.put(src);
+                return n;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return -1;
+            }
+        }
+
+        @Override
+        public void close() {
+            open = false;
+        }
+
+        @Override
+        public boolean isOpen() {
+            return open;
+        }
+    }
+
+    @Test
+    void testBatchedFramesInSingleRead() throws Exception {
+        // Two frames arriving in ONE read must both be delivered — the
+        // original codec silently dropped the second frame here.
+        var t = new FrameChunkTransport();
+        var codec = new StompFrameCodec(t);
+        t.deliver("SEND\n\nmsg-1\0SEND\n\nmsg-2\0");
+
+        var f1 = codec.receive();
+        var f2 = codec.receive();
+        assertThat(f1.bodyAsText()).isEqualTo("msg-1");
+        assertThat(f2.bodyAsText()).isEqualTo("msg-2");
+    }
+
+    @Test
+    void testSplitFrameReassembly() throws Exception {
+        // Frame split across two reads: partial, then the rest.
+        var t = new FrameChunkTransport();
+        var codec = new StompFrameCodec(t);
+        t.deliver("SEND\ndestination:/q\n\nmsg");
+        t.deliver("-1\0");
+
+        var f = codec.receive();
+        assertThat(f.command()).isEqualTo(StompCommand.SEND);
+        assertThat(f.header("destination")).isEqualTo("/q");
+        assertThat(f.bodyAsText()).isEqualTo("msg-1");
+    }
+
+    @Test
+    void testSplitFrameWithTrailingNextFrame() throws Exception {
+        // First read: split frame + beginning of the next one.
+        // Second read: the tail of the next frame.
+        var t = new FrameChunkTransport();
+        var codec = new StompFrameCodec(t);
+        t.deliver("SEND\n\nmsg-1\0SEND\n\nmsg-2\0");
+        t.deliver("SEND\n\nmsg-3\0");
+
+        var f1 = codec.receive();
+        var f2 = codec.receive();
+        var f3 = codec.receive();
+        assertThat(f1.bodyAsText()).isEqualTo("msg-1");
+        assertThat(f2.bodyAsText()).isEqualTo("msg-2");
+        assertThat(f3.bodyAsText()).isEqualTo("msg-3");
+    }
+
+    @Test
+    void testHeartbeatFollowedByFrame() throws Exception {
+        // A heart-beat (EOL) and a real frame in one read.
+        var t = new FrameChunkTransport();
+        var codec = new StompFrameCodec(t);
+        t.deliver("\nSEND\n\nmsg-1\0");
+
+        var hb = codec.receive();
+        assertThat(hb.isHeartbeat()).isTrue();
+
+        var f = codec.receive();
+        assertThat(f.bodyAsText()).isEqualTo("msg-1");
+    }
+
+    @Test
+    void testTimeoutDoesNotKillReceiveLoop() throws Exception {
+        // Partial frame (no NULL terminator) + a read that times out must NOT
+        // end the receive loop; the next read completes the frame.
+        var t = new FrameChunkTransport();
+        t.receiveTimeoutMs = 50;
+        var codec = new StompFrameCodec(t);
+        t.deliver("SEND\n\nmsg-1"); // no NULL terminator: incomplete
+        t.deliver("\0");
+
+        var f = codec.receive();
+        assertThat(f.bodyAsText()).isEqualTo("msg-1");
+    }
+
+    @Test
+    void testClosedWithPartialFrameReturnsNull() throws Exception {
+        var t = new FrameChunkTransport();
+        var codec = new StompFrameCodec(t);
+        t.deliver("SEND\n\nmsg-1"); // incomplete, then the transport dies
+        t.close();
+
+        assertThat(codec.receive()).isNull();
     }
 
     @Test

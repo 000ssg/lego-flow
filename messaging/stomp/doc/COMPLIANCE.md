@@ -42,6 +42,7 @@
 | content-type | MIME type header support | ✅ Implemented | `StompHeaders.CONTENT_TYPE`; `StompCodecTest` |
 | NULL terminator | Frame terminated by NULL byte (\0) | ✅ Implemented | `StompCodec.encode()`; `StompCodecTest` |
 | EOL variants | Support both LF and CR+LF | ✅ Implemented | `StompCodec.decode()`; `StompCodecTest` |
+| Stream reassembly | TCP reads may carry a partial frame and/or several complete frames; all bytes must be delivered exactly once | ✅ Implemented | `StompFrameCodec` reassembler on `StompCodec.findFrameEnd()`; `StompFrameCodecTest` (batched/split/timeout/close) |
 | Heart-beat frame | Empty EOL frame (not a real command) | ✅ Implemented | `StompFrame.heartbeat()`, `StompCodec`; `StompCodecTest`, `StompFrameTest` |
 
 ### STOMP 1.2 -- Version Negotiation
@@ -120,6 +121,7 @@
 | Requirement | Status | Verification |
 |------------|--------|-------------|
 | Raw TCP transport | ✅ Implemented | `TcpStompTransport`, `TcpStompServer`, `TcpStompClient`; `TcpStompAdapterTest` |
+| Service pipeline transport (selector-thread NIO) | ✅ Implemented | `PipelineTransport` ring buffer + outbound queue; `StompClientService`/`StompServerService`; `PipelineTransportTest` |
 | WebSocket transport (v12.stomp subprotocol) | ✅ Implemented | `WebSocketStompTransport`, `WebSocketStompHandler` |
 | In-memory transport (testing) | ✅ Implemented | `InMemoryStompTransport`; used in all core/demo tests |
 
@@ -144,6 +146,6 @@
 
 ## Test Coverage Summary
 
-- Total tests: 173 (0 failures, 0 skipped)
-- Key unit test classes: `StompCodecTest` (43), `StompHeadersTest` (14), `StompFrameTest` (10), `StompCommandTest` (5), `StompSessionTest` (10), `StompTransactionTest` (9), `HeartbeatMonitorTest` (17), `StompBrokerTest` (20), `StompClientTest` (12), `TcpStompAdapterTest` (8), `StompAuthTest` (4), `StompAclTest` (4), `StompSelectorTest` (5)
-- Sections fully covered: all 16 commands (codec), frame format, header escaping, version negotiation, heart-beats, all 3 ack modes, transactions, receipts, TCP transport, authentication, ACL, selectors, priority, max-size, persistence
+- Total tests: 233 (0 failures, 0 skipped)
+- Key unit test classes: `StompCodecTest` (43), `StompHeadersTest` (14), `StompFrameTest` (10), `StompCommandTest` (5), `StompSessionTest` (10), `StompTransactionTest` (9), `HeartbeatMonitorTest` (17), `StompBrokerTest` (20), `StompClientTest` (12), `TcpStompAdapterTest` (8), `StompAuthTest` (4), `StompAclTest` (4), `StompSelectorTest` (5), `StompFrameCodecTest` (16, incl. stream reassembly), `StompPersistenceTest`, `PipelineTransportTest`
+- Sections fully covered: all 16 commands (codec), frame format, header escaping, stream reassembly, version negotiation, heart-beats, all 3 ack modes, transactions, receipts, TCP transport, authentication, ACL, selectors, priority, max-size, persistence
