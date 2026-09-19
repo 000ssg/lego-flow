@@ -6,12 +6,12 @@ Live checklist. Keep straight: mark `[x]` when the sub-task is done and verified
 ## Phase 0 — Repo cleanup + planning
 - [x] Recon: compliance map for all 7 messaging modules
 - [x] Plan docs (`doc/plans/messaging/PLAN.md`) + tracking files
-- [ ] Delete `messaging/amqp-091/` build debris
-- [ ] Commit Phase 0
+- [x] Delete `messaging/amqp-091/` build debris
+- [x] Commit Phase 0 (`b0489992`)
 
 ## Phase 1 — Reference-pattern audit + baseline
-- [ ] `audit.md` full compliance map + reference-pattern definition
-- [ ] Verify baseline modules (mqtt/stomp/amqp/wamp) satisfy all 6 reference criteria
+- [x] `audit.md` full compliance map + reference-pattern definition
+- [x] Verify baseline modules (mqtt/stomp/amqp/wamp) satisfy all 6 reference criteria
 - [ ] Commit Phase 1
 
 ## Phase 2 — NATS
