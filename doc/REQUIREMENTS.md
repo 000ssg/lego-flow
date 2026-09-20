@@ -676,3 +676,22 @@ Part 1 of the cleanup-messaging verification series (part 2 = the STOMP frame re
 - **STOMP**: `StompClientService`/`StompClientChannelHandler` on the byte-level SPI + selector-thread lifecycle; `StompCodec` gains `findFrameEnd()` / ranged decode / `FrameIncompleteException` (reassembly primitives); `PipelineTransport` ring-buffer + enqueue-then-OP_WRITE outbound; new channel-handler/persistence/event-listener/pipeline tests; acl test dependency added to the module POM.
 - **Interop infra**: docker-compose Artemis creds fixed (ARTEMIS_USER entrypoint var, artemis/guest, port 5675); `interop-tests/pom.xml` AMQP port 5672->5675; new logback.xml for surefire; demos migrated to the in-memory transport pair API.
 - **Verified**: full Maven unit suite (all modules, no benchmarks) BUILD SUCCESS; Gradle clean test BUILD SUCCESSFUL; messaging interop group 12/12 in two consecutive combined single-JVM runs (AmqpInteropTest 6/6 Artemis, MqttMosquittoInteropTest 3/3, StompInteropTest 3/3); demos 771/771; benchmarks BUILD SUCCESS.
+
+## 2026-09-20: NATS compliance migration — headless core, transport SPI, service-layer I/O (messaging plan Phase 2)
+
+Part of the messaging compliance series defined in `doc/plans/messaging/` (Phase 0 cleanup `b0489992` and Phase 1 audit `6a588918` preceded it; see the 2026-09-18 entries above for the earlier STOMP reassembly and transport-redesign work).
+
+- **Transport SPI**: new `NatsTransport` byte-level SPI (`connect`, `send`, `receiveWithTimeout` — timeout is NOT EOF, `close`) + `TransportStreams` stream adapter so the proven line-based `NatsCodec` runs over any transport. `InMemoryNatsTransport.createPair()` for tests/demos (queued bytes drain before EOF — the auth-rejection race fix, D8); `PipelineNatsTransport` for production (DataChannel ring + outbound queue, selector-thread driven, the STOMP `PipelineTransport` reference form).
+- **Headless core**: `NatsServer` no longer owns a ServerSocket/accept loop — connections arrive via `handleConnection(NatsTransport)` (mirrors `StompBroker.accept`); `NatsClient(NatsTransport, ...)` performs the INFO/CONNECT handshake over the injected transport. The protocol packages in `src/main` have zero raw sockets.
+- **Service layer**: `NatsService` (client) and `NatsServerService` (server, ephemeral port via `getPort()`) are the only components touching NIO — non-blocking `SocketChannel`/`ServerSocketChannel` + `SelectableChannelManager`, wiring `PipelineNatsTransport` into the core.
+- **Codec reassembly**: `NatsCodecReassemblyTest` (10 tests) verifies split/batched line frames over chunked reads.
+- **Tests**: 5 legacy loopback test files migrated to the in-memory seam; `NatsServiceIntegrationTest` proves the real-TCP service path end-to-end (SocketChannel → manager → TcpDataChannel → PipelineNatsTransport → protocol). 6 demos moved to the in-memory seam; `NatsInteropTest` moved to the real-TCP service layer (`NatsService` + manager) — the removed socket API previously broke both (masked by a stale `~/.m2` jar; D9).
+- **Verified**: `messaging/nats` 343 tests, 0 failures; JaCoCo instruction coverage 85.1% (≥80% gate); `demos` + `interop-tests` compile against the refactored API.
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files created | 8 (transport SPI x4, reassembly test, service integration test, InMemoryNats test helper) |
+| Files modified | 21 (core, service, tests, demos, interop, docs) |
+| Lines added/removed | +848 / -658 |
+| Tests added | 31 (343 total vs 271 before) |

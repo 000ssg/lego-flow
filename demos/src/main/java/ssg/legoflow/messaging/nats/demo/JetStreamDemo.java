@@ -25,15 +25,15 @@ public final class JetStreamDemo {
     /**
      * Runs the JetStream demo.
      *
-     * @param port the server port (0 for ephemeral)
+     * @param port the server port (ignored — the server now runs headless, no bound port)
      * @return list of consumed messages
      * @throws IOException if an error occurs
      */
     public static List<NatsMessage> run(int port) throws IOException {
         var consumed = new ArrayList<NatsMessage>();
 
-        try (var server = new NatsServer(port)) {
-            server.start(port);
+        try (var server = new NatsServer()) {
+            server.start();
             var jsm = server.jetStreamManager();
 
             // Create a stream
