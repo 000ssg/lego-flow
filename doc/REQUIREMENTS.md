@@ -695,3 +695,21 @@ Part of the messaging compliance series defined in `doc/plans/messaging/` (Phase
 | Files modified | 21 (core, service, tests, demos, interop, docs) |
 | Lines added/removed | +848 / -658 |
 | Tests added | 31 (343 total vs 271 before) |
+
+## 2026-09-21: XMPP compliance migration — headless core, transport SPI, service-layer I/O (messaging plan Phase 3)
+
+Part of the messaging compliance series defined in `doc/plans/messaging/` — continues the Phase 2 (NATS) headless pattern to the XMPP module.
+
+- **Transport SPI**: new `XmppTransport` byte-level SPI (`onRead`, `send`, `receive`, `close` + `onWrite` registration). `InMemoryXmppTransport.createPair()` for tests/demos (paired queues, deterministic); `PipelineXmppTransport` for production (DataChannel + outbound queue, selector-thread driven).
+- **Headless core**: `XmppServer` no longer owns a `ServerSocket`/accept loop — connections arrive via `handleConnection(XmppTransport)`, each driven by a non-blocking read loop on a virtual thread that decodes stanzas and broadcasts them to registered handlers. `XmppClient(XmppTransport)` wires the protocol to the injected transport with a virtual-thread read loop and `flushOutbound()`; the legacy no-arg client stays for in-memory use. The stream stanza-listener registration that was never wired is now fixed, and the `XmppStream` outbound queue is made concurrent (the sender thread writes, the read loop drains). Zero raw sockets in the protocol packages.
+- **Service layer**: `XmppClientService` and `XmppServerService` (with channel handlers) are the only components touching NIO — non-blocking `SocketChannel`/`ServerSocketChannel` via `SelectableChannelManager`, wiring `PipelineXmppTransport` into the core. DP/DF `consume` routes inbound bytes to stanza callbacks.
+- **Codec reassembly**: verified at transport level — partial reads are requeued and split stanzas reassembled across reads (`XmppTransportTest.testPartialReadRequeuesTail`); the existing `XmppCodecTest.testIncrementalParsing` covers codec-level reassembly.
+- **Tests**: `XmppTransportTest` (SPI round-trip, reassembly, close semantics, pipeline), `XmppServerTest` (headless server + `handleConnection`), `XmppServiceIntegrationTest` (real TCP round-trip via `SelectableChannelManager`), plus expanded `XmppClientServiceTest`/`XmppServerServiceTest` (DP/DF compliance, consume routing, builder, `XmppResult`). Demos + interop compile clean against the unchanged legacy in-memory API; demo suite 30/30.
+- **Verified**: `messaging/xmpp` 283 tests, 0 failures (was 268); JaCoCo instruction coverage 81.7% (≥80% gate); `demos` + `interop-tests` compile clean.
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files created | 6 (transport SPI x3; XmppServerTest, XmppTransportTest, XmppServiceIntegrationTest) |
+| Files modified | ~15 (core, service, stream, tests, docs) |
+| Tests added | 25 (283 total vs 268 before) |

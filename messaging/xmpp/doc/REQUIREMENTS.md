@@ -178,6 +178,56 @@
 
 ---
 
+## Commit: `TBD` - Phase 3: Headless core, XmppTransport SPI, service-layer I/O (compliance migration) (2026-09-21)
+
+### Original Request
+Migrate the XMPP module to the framework's headless architecture (matching the NATS/MQTT Phase 2 pattern): remove raw sockets from the protocol core, introduce a byte-level transport SPI, and move real TCP ownership to the service layer.
+
+### Reformulated Requirements
+1. Protocol core must be socket-free — no `SocketChannel`/`Selector` in `XmppClient`, `XmppServer`, `XmppCodec`, `XmppStream`
+2. Byte-level `XmppTransport` SPI: `onRead(ByteBuffer)/receive()/send(ByteBuffer)/close()` plus `onWrite` registration
+3. `InMemoryXmppTransport` for tests/demos (paired queues, deterministic); `PipelineXmppTransport` for production (selector-thread driven, `DataChannel`-backed)
+4. `XmppClient` must accept an injected transport and run a virtual-thread read loop; the legacy no-arg client stays for in-memory use; the stream stanza-listener registration that was never wired must be fixed
+5. `XmppServer` must drop `ServerSocket` and accept per-connection transports via `handleConnection(XmppTransport)`, driving a non-blocking read loop
+6. Service layer (`XmppClientService`/`XmppServerService` + channel handlers) is the only code that owns real channels, driven by `SelectableChannelManager`
+7. Codec reassembly must be verified at transport level (partial reads requeued, split stanzas reassembled)
+
+### Final Design Decisions
+- **Transport SPI:** `ssg.legoflow.xmpp.transport` — `XmppTransport`, `InMemoryXmppTransport`, `PipelineXmppTransport`
+- **Client:** `new XmppClient(transport)` wires protocol to transport; read loop on a virtual thread feeds bytes into `XmppCodec` + `XmppStream`; outbound stream/stanza bytes flushed through the transport after every send; `XmppStream` outbound queue made concurrent (`ConcurrentLinkedQueue`) since it is now written by the sender thread and drained by the read loop
+- **Server:** `handleConnection(XmppTransport)` runs a per-connection non-blocking read loop (virtual thread) that decodes stanzas and broadcasts them to registered handlers; no socket opened in the core
+- **Service layer:** mirrors `NatsService`/`NatsServerService` — `SelectableChannelManager` owns channels, `PipelineXmppTransport` bridges them to the core; DP/DF `consume` routing to stanza callbacks
+
+### Implementation Details
+- `messaging/xmpp/src/main/java/ssg/legoflow/xmpp/transport/` — `XmppTransport`, `InMemoryXmppTransport`, `PipelineXmppTransport`
+- `messaging/xmpp/src/main/java/ssg/legoflow/xmpp/server/XmppServer.java` — stripped all `java.net` sockets; added `handleConnection(XmppTransport)` + per-connection read loop
+- `messaging/xmpp/src/main/java/ssg/legoflow/xmpp/client/XmppClient.java` — added `XmppClient(XmppTransport)` ctor, read loop, `flushOutbound()`, `getTransport()`; fixed the stream stanza-listener registration
+- `messaging/xmpp/src/main/java/ssg/legoflow/xmpp/stream/XmppStream.java` — concurrent outbound queue
+- `messaging/xmpp/src/main/java/ssg/legoflow/xmpp/{client,server}/service/` — `XmppClientService`/`XmppClientChannelHandler`/`XmppServerService`/`XmppServerChannelHandler`
+
+### Test Coverage
+| Test Class | Coverage |
+|-----------|----------|
+| `XmppTransportTest` | SPI round-trip, partial-read requeue (reassembly), close semantics, pipeline transport |
+| `XmppServerTest` | headless server, `handleConnection`, connection lifecycle |
+| `XmppServiceIntegrationTest` | real TCP round-trip via `SelectableChannelManager` |
+| `XmppClientServiceTest` / `XmppServerServiceTest` | DP/DF compliance, consume routing, builder, `XmppResult` |
+- Full module suite: **283 tests green** (was 268)
+- JaCoCo instruction coverage: **81.7%** (≥80% gate)
+- Demos + interop compile clean; demo suite 30/30 green (legacy in-memory API preserved)
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Background agents | 1 (stopped; work resumed directly in compact increments) |
+| Agent tokens | ~60K |
+| Agent tool calls | ~45 |
+| Agent wall time | ~45 min |
+| Files created/modified | ~15 |
+| Tests added | 25 (total: 283) |
+
+---
+
 ## Document Maintenance
 
 - This document is append-only for commit sections

@@ -28,13 +28,13 @@ Live checklist. Keep straight: mark `[x]` when the sub-task is done and verified
 - [x] Commit Phase 2
 
 ## Phase 3 — XMPP
-- [ ] `XmppTransport` SPI
-- [ ] `InMemoryXmppTransport`
-- [ ] `PipelineXmppTransport`
-- [ ] `XmppServer` off ServerSocket
-- [ ] Service layer drives I/O
-- [ ] Codec reassembly verified/fixed
-- [ ] Unit tests ≥80%
+- [x] `XmppTransport` SPI
+- [x] `InMemoryXmppTransport`
+- [x] `PipelineXmppTransport`
+- [x] `XmppServer` off ServerSocket
+- [x] Service layer drives I/O
+- [x] Codec reassembly verified/fixed
+- [x] Unit tests ≥80%
 - [ ] Commit Phase 3
 
 ## Phase 4 — KAFKA
@@ -73,3 +73,4 @@ Live checklist. Keep straight: mark `[x]` when the sub-task is done and verified
 - 2026-09-19 — Phase 1 committed (`6a588918`). Phase 2 main-code refactor: headless core + `PipelineNatsTransport` + manager-driven services (no sockets in core/protocol; earlier raw-socket `SocketNatsTransport`/`NatsAcceptor` draft removed, D7 corrected). Test migration to in-memory seam + TCP integration test in progress.
 - 2026-09-20 — Phase 2 test migration complete: all 5 legacy loopback test files on the in-memory seam; fixed an `InMemoryNatsTransport` race where queued `-ERR` was dropped on close (D8); full NATS module suite green (343 tests). Discovered the `demos` module + NATS interop test still referenced the removed socket API (a stale `~/.m2` jar had masked the break) — migrated demos to the in-memory seam and interop to the real-TCP service layer (D9).
 - 2026-09-20 — Phase 2 complete + committed: demos/interop compile verified; full suite re-run 343/343 green; JaCoCo instruction coverage 85.1% (≥80% gate); module docs (README/ARCHITECTURE/COMPLIANCE/REQUIREMENTS) updated to the headless architecture; root `doc/REQUIREMENTS.md` entry appended. Next: Phase 3 (XMPP).
+- 2026-09-21 — Phase 3 (XMPP) implementation complete, pending commit: `XmppTransport` SPI + `InMemoryXmppTransport`/`PipelineXmppTransport`; `XmppServer` off `ServerSocket` (per-connection `handleConnection(XmppTransport)` + non-blocking read loop); `XmppClient` transport-injected ctor + virtual-thread read loop + `flushOutbound` (stream stanza-listener registration fixed, outbound queue made concurrent); service layer (`XmppClientService`/`XmppServerService` + channel handlers) mirrors NATS via `SelectableChannelManager`; codec reassembly verified at transport level (partial reads requeued); full module suite **283 green** (was 268); JaCoCo instruction coverage **81.7%** (≥80% gate); demos + interop compile clean (legacy in-memory API preserved, demo suite 30/30); module docs updated to the headless architecture.
