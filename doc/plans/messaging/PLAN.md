@@ -134,7 +134,7 @@ trade-offs in `DECISIONS.md`.
       reference brokers pinned (`rabbitmq:3.13-management`, `apache/artemis:2.57.0-alpine`, D12).
 - [x] Wire-capture CI setup (core job): Artemis CLI via `docker cp` + aiormq via pip (D12);
       fixes: Artemis creds `artemis`/`guest`, scenario script on aiormq 6.x API.
-- [ ] Commit `test(interop): split into 4 concurrent groups (rest disabled)`
+- [x] Commit `test(interop): split into 4 concurrent groups (rest disabled)` (`e21cdeb1`)
 
 ### Phase 6 — Kafka + WAMP composite interop tests
 - [ ] **Kafka** (group 2): trivial (connect + ApiVersions + metadata) → produce/fetch →
