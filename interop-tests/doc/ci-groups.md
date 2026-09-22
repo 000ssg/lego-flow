@@ -4,7 +4,16 @@
 
 Tests are split into **4 parallel groups**, each identified by a JUnit `@Tag`
 and run in its own CI job (`.github/workflows/ci.yml`, `interoperability-tests`
-matrix). Each job starts **only the Docker services its protocols need**.
+matrix). Each job starts **only the reference services its group owns** — and
+it does so from its **own compose file**, so groups never share (or intersect)
+Docker instances:
+
+| Group | Compose file | Services |
+|-------|--------------|----------|
+| `interop-messaging-core` | `docker-compose.core.yml`  | artemis, rabbitmq, mosquitto |
+| `interop-kafka`          | `docker-compose.kafka.yml` | kafka |
+| `interop-wamp`           | `docker-compose.wamp.yml`  | crossbar |
+| `interop-rest` (disabled)| *(own file when enabled)*  | nginx, redis, postgres, nats, xmpp, openldap, smtp, ftp, sshd, telnet, dns |
 
 A group is selected with `-Dinterop.group=<group>` — `interop-tests/pom.xml`
 maps it onto the surefire `<groups>` filter. When the property is set, an
@@ -21,7 +30,7 @@ zero tests fails the build instead of passing silently); pass
 - AMQP 1.0 — `AmqpInteropTest` (6)
 - AMQP 1.0 wire capture (reference clients) — `Amqp10WireCaptureTest` (3, Artemis CLI),
   `AmqpWireCaptureTest` (1, aiormq)
-- **Total: 22 tests**
+- **Total: 19 tests**
 - **Containers: mosquitto, rabbitmq (STOMP 61613), artemis**
 
 ### Group 2: `interop-kafka`
@@ -57,15 +66,28 @@ mvn verify -pl interop-tests -am -DskipInteropTests=false -Dinterop.group=intero
 mvn verify -pl interop-tests -am -DskipInteropTests=false -Dinterop.group=interop-wamp -Dinterop.failIfNoTests=false
 ```
 
+Each group's services come from its own compose file:
+
+```bash
+cd interop-tests
+docker compose -f docker-compose.core.yml up -d   # + ps / down
+docker compose -f docker-compose.kafka.yml up -d  # + ps / down
+docker compose -f docker-compose.wamp.yml up -d   # + ps / down
+```
+
 ## Service Isolation
 
-| Group                  | Containers                              | Conflicts |
-|------------------------|------------------------------------------|-----------|
-| interop-messaging-core | mosquitto, rabbitmq, artemis              | None      |
-| interop-kafka          | kafka                                     | None      |
-| interop-wamp           | crossbar                                  | None      |
-| interop-rest (disabled)| (existing reference services)             | None      |
+Isolation is at the **compose-file level**: each active group has a dedicated
+file containing only that group's services, so `up -d <file>` can never start
+another group's instances, and two groups can run on the same host without
+port conflicts.
 
-All active groups are **100% isolated** — each CI job starts only its own
-containers. Crossbar maps container 8080 → host 8081 so it can share a host
-with nginx (8080).
+| Group                  | Compose file               | Containers                                  | Conflicts |
+|------------------------|----------------------------|---------------------------------------------|-----------|
+| interop-messaging-core | docker-compose.core.yml    | artemis-test, rabbitmq-test, mosquitto-test | None      |
+| interop-kafka          | docker-compose.kafka.yml   | kafka-test                                  | None      |
+| interop-wamp           | docker-compose.wamp.yml    | wamp-router-test                            | None      |
+| interop-rest (disabled)| (own file when enabled)    | (existing reference services)               | None      |
+
+Crossbar maps container 8080 → host 8081 so the wamp group can share a host
+with nginx (8080) when the rest group is enabled.

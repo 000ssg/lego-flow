@@ -10,23 +10,20 @@ server implementations for protocol compliance validation.
 
 ## Services
 
-| Service      | Image                         | Port  | Purpose                              |
-|------------- |-------------------------------|-------|--------------------------------------|
-| nginx        | `nginx:alpine`                | 8080  | HTTP/HTTPS reference server          |
-| mosquitto    | `eclipse-mosquitto:latest`    | 1883  | MQTT broker reference implementation |
-| redis        | `redis:7-alpine`             | 6379  | Redis in-memory store                |
-| postgresql   | `postgres:17-alpine`         | 5432  | PostgreSQL database server           |
-| rabbitmq     | `rabbitmq:4-management`      | 5672  | AMQP 1.0 broker (via amqp1.0 plugin) |
-| artemis      | `apache/activemq-classic-karaf` | 61613 | STOMP broker (ActiveMQ Classic on Artemis) |
-| nats         | `nats:2.10-alpine`            | 4222  | NATS message broker                  |
-| prosody      | `prosody/prosody:latest`      | 5222  | XMPP server                          |
-| openldap     | `osixia/openldap:latest`      | 389   | LDAP v3 server                       |
-| mailhog      | `mailhog/mailhog:latest`      | 25    | SMTP server                          |
-| ftp          | `docker/ftp-python`           | 21    | FTP server                           |
-| sshd         | `docker/sshd`                 | 2222  | SSH server                           |
-| telnetd      | `docker/telnetd`              | 2223  | Telnet server                        |
-| kafka        | `confluentinc/cp-kafka:7.6.1` | 9092  | Kafka broker (single-node KRaft)     |
-| crossbar     | `crossbario/crossbar:latest`  | 8081  | WAMP router (container 8080)         |
+Reference services are split into **per-group compose files** — each interop
+group owns exactly the services its protocols need, so CI jobs (and local runs)
+start in isolation and never mix instances across groups.
+
+| Compose file                 | Group                     | Services                                    |
+|------------------------------|---------------------------|---------------------------------------------|
+| `docker-compose.core.yml`    | `interop-messaging-core`  | artemis (5675, 8161), rabbitmq (5672, 61613, 15672), mosquitto (1883) |
+| `docker-compose.kafka.yml`   | `interop-kafka`           | kafka (9092)                                |
+| `docker-compose.wamp.yml`    | `interop-wamp`            | crossbar (8081)                             |
+
+The `interop-rest` group's services (nginx, redis, postgres, nats, xmpp,
+openldap, smtp, ftp, sshd, telnet, dns) are provisioned separately when that
+group is enabled — they are deliberately **not** in the three active files
+above. See [ci-groups.md](doc/ci-groups.md).
 
 ## Prerequisites
 
@@ -36,27 +33,26 @@ server implementations for protocol compliance validation.
 
 ## Quick Start
 
-### 1. Start the reference services
+Each group has its own compose file — start only the group you are running:
 
 ```bash
-# Verify Docker is running:
-docker ps
-# Expected: no errors
-
-# Start all service containers:
 cd interop-tests
-docker compose up -d
 
-# Wait a few seconds for health checks to pass:
-docker compose ps
-# All services should show "healthy" in STATUS column
-
-# Verify connectivity (optional but recommended):
-curl http://localhost:8080/health
-redis-cli -p 6379 ping
+# core group (MQTT, STOMP, AMQP 1.0)
+docker compose -f docker-compose.core.yml up -d
+# kafka group
+docker compose -f docker-compose.kafka.yml up -d
+# wamp group
+docker compose -f docker-compose.wamp.yml up -d
 ```
 
-### 2. Run interoperability tests
+Wait for the health checks to pass (each file's own `ps` shows `healthy`):
+
+```bash
+docker compose -f docker-compose.core.yml ps
+```
+
+### Run interoperability tests
 
 #### Maven
 
@@ -85,16 +81,19 @@ mvn verify -pl interop-tests -am -DskipInteropTests=false -Dinterop.group=intero
 mvn verify -pl interop-tests -am -DskipInteropTests=false -Dinterop.group=interop-wamp -Dinterop.failIfNoTests=false
 ```
 
-`interop-messaging-core` = MQTT + STOMP + AMQP (22 tests). `interop-kafka` /
+`interop-messaging-core` = MQTT + STOMP + AMQP (19 tests). `interop-kafka` /
 `interop-wamp` carry the Phase 6 composite tests (group service is provisioned
 and healthy; `-Dinterop.failIfNoTests=false` until the tests land).
 `interop-rest` = all remaining existing interop tests — CI-disabled for now
 (frozens composition; see [ci-groups.md](doc/ci-groups.md)).
 
-### 3. Stop the services
+### Stop the services
 
 ```bash
-docker compose -f interop-tests/docker-compose.yml down
+cd interop-tests
+docker compose -f docker-compose.core.yml down
+docker compose -f docker-compose.kafka.yml down
+docker compose -f docker-compose.wamp.yml down
 ```
 
 ## Custom Configuration

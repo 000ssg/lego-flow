@@ -48,9 +48,9 @@ Live checklist. Keep straight: mark `[x]` when the sub-task is done and verified
 - [x] Commit Phase 4 (`c71fcde7`)
 
 ## Phase 5 — Interop structure: 4 groups
-- [x] JUnit tags for 4 groups (core: 6 classes / 22 tests; rest: 14 classes / 186 tests; kafka+wamp: 0, land in Phase 6)
+- [x] JUnit tags for 4 groups (core: 6 classes / 19 tests; rest: 14 classes / 186 tests; kafka+wamp: 0, land in Phase 6)
 - [x] Tag existing interop classes (frozens composition)
-- [x] `interop-tests/pom.xml` tag selection (`-Dinterop.group=<g>`; `failIfNoTests` via `interop-group` profile) — verified: core 22/22 green, wamp empty OK with `-Dinterop.failIfNoTests=false`, typo group fails the build
+- [x] `interop-tests/pom.xml` tag selection (`-Dinterop.group=<g>`; `failIfNoTests` via `interop-group` profile) — verified: core 19/19 green, wamp empty OK with `-Dinterop.failIfNoTests=false`, typo group fails the build
 - [x] CI: 3 active concurrent jobs (messaging-core, kafka, wamp) + rest job disabled; core job sets up wire-capture reference clients (Artemis CLI via `docker cp`, aiormq via pip)
 - [x] docker-compose: Kafka broker (cp-kafka KRaft, healthy) + WAMP router (crossbar, host 8081, healthy); rabbitmq pinned to 3.13 (4.x rejects aiormq's auto-delete queues), artemis pinned to 2.57.0-alpine
 - [x] Commit Phase 5 (`e21cdeb1`)

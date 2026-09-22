@@ -70,7 +70,7 @@ and commit. Do NOT push.
 - JAVA_HOME=$HOME/.sdkman/candidates/java/current
 - Build: `export JAVA_HOME=$HOME/.sdkman/candidates/java/current && mvn install -DskipTests -pl '!benchmarks' --no-transfer-progress -q`
 - Unit tests: `./gradlew test` and/or `mvn test`
-- Interop: docker compose -f interop-tests/docker-compose.yml up -d ; mvn test -pl interop-tests -DskipInteropTests=false -Dtest='...'
+- Interop (per-group compose files, D13): docker compose -f interop-tests/docker-compose.core.yml up -d (kafka/wamp: .kafka.yml / .wamp.yml) ; mvn verify -pl interop-tests -am -DskipInteropTests=false -Dinterop.group=interop-messaging-core
 - Docker: daemon UP. Containers: artemis-test(5675, artemis/guest), rabbitmq-test(5672+61613, guest/guest), mosquitto-test(1883).
   CWD for compose: interop-tests/
 - Note: `timeout` is NOT available on macOS; use background + poll, or a Java-level latch.

@@ -220,16 +220,21 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Per-group compose files — each group owns EXACTLY the reference
+          # services it needs; files never share services across groups:
+          #   core  -> artemis + rabbitmq + mosquitto
+          #   kafka -> kafka
+          #   wamp  -> crossbar
           - group: interop-messaging-core
-            services: "artemis rabbitmq mosquitto"
+            file: docker-compose.core.yml
             containers: "artemis-test rabbitmq-test mosquitto-test"
             failIfNoTests: "true"
           - group: interop-kafka
-            services: "kafka"
+            file: docker-compose.kafka.yml
             containers: "kafka-test"
             failIfNoTests: "false"
           - group: interop-wamp
-            services: "crossbar"
+            file: docker-compose.wamp.yml
             containers: "wamp-router-test"
             failIfNoTests: "false"
 
@@ -253,9 +258,11 @@ jobs:
             ${{ runner.os }}-gradle-caches-
 
       - name: Start Docker services for ${{ matrix.group }}
+        working-directory: interop-tests
         run: |
-          cd interop-tests
-          docker compose up -d ${{ matrix.services }}
+          COMPOSE_FILE=${{ matrix.file }}
+          echo "Starting per-group services from ${COMPOSE_FILE}..."
+          docker compose -f "${COMPOSE_FILE}" up -d
           echo "Waiting for ${{ matrix.containers }} to become healthy..."
           timeout=180
           elapsed=0
@@ -271,7 +278,7 @@ jobs:
             done
             if [ "$all_healthy" = true ]; then
               echo "All services healthy!"
-              docker compose ps
+              docker compose -f "${COMPOSE_FILE}" ps
               break
             fi
             elapsed=$((elapsed + interval))
@@ -309,4 +316,4 @@ jobs:
 
       - name: Stop Docker services
         if: always()
-        run: cd interop-tests && docker compose down --remove-orphans
+        run: cd interop-tests && docker compose -f ${{ matrix.file }} down --remove-orphans

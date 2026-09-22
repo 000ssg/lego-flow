@@ -25,9 +25,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   interop.xmpp.username (default: test)
  *   interop.xmpp.password (default: test)
  *
- * <p>To run against Prosody:
- *   docker compose -f interop-tests/docker-compose.yml up -d
- *   mvn verify -Dinterop.xmpp.host=localhost -DskipInteropTests=false
+ * <p>To run against Prosody (rest-group reference service — provisioned with
+ * the rest group's own compose file when its CI job is enabled):
+ *   mvn verify -DskipInteropTests=false -Dinterop.group=interop-rest
  */
     @Tag("interop-rest")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

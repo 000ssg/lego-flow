@@ -761,3 +761,34 @@ Part of the messaging compliance series defined in `doc/plans/messaging/` — re
 | Files created | 1 (new aiormq reference capture) |
 | Files modified | ~20 (pom, ci.yml, compose, 20 tagged test classes, 2 capture scripts/tests, docs) |
 | Tests added | 0 (re-tagging + infrastructure; core group runs its existing 22) |
+
+## 2026-09-22: Per-group Docker Compose files (one file per interop group, no shared instances) + core-group test-count correction
+
+**Correction to the entry above:** `interop-messaging-core` runs **19** tests, not 22 — the
+per-class breakdown in that entry (6 + 3 + 3 + 3 + 3 + 1) sums to 19; the 22 total was an
+arithmetic slip in the docs. Source of truth: 19 `@Test` methods across the 6 core classes,
+confirmed by a live run of exactly the CI command (19/19 green).
+
+**D13 (doc/plans/messaging/DECISIONS.md):** the single `interop-tests/docker-compose.yml`
+(5 services in one file, subset selected at `up -d`) is replaced by one compose file per
+interop group — `docker-compose.core.yml` (artemis, rabbitmq, mosquitto),
+`docker-compose.kafka.yml` (kafka), `docker-compose.wamp.yml` (crossbar). Per user
+direction, groups must not intersect or mix: each CI job starts **only** its group's
+services from **its** file (`docker compose -f <file> up -d/ps/down`), so isolation is
+structural — the service sets are disjoint and their union is exactly the old 5 services
+(nothing moved, nothing gained). `interop-rest` gets its own file when its CI job is
+enabled; it stays disabled and its composition stays frozen.
+
+- **CI**: the matrix key `services` (subset of one shared file) is replaced by `file`
+  (the group's own compose file); the start/stop steps use `-f ${{ matrix.file }}`.
+- **Verified**: all 3 files pass `docker compose -f … config`; core group run end-to-end
+  against `docker-compose.core.yml` (19/19 green, `BUILD SUCCESS`); no stale references
+  to the merged file remain in `ci.yml`, `README.md`, or `ci-groups.md`.
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files created | 3 (docker-compose.{core,kafka,wamp}.yml) |
+| Files modified | 4 (ci.yml, README.md, ci-groups.md, DECISIONS.md) |
+| Files deleted | 1 (docker-compose.yml) |
+| Tests added | 0 |

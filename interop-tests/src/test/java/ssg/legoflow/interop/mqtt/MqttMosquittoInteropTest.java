@@ -26,8 +26,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   interop.mosquitto.host (default: localhost)
  *   interop.mosquitto.port (default: 1883)
  *
- * <p>Requires the Mosquitto container from {@code docker-compose.yml} to be running:
- * {@code docker compose -f interop-tests/docker-compose.yml up -d mosquitto}
+ * <p>To run against the core-group reference services (see
+ * {@code docker-compose.core.yml}):
+ *   docker compose -f interop-tests/docker-compose.core.yml up -d
+ *   mvn verify -DskipInteropTests=false -Dinterop.group=interop-messaging-core
+ * <p>Requires the Mosquitto container from {@code docker-compose.core.yml} to be running:
+ * {@code docker compose -f interop-tests/docker-compose.core.yml up -d mosquitto}
  */
 @Tag("interop-messaging-core")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

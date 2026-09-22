@@ -2,8 +2,27 @@
 
 Trade-offs and rationale. Straight, simple choices preferred over sophisticated ones.
 
+## D13 — Docker compose is split per interop group: one file per group, no shared instances
+**Decision.** The single `interop-tests/docker-compose.yml` (all 5 services in one file,
+subset selected at `docker compose up -d <services>`) is replaced by **one compose file per
+interop group**: `docker-compose.core.yml` (artemis, rabbitmq, mosquitto),
+`docker-compose.kafka.yml` (kafka), `docker-compose.wamp.yml` (crossbar). Each CI job does
+`docker compose -f <its file> up -d / ps / down` and health-checks exactly the containers in
+that file. No service appears in more than one group file; the service sets are disjoint and
+their union is exactly the old 5 services (nothing moved, nothing gained).
+**Why.** User requirement: groups must not intersect or mix — a job's runtime scope is
+**only** its group's services, owned and torn down by that job. Service-subset selection from
+a shared file still risks cross-group instances on a host (leftovers from another job,
+port collisions, entangled state); a per-group file makes isolation structural, not
+disciplined.
+**Consequence.** The `interop-rest` group, when its CI job is enabled, gets its **own** file
+(nginx, redis, postgres, nats, xmpp, openldap, smtp, ftp, sshd, telnet, dns — none of which
+are in any active file today). `docker-compose.yml` is deleted; all docs and the `ci.yml`
+matrix reference the per-group files (`matrix.file` replaces `matrix.services`).
+
 ## D12 — Pin interop broker images; wire-capture reference clients are CI-provisioned, not committed
-**Decision.** `docker-compose.yml` pins `rabbitmq:3.13-management` and
+**Decision.** The pinned broker images live in the per-group compose files (D13):
+`docker-compose.core.yml` pins `rabbitmq:3.13-management` and
 `apache/artemis:2.57.0-alpine` (the AMQP 1.0 reference brokers). The AIoRMQ wire-capture
 scenario (`amqp_capture_scenario.py`) is written for the aiormq 6.x API; the Artemis CLI is
 copied out of the artemis container (`docker cp artemis-test:/opt/artemis ...`) — in CI the
