@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>Tests v5.0 specific features: ReceiveMaximum, retained messages,
  * shared subscriptions, and topic alias against the local broker.
  */
-@Tag("messaging-protocols")
+@Tag("interop-messaging-core")
 @Tag("mqtt-v5")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MqttV5FeatureTest {

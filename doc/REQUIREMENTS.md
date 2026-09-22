@@ -734,3 +734,30 @@ Part of the messaging compliance series defined in `doc/plans/messaging/` — ap
 | Files created | 7 (transport SPI x3; service x2 + channel handlers x2) |
 | Files modified | ~25 (core, client, service, tests, demos, docs) |
 | Tests added | ~17 (416 total vs 399 before) |
+
+## 2026-09-22: Messaging interop split into 4 concurrent CI groups — tag selection, per-group jobs, wire-capture CI setup (messaging plan Phase 5)
+
+Part of the messaging compliance series defined in `doc/plans/messaging/` — restructures `interop-tests` execution so groups run in parallel CI jobs. Group **membership** (which protocols sit in which group) is a frozen decision tracked separately; this entry covers the execution infrastructure only.
+
+- **Tag selection**: all 20 interop classes tagged into 4 JUnit groups — `interop-messaging-core` (6 classes / 22 tests: MQTT, STOMP, AMQP 1.0 + wire capture), `interop-kafka`, `interop-wamp` (0 tests until Phase 6), `interop-rest` (14 existing classes / 186 tests, re-tagged; CI job disabled until proper rest interop lands).
+- **Maven**: `interop-tests/pom.xml` adds `-Dinterop.group=<g>` → Surefire `<groups>` selection; `interop-group` profile flips `failIfNoTests` on so a mistyped group fails the build (opt-out `-Dinterop.failIfNoTests=false` for the not-yet-populated kafka/wamp groups). `skipInteropTests` default unchanged (`true`).
+- **CI**: the single interop job in `.github/workflows/ci.yml` is split into 3 active concurrent jobs (messaging-core / kafka / wamp) under `fail-fast: false`, each with its own compose services and health-check wait; the `interop-rest` matrix entry is disabled (documented in `interop-tests/doc/ci-groups.md`).
+- **Compose**: new `kafka` service (cp-kafka 7.6.1, single-node KRaft, `CLUSTER_ID`, verified healthy) and `crossbar` service (host 8081 to avoid the nginx 8080 collision, verified healthy). AMQP reference brokers pinned: `rabbitmq:3.13-management` and `apache/artemis:2.57.0-alpine`.
+- **Wire-capture bugs found & fixed during verification** (the core group was silently false-green):
+  - `Amqp10WireCaptureTest` authenticated with `guest`/`guest`, but the Artemis entrypoint creates only the user from `ARTEMIS_USER=artemis` — captures were a 378-byte SASL retry loop; fixed to `artemis`/`guest`, captures now 6–14 KB with real transfer + disposition frames.
+  - `rabbitmq:4-management` floated to 4.x, which rejects the `transient_nonexcl_queues` feature aiormq's auto-delete queues need → pinned to `rabbitmq:3.13-management`.
+  - `amqp_capture_scenario.py` used an aiormq API removed in 6.x (`channel.consume()` async-iterator) → rewritten to the 6.x callback API (`basic_consume`/`basic_get`, `basic_ack`).
+  - Core CI job now provisions the two external reference clients: Artemis CLI via `docker cp artemis-test:/opt/artemis …` (version-locked to the broker image, `.gitignore`d) and aiormq via `pip install 'aiormq>=6,<7'` — wire-capture tests run with zero manual setup.
+- **Docs**: `interop-tests/doc/ci-groups.md` rewritten (stale 5-group scheme → 4-group model with per-group test counts), `interop-tests/README.md` updated, plan tracker (`PLAN.md` / `PROGRESS.md` / `DECISIONS.md` D12) updated.
+
+### Verified
+- `interop-messaging-core` 22/22 green against live brokers with exactly the CI command (`mvn verify -pl interop-tests -am -DskipTests=true -DskipInteropTests=false -Dinterop.group=interop-messaging-core`)
+- Empty-group pass-through (`interop-wamp` with `failIfNoTests=false`) → BUILD SUCCESS; mistyped group (`interop-xyz`) → BUILD FAILURE (guard works)
+- All 5 reference containers healthy (mosquitto, rabbitmq, artemis, kafka, crossbar); `ci.yml` + `docker-compose.yml` YAML-validated
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files created | 1 (new aiormq reference capture) |
+| Files modified | ~20 (pom, ci.yml, compose, 20 tagged test classes, 2 capture scripts/tests, docs) |
+| Tests added | 0 (re-tagging + infrastructure; core group runs its existing 22) |

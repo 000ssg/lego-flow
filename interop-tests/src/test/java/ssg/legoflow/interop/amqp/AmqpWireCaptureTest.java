@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * The client is run as a separate process — black-box capture only.
  * Results are saved to test resources for later comparison with lego-flow.
  */
+@Tag("interop-messaging-core")
 public class AmqpWireCaptureTest {
 
     private static final String RABBITMQ_HOST = "localhost";

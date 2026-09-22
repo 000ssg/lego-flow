@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>Requires the Mosquitto container from {@code docker-compose.yml} to be running:
  * {@code docker compose -f interop-tests/docker-compose.yml up -d mosquitto}
  */
-@Tag("messaging-protocols")
+@Tag("interop-messaging-core")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MqttMosquittoInteropTest {
 

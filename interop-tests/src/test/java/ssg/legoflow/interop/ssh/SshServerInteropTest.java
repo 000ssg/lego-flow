@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  *
  * @since 0.2.0
  */
-    @Tag("email-protocols")
+    @Tag("interop-rest")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SshServerInteropTest {
 

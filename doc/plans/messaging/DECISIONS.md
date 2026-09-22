@@ -2,6 +2,26 @@
 
 Trade-offs and rationale. Straight, simple choices preferred over sophisticated ones.
 
+## D12 — Pin interop broker images; wire-capture reference clients are CI-provisioned, not committed
+**Decision.** `docker-compose.yml` pins `rabbitmq:3.13-management` and
+`apache/artemis:2.57.0-alpine` (the AMQP 1.0 reference brokers). The AIoRMQ wire-capture
+scenario (`amqp_capture_scenario.py`) is written for the aiormq 6.x API; the Artemis CLI is
+copied out of the artemis container (`docker cp artemis-test:/opt/artemis ...`) — in CI the
+messaging-core job does both (pip + docker cp) as a setup step. The capture `.txt` files
+stay committed as the wire-format reference baseline.
+**Why.** `rabbitmq:4-management` floats to 4.x, which rejects the `transient_nonexcl_queues`
+feature aiormq's auto-delete queues need (`channel.close()` → INTERNAL_ERROR), and
+`artemis:latest-alpine` moves the CLI/protocol features out from under the captures — both
+broke the wire-capture tests on a fresh CI runner. Pinning the broker versions (the things
+the captured bytes were taken against) makes the interop jobs reproducible; provisioning the
+external clients in CI keeps the repo free of a ~200 MB CLI blob and version-locks the CLI
+to the broker image. The `Artemis CLI` was already a documented manual pre-step
+(`docker cp` in the test's error message); CI just automates it.
+**Consequence.** aiormq is pinned to `>=6,<7` in the CI setup step; the scenario script must
+be updated if the 7.x line ever becomes default. `guest`/`guest` is NOT a valid Artemis
+credential — the entrypoint creates a single user from `ARTEMIS_USER=artemis`, so the
+wire-capture test uses `artemis`/`guest` (matching `AmqpInteropTest`).
+
 ## D11 — Kafka client migrates to transport-injection (drop the host/port ctor), same as NATS (D7/D9)
 **Decision.** The Phase 4 spec said both "keep legacy host/port `KafkaConnection` ctor" (§5) and
 "no host/port constructor in `KafkaConnection`" (§6). Contradiction resolved in favour of the

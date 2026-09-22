@@ -59,13 +59,15 @@ A module is **compliant** when it has **all** of:
 
 | Group | Tag | Contents | Reference broker (docker-compose) | Status |
 |-------|-----|----------|-----------------------------------|--------|
-| 1 | `interop-messaging-core` | mqtt, stomp, amqp | mosquitto, rabbitmq(STOMP), artemis | ✅ active (exists) |
-| 2 | `interop-kafka` | kafka (new composite tests) | **add** Kafka broker | new |
-| 3 | `interop-wamp` | wamp (new composite tests) | **add** WAMP router | new |
+| 1 | `interop-messaging-core` | mqtt, stomp, amqp + AMQP 1.0 wire-capture (reference clients) | mosquitto, rabbitmq(STOMP), artemis | ✅ active |
+| 2 | `interop-kafka` | kafka (composite tests, Phase 6) | **add** Kafka broker (KRaft, single node) | ✅ service added; tests pending Phase 6 |
+| 3 | `interop-wamp` | wamp (composite tests, Phase 6) | **add** WAMP router (crossbar) | ✅ service added; tests pending Phase 6 |
 | 4 | `interop-rest` | nats, xmpp, dns, ftp, http, ldap, postgresql, redis, smtp, ssh, telnet, terminal | (existing) | **disabled for now** — proper interop deferred to a later session |
 
 Group 4 keeps all **existing** non-messaging interop tests untouched, just **re-tagged and
-disabled** (no new implementation this session, per user direction).
+disabled** (no new implementation this session, per user direction). **Frozens** — the
+protocol→group assignment is a frozen decision; only the infrastructure (tag, pom selection,
+CI jobs, compose services) is built in Phase 5.
 
 ---
 
@@ -120,12 +122,18 @@ trade-offs in `DECISIONS.md`.
 - [ ] Commit `refactor(kafka): byte-level Transport SPI + service pipeline (no raw sockets)`
 
 ### Phase 5 — Interop structure: 4 concurrent groups
-- [ ] JUnit `@Tag`s: `interop-messaging-core`, `interop-kafka`, `interop-wamp`, `interop-rest`.
-- [ ] Tag existing classes: mqtt/stomp/amqp → core; nats/xmpp + dns/ftp/http/ldap/postgresql/
-      redis/smtp/ssh/telnet/terminal → rest.
-- [ ] `interop-tests/pom.xml`: property-driven tag selection (`-Dinterop.group=<g>`).
-- [ ] CI (`ci.yml`): 4 concurrent jobs, one group each; `interop-rest` **disabled** for now.
-- [ ] `docker-compose.yml`: add **Kafka broker** + **WAMP router** services (groups 2 & 3).
+- [x] JUnit `@Tag`s: `interop-messaging-core`, `interop-kafka`, `interop-wamp`, `interop-rest`.
+- [x] Tag existing classes: mqtt/stomp/amqp + AMQP 1.0 wire-capture → core; nats/xmpp +
+      dns/ftp/http/ldap/postgresql/redis/smtp/ssh/telnet/terminal → rest (frozens composition).
+- [x] `interop-tests/pom.xml`: property-driven tag selection (`-Dinterop.group=<g>`;
+      `failIfNoTests` guard via `interop-group` profile).
+- [x] CI (`ci.yml`): 3 concurrent jobs (messaging-core, kafka, wamp); `interop-rest`
+      **disabled** for now (no CI job).
+- [x] `docker-compose.yml`: **Kafka broker** (cp-kafka 7.6.1, single-node KRaft, `CLUSTER_ID`,
+      verified healthy) + **WAMP router** (crossbar, host 8081, verified healthy); AMQP
+      reference brokers pinned (`rabbitmq:3.13-management`, `apache/artemis:2.57.0-alpine`, D12).
+- [x] Wire-capture CI setup (core job): Artemis CLI via `docker cp` + aiormq via pip (D12);
+      fixes: Artemis creds `artemis`/`guest`, scenario script on aiormq 6.x API.
 - [ ] Commit `test(interop): split into 4 concurrent groups (rest disabled)`
 
 ### Phase 6 — Kafka + WAMP composite interop tests

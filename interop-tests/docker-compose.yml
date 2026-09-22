@@ -5,7 +5,7 @@
 
 services:
   artemis:
-    image: apache/artemis:latest-alpine
+    image: apache/artemis:2.57.0-alpine
     container_name: artemis-test
     ports:
       - "5675:5672"    # AMQP
@@ -22,8 +22,13 @@ services:
       timeout: 3s
       retries: 10
 
+  # AMQP 1.0 reference broker for the wire-capture scenario (aiormq
+  # auto-delete queue => `transient_nonexcl_queues`).
+  # Pinned to 3.13 (last stable before 4.x deprecations) so captured
+  # reference bytes stay reproducible — RabbitMQ 4.3+ rejects the feature
+  # unless `deprecated_features.permit.transient_nonexcl_queues = true`.
   rabbitmq:
-    image: rabbitmq:4-management
+    image: rabbitmq:3.13-management
     container_name: rabbitmq-test
     ports:
       - "5672:5672"    # AMQP (includes AMQP 1.0 plugin)
@@ -40,7 +45,7 @@ services:
       retries: 10
 
   mosquitto:
-    image: eclipse-mosquitto:latest
+    image: eclipse-mosquitto:2.0.18
     container_name: mosquitto-test
     ports:
       - "1883:1883"    # MQTT
@@ -51,3 +56,45 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  # ── interop-kafka group (Phase 6 composite tests, single KRaft broker) ──
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: kafka-test
+    ports:
+      - "9092:9092"    # Kafka API (PLAINTEXT)
+    environment:
+      # Single-node KRaft (no zookeeper)
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      CLUSTER_ID: Pbz33PgFDkaZ4Tm8lALzEw==
+      KAFKA_CLUSTER_ID: Pbz33PgFDkaZ4Tm8lALzEw==
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-test:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      # TCP probe is enough: the broker accepts connections once KRaft quorum is up
+      test: ["CMD-SHELL", "echo > /dev/tcp/localhost/9092 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  # ── interop-wamp group (Phase 6 composite tests) ──
+  # Crossbar router; the `default` realm is open. The WAMP interop client
+  # connects via ws://localhost:8081/ws (host 8081 — avoids nginx's 8080).
+  crossbar:
+    image: crossbario/crossbar:latest
+    container_name: wamp-router-test
+    ports:
+      - "8081:8080"    # WAMP WebSocket endpoint
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 2 bash -c '</dev/tcp/localhost/8080' || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12

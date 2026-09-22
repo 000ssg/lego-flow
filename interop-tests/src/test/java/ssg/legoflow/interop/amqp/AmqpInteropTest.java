@@ -83,7 +83,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Read from {@code interop-tests/pom.xml} system properties. Defaults:
  * host=localhost, port=5672, username=artemis, password=guest, broker=ARTEMIS.
  */
-@Tag("messaging-protocols")
+@Tag("interop-messaging-core")
 class AmqpInteropTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(AmqpInteropTest.class);

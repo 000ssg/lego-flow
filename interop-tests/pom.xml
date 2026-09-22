@@ -22,6 +22,12 @@
     <!-- Skip interop tests by default — only run when Docker services are available (CI interoperability job) -->
     <properties>
         <skipInteropTests>true</skipInteropTests>
+        <!-- Parallel interop group to run (see doc/ci-groups.md):
+             interop-messaging-core | interop-kafka | interop-wamp | interop-rest
+             Unset = run everything (default: all groups). -->
+        <interop.group/>
+        <!-- Fail when a group is requested but matches no tests (typo guard). -->
+        <interop.failIfNoTests>false</interop.failIfNoTests>
     </properties>
 
     <dependencies>
@@ -217,7 +223,10 @@
                 <version>3.2.5</version>
                 <configuration>
                     <skipTests>${skipInteropTests}</skipTests>
+                    <groups>${interop.group}</groups>
+                    <failIfNoTests>${interop.failIfNoTests}</failIfNoTests>
                     <systemPropertyVariables>
+                        <interop.group>${interop.group}</interop.group>
                         <interop.nginx.host>localhost</interop.nginx.host>
                         <interop.nginx.port>8080</interop.nginx.port>
                         <interop.mosquitto.host>localhost</interop.mosquitto.host>
@@ -340,4 +349,23 @@
             </plugin>
         </plugins>
     </build>
+
+    <!--
+      Activated whenever -Dinterop.group=<group> is set (see doc/ci-groups.md).
+      With <groups> selecting the group, fail the build if the group matches
+      zero tests — catches tag typos (otherwise the job would "pass" silently).
+    -->
+    <profiles>
+        <profile>
+            <id>interop-group</id>
+            <activation>
+                <property>
+                    <name>interop.group</name>
+                </property>
+            </activation>
+            <properties>
+                <interop.failIfNoTests>true</interop.failIfNoTests>
+            </properties>
+        </profile>
+    </profiles>
 </project>

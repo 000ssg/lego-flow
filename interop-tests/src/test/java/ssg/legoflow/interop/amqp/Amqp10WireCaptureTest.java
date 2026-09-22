@@ -19,11 +19,14 @@ import java.util.concurrent.*;
  * Scenario: producer sends a message → consumer receives it.
  * Results saved to test resources for later comparison with lego-flow.
  */
+@Tag("interop-messaging-core")
 public class Amqp10WireCaptureTest {
 
     private static final String ARTEMIS_HOST = "localhost";
     private static final int ARTEMIS_PORT = 5675; // AMQP 1.0 acceptor
-    private static final String ARTEMIS_USER = "guest";
+    // The docker entrypoint creates ONE broker user from ARTEMIS_USER/ARTEMIS_PASSWORD
+    // (compose: ARTEMIS_USER=artemis). "guest" is NOT a user — it fails SASL.
+    private static final String ARTEMIS_USER = "artemis";
     private static final String ARTEMIS_PASS = "guest";
     private static final String QUEUE = "wire-capture-queue-10";
 

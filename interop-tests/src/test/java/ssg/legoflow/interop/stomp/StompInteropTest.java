@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   interop.stomp.login (default: guest)
  *   interop.stomp.passcode (default: guest)
  */
-@Tag("messaging-protocols")
+@Tag("interop-messaging-core")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class StompInteropTest {
 

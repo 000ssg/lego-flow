@@ -17,7 +17,7 @@ server implementations for protocol compliance validation.
 | redis        | `redis:7-alpine`             | 6379  | Redis in-memory store                |
 | postgresql   | `postgres:17-alpine`         | 5432  | PostgreSQL database server           |
 | rabbitmq     | `rabbitmq:4-management`      | 5672  | AMQP 1.0 broker (via amqp1.0 plugin) |
-| activemq     | `apache/activemq:latest`      | 61613 | STOMP broker                         |
+| artemis      | `apache/activemq-classic-karaf` | 61613 | STOMP broker (ActiveMQ Classic on Artemis) |
 | nats         | `nats:2.10-alpine`            | 4222  | NATS message broker                  |
 | prosody      | `prosody/prosody:latest`      | 5222  | XMPP server                          |
 | openldap     | `osixia/openldap:latest`      | 389   | LDAP v3 server                       |
@@ -25,6 +25,8 @@ server implementations for protocol compliance validation.
 | ftp          | `docker/ftp-python`           | 21    | FTP server                           |
 | sshd         | `docker/sshd`                 | 2222  | SSH server                           |
 | telnetd      | `docker/telnetd`              | 2223  | Telnet server                        |
+| kafka        | `confluentinc/cp-kafka:7.6.1` | 9092  | Kafka broker (single-node KRaft)     |
+| crossbar     | `crossbario/crossbar:latest`  | 8081  | WAMP router (container 8080)         |
 
 ## Prerequisites
 
@@ -78,12 +80,16 @@ Each group uses isolated Docker containers and can run in parallel:
 
 ```bash
 # Individual groups
-mvn verify -pl interop-tests -am -DskipInteropTests=false -Dgroups=web-protocols
-mvn verify -pl interop-tests -am -DskipInteropTests=false -Dgroups=database-protocols
-mvn verify -pl interop-tests -am -DskipInteropTests=false -Dgroups=email-protocols
-mvn verify -pl interop-tests -am -DskipInteropTests=false -Dgroups=messaging-protocols
-mvn verify -pl interop-tests -am -DskipInteropTests=false -Dgroups=terminal-protocols
+mvn verify -pl interop-tests -am -DskipInteropTests=false -Dinterop.group=interop-messaging-core
+mvn verify -pl interop-tests -am -DskipInteropTests=false -Dinterop.group=interop-kafka -Dinterop.failIfNoTests=false
+mvn verify -pl interop-tests -am -DskipInteropTests=false -Dinterop.group=interop-wamp -Dinterop.failIfNoTests=false
 ```
+
+`interop-messaging-core` = MQTT + STOMP + AMQP (22 tests). `interop-kafka` /
+`interop-wamp` carry the Phase 6 composite tests (group service is provisioned
+and healthy; `-Dinterop.failIfNoTests=false` until the tests land).
+`interop-rest` = all remaining existing interop tests — CI-disabled for now
+(frozens composition; see [ci-groups.md](doc/ci-groups.md)).
 
 ### 3. Stop the services
 
@@ -140,10 +146,18 @@ Protocols with both Lego Flow client and server implementations are tested in **
 ## CI Integration
 
 Interoperability tests run against Docker Compose containers in GitHub Actions CI.
-Tests are split into 5 groups for parallel execution — see [ci-groups.md](doc/ci-groups.md) for details.
+Tests are split into 4 groups for parallel execution — see [ci-groups.md](doc/ci-groups.md)
+for details:
 
-Services are started with `docker compose -f interop-tests/docker-compose.yml up -d`,
-health-checked, and stopped after the tests complete (even on failure).
+| Group | CI job | Services |
+|-------|--------|----------|
+| `interop-messaging-core` | ✅ active | mosquitto, rabbitmq, artemis |
+| `interop-kafka` | ✅ active (failIfNoTests=false) | kafka |
+| `interop-wamp` | ✅ active (failIfNoTests=false) | crossbar |
+| `interop-rest` | ❌ disabled for now | (existing services) |
+
+Each CI job starts **only its group's** containers, health-checks them, and
+stops them after the tests complete (even on failure).
 
 ## Test Results & Quality Assessment
 
