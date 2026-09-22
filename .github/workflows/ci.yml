@@ -294,19 +294,6 @@ jobs:
             fi
           done
 
-      # Wire-capture reference clients for the AMQP 1.0 tests (core group only):
-      #   - Artemis CLI: copied out of the artemis container (producer/consumer
-      #     subcommands; version-pinned with the broker image)
-      #   - aiormq: Python AMQP 1.0 client for the RabbitMQ capture scenario
-      - name: Set up AMQP 1.0 wire-capture reference clients
-        if: matrix.group == 'interop-messaging-core'
-        working-directory: interop-tests
-        run: |
-          docker cp artemis-test:/opt/artemis src/test/resources/artemis-cli
-          chmod +x src/test/resources/artemis-cli/bin/artemis
-          python3 -m pip install --quiet 'aiormq>=6,<7'
-          python3 -c "import aiormq; print('aiormq', aiormq.__version__)"
-
       - name: Run ${{ matrix.group }} interop tests (Maven)
         run: |
           mvn install -DskipTests -pl interop-tests -am -q

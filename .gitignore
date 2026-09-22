@@ -48,11 +48,6 @@ Thumbs.db
 .claude/
 .agentbridge/
 
-# Wire-capture reference CLI — provisioned at test time (docker cp from the
-# artemis container; see interop-tests/doc/ci-groups.md and D12 in
-# doc/plans/messaging/DECISIONS.md). Never commit.
-interop-tests/src/test/resources/artemis-cli/
-
 # Cost tracking artifacts
 costs/
 *-guessed-vs-actual-estimates*

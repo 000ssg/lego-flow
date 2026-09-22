@@ -59,7 +59,7 @@ A module is **compliant** when it has **all** of:
 
 | Group | Tag | Contents | Reference broker (docker-compose) | Status |
 |-------|-----|----------|-----------------------------------|--------|
-| 1 | `interop-messaging-core` | mqtt, stomp, amqp + AMQP 1.0 wire-capture (reference clients) | mosquitto, rabbitmq(STOMP), artemis | ✅ active |
+| 1 | `interop-messaging-core` | mqtt, stomp, amqp | mosquitto, rabbitmq(STOMP), artemis | ✅ active |
 | 2 | `interop-kafka` | kafka (composite tests, Phase 6) | **add** Kafka broker (KRaft, single node) | ✅ service added; tests pending Phase 6 |
 | 3 | `interop-wamp` | wamp (composite tests, Phase 6) | **add** WAMP router (crossbar) | ✅ service added; tests pending Phase 6 |
 | 4 | `interop-rest` | nats, xmpp, dns, ftp, http, ldap, postgresql, redis, smtp, ssh, telnet, terminal | (existing) | **disabled for now** — proper interop deferred to a later session |

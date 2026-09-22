@@ -61,9 +61,10 @@ and commit. Do NOT push.
   ldap, ftp, smtp...) — only 3 messaging brokers are in this branch's compose, so the full 12-protocol run can't
   pass locally. The coherent unit is the @Tag("messaging-protocols") group: AmqpInteropTest + MqttMosquittoInteropTest
   + StompInteropTest. That's what we run.
-- Amqp10WireCaptureTest needs `docker cp` of artemis jar + hardcoded 5675 guest/guest (separate from artemis/guest).
-  AmqpWireCaptureTest is RabbitMQ 5672 guest/guest. Both are untagged wire-capture reference tools, excluded from the
-  tagged messaging-protocols run.
+- The AMQP wire-capture tools (`Amqp10WireCaptureTest`, `AmqpWireCaptureTest`) were removed
+  2026-09-22: record-only (zero assertions), created to diagnose proto-3/SASL bugs — those
+  fixes are asserted by AmqpInteropTest. Tagged run = AmqpInteropTest + MqttMosquittoInteropTest
+  + MqttV5FeatureTest + StompInteropTest (15 tests).
 - PROGRESS.md was stale (showed statuses as [x] PASS before they were). Now corrected.
 
 ## ENV

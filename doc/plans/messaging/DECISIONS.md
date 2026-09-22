@@ -20,26 +20,35 @@ disciplined.
 are in any active file today). `docker-compose.yml` is deleted; all docs and the `ci.yml`
 matrix reference the per-group files (`matrix.file` replaces `matrix.services`).
 
-## D12 — Pin interop broker images; wire-capture reference clients are CI-provisioned, not committed
-**Decision.** The pinned broker images live in the per-group compose files (D13):
-`docker-compose.core.yml` pins `rabbitmq:3.13-management` and
-`apache/artemis:2.57.0-alpine` (the AMQP 1.0 reference brokers). The AIoRMQ wire-capture
-scenario (`amqp_capture_scenario.py`) is written for the aiormq 6.x API; the Artemis CLI is
-copied out of the artemis container (`docker cp artemis-test:/opt/artemis ...`) — in CI the
-messaging-core job does both (pip + docker cp) as a setup step. The capture `.txt` files
-stay committed as the wire-format reference baseline.
-**Why.** `rabbitmq:4-management` floats to 4.x, which rejects the `transient_nonexcl_queues`
-feature aiormq's auto-delete queues need (`channel.close()` → INTERNAL_ERROR), and
-`artemis:latest-alpine` moves the CLI/protocol features out from under the captures — both
-broke the wire-capture tests on a fresh CI runner. Pinning the broker versions (the things
-the captured bytes were taken against) makes the interop jobs reproducible; provisioning the
-external clients in CI keeps the repo free of a ~200 MB CLI blob and version-locks the CLI
-to the broker image. The `Artemis CLI` was already a documented manual pre-step
-(`docker cp` in the test's error message); CI just automates it.
-**Consequence.** aiormq is pinned to `>=6,<7` in the CI setup step; the scenario script must
-be updated if the 7.x line ever becomes default. `guest`/`guest` is NOT a valid Artemis
-credential — the entrypoint creates a single user from `ARTEMIS_USER=artemis`, so the
-wire-capture test uses `artemis`/`guest` (matching `AmqpInteropTest`).
+## D12 — Pin interop broker images in the per-group compose files
+**Decision.** The per-group compose files (D13) pin `rabbitmq:3.13-management` and
+`apache/artemis:2.57.0-alpine` in `docker-compose.core.yml`.
+**Why.** The interop jobs run these brokers on a fresh CI runner; a floating
+`latest`/`4.x` tag changed plugin behavior between runs (RabbitMQ 4.x changed
+the AMQP 1.0/STOMP plugin surface) and moved the brokers' wire behavior out
+from under the tests. Pinning the exact versions keeps the interop jobs
+reproducible. The original pinning rationale also covered the AMQP wire-capture
+tests; those were removed (D14), but the pins stay — `AmqpInteropTest`
+(artemis:5675) and `StompInteropTest` (rabbitmq:61613) run against these images.
+**Consequence.** Bumping a broker image is a deliberate act: run the full
+messaging-core group against the new image before changing the pin.
+
+## D14 — AMQP wire-capture tests removed: diagnostic recorders, not tests
+**Decision.** `Amqp10WireCaptureTest` (Artemis CLI) and `AmqpWireCaptureTest`
+(aiormq), their scenario scripts, the captured `.txt` baselines, the
+`artemis-cli` gitignore carve-out and the CI wire-capture setup step (docker cp
++ pip) are all removed (2026-09-22).
+**Why.** Both classes contain **zero assertions**: they proxy an external
+reference client and dump hex to a file — they never exercised lego-flow's AMQP
+code. They were created to diagnose proto-3/SASL/flow-frame bugs; those fixes
+are asserted by `AmqpInteropTest` (6 tests, artemis:5675) and the in-module
+fragmentation tests (which inline the captured bytes as literals). Removing
+them loses no coverage; the core group goes 19 → 15 tests.
+**Consequence.** The wire-format reference bytes no longer live in the repo. If
+a future interop bug needs byte-level diagnosis, re-capture ad hoc with
+`PassThroughConnection` + `WireCaptureInterceptor` (both stay in
+`service/.../passthrough` with their own unit test — general-purpose, reusable
+for Kafka/WAMP interop work in Phase 6).
 
 ## D11 — Kafka client migrates to transport-injection (drop the host/port ctor), same as NATS (D7/D9)
 **Decision.** The Phase 4 spec said both "keep legacy host/port `KafkaConnection` ctor" (§5) and

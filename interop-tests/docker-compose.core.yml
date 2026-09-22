@@ -25,11 +25,8 @@ services:
       timeout: 3s
       retries: 10
 
-  # AMQP 1.0 reference broker for the wire-capture scenario (aiormq
-  # auto-delete queue => `transient_nonexcl_queues`) and STOMP (61613).
-  # Pinned to 3.13 (last stable before 4.x deprecations) so captured
-  # reference bytes stay reproducible — RabbitMQ 4.3+ rejects the feature
-  # unless `deprecated_features.permit.transient_nonexcl_queues = true`.
+  # AMQP 1.0 broker (rabbitmq_amqp1_0 plugin) + STOMP (61613) for StompInteropTest.
+  # Pinned to 3.13 for reproducible interop runs (see D12).
   rabbitmq:
     image: rabbitmq:3.13-management
     container_name: rabbitmq-test

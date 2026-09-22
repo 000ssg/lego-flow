@@ -28,9 +28,7 @@ zero tests fails the build instead of passing silently); pass
 - MQTT — `MqttMosquittoInteropTest` (3), `MqttV5FeatureTest` (3)
 - STOMP — `StompInteropTest` (3)
 - AMQP 1.0 — `AmqpInteropTest` (6)
-- AMQP 1.0 wire capture (reference clients) — `Amqp10WireCaptureTest` (3, Artemis CLI),
-  `AmqpWireCaptureTest` (1, aiormq)
-- **Total: 19 tests**
+- **Total: 15 tests**
 - **Containers: mosquitto, rabbitmq (STOMP 61613), artemis**
 
 ### Group 2: `interop-kafka`

@@ -792,3 +792,39 @@ enabled; it stays disabled and its composition stays frozen.
 | Files modified | 4 (ci.yml, README.md, ci-groups.md, DECISIONS.md) |
 | Files deleted | 1 (docker-compose.yml) |
 | Tests added | 0 |
+
+## 2026-09-22: AMQP wire-capture tests removed — diagnostic recorders, not tests (D14)
+
+**Trigger.** User question: can the AMQP wire-capture tests be removed without
+loss of test scope? (They existed to evaluate proto-3/SASL/flow-frame problems
+and were never asserted against.)
+
+**Analysis.** `Amqp10WireCaptureTest` (Artemis CLI → Artemis:5675, 3 tests) and
+`AmqpWireCaptureTest` (aiormq → RabbitMQ:5672, 1 test) contain **zero
+assertions**: both proxy an external reference client through
+`PassThroughConnection` + `WireCaptureInterceptor` and dump hex to `.txt`
+files under `src/test/resources`. Neither exercises lego-flow's AMQP 1.0 code.
+The scope-bearing coverage is `AmqpInteropTest` (6 asserting tests,
+artemis:5675 — pom Surefire block pins `interop.amqp.port=5675`; the class-code
+default of 5672 is overridden), and the in-module
+`PipelineTransportFragmentationTest` (inlines captured bytes as literals, only
+javadoc-references the `.txt` files). No test in the repo loads a capture file.
+RabbitMQ stays in `docker-compose.core.yml` for `StompInteropTest` (61613),
+independent of the capture tests.
+
+**Action.** Removed the 2 test classes, 2 scenario scripts, 5 capture `.txt`
+baselines (incl. the orphan `amqp-091-reference-capture-rabbitmq-aiormq.txt`),
+the `artemis-cli/` gitignore carve-out and the CI wire-capture setup step
+(docker cp + pip). Core group goes 19 → 15 tests. Supporting infra
+(`PassThroughConnection`, `WireCaptureInterceptor`, `PassThroughEvent` in
+`service/`) stays with its unit test — general-purpose, reusable for
+byte-level diagnosis (e.g. Phase 6 Kafka/WAMP). Decisions: D12 trimmed to
+broker-image pinning only, D14 records the removal.
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Tests removed | 4 (record-only, 0 assertions) |
+| Tests remaining (core group) | 15 |
+| Files deleted | 9 |
+| Files modified | 10 (ci.yml, .gitignore, compose.core, 5 doc/plan files, interop README) |

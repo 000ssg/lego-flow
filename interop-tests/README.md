@@ -81,7 +81,7 @@ mvn verify -pl interop-tests -am -DskipInteropTests=false -Dinterop.group=intero
 mvn verify -pl interop-tests -am -DskipInteropTests=false -Dinterop.group=interop-wamp -Dinterop.failIfNoTests=false
 ```
 
-`interop-messaging-core` = MQTT + STOMP + AMQP (19 tests). `interop-kafka` /
+`interop-messaging-core` = MQTT + STOMP + AMQP (15 tests). `interop-kafka` /
 `interop-wamp` carry the Phase 6 composite tests (group service is provisioned
 and healthy; `-Dinterop.failIfNoTests=false` until the tests land).
 `interop-rest` = all remaining existing interop tests — CI-disabled for now
