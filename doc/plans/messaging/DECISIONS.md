@@ -2,6 +2,26 @@
 
 Trade-offs and rationale. Straight, simple choices preferred over sophisticated ones.
 
+## D11 — Kafka client migrates to transport-injection (drop the host/port ctor), same as NATS (D7/D9)
+**Decision.** The Phase 4 spec said both "keep legacy host/port `KafkaConnection` ctor" (§5) and
+"no host/port constructor in `KafkaConnection`" (§6). Contradiction resolved in favour of the
+compliance rule: the protocol core is **headless**, so `KafkaConnection` becomes
+`KafkaConnection(KafkaTransport, clientId)` only — no `java.net`, no `SocketChannel`. The three
+public clients (`KafkaProducer`/`KafkaConsumer`/`KafkaAdminClient`) take a `KafkaTransport` instead
+of `(host, port)`. Real TCP moves to a new service layer (`KafkaService` client + `KafkaBrokerService`,
+`SelectableChannelManager`-driven, mirroring `NatsService`/`NatsServerService`).
+**Consequence.** The `demos` + client/broker unit tests that called the host/port ctors no longer
+compile — they migrate to the **in-memory seam** (`InMemoryKafkaTransport.createPair()` +
+`broker.handleConnection(...)` + client over the pair), exactly the NATS `InMemoryNats`/`InMemoryKafka`
+fixture pattern (D9). ~36 client tests + 5 raw-socket broker tests migrate; the other ~350 (broker
+in-process, codec, common, record, protocol) are untouched. The service integration test
+(`KafkaServiceIntegrationTest`) proves the real-TCP manager path, mirroring `NatsServiceIntegrationTest`.
+**Why.** "No direct socket in implementation" is the actual rule being enforced; a raw-socket legacy
+ctor in the client core would leave the exact violation this phase removes. Follows the proven
+NATS/XMPP shape so review stays simple. Public demo signatures are preserved via the in-memory seam.
+**Note.** k1 (transport SPI trio) and the client-side `KafkaConnection` rewrite are done; broker
+headless + clients + tests + service layer follow.
+
 ## D8 — In-memory transport must drain queued data before EOF (auth-rejection race)
 **Decision.** `InMemoryNatsTransport.receiveWithTimeout` returned -1 (EOF) immediately on
 `!open`, **discarding bytes still queued** (e.g. the server's `-ERR` after an auth failure).

@@ -245,6 +245,30 @@
 
 ---
 
+## Phase 4: Compliance migration — headless broker core, transport SPI, service-layer I/O (messaging plan)
+
+Part of the messaging compliance series defined in `doc/plans/messaging/` — applies the Phase 2/3 (NATS/XMPP) headless pattern to the Kafka module.
+
+### What Changed
+- **Transport SPI**: new `KafkaTransport` byte-level SPI (`send`, `receiveWithTimeout`, `peek`, `isOpen`, `close` + `add`/`onWrite` for the pipeline). `InMemoryKafkaTransport.createPair()` for tests/demos (deterministic, no sockets); `PipelineKafkaTransport` for production (64 KB ring buffer over a `DataChannel`, selector-thread driven, never touches a socket directly).
+- **Headless core**: `KafkaBroker` no longer owns a `ServerSocketChannel`/accept loop — connections arrive via `handleConnection(KafkaTransport)` on a virtual-thread read loop. `KafkaBrokerService` (service layer) owns the TCP listener through the `SelectableChannelManager` and feeds each inbound connection to the broker core. The client (`KafkaProducer`/`KafkaConsumer`/`KafkaAdminClient`) takes a `KafkaTransport` in its constructor; the package-private `KafkaConnection` is now a headless frame-level correlation-ID wrapper over an injected transport (never a socket). Zero raw sockets in the protocol packages (broker/codec/protocol/common/record/transport).
+- **Bug found & fixed during reassembly testing**: the in-memory transport re-queued a partially-read buffer's tail at the *back* of the queue, rotating the byte stream when two sends were in flight — a frame split across reads no longer reassembled in order. Fixed by holding the partially-read buffer at the stream head (`headBuffer`); regression tests added (`KafkaTransportTest` two-send interleaving, `KafkaBrokerTest` partial-prefix / fragmented-body / coalesced-frames).
+- **Service layer**: `KafkaBrokerService` + `KafkaClientService` with channel handlers are the only components touching NIO (non-blocking `ServerSocketChannel`/`SocketChannel` via `SelectableChannelManager`), wiring `PipelineKafkaTransport` into the headless cores.
+- **Demos**: all five demos migrated to the dual-backend pattern (`KafkaDemoClient.inMemory` for the in-house broker, `KafkaDemoClient.tcp` via `KafkaClientService` for an external broker).
+
+### Test Coverage
+- 416 tests, 0 failures (was 399): transport trio (`KafkaTransportTest` 18, `KafkaServiceIntegrationTest` 3 real-TCP), broker wire-reassembly (3), service unit tests, migrated client/broker tests on the in-memory seam
+- JaCoCo instruction coverage 91.9% (≥80% gate); weakest package `service` at 65.9% (integration tests exercise the DP/DF pipeline; builder/lifecycle branches remain)
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files created | 5 (KafkaTransport, InMemoryKafkaTransport, PipelineKafkaTransport, KafkaBrokerService, KafkaClientService + 2 channel handlers) |
+| Files modified | ~20 (broker, client, service, tests, demos, docs) |
+| Tests added | ~17 (416 total vs 399 before) |
+
+---
+
 ## Document Maintenance
 
 - This document is append-only for commit sections

@@ -8,8 +8,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
+
 /**
  * Simple demo: start broker, produce messages, consume them.
+ *
+ * <p>Runs over the in-memory transport seam ({@link KafkaDemoClient#inMemory}) — deterministic,
+ * no sockets — the same seam the service layer uses in production.
  *
  * @since 0.1.0
  */
@@ -31,10 +35,10 @@ public final class SimpleProducerConsumerDemo {
         try (KafkaBroker broker = new KafkaBroker("localhost", 0)) {
             broker.start();
             broker.createTopic("demo-topic", 3);
-            int port = broker.port();
 
-            // Produce
-            try (KafkaProducer producer = new KafkaProducer("localhost", port, "demo-producer")) {
+            // Produce over its own in-memory connection.
+            try (var client = KafkaDemoClient.inMemory(broker).open();
+                 var producer = new KafkaProducer(client.transport(), "demo-producer")) {
                 producer.init();
                 for (int i = 0; i < messageCount; i++) {
                     var result = producer.send("demo-topic", "key-" + i, "value-" + i);
@@ -42,9 +46,10 @@ public final class SimpleProducerConsumerDemo {
                 }
             }
 
-            // Consume
+            // Consume over a second in-memory connection.
             int consumed = 0;
-            try (KafkaConsumer consumer = new KafkaConsumer("localhost", port, "demo-consumer", "demo-group")) {
+            try (var client = KafkaDemoClient.inMemory(broker).open();
+                 var consumer = new KafkaConsumer(client.transport(), "demo-consumer", "demo-group")) {
                 consumer.subscribe(List.of("demo-topic"));
                 List<ConsumerRecord> records = consumer.poll(5000);
                 consumed = records.size();

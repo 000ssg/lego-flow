@@ -713,3 +713,24 @@ Part of the messaging compliance series defined in `doc/plans/messaging/` — co
 | Files created | 6 (transport SPI x3; XmppServerTest, XmppTransportTest, XmppServiceIntegrationTest) |
 | Files modified | ~15 (core, service, stream, tests, docs) |
 | Tests added | 25 (283 total vs 268 before) |
+
+## 2026-09-21: Kafka compliance migration — headless broker core, transport SPI, service-layer I/O (messaging plan Phase 4)
+
+Part of the messaging compliance series defined in `doc/plans/messaging/` — applies the Phase 2 (NATS) / Phase 3 (XMPP) headless pattern to the Kafka module.
+
+- **Transport SPI**: new `KafkaTransport` byte-level SPI (`send`, `receiveWithTimeout`, `peek`, `isOpen`, `close` + `add`/`onWrite` for the pipeline). `InMemoryKafkaTransport.createPair()` for tests/demos (deterministic, no sockets); `PipelineKafkaTransport` for production (64 KB ring buffer over a `DataChannel`, selector-thread driven, never touches a socket directly).
+- **Headless core**: `KafkaBroker` no longer owns a `ServerSocketChannel`/accept loop — connections arrive via `handleConnection(KafkaTransport)` on a virtual-thread read loop. `KafkaBrokerService` (service layer) owns the TCP listener through the `SelectableChannelManager` and feeds each inbound connection to the broker core. The clients (`KafkaProducer`/`KafkaConsumer`/`KafkaAdminClient`) take a `KafkaTransport` in their constructor; the package-private `KafkaConnection` is now a headless frame-level correlation-ID wrapper over an injected transport (never a socket). Zero raw sockets in the protocol packages (broker/codec/protocol/common/record/transport). `BrokerCluster` drops its now-dead `throws IOException` (a headless `start()` cannot throw a checked I/O error).
+- **Bug found & fixed during reassembly testing**: the in-memory transport re-queued a partially-read buffer's tail at the *back* of the queue, rotating the byte stream whenever two sends were in flight — a frame split across reads no longer reassembled in order (the 3 broker wire-reassembly tests caught it). Fixed by holding the partially-read buffer at the stream head (`headBuffer`); regression tests added (`KafkaTransportTest` two-send interleaving, `KafkaBrokerTest` partial-prefix / fragmented-body / coalesced-frames).
+- **Service layer**: `KafkaBrokerService` + `KafkaClientService` with channel handlers are the only components touching NIO (non-blocking `ServerSocketChannel`/`SocketChannel` via `SelectableChannelManager`), wiring `PipelineKafkaTransport` into the headless cores.
+- **Demos**: all five demos migrated to the dual-backend pattern (`KafkaDemoClient.inMemory` for the in-house broker, `KafkaDemoClient.tcp` via `KafkaClientService` for an external Apache Kafka broker); `demos` + `interop-tests` compile clean.
+
+### Verified
+- `messaging/kafka` 416 tests, 0 failures (was 399); JaCoCo instruction coverage 91.9% / branch 80.4% / line 91.7% (≥80% gate)
+- Headless audit: zero `java.net` socket imports in broker/codec/protocol/common/record/transport; the `service` package is the only socket owner
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files created | 7 (transport SPI x3; service x2 + channel handlers x2) |
+| Files modified | ~25 (core, client, service, tests, demos, docs) |
+| Tests added | ~17 (416 total vs 399 before) |

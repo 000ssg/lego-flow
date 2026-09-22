@@ -3,7 +3,6 @@ package ssg.legoflow.messaging.kafka.broker;
 import ssg.legoflow.messaging.kafka.common.TopicPartition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 /**
@@ -26,11 +25,13 @@ public final class BrokerCluster implements AutoCloseable {
     /**
      * Creates and starts a cluster of N brokers.
      *
+     * <p>The headless broker core opens no sockets, so starting a broker cannot fail with a
+     * checked I/O error; failures surface as runtime exceptions after cleanup.
+     *
      * @param numBrokers the number of brokers to create
      * @param host       the bind host for all brokers
-     * @throws IOException if any broker fails to start
      */
-    public BrokerCluster(int numBrokers, String host) throws IOException {
+    public BrokerCluster(int numBrokers, String host) {
         if (numBrokers < 1) throw new IllegalArgumentException("numBrokers must be >= 1");
         brokers = new ArrayList<>(numBrokers);
         try {
@@ -40,7 +41,7 @@ public final class BrokerCluster implements AutoCloseable {
                 brokers.add(broker);
             }
             LOG.info("Broker cluster started with {} brokers", numBrokers);
-        } catch (IOException e) {
+        } catch (RuntimeException e) {
             // Clean up any brokers that started successfully
             for (KafkaBroker broker : brokers) {
                 broker.close();
