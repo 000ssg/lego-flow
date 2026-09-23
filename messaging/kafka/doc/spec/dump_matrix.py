@@ -79,10 +79,19 @@ def field_sig(f):
     return s
 
 
+def flexible_min(req):
+    """First version using flexible encoding, or None if never (within validVersions)."""
+    fv = req.get("flexibleVersions")
+    if fv is None or fv == "none":
+        return None
+    return parse_spec(fv)[0]
+
+
 def api_table(api):
     req = load(f"{api}Request.json")
     maxv = parse_spec(req["validVersions"])
     maxv = maxv[1] if maxv[1] is not None else maxv[0]
+    flex_min = flexible_min(req)
     lines = [f"### {api} (API {req['apiKey']}) — v0..v{maxv}\n"]
     lines.append("| Version | Δ vs previous (name:type, per schema) | Status | Commit |")
     lines.append("|---------|----------------------------------------|--------|--------|")
@@ -95,13 +104,20 @@ def api_table(api):
             cur += [field_sig(f) for f in collect_fields(resp["fields"], v)]
         cur_set = set(cur)
         prev_set = set(prev)
+        # First flexible version: wire framing changes (varint lengths, flexible
+        # request header) even when the field list is unchanged — same class of
+        # delta as an added field, so it must appear in the Δ column.
+        flex_entered = (flex_min is not None
+                        and v >= flex_min
+                        and (v == 0 or v - 1 < flex_min))
         if v == 0:
             base_fields = [f["name"] for f in collect_fields(req["fields"], 0)]
-            lines.append(f"| v0 | base ({len(base_fields)} fields): {', '.join(base_fields)} | ☐ | |")
+            tag = " (flexible)" if flex_entered else ""
+            lines.append(f"| v0 | base ({len(base_fields)} fields){tag}: {', '.join(base_fields)} | ☐ | |")
         else:
             added = [s for s in cur if s not in prev_set]
             removed = [s for s in prev if s not in cur_set]
-            if not added and not removed:
+            if not added and not removed and not flex_entered:
                 lines.append(f"| v{v} | unchanged | ☐ | |")
             else:
                 parts = []
@@ -109,6 +125,8 @@ def api_table(api):
                     parts.append("+ " + ", ".join(added))
                 if removed:
                     parts.append("− " + ", ".join(removed))
+                if flex_entered:
+                    parts.append("→ flexible encoding")
                 lines.append(f"| v{v} | " + "<br>".join(parts) + " | ☐ | |")
         prev = cur
     lines.append("")

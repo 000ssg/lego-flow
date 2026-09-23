@@ -17,7 +17,10 @@ import java.nio.ByteBuffer;
  * <ul>
  *   <li>v0 — request: authBytes (int32-len); response: errorCode + errorMessage + authBytes</li>
  *   <li>v1 — response adds {@code sessionLifetimeMs} (int64)</li>
- *   <li>v2 — flexible encoding (compact strings/arrays + tagged fields); sub-task pending</li>
+ *   <li>v2 — flexible encoding: same fields as v1, length fields become varints
+ *       (compact nullable string for errorMessage, compact bytes for authBytes);
+ *       fixed-width integers unchanged; the request header carries the flexible
+ *       bit (apiKey | 0x8000) — encoded at frame level in {@code KafkaCodec}</li>
  * </ul>
  *
  * @since 0.1.0
@@ -43,6 +46,8 @@ public final class SaslAuthenticateCodec {
             case 0:
             case 1: // v1 request is byte-identical to v0
                 return encodeRequestV0(req);
+            case 2: // v2: flexible encoding — same fields, compact (varint) framing
+                return encodeRequestV2(req);
             default:
                 throw new CodecNotImplementedException("SaslAuthenticate request v" + version + " not implemented");
         }
@@ -61,6 +66,8 @@ public final class SaslAuthenticateCodec {
             case 0:
             case 1:
                 return decodeRequestV0(buf);
+            case 2:
+                return decodeRequestV2(buf);
             default:
                 throw new CodecNotImplementedException("SaslAuthenticate request v" + version + " not implemented");
         }
@@ -80,6 +87,8 @@ public final class SaslAuthenticateCodec {
                 return encodeResponseV0(resp);
             case 1:
                 return encodeResponseV1(resp);
+            case 2: // v2: flexible encoding — same fields as v1, compact framing
+                return encodeResponseV2(resp);
             default:
                 throw new CodecNotImplementedException("SaslAuthenticate response v" + version + " not implemented");
         }
@@ -99,6 +108,8 @@ public final class SaslAuthenticateCodec {
                 return decodeResponseV0(buf);
             case 1:
                 return decodeResponseV1(buf);
+            case 2:
+                return decodeResponseV2(buf);
             default:
                 throw new CodecNotImplementedException("SaslAuthenticate response v" + version + " not implemented");
         }
@@ -153,6 +164,43 @@ public final class SaslAuthenticateCodec {
         short errorCode = buf.getShort();
         String errorMessage = KafkaCodecPrimitives.readString(buf);
         byte[] authBytes = KafkaCodecPrimitives.readBytesField(buf);
+        long sessionLifetimeMs = buf.getLong();
+        return new SaslAuthenticateResponse(errorCode, errorMessage, authBytes, sessionLifetimeMs);
+    }
+
+    // ===== v2 — flexible encoding: same fields as v1, length fields become varints.
+    // Request: AuthBytes bytes (non-nullable → varint(len+1)).
+    // Response: ErrorCode int16 (fixed) + ErrorMessage nullable string (compact:
+    // varint 0 = null) + AuthBytes bytes (compact) + SessionLifetimeMs int64 (fixed).
+    // No tagged fields in the 3.6.1 schema (v2 has no 3+-tagged fields).
+
+    private static byte[] encodeRequestV2(SaslAuthenticateRequest req) {
+        // v2 request is nullable bytes: null = varint 1 (distinct from empty = varint 1+0).
+        ByteBuffer buf = BufferPool.getBuffer(5 + (req.authBytes() != null ? req.authBytes().length : 0));
+        KafkaCodecPrimitives.writeCompactBytes(buf, req.authBytes());
+        buf.flip();
+        return KafkaCodecPrimitives.toBytes(buf);
+    }
+
+    private static SaslAuthenticateRequest decodeRequestV2(ByteBuffer buf) {
+        return new SaslAuthenticateRequest(KafkaCodecPrimitives.readCompactBytes(buf));
+    }
+
+    private static byte[] encodeResponseV2(SaslAuthenticateResponse resp) {
+        byte[] authBytes = resp.authBytes() != null ? resp.authBytes() : new byte[0];
+        ByteBuffer buf = BufferPool.getBuffer(2 + 8 + 8 + authBytes.length);
+        buf.putShort(resp.errorCode());
+        KafkaCodecPrimitives.writeCompactString(buf, resp.errorMessage());
+        KafkaCodecPrimitives.writeCompactBytes(buf, authBytes);
+        buf.putLong(resp.sessionLifetimeMs());
+        buf.flip();
+        return KafkaCodecPrimitives.toBytes(buf);
+    }
+
+    private static SaslAuthenticateResponse decodeResponseV2(ByteBuffer buf) {
+        short errorCode = buf.getShort();
+        String errorMessage = KafkaCodecPrimitives.readCompactString(buf);
+        byte[] authBytes = KafkaCodecPrimitives.readCompactBytes(buf);
         long sessionLifetimeMs = buf.getLong();
         return new SaslAuthenticateResponse(errorCode, errorMessage, authBytes, sessionLifetimeMs);
     }

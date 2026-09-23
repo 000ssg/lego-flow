@@ -29,6 +29,42 @@ public final class KafkaCodec {
      * @return the complete frame ready for transmission
      */
     public static ByteBuffer encodeRequest(RequestHeader header, byte[] payload) {
+        return encodeRequest(header, payload, false);
+    }
+
+    /**
+     * Encodes a request with its header into a length-prefixed frame.
+     *
+     * <p>When {@code flexible} is true the header uses the flexible (Kafka 3.0+) layout:
+     * apiKey has bit 15 set, correlationId is a signed varint, and clientId is a
+     * nullable compact (varint-length) string. The request body is already encoded
+     * by the caller at the matching version.
+     *
+     * @param header   the request header
+     * @param payload  the encoded request body
+     * @param flexible true for flexible versions (header layout)
+     * @return the complete frame ready for transmission
+     */
+    public static ByteBuffer encodeRequest(RequestHeader header, byte[] payload, boolean flexible) {
+        if (flexible) {
+            // Flexible header: apiKey|0x8000 (2) + apiVersion (2) + correlationId varint (1–5)
+            // + clientId compact string (1 + len, or 1 if null).
+            int corrVarintLen = KafkaCodecPrimitives.varintSize((header.correlationId() << 1) ^ (header.correlationId() >> 31));
+            int clientIdLen = header.clientId() == null ? 0
+                    : header.clientId().getBytes(StandardCharsets.UTF_8).length;
+            int headerSize = 2 + 2 + corrVarintLen + 1 + clientIdLen;
+            int totalSize = headerSize + payload.length;
+            ByteBuffer buf = BufferPool.getBuffer(4 + totalSize);
+            buf.putInt(totalSize);
+            buf.putShort((short) (header.apiKey() | 0x8000));
+            buf.putShort(header.apiVersion());
+            KafkaCodecPrimitives.writeVarintSigned(buf, header.correlationId());
+            KafkaCodecPrimitives.writeCompactString(buf, header.clientId());
+            buf.put(payload);
+            buf.flip();
+            return buf;
+        }
+
         byte[] clientIdBytes = header.clientId() != null
                 ? header.clientId().getBytes(StandardCharsets.UTF_8) : null;
         int clientIdLen = clientIdBytes != null ? clientIdBytes.length : 0;
@@ -81,6 +117,22 @@ public final class KafkaCodec {
         short apiVersion = buf.getShort();
         int correlationId = buf.getInt();
         String clientId = readNullableString(buf);
+        return new RequestHeader(apiKey, apiVersion, correlationId, clientId);
+    }
+
+    /**
+     * Decodes a request header in flexible (Kafka 3.0+) layout: apiKey with bit 15
+     * (the flexible bit, stripped), apiVersion, correlationId as a signed varint,
+     * clientId as a nullable compact string.
+     *
+     * @param buf the buffer positioned after the 4-byte length prefix
+     * @return the decoded request header (apiKey without the flexible bit)
+     */
+    public static RequestHeader decodeRequestHeaderFlexible(ByteBuffer buf) {
+        short apiKey = (short) (buf.getShort() & 0x7FFF);
+        short apiVersion = buf.getShort();
+        int correlationId = KafkaCodecPrimitives.readVarintSigned(buf);
+        String clientId = KafkaCodecPrimitives.readCompactString(buf);
         return new RequestHeader(apiKey, apiVersion, correlationId, clientId);
     }
 

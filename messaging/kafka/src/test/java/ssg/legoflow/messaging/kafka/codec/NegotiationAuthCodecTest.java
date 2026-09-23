@@ -10,6 +10,7 @@ import ssg.legoflow.messaging.kafka.protocol.SaslAuthenticateRequest;
 import ssg.legoflow.messaging.kafka.protocol.SaslAuthenticateResponse;
 import ssg.legoflow.messaging.kafka.protocol.SaslHandshakeRequest;
 import ssg.legoflow.messaging.kafka.protocol.SaslHandshakeResponse;
+import ssg.legoflow.messaging.kafka.protocol.RequestHeader;
 import ssg.legoflow.messaging.kafka.common.ApiKey;
 
 import java.nio.ByteBuffer;
@@ -17,6 +18,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -35,7 +37,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *       mechanisms(string16); v1 byte-identical</li>
  *   <li>SaslAuthenticate request v0: authBytes(bytes); v1 byte-identical</li>
  *   <li>SaslAuthenticate response v0: errorCode(int16) + errorMessage(string16)
- *       + authBytes(bytes); v1 adds SessionLifetimeMs(int64) after authBytes</li>
+ *       + authBytes(bytes); v1 adds sessionLifetimeMs(int64) after authBytes</li>
+ *   <li>v2 (flexible, SaslAuthenticate): length fields become varints — compact
+ *       nullable string for errorMessage, compact nullable bytes for authBytes,
+ *       fixed-width integers unchanged. Wire nuance: null and empty nullable
+ *       compact bytes are indistinguishable (both varint 1, decode to null).</li>
  * </ul>
  */
 class NegotiationAuthCodecTest {
@@ -335,13 +341,105 @@ class NegotiationAuthCodecTest {
         }
 
         @Test
-        @DisplayName("v2 throws CodecNotImplementedException (flexible format, pending)")
-        void v2Throws() {
-            assertThrows(CodecNotImplementedException.class,
-                    () -> SaslAuthenticateCodec.encodeResponse((short) 2,
-                            new SaslAuthenticateResponse((short) 0, "", new byte[0], 0L)));
-            assertThrows(CodecNotImplementedException.class,
-                    () -> SaslAuthenticateCodec.decodeResponse((short) 2, ByteBuffer.allocate(16)));
+        @DisplayName("v2 request round-trips authBytes as compact nullable bytes (varint length, +1 offset)")
+        void v2RequestRoundTrip() {
+            var req = new SaslAuthenticateRequest(new byte[]{1, 2, 3});
+            byte[] enc = SaslAuthenticateCodec.encodeRequest((short) 2, req);
+            // compact bytes: varint(3 + 1) = 0x04, then 3 data bytes = 4 bytes total
+            assertArrayEquals(new byte[]{0x04, 1, 2, 3}, enc);
+            var dec = SaslAuthenticateCodec.decodeRequest((short) 2, ByteBuffer.wrap(enc));
+            assertArrayEquals(req.authBytes(), dec.authBytes());
+        }
+
+        @Test
+        @DisplayName("v2 request: null and empty authBytes are wire-identical (varint 1) — decodes to null")
+        void v2RequestNullEmptyIndistinguishable() {
+            byte[] encNull = SaslAuthenticateCodec.encodeRequest((short) 2, new SaslAuthenticateRequest(null));
+            byte[] encEmpty = SaslAuthenticateCodec.encodeRequest((short) 2, new SaslAuthenticateRequest(new byte[0]));
+            assertArrayEquals(new byte[]{0x01}, encNull);
+            assertArrayEquals(encNull, encEmpty); // same wire form
+            // decodes back to null per the flexible nullable-bytes convention
+            var dec = SaslAuthenticateCodec.decodeRequest((short) 2, ByteBuffer.wrap(encNull));
+            assertNull(dec.authBytes());
+        }
+
+        @Test
+        @DisplayName("v2 response round-trips with exact compact layout: int16 + varint string + varint bytes + int64")
+        void v2ResponseRoundTrip() {
+            var resp = new SaslAuthenticateResponse((short) 15, "fail", new byte[]{1, 2}, 123_456_789L);
+            byte[] enc = SaslAuthenticateCodec.encodeResponse((short) 2, resp);
+            // errorCode(2) + errorMessage varint(5) + "fail"(4) + authBytes varint(3) + data(2) + sessionLifetimeMs(8)
+            int expectedLen = 2 + 1 + 4 + 1 + 2 + 8;
+            assertEquals(expectedLen, enc.length);
+            var dec = SaslAuthenticateCodec.decodeResponse((short) 2, ByteBuffer.wrap(enc));
+            assertEquals(resp.errorCode(), dec.errorCode());
+            assertEquals(resp.errorMessage(), dec.errorMessage());
+            assertArrayEquals(resp.authBytes(), dec.authBytes());
+            assertEquals(resp.sessionLifetimeMs(), dec.sessionLifetimeMs());
+        }
+
+        @Test
+        @DisplayName("v2 response with empty errorMessage/authBytes: exact 12-byte layout")
+        void v2ResponseEmptyExactLayout() {
+            var resp = new SaslAuthenticateResponse((short) 0, "", new byte[0], 0L);
+            byte[] enc = SaslAuthenticateCodec.encodeResponse((short) 2, resp);
+            // errorCode(2) + errorMessage varint(1)=0x01(empty) + authBytes varint(1)=0x01(empty) + sessionLifetimeMs(8)
+            assertEquals(12, enc.length);
+            var dec = SaslAuthenticateCodec.decodeResponse((short) 2, ByteBuffer.wrap(enc));
+            assertEquals((short) 0, dec.errorCode());
+            assertEquals("", dec.errorMessage());
+            // empty decodes to null per flexible convention — accept either empty or null
+            assertTrue(dec.authBytes() == null || dec.authBytes().length == 0);
+            assertEquals(0L, dec.sessionLifetimeMs());
+        }
+
+        @Test
+        @DisplayName("v2 response with null errorMessage: varint 0 (null) — distinct from empty")
+        void v2ResponseNullErrorMessage() {
+            var resp = new SaslAuthenticateResponse((short) 0, null, new byte[0], 42L);
+            byte[] enc = SaslAuthenticateCodec.encodeResponse((short) 2, resp);
+            // errorCode(2) + errorMessage varint(0)=0x00(null) + authBytes varint(1)=0x01 + sessionLifetimeMs(8)
+            assertEquals(12, enc.length); // 2 + 1 + 1 + 8 = 12
+            var dec = SaslAuthenticateCodec.decodeResponse((short) 2, ByteBuffer.wrap(enc));
+            assertEquals((short) 0, dec.errorCode());
+            assertNull(dec.errorMessage());
+            assertEquals(42L, dec.sessionLifetimeMs());
+        }
+
+        @Test
+        @DisplayName("v2 request with 200-byte authBytes: multi-byte varint length (201 = 0xC1 0x01)")
+        void v2RequestMultiByteVarint() {
+            byte[] large = new byte[200];
+            java.util.Arrays.fill(large, (byte) 7);
+            var req = new SaslAuthenticateRequest(large);
+            byte[] enc = SaslAuthenticateCodec.encodeRequest((short) 2, req);
+            // compact bytes: varint(200 + 1) = varint(201). 201 = 0b11001001.
+            // varint little-endian groups: low 7 bits = 0b1100101 = 0xC9 (|0x80), next 7 = 0b0000001 = 0x01.
+            assertEquals(0xC9, enc[0] & 0xFF);
+            assertEquals(0x01, enc[1] & 0xFF);
+            assertEquals(202, enc.length); // 2 (varint) + 200 (data)
+            var dec = SaslAuthenticateCodec.decodeRequest((short) 2, ByteBuffer.wrap(enc));
+            assertArrayEquals(large, dec.authBytes());
+        }
+
+        @Test
+        @DisplayName("v2 request with null authBytes: varint 1 (null) — decodes to null")
+        void v2RequestNullAuthBytes() {
+            var req = new SaslAuthenticateRequest(null);
+            byte[] enc = SaslAuthenticateCodec.encodeRequest((short) 2, req);
+            assertArrayEquals(new byte[]{0x01}, enc);
+            var dec = SaslAuthenticateCodec.decodeRequest((short) 2, ByteBuffer.wrap(enc));
+            assertNull(dec.authBytes());
+        }
+
+        @Test
+        @DisplayName("v2 request with empty authBytes: varint 1 (empty, same as null) — decodes to null")
+        void v2RequestEmptyAuthBytes() {
+            var req = new SaslAuthenticateRequest(new byte[0]);
+            byte[] enc = SaslAuthenticateCodec.encodeRequest((short) 2, req);
+            assertArrayEquals(new byte[]{0x01}, enc);
+            var dec = SaslAuthenticateCodec.decodeRequest((short) 2, ByteBuffer.wrap(enc));
+            assertNull(dec.authBytes()); // null and empty are indistinguishable
         }
     }
 
@@ -396,5 +494,78 @@ class NegotiationAuthCodecTest {
         // Nothing in this sub-category should reference it; this asserts the ApiKey
         // registry itself is intact after the split.
         assertTrue(ApiKey.ADD_OFFSETS_TO_TXN != null, "ApiKey registry intact");
+    }
+
+    @Nested
+    @DisplayName("Flexible request frame (Kafka 3.0+ header — required for v2)")
+    class FlexibleRequestFrame {
+
+        @Test
+        @DisplayName("v2 request frame round-trips: apiKey|0x8000, varint correlationId, compact clientId")
+        void flexibleFrameRoundTrip() {
+            var header = new RequestHeader((short) 36, (short) 2, 42, "client");
+            ByteBuffer frame = KafkaCodec.encodeRequest(header, new byte[]{1, 2}, true);
+            int len = frame.getInt();
+            assertEquals(12 + 2, len); // header(12: 2+2+1+7) + body(2); prefix not counted
+            RequestHeader dec = KafkaCodec.decodeRequestHeaderFlexible(frame);
+            assertEquals((short) 36, dec.apiKey());       // flexible bit stripped
+            assertEquals((short) 2, dec.apiVersion());
+            assertEquals(42, dec.correlationId());
+            assertEquals("client", dec.clientId());
+            // body follows the header at the expected position
+            assertEquals(1, frame.get());
+            assertEquals(2, frame.get());
+        }
+
+        @Test
+        @DisplayName("flexible header exact layout: 0x8024 0x0002 0x54 [0x06 c l i e n t] = 12 bytes")
+        void flexibleFrameExactBytes() {
+            var header = new RequestHeader((short) 36, (short) 2, 42, "client");
+            byte[] body = new byte[0];
+            ByteBuffer frame = KafkaCodec.encodeRequest(header, body, true);
+            int len = frame.getInt();
+            assertEquals(12, len); // header(12: 2+2+1+7) + body(0)
+            // apiKey | 0x8000 = 0x8024
+            short apiKeyBits = frame.getShort();
+            assertEquals(0x80, (apiKeyBits >> 8) & 0xFF);
+            assertEquals(0x24, apiKeyBits & 0xFF); // apiKey 36
+            assertEquals(0x02, frame.getShort());        // apiVersion 2
+            // correlationId 42 → zigzag 84 → varint 0x54 (1 byte)
+            assertEquals(0x54, frame.get());
+            // clientId "client": varint(6+1)=0x07 + 6 bytes
+            assertEquals(0x07, frame.get());
+            byte[] id = new byte[6];
+            frame.get(id);
+            assertEquals("client", new String(id, java.nio.charset.StandardCharsets.UTF_8));
+        }
+
+        @Test
+        @DisplayName("flexible frame with null clientId: compact null = varint 0")
+        void flexibleFrameNullClientId() {
+            var header = new RequestHeader((short) 36, (short) 2, 7, null);
+            ByteBuffer frame = KafkaCodec.encodeRequest(header, new byte[]{9}, true);
+            int len = frame.getInt();
+            assertEquals(6 + 1, len); // header(6: 2+2+1+1) + body(1); prefix not counted
+            RequestHeader dec = KafkaCodec.decodeRequestHeaderFlexible(frame);
+            assertEquals((short) 36, dec.apiKey());
+            assertEquals(7, dec.correlationId());
+            assertNull(dec.clientId());
+            assertEquals(9, frame.get());
+        }
+
+        @Test
+        @DisplayName("legacy 2-arg encodeRequest is unchanged (flexible=false path)")
+        void legacyPathUnchanged() {
+            var header = new RequestHeader((short) 36, (short) 2, 42, "c");
+            ByteBuffer frame = KafkaCodec.encodeRequest(header, new byte[]{1});
+            int len = frame.getInt();
+            assertEquals(11 + 1, len); // header(11: 2+2+4+2+1) + body(1); prefix not counted
+            // legacy apiKey is NOT marked flexible
+            short apiKey = frame.getShort();
+            assertEquals(0x00, (apiKey >> 8) & 0xFF);
+            assertEquals(0x24, apiKey & 0xFF);
+            assertEquals(0x02, frame.getShort());
+            assertEquals(42, frame.getInt());
+        }
     }
 }

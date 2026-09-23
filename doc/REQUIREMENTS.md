@@ -900,3 +900,30 @@ Next sub-task (same rules): ApiVersions v2 (response unchanged vs v1 → shared 
 - Spec verification (3.6.1 `ApiVersionsRequest.json` / `ApiVersionsResponse.json`): v2 adds no fields — request has no fields until v3, response v2 layout = v1 (the v2 change is throttle semantics only, per the schema notes).
 - Mechanism (plan §3): byte-identical version → shared v1 methods (`case 2:` fall-through in all four dispatch methods of `ApiVersionsCodec`).
 - Tests: `NegotiationAuthCodecTest$ApiVersions` 5→7 — v2 request byte-identity, v2 response round-trip + byte-identical-to-v1 assertion; v3 stub added (next sub-task, flexible encoding).
+
+## 2026-09-23: Negotiation/Auth v2 row 2 — SaslAuthenticate v2 (flexible encoding)
+
+- Spec (3.6.1): SaslAuthenticate v2 = same field list as v1 (AuthBytes request;
+  ErrorCode/ErrorMessage/AuthBytes/SessionLifetimeMs response), but the API switches
+  to **flexible encoding** at v2 (`flexibleVersions: 2+`): string/bytes length fields
+  become varints/compact, nullable compact fields encode null as varint 1 (indis-
+  tinguishable from empty on the wire — a format property, not a codec choice),
+  fixed-width integers are unchanged, and the **request header** becomes flexible
+  (apiKey|0x8000 + varint correlationId + compact nullable clientId).
+- Implemented: varint + compact string/bytes primitives in `KafkaCodecPrimitives`
+  (+ `varintSize`), dedicated V2 encode/decode methods in `SaslAuthenticateCodec`,
+  additive flexible frame header codec in `KafkaCodec` (`encodeRequest(..., flexible=true)`,
+  `decodeRequestHeaderFlexible`; legacy `decodeRequestHeader` untouched — version-echo
+  wiring remains the separate deferred row).
+- Bug fixed: the flexible encoder's declared frame length over-allocated the
+  correlationId varint as 5 bytes (exact-byte tests caught it; would corrupt interop).
+- Tracking: `dump_matrix.py` Δ column now flags the first flexible version per API
+  (`→ flexible encoding`) — 35 such rows across the 210-row matrix (v2 had been
+  marked "unchanged" despite a framing change; same class of gap as the earlier
+  request-only Δ bug).
+- Mechanism per plan §3: framing-divergent version → dedicated V2 methods.
+- Suite: 454 module tests green (was 443; `NegotiationAuthCodecTest` 19→32).
+- Out of scope (tracked): flexible response headers + broker version-echo wiring —
+  deferred "ApiVersions negotiation + version registry in `KafkaConnection`" row.
+- Next sub-task: ApiVersions v3 (flexible + 4 new request fields + tagged fields) —
+  last row of the Negotiation/Auth sub-category.

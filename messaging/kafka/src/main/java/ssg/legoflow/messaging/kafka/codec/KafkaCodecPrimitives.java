@@ -111,4 +111,114 @@ final class KafkaCodecPrimitives {
         if (len > 0) buf.get(bytes);
         return bytes;
     }
+
+    // ===== Flexible encoding (Kafka 3.0+, "flexible versions") =====
+    // Field layouts unchanged; length fields become unsigned varints and nullable
+    // fields add a +1 offset: null string = varint 0, null bytes = varint 1,
+    // data = varint(length + 1). The request header's apiKey gets bit 15 set.
+
+    /**
+     * Number of bytes an unsigned int32 varint occupies (1–5).
+     */
+    static int varintSize(int value) {
+        int size = 1;
+        while ((value & ~0x7F) != 0) {
+            size++;
+            value >>>= 7;
+        }
+        return size;
+    }
+
+    /** Writes an unsigned int32 varint (7 bits per byte, little-endian groups). */
+    static void writeVarint(ByteBuffer buf, int value) {
+        while ((value & ~0x7F) != 0) {
+            buf.put((byte) ((value & 0x7F) | 0x80));
+            value >>>= 7;
+        }
+        buf.put((byte) value);
+    }
+
+    /** Reads an unsigned int32 varint. */
+    static int readVarint(ByteBuffer buf) {
+        int result = 0;
+        int shift = 0;
+        byte b;
+        do {
+            b = buf.get();
+            result |= (b & 0x7F) << shift;
+            shift += 7;
+        } while ((b & 0x80) != 0);
+        return result;
+    }
+
+    /**
+     * Writes a signed int32 varint (zigzag encoding: (n &lt;&lt; 1) ^ (n &gt;&gt; 31)).
+     */
+    static void writeVarintSigned(ByteBuffer buf, int value) {
+        writeVarint(buf, (value << 1) ^ (value >> 31));
+    }
+
+    /**
+     * Reads a signed int32 varint (zigzag encoding).
+     */
+    static int readVarintSigned(ByteBuffer buf) {
+        int n = readVarint(buf);
+        return (n >>> 1) ^ -(n & 1);
+    }
+
+    /**
+     * Writes a nullable string in flexible encoding: null = varint 0,
+     * otherwise varint(length + 1) + UTF-8 bytes.
+     */
+    static void writeCompactString(ByteBuffer buf, String s) {
+        if (s == null) {
+            writeVarint(buf, 0);
+            return;
+        }
+        byte[] bytes = s.getBytes(StandardCharsets.UTF_8);
+        writeVarint(buf, bytes.length + 1);
+        buf.put(bytes);
+    }
+
+    /**
+     * Reads a nullable string in flexible encoding (null = varint 0).
+     *
+     * @return the string, or null if the length was 0
+     */
+    static String readCompactString(ByteBuffer buf) {
+        int len = readVarint(buf);
+        if (len == 0) return null;
+        len -= 1;
+        byte[] bytes = new byte[len];
+        if (len > 0) buf.get(bytes);
+        return new String(bytes, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Writes a nullable byte array in flexible encoding: null = varint 1,
+     * otherwise varint(length + 1) + bytes.
+     */
+    static void writeCompactBytes(ByteBuffer buf, byte[] b) {
+        if (b == null) {
+            writeVarint(buf, 1);
+            return;
+        }
+        writeVarint(buf, b.length + 1);
+        buf.put(b);
+    }
+
+    /**
+     * Reads a byte array in flexible encoding (null = varint 1).
+     *
+     * @param buf the read position
+     * @return the bytes, or null if the length was 1
+     */
+    static byte[] readCompactBytes(ByteBuffer buf) {
+        int len = readVarint(buf);
+        if (len == 1) return null;
+        len -= 1;
+        byte[] bytes = new byte[len];
+        if (len > 0) buf.get(bytes);
+        return bytes;
+    }
 }
