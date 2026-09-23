@@ -828,3 +828,49 @@ broker-image pinning only, D14 records the removal.
 | Tests remaining (core group) | 15 |
 | Files deleted | 9 |
 | Files modified | 10 (ci.yml, .gitignore, compose.core, 5 doc/plan files, interop README) |
+
+## 2026-09-23: Kafka codec methodology reset — spec-first, one version per sub-task, unit tests before interop (D15/D16)
+
+**Trigger.** User direction after resuming Phase 6 (Kafka) work: the approach was inconsistent —
+verifying against the live broker *before* implementing + unit-testing, and adapting layouts to
+observed broker behavior instead of the exact per-version specifications. Required: plan changes
+documented and trackable without loss of overall plan goals; codec split into several classes by
+API sub-category with unit tests on the smaller files; work as sub-steps that never return to
+finished work; never mix versions — implement v0 → latest, one version per sub-task; the mechanism
+for each next version is chosen as part of that version's implementation.
+
+**Analysis.** The uncommitted Phase 6 WIP (2026-09-23, ~2h old) was red: 4 unit-test errors
+(`KafkaCodecTest.testCreateTopicsRequest` BufferUnderflow round-trip; 3 × `KafkaAdminClientTest`
+"Connection closed"). Its "fix" to `CreateTopicsRequest v0` was derived from a live-broker
+rejection, not the schema: the spec (`messaging/kafka/doc/spec/message/CreateTopicsRequest.json`,
+apache/kafka 3.6.1) defines v0 = `name, numPartitions int32, replicationFactor int16,
+[]assignments, []configs, timeoutMs int32` — the WIP changed `replicationFactor` to int32 and
+**deleted** `Configs` + `timeoutMs`; the committed layout was also wrong (missing the v0
+`Assignments` array). `ApiKey.java` version ranges were stale for 5 APIs vs the live broker
+(cp-kafka 7.6.1 = Kafka 3.6.1): Fetch 13→15, ListOffsets 7→8, LeaderAndIsr 5→7, StopReplica 3→4,
+UpdateMetadata 7→8.
+
+**Action.** (1) WIP diff preserved verbatim in `doc/plans/messaging/kafka-wip-2026-09-23.patch`;
+the two broken source files reverted to the last committed green state (416 tests, 0 failures);
+the spec JSON set (completed to 74 files = 37 APIs × req/resp), the interop-test skeleton, and the
+`interop-tests/pom.xml` additions stay in-tree for Phase 6a/6. (2) New phase **6a** inserted
+between Phase 5 and Phase 6 in `doc/plans/messaging/PLAN.md` with a 210-row version sub-task
+matrix in `doc/plans/messaging/PHASE6A_KAFKA_CODEC_VERSIONS.md`: spec-first (schema JSON = only
+layout source; broker observation = check, never source), one API version per sub-task (v0 →
+latest, no mixing), unit tests (round-trip + spec conformance) before interop, codec split into
+per-sub-category classes behind the existing `KafkaCodec` façade (existing tests compile
+unchanged), per-version mechanism choice (new methods vs parameterize) recorded in each commit.
+Overall plan goals (compliance, ≥80% coverage, interop groups 1–3, guidelines) are **unchanged**;
+Phase 6 (Kafka + WAMP interop) is gated on 6a, not replaced. Decisions D15 (preserve WIP, revert
+broken sources) and D16 (methodology) recorded in `doc/plans/messaging/DECISIONS.md`; open issue
+(codec layouts not spec-accurate) + OffsetCommit v9-spec/v8-broker nuance recorded in
+`doc/plans/messaging/ISSUES.md`.
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Version sub-tasks tracked | 210 (37 APIs, v0..vMax per spec) |
+| Spec JSONs in tree | 74 (6 fetched to complete the set) |
+| Files created | 3 (plan doc, WIP patch, spec JSONs) + 74 spec JSONs |
+| Files modified | 5 (PLAN.md, PROGRESS.md, DECISIONS.md, ISSUES.md, this file) |
+| Sources reverted | 2 (KafkaCodec.java, KafkaProducer.java → green baseline) |

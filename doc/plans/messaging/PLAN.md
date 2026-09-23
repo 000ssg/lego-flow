@@ -136,10 +136,18 @@ trade-offs in `DECISIONS.md`.
       fixes: Artemis creds `artemis`/`guest`, scenario script on aiormq 6.x API.
 - [x] Commit `test(interop): split into 4 concurrent groups (rest disabled)` (`e21cdeb1`)
 
+### Phase 6a — Kafka codec version accuracy + structure (NEW 2026-09-23)
+> **Full plan + 210-row version sub-task matrix:** [`PHASE6A_KAFKA_CODEC_VERSIONS.md`](PHASE6A_KAFKA_CODEC_VERSIONS.md)
+- [ ] Spec artifact set committed (`messaging/kafka/doc/spec/` — 74 JSONs, apache/kafka 3.6.1) + plan doc.
+- [ ] Foundation: `KafkaCodecPrimitives` + façade split by API sub-category (delegation-only, 416 tests stay green); `ApiKey.java` ranges corrected (5 APIs); ApiVersions negotiation in `KafkaConnection`.
+- [ ] Per sub-category, **one version per sub-task**, unit tests before interop (matrix tracks each row).
+- [ ] Gate: full kafka module suite green per commit; interop test stays disabled until the sub-tasks it exercises are ✓.
+
 ### Phase 6 — Kafka + WAMP composite interop tests
 - [ ] **Kafka** (group 2): trivial (connect + ApiVersions + metadata) → produce/fetch →
       **multi-partition streaming** (keyed produce, per-partition offset tracking) →
       **transactions** (InitProducerId, AddPartitionsToTxn, Produce, EndTxn commit/abort).
+      **Gated on Phase 6a** — the client versions the codec negotiates must be spec-accurate first.
 - [ ] **WAMP** (group 3): trivial (HELLO/WELCOME + pub/sub) → **multi-realm** routing →
       **distributed procedure executors** (REGISTER/CALL across realms) → **sharding**
       (procedure distribution by key across multiple routers/realms).

@@ -2,6 +2,53 @@
 
 Trade-offs and rationale. Straight, simple choices preferred over sophisticated ones.
 
+## D16 — Kafka codec methodology: spec-first, one version per sub-task, unit tests before interop, sub-category split (2026-09-23)
+**Decision.** Phase 6a inserts a dedicated phase before Kafka interop (Phase 6) with four hard rules,
+recorded in `PHASE6A_KAFKA_CODEC_VERSIONS.md` (210-row version sub-task matrix):
+1. **Spec-first** — `messaging/kafka/doc/spec/message/*.json` (apache/kafka 3.6.1, complete 74-file
+   set) is the *only* source of truth for wire layouts. Live-broker observation is a **check**, never
+   a source: when a broker rejects/accepts something unexpectedly, investigate the spec
+   interpretation — never rewrite a layout to match observed behavior.
+2. **One API version per sub-task** — exactly one version's encode/decode + unit tests per sub-task,
+   v0 → latest in order; a sub-task never touches another version's code path.
+3. **Unit tests before interop** — each sub-task commits with round-trip + spec-conformance unit
+   tests; `KafkaKRaftInteropTest` runs only after the sub-tasks it exercises are green.
+4. **Sub-category split** — the 2,670-line `KafkaCodec` monolith becomes `KafkaCodec` (static
+   façade, so existing tests compile unchanged) delegating to per-sub-category classes
+   (`ProduceCodec`, `FetchCodec`, `Admin`/`Group`/`Txn`/… grouped by API sub-category) +
+   `KafkaCodecPrimitives`; mirror-image test classes per sub-category replace the monolithic
+   `KafkaCodecTest`.
+**Mechanism for implementing the next version** (chosen as part of each sub-task, recorded in its
+commit message): (a) new dedicated methods when the layout diverges from the previous version, (b)
+parameterize the previous version's methods when only nullability/optional fields changed. Version
+dispatch is a per-API version→handler table filled as sub-tasks land; an unimplemented version
+throws `CodecNotImplementedException` (never a silent fall-through).
+**Why.** The 2026-09-23 WIP failed all three old implicit rules at once: it was red (4 unit-test
+errors uncommitted), it "fixed" CreateTopics v0 from a live-broker rejection instead of the schema
+(the schema says v0 = `name, numPartitions int32, replicationFactor int16, []assignments, []configs,
+timeoutMs int32` — the WIP changed the type and *deleted* two fields), and it mixed the Produce v0
+layout with a v3 version bump. Splitting into version-scoped sub-tasks with spec deltas as the
+checklist makes "don't go back to finished work" structural, and keeps each step small enough to
+verify independently.
+**Consequence.** Phase 6 (Kafka interop) is gated on Phase 6a for the sub-tasks the interop test
+exercises; its scope (trivial → produce/fetch → multi-partition streaming → transactions) and the
+WAMP half are unchanged. The WIP diff is preserved verbatim in `kafka-wip-2026-09-23.patch` as the
+reference for what *not* to do (its interop-test skeleton is kept and will be re-based on 6a).
+
+## D15 — Preserve the Phase 6 WIP as a patch, revert broken sources to the green baseline
+**Decision.** The uncommitted 2026-09-23 diff (`KafkaCodec.java` + `KafkaProducer.java` +
+`interop-tests/pom.xml` + untracked interop test + spec JSONs) was split: the two broken source
+files reverted to the last committed green state (416 tests, 0 failures); the whole diff preserved
+as `doc/plans/messaging/kafka-wip-2026-09-23.patch`; the spec JSON set, the interop-test skeleton,
+and the pom additions kept in-tree (untracked) for Phase 6a/6 to build on. `.specdump.py` (throwaway
+scratch) deleted.
+**Why.** The WIP contained two real findings (broker rejects the committed CreateTopics v0 layout;
+Produce must be sent at a v3+ shape) that are now re-derived *from the spec* in 6a — but the
+implementation was spec-wrong and red, so it cannot be built on. Nothing is lost: the patch is the
+record, the spec set supersedes it.
+**Consequence.** `git status` is clean of source modifications; only the plan docs, the spec set,
+the interop skeleton, and the pom changes remain in the tree.
+
 ## D13 — Docker compose is split per interop group: one file per group, no shared instances
 **Decision.** The single `interop-tests/docker-compose.yml` (all 5 services in one file,
 subset selected at `docker compose up -d <services>`) is replaced by **one compose file per

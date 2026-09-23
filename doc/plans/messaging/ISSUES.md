@@ -2,6 +2,17 @@
 
 Blockers and open questions. Each entry: **date**, **what**, **status**, **next step**.
 
+- 2026-09-23 · **Kafka codec layouts not spec-accurate** — the committed `v0`-only encoders/decoders
+  were written from recollection: e.g. `CreateTopicsRequest v0` omits the schema's `Assignments`
+  array, and the 2026-09-23 WIP "fix" was derived from a live-broker rejection, not the schema
+  (it also changed `replicationFactor` int16→int32 and deleted `Configs` + `timeoutMs`). `ApiKey.java`
+  ranges stale for 5 APIs vs the live 3.6.1 broker. _status: open_ → Phase 6a
+  (`PHASE6A_KAFKA_CODEC_VERSIONS.md`, 210 version sub-tasks, spec-first, one version per sub-task).
+  Next: foundation commit (spec set + `ApiKey` ranges), then façade split.
+- 2026-09-23 · **OffsetCommit spec/broker range mismatch** — schema (3.6.1) defines v0..v9; the
+  reference broker (cp-kafka 7.6.1) advertises v0..v8. _status: resolved by rule_ — implement v9
+  (spec-first), negotiate `min(max, broker)` at runtime; unit tests cover v9, interop proves v8
+  (see `PHASE6A_KAFKA_CODEC_VERSIONS.md` §4 nuance).
 - 2026-09-18 · **Kafka has no service layer at all** — `KafkaBroker` runs its own `ServerSocketChannel`
   accept loop; `KafkaConnection` opens a raw `SocketChannel`. No `KafkaTransport` SPI, no
   `InMemoryKafkaTransport`, no `PipelineKafkaTransport`. **Largest migration.** _status: open_ →

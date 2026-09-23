@@ -55,8 +55,20 @@ Live checklist. Keep straight: mark `[x]` when the sub-task is done and verified
 - [x] docker-compose: Kafka broker (cp-kafka KRaft, healthy) + WAMP router (crossbar, host 8081, healthy); rabbitmq pinned to 3.13 (reproducible interop — 4.x changed STOMP/AMQP1 plugin behavior), artemis pinned to 2.57.0-alpine
 - [x] Commit Phase 5 (`e21cdeb1`)
 
+## Phase 6a — Kafka codec version accuracy + structure (NEW 2026-09-23)
+- [x] Spec artifact set complete in tree (`messaging/kafka/doc/spec/` — 74 JSONs, apache/kafka 3.6.1; 6 missing fetched 2026-09-23)
+- [x] WIP diff preserved (`kafka-wip-2026-09-23.patch`) + broken source files reverted to green baseline
+- [x] Live-broker version matrix captured (cp-kafka 7.6.1, localhost:9092) — matches 3.6.1 schema; 1 documented exception (OffsetCommit v9 spec / v8 broker)
+- [x] Plan + 210-row version sub-task matrix written (`PHASE6A_KAFKA_CODEC_VERSIONS.md`)
+- [ ] Foundation commit (spec set + plan docs + `ApiKey.java` range fixes)
+- [ ] Façade split by sub-category (`KafkaCodecPrimitives` + delegation, zero behavior change)
+- [ ] ApiVersions negotiation + version registry in `KafkaConnection`
+- [ ] Negotiation/Auth sub-category (9 version sub-tasks)
+- [ ] Record I/O (35), Admin (35), Transactions (24), Consumer Groups (63), Metadata/Cluster (44)
+- [ ] Per-row status in the matrix as commits land
+
 ## Phase 6 — Kafka + WAMP composite interop
-- [ ] Kafka: trivial → produce/fetch → multi-partition streaming → transactions
+- [ ] Kafka: trivial → produce/fetch → multi-partition streaming → transactions (gated on Phase 6a)
 - [ ] WAMP: trivial → multi-realm → distributed procedure executors → sharding
 - [ ] Green vs real brokers
 - [ ] Commit Phase 6
@@ -69,6 +81,7 @@ Live checklist. Keep straight: mark `[x]` when the sub-task is done and verified
 - [ ] Commit Phase 7
 
 ## Log
+- 2026-09-23 — Phase 6a inserted (user direction, after Phase 5): the Phase 6 WIP was **red** (4 unit-test errors: `KafkaCodecTest.testCreateTopicsRequest` BufferUnderflow + 3 admin-client "Connection closed") and its "fix" (CreateTopics v0 `replicationFactor` int16→int32, `Configs` + `timeoutMs` deleted, Produce v0→v3 bump in `KafkaProducer`) was guessed from live-broker behavior, **not** from the schema — the committed v0 layout was equally wrong (missing the spec's `Assignments` array). WIP diff preserved verbatim in `kafka-wip-2026-09-23.patch`, broken sources reverted to the green 416-test baseline. New ground rules: (1) spec-first — `messaging/kafka/doc/spec/message/*.json` (apache/kafka 3.6.1, now complete: 74 files) is the only layout source; broker observation is a check, never a source; (2) one API version per sub-task, never mixed; (3) unit tests before interop — interop is the final verifier, not the development driver; (4) codec split by API sub-category into small classes (210 version sub-tasks tracked row-by-row in `PHASE6A_KAFKA_CODEC_VERSIONS.md`); (5) `ApiKey.java` ranges stale for 5 APIs (Fetch 13→15, ListOffsets 7→8, LeaderAndIsr 5→7, StopReplica 3→4, UpdateMetadata 7→8) — verified against the live broker matrix. Plan goals in `PLAN.md` untouched; Phase 6 (interop) is gated on 6a, not replaced.
 - 2026-09-18 — Plan written; compliance map done (kafka/nats/xmpp violate; mqtt/stomp/amqp/wamp baseline).
 - 2026-09-19 — Phase 1 committed (`6a588918`). Phase 2 main-code refactor: headless core + `PipelineNatsTransport` + manager-driven services (no sockets in core/protocol; earlier raw-socket `SocketNatsTransport`/`NatsAcceptor` draft removed, D7 corrected). Test migration to in-memory seam + TCP integration test in progress.
 - 2026-09-20 — Phase 2 test migration complete: all 5 legacy loopback test files on the in-memory seam; fixed an `InMemoryNatsTransport` race where queued `-ERR` was dropped on close (D8); full NATS module suite green (343 tests). Discovered the `demos` module + NATS interop test still referenced the removed socket API (a stale `~/.m2` jar had masked the break) — migrated demos to the in-memory seam and interop to the real-TCP service layer (D9).
