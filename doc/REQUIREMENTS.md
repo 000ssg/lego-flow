@@ -874,3 +874,23 @@ broken sources) and D16 (methodology) recorded in `doc/plans/messaging/DECISIONS
 | Files created | 3 (plan doc, WIP patch, spec JSONs) + 74 spec JSONs |
 | Files modified | 5 (PLAN.md, PROGRESS.md, DECISIONS.md, ISSUES.md, this file) |
 | Sources reverted | 2 (KafkaCodec.java, KafkaProducer.java → green baseline) |
+
+## 2026-09-23: Negotiation/Auth v1 sub-task — SaslHandshake v1, ApiVersions v1, SaslAuthenticate v1 (D15/D16 applied)
+Implemented the second version sub-task of the Negotiation/Auth sub-category, strictly one version (v1), no mixing, per `messaging/kafka/doc/spec/message/*.json` (Kafka 3.6.1) — the v1 layouts are response-side only in this sub-category:
+- SaslHandshake v1 — byte-identical to v0 in the 3.6.1 schema (request and response); codec dispatch falls through to the v0 methods (no duplicate code).
+- ApiVersions v1 — response adds `ThrottleTimeMs` (int32) after the ApiKeys array; request byte-identical to v0.
+- SaslAuthenticate v1 — response adds `SessionLifetimeMs` (int64) after authBytes; request byte-identical to v0.
+
+Mechanism chosen per plan §3: dedicated `encodeResponseV1`/`decodeResponseV1` methods for the two layout-divergent responses; shared v0 methods for byte-identical cases (fall-through `case 1:`). Unit tests in `NegotiationAuthCodecTest` (14→19 tests) assert exact byte layouts (16-byte ApiVersions v1 response, 20/16-byte SaslAuthenticate v1 responses, byte-identity for SaslHandshake v1). `dump_matrix.py` Δ column now unions request+response field deltas (was request-only — v1 rows previously showed "unchanged" for response-side additions). Plan matrix: three v1 rows marked ✓. Full module suite: 441 green.
+
+Out of scope, tracked as the "ApiVersions negotiation + version registry in `KafkaConnection`" row: the `KafkaCodec` facade still dispatches at v0 — wiring the negotiated version through `KafkaConnection` → broker handler → `encodeResponse` makes the v1 paths reachable end-to-end; the v1 codec paths themselves are unit-tested via the `short version` parameter.
+
+Next sub-task (same rules): ApiVersions v2 (response unchanged vs v1 → shared v1 response path), then ApiVersions v3 and SaslAuthenticate v2 (flexible encoding — new primitives).
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Version sub-tasks completed | 3 (of 210; 6 of 9 in Negotiation/Auth) |
+| Source files modified | 3 (ApiVersionsCodec, SaslAuthenticateCodec, SaslHandshakeCodec) + 1 test |
+| Tests | 441 (module), +5 in NegotiationAuthCodecTest (14→19) |
+| Plan docs | PHASE6A_KAFKA_CODEC_VERSIONS.md (3 v1 rows ✓), PROGRESS.md (log + status), this file |

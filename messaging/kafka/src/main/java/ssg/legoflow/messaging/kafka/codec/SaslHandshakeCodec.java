@@ -43,6 +43,7 @@ public final class SaslHandshakeCodec {
     public static byte[] encodeRequest(short version, SaslHandshakeRequest req) {
         switch (version) {
             case 0:
+            case 1: // v1 request is byte-identical to v0 in the 3.6.1 schema
                 return encodeRequestV0(req);
             default:
                 throw new CodecNotImplementedException("SaslHandshake request v" + version + " not implemented");
@@ -60,6 +61,7 @@ public final class SaslHandshakeCodec {
     public static SaslHandshakeRequest decodeRequest(short version, ByteBuffer buf) {
         switch (version) {
             case 0:
+            case 1: // v1 request is byte-identical to v0
                 return decodeRequestV0(buf);
             default:
                 throw new CodecNotImplementedException("SaslHandshake request v" + version + " not implemented");
@@ -77,6 +79,7 @@ public final class SaslHandshakeCodec {
     public static byte[] encodeResponse(short version, SaslHandshakeResponse resp) {
         switch (version) {
             case 0:
+            case 1: // v1 response is byte-identical to v0
                 return encodeResponseV0(resp);
             default:
                 throw new CodecNotImplementedException("SaslHandshake response v" + version + " not implemented");
@@ -94,6 +97,7 @@ public final class SaslHandshakeCodec {
     public static SaslHandshakeResponse decodeResponse(short version, ByteBuffer buf) {
         switch (version) {
             case 0:
+            case 1: // v1 response is byte-identical to v0
                 return decodeResponseV0(buf);
             default:
                 throw new CodecNotImplementedException("SaslHandshake response v" + version + " not implemented");

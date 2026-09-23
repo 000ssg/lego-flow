@@ -18,7 +18,7 @@ import java.util.List;
  *
  * <ul>
  *   <li>v0 — request: no body; response: errorCode + []{apiKey,min,max}</li>
- *   <li>v1 — response adds {@code throttleTimeMs} (sub-task pending)</li>
+ *   <li>v1 — response adds {@code throttleTimeMs} (int32)</li>
  *   <li>v2 — unchanged vs v1 (sub-task pending)</li>
  *   <li>v3 — flexible encoding + request client name/version fields + response tagged fields
  *       (SupportedFeatures, FinalizedFeaturesEpoch, FinalizedFeatures, ZkMigrationReady)
@@ -46,6 +46,7 @@ public final class ApiVersionsCodec {
     public static byte[] encodeRequest(short version, ApiVersionsRequest req) {
         switch (version) {
             case 0:
+            case 1: // v1 request is byte-identical to v0 (no fields until v3 flexible)
                 return encodeRequestV0(req);
             default:
                 throw new CodecNotImplementedException("ApiVersions request v" + version + " not implemented");
@@ -63,6 +64,7 @@ public final class ApiVersionsCodec {
     public static ApiVersionsRequest decodeRequest(short version, ByteBuffer buf) {
         switch (version) {
             case 0:
+            case 1:
                 return decodeRequestV0(buf);
             default:
                 throw new CodecNotImplementedException("ApiVersions request v" + version + " not implemented");
@@ -81,6 +83,8 @@ public final class ApiVersionsCodec {
         switch (version) {
             case 0:
                 return encodeResponseV0(resp);
+            case 1:
+                return encodeResponseV1(resp);
             default:
                 throw new CodecNotImplementedException("ApiVersions response v" + version + " not implemented");
         }
@@ -98,6 +102,8 @@ public final class ApiVersionsCodec {
         switch (version) {
             case 0:
                 return decodeResponseV0(buf);
+            case 1:
+                return decodeResponseV1(buf);
             default:
                 throw new CodecNotImplementedException("ApiVersions response v" + version + " not implemented");
         }
@@ -134,5 +140,33 @@ public final class ApiVersionsCodec {
             keys.add(new ApiVersionsResponse.ApiVersion(buf.getShort(), buf.getShort(), buf.getShort()));
         }
         return new ApiVersionsResponse(errorCode, keys, 0L);
+    }
+
+    // ===== v1 — layout: response adds ThrottleTimeMs:int32 after the ApiKeys array =====
+    // Request is byte-identical to v0 (shared above).
+
+    private static byte[] encodeResponseV1(ApiVersionsResponse resp) {
+        ByteBuffer buf = BufferPool.getBuffer(2 + 4 + resp.apiKeys().size() * 6 + 4);
+        buf.putShort(resp.errorCode());
+        buf.putInt(resp.apiKeys().size());
+        for (var ak : resp.apiKeys()) {
+            buf.putShort(ak.apiKey());
+            buf.putShort(ak.minVersion());
+            buf.putShort(ak.maxVersion());
+        }
+        buf.putInt((int) resp.throttleTimeMs());
+        buf.flip();
+        return KafkaCodecPrimitives.toBytes(buf);
+    }
+
+    private static ApiVersionsResponse decodeResponseV1(ByteBuffer buf) {
+        short errorCode = buf.getShort();
+        int count = buf.getInt();
+        List<ApiVersionsResponse.ApiVersion> keys = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            keys.add(new ApiVersionsResponse.ApiVersion(buf.getShort(), buf.getShort(), buf.getShort()));
+        }
+        long throttleTimeMs = buf.getInt() & 0xFFFFFFFFL;
+        return new ApiVersionsResponse(errorCode, keys, throttleTimeMs);
     }
 }

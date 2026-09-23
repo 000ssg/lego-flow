@@ -479,14 +479,14 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
 | v0 | base (1 fields): Mechanism | ✓ | v0 commit (see PROGRESS.md) |
-| v1 | unchanged | ☐ | |
+| v1 | unchanged | ✓ | v1 commit (see PROGRESS.md) |
 
 ### ApiVersions (API 18) — v0..v3
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
 | v0 | base (0 fields):  | ✓ | v0 commit (see PROGRESS.md) |
-| v1 | + ThrottleTimeMs:int32[1+] | ☐ | |
+| v1 | + ThrottleTimeMs:int32[1+] | ✓ | v1 commit (see PROGRESS.md) |
 | v2 | unchanged | ☐ | |
 | v3 | + ClientSoftwareName:string[3+], ClientSoftwareVersion:string[3+], SupportedFeatures:[]SupportedFeatureKey[3+], Name:string[3+](key), MinVersion:int16[3+], MaxVersion:int16[3+], FinalizedFeaturesEpoch:int64[3+], FinalizedFeatures:[]FinalizedFeatureKey[3+], Name:string[3+](key), MaxVersionLevel:int16[3+], MinVersionLevel:int16[3+], ZkMigrationReady:bool[3+] | ☐ | |
 
@@ -495,7 +495,7 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
 | v0 | base (1 fields): AuthBytes | ✓ | v0 commit (see PROGRESS.md) |
-| v1 | + SessionLifetimeMs:int64[1+] | ☐ | |
+| v1 | + SessionLifetimeMs:int64[1+] | ✓ | v1 commit (see PROGRESS.md) |
 | v2 | unchanged | ☐ | |
 
 
