@@ -10,17 +10,17 @@ public enum ApiKey {
     /** Publish records to a topic partition. */
     PRODUCE(0, "Produce", 0, 9),
     /** Fetch records from topic partitions. */
-    FETCH(1, "Fetch", 0, 13),
+    FETCH(1, "Fetch", 0, 15),
     /** List offsets for topic partitions. */
-    LIST_OFFSETS(2, "ListOffsets", 0, 7),
+    LIST_OFFSETS(2, "ListOffsets", 0, 8),
     /** Get topic/partition/broker metadata. */
     METADATA(3, "Metadata", 0, 12),
     /** Controller to broker: assign partition leadership and ISR. */
-    LEADER_AND_ISR(4, "LeaderAndIsr", 0, 5),
+    LEADER_AND_ISR(4, "LeaderAndIsr", 0, 7),
     /** Controller to broker: stop replicating partitions. */
-    STOP_REPLICA(5, "StopReplica", 0, 3),
+    STOP_REPLICA(5, "StopReplica", 0, 4),
     /** Controller to broker: update metadata cache. */
-    UPDATE_METADATA(6, "UpdateMetadata", 0, 7),
+    UPDATE_METADATA(6, "UpdateMetadata", 0, 8),
     /** Broker to controller: request graceful shutdown. */
     CONTROLLED_SHUTDOWN(7, "ControlledShutdown", 0, 3),
     /** Commit consumer group offsets. */

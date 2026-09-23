@@ -354,7 +354,7 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | v1 | unchanged | ☐ | |
 | v2 | unchanged | ☐ | |
 | v3 | unchanged | ☐ | |
-| v4 | + Transactions:[]AddPartitionsToTxnTransaction[4+], TransactionalId:string[4+], ProducerId:int64[4+], ProducerEpoch:int16[4+], VerifyOnly:bool[4+], Topics:[]AddPartitionsToTxnTopic[4+]<br>− V3AndBelowTransactionalId:string[0-3], V3AndBelowProducerId:int64[0-3], V3AndBelowProducerEpoch:int16[0-3], V3AndBelowTopics:[]AddPartitionsToTxnTopic[0-3] | ☐ | |
+| v4 | + Transactions:[]AddPartitionsToTxnTransaction[4+], TransactionalId:string[4+](key), ProducerId:int64[4+], ProducerEpoch:int16[4+], VerifyOnly:bool[4+], Topics:[]AddPartitionsToTxnTopic[4+]<br>− V3AndBelowTransactionalId:string[0-3], V3AndBelowProducerId:int64[0-3], V3AndBelowProducerEpoch:int16[0-3], V3AndBelowTopics:[]AddPartitionsToTxnTopic[0-3] | ☐ | |
 
 ### AddOffsetsToTxn (API 25) — v0..v3
 
@@ -498,18 +498,7 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | v1 | unchanged | ☐ | |
 | v2 | unchanged | ☐ | |
 
-**Total: 210 version sub-tasks** (35 + 44 + 63 + 24 + 35 + 9 by sub-category).
 
-### Version nuances (per spec, not per broker observation)
-
-- **OffsetCommit v9** exists in the 3.6.1 schema but the reference broker stops at v8 → implement
-  v9 (spec-first), negotiate to min(max, broker) at runtime; unit tests cover v9, interop proves v8.
-- **Metadata v12 / Fetch v13+**: topic **UUIDs** appear (KIP-516); lego-flow tracks topic names —
-  v0..v11 are sufficient for the client surface; v12+ rows may be marked ⊘ *out of client scope*
-  with the reason recorded, or implemented if broker-side parity demands it (decision at that row,
-  recorded in `DECISIONS.md`).
-- **Records field** (`records` type, magic-2 batches) is version-invariant v0..v9 — covered by the
-  existing `record` package tests, not re-implemented per version.
 
 ## 5. Interop (Phase 6 proper) — unchanged scope, gated
 

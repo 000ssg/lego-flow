@@ -1,563 +1,3986 @@
-# Kafka wire layouts per version (extracted from apache/kafka 3.6.1 message/*.json)
-
-Scope: APIs where version matters for the lego-flow client (negotiated) or the in-memory broker.
-
-Field list = exact per-version body layout, in order. [v] = version gate from the schema.
-
-Generated: `doc/spec/message/*.json` are the authoritative artifacts.
-
-## ProduceRequest v0..v9
-
-### v0
-Acks int16 [0+]
-TimeoutMs int32 [0+]
-TopicData []topicproducedata [0+]
-
-### v1
-Acks int16 [0+]
-TimeoutMs int32 [0+]
-TopicData []topicproducedata [0+]
-
-### v2
-Acks int16 [0+]
-TimeoutMs int32 [0+]
-TopicData []topicproducedata [0+]
-
-### v3
-TransactionalId string [3+]
-Acks int16 [0+]
-TimeoutMs int32 [0+]
-TopicData []topicproducedata [0+]
-
-### v4
-TransactionalId string [3+]
-Acks int16 [0+]
-TimeoutMs int32 [0+]
-TopicData []topicproducedata [0+]
-
-### v5
-TransactionalId string [3+]
-Acks int16 [0+]
-TimeoutMs int32 [0+]
-TopicData []topicproducedata [0+]
-
-### v6
-TransactionalId string [3+]
-Acks int16 [0+]
-TimeoutMs int32 [0+]
-TopicData []topicproducedata [0+]
-
-### v7
-TransactionalId string [3+]
-Acks int16 [0+]
-TimeoutMs int32 [0+]
-TopicData []topicproducedata [0+]
-
-### v8
-TransactionalId string [3+]
-Acks int16 [0+]
-TimeoutMs int32 [0+]
-TopicData []topicproducedata [0+]
-
-### v9
-TransactionalId string [3+]
-Acks int16 [0+]
-TimeoutMs int32 [0+]
-TopicData []topicproducedata [0+]
-
-
-## ProduceResponse v0..v9
-
-### v0
-Responses []topicproduceresponse [0+]
-
-### v1
-Responses []topicproduceresponse [0+]
-ThrottleTimeMs int32 [1+]
-
-### v2
-Responses []topicproduceresponse [0+]
-ThrottleTimeMs int32 [1+]
-
-### v3
-Responses []topicproduceresponse [0+]
-ThrottleTimeMs int32 [1+]
-
-### v4
-Responses []topicproduceresponse [0+]
-ThrottleTimeMs int32 [1+]
-
-### v5
-Responses []topicproduceresponse [0+]
-ThrottleTimeMs int32 [1+]
-
-### v6
-Responses []topicproduceresponse [0+]
-ThrottleTimeMs int32 [1+]
-
-### v7
-Responses []topicproduceresponse [0+]
-ThrottleTimeMs int32 [1+]
-
-### v8
-Responses []topicproduceresponse [0+]
-ThrottleTimeMs int32 [1+]
-
-### v9
-Responses []topicproduceresponse [0+]
-ThrottleTimeMs int32 [1+]
-
-
-## FetchRequest v0..v13
-
-### v0
-ReplicaId int32 [0-14]
-MaxWaitMs int32 [0+]
-MinBytes int32 [0+]
-Topics []fetchtopic [0+]
-
-### v1
-ClusterId string [12+]
-ReplicaId int32 [0-14]
-ReplicaState replicastate [15+]
-MaxWaitMs int32 [0+]
-MinBytes int32 [0+]
-Topics []fetchtopic [0+]
-RackId string [11+]
-
-### v2
-ClusterId string [12+]
-ReplicaId int32 [0-14]
-ReplicaState replicastate [15+]
-MaxWaitMs int32 [0+]
-MinBytes int32 [0+]
-Topics []fetchtopic [0+]
-RackId string [11+]
-
-### v3
-ClusterId string [12+]
-ReplicaId int32 [0-14]
-ReplicaState replicastate [15+]
-MaxWaitMs int32 [0+]
-MinBytes int32 [0+]
-MaxBytes int32 [3+]
-Topics []fetchtopic [0+]
-RackId string [11+]
-
-### v4
-ClusterId string [12+]
-ReplicaId int32 [0-14]
-ReplicaState replicastate [15+]
-MaxWaitMs int32 [0+]
-MinBytes int32 [0+]
-MaxBytes int32 [3+]
-IsolationLevel int8 [4+]
-Topics []fetchtopic [0+]
-RackId string [11+]
-
-### v5
-ClusterId string [12+]
-ReplicaId int32 [0-14]
-ReplicaState replicastate [15+]
-MaxWaitMs int32 [0+]
-MinBytes int32 [0+]
-MaxBytes int32 [3+]
-IsolationLevel int8 [4+]
-Topics []fetchtopic [0+]
-RackId string [11+]
-
-### v6
-ClusterId string [12+]
-ReplicaId int32 [0-14]
-ReplicaState replicastate [15+]
-MaxWaitMs int32 [0+]
-MinBytes int32 [0+]
-MaxBytes int32 [3+]
-IsolationLevel int8 [4+]
-Topics []fetchtopic [0+]
-RackId string [11+]
-
-### v7
-ClusterId string [12+]
-ReplicaId int32 [0-14]
-ReplicaState replicastate [15+]
-MaxWaitMs int32 [0+]
-MinBytes int32 [0+]
-MaxBytes int32 [3+]
-IsolationLevel int8 [4+]
-SessionId int32 [7+]
-SessionEpoch int32 [7+]
-Topics []fetchtopic [0+]
-ForgottenTopicsData []forgottentopic [7+]
-RackId string [11+]
-
-### v8
-ClusterId string [12+]
-ReplicaId int32 [0-14]
-ReplicaState replicastate [15+]
-MaxWaitMs int32 [0+]
-MinBytes int32 [0+]
-MaxBytes int32 [3+]
-IsolationLevel int8 [4+]
-SessionId int32 [7+]
-SessionEpoch int32 [7+]
-Topics []fetchtopic [0+]
-ForgottenTopicsData []forgottentopic [7+]
-RackId string [11+]
-
-### v9
-ClusterId string [12+]
-ReplicaId int32 [0-14]
-ReplicaState replicastate [15+]
-MaxWaitMs int32 [0+]
-MinBytes int32 [0+]
-MaxBytes int32 [3+]
-IsolationLevel int8 [4+]
-SessionId int32 [7+]
-SessionEpoch int32 [7+]
-Topics []fetchtopic [0+]
-ForgottenTopicsData []forgottentopic [7+]
-RackId string [11+]
-
-### v10
-ClusterId string [12+]
-ReplicaId int32 [0-14]
-ReplicaState replicastate [15+]
-MaxWaitMs int32 [0+]
-MinBytes int32 [0+]
-MaxBytes int32 [3+]
-IsolationLevel int8 [4+]
-SessionId int32 [7+]
-SessionEpoch int32 [7+]
-Topics []fetchtopic [0+]
-ForgottenTopicsData []forgottentopic [7+]
-RackId string [11+]
-
-### v11
-ClusterId string [12+]
-ReplicaId int32 [0-14]
-ReplicaState replicastate [15+]
-MaxWaitMs int32 [0+]
-MinBytes int32 [0+]
-MaxBytes int32 [3+]
-IsolationLevel int8 [4+]
-SessionId int32 [7+]
-SessionEpoch int32 [7+]
-Topics []fetchtopic [0+]
-ForgottenTopicsData []forgottentopic [7+]
-RackId string [11+]
-
-### v12
-ClusterId string [12+]
-ReplicaId int32 [0-14]
-ReplicaState replicastate [15+]
-MaxWaitMs int32 [0+]
-MinBytes int32 [0+]
-MaxBytes int32 [3+]
-IsolationLevel int8 [4+]
-SessionId int32 [7+]
-SessionEpoch int32 [7+]
-Topics []fetchtopic [0+]
-ForgottenTopicsData []forgottentopic [7+]
-RackId string [11+]
-
-### v13
-ClusterId string [12+]
-ReplicaId int32 [0-14]
-ReplicaState replicastate [15+]
-MaxWaitMs int32 [0+]
-MinBytes int32 [0+]
-MaxBytes int32 [3+]
-IsolationLevel int8 [4+]
-SessionId int32 [7+]
-SessionEpoch int32 [7+]
-Topics []fetchtopic [0+]
-ForgottenTopicsData []forgottentopic [7+]
-RackId string [11+]
-
-
-## FetchResponse v0..v12
-
-### v0
-Responses []fetchabletopicresponse [0+]
-
-### v1
-ThrottleTimeMs int32 [1+]
-Responses []fetchabletopicresponse [0+]
-
-### v2
-ThrottleTimeMs int32 [1+]
-Responses []fetchabletopicresponse [0+]
-
-### v3
-ThrottleTimeMs int32 [1+]
-Responses []fetchabletopicresponse [0+]
-
-### v4
-ThrottleTimeMs int32 [1+]
-Responses []fetchabletopicresponse [0+]
-
-### v5
-ThrottleTimeMs int32 [1+]
-Responses []fetchabletopicresponse [0+]
-
-### v6
-ThrottleTimeMs int32 [1+]
-Responses []fetchabletopicresponse [0+]
-
-### v7
-ThrottleTimeMs int32 [1+]
-ErrorCode int16 [7+]
-SessionId int32 [7+]
-Responses []fetchabletopicresponse [0+]
-
-### v8
-ThrottleTimeMs int32 [1+]
-ErrorCode int16 [7+]
-SessionId int32 [7+]
-Responses []fetchabletopicresponse [0+]
-
-### v9
-ThrottleTimeMs int32 [1+]
-ErrorCode int16 [7+]
-SessionId int32 [7+]
-Responses []fetchabletopicresponse [0+]
-
-### v10
-ThrottleTimeMs int32 [1+]
-ErrorCode int16 [7+]
-SessionId int32 [7+]
-Responses []fetchabletopicresponse [0+]
-
-### v11
-ThrottleTimeMs int32 [1+]
-ErrorCode int16 [7+]
-SessionId int32 [7+]
-Responses []fetchabletopicresponse [0+]
-
-### v12
-ThrottleTimeMs int32 [1+]
-ErrorCode int16 [7+]
-SessionId int32 [7+]
-Responses []fetchabletopicresponse [0+]
-
-
-## JoinGroupRequest v0..v5
-
-### v0
-GroupId string [0+]
-SessionTimeoutMs int32 [0+]
-MemberId string [0+]
-ProtocolType string [0+]
-Protocols []joingrouprequestprotocol [0+]
-
-### v1
-GroupId string [0+]
-SessionTimeoutMs int32 [0+]
-RebalanceTimeoutMs int32 [1+]
-MemberId string [0+]
-ProtocolType string [0+]
-Protocols []joingrouprequestprotocol [0+]
-
-### v2
-GroupId string [0+]
-SessionTimeoutMs int32 [0+]
-RebalanceTimeoutMs int32 [1+]
-MemberId string [0+]
-ProtocolType string [0+]
-Protocols []joingrouprequestprotocol [0+]
-
-### v3
-GroupId string [0+]
-SessionTimeoutMs int32 [0+]
-RebalanceTimeoutMs int32 [1+]
-MemberId string [0+]
-ProtocolType string [0+]
-Protocols []joingrouprequestprotocol [0+]
-
-### v4
-GroupId string [0+]
-SessionTimeoutMs int32 [0+]
-RebalanceTimeoutMs int32 [1+]
-MemberId string [0+]
-ProtocolType string [0+]
-Protocols []joingrouprequestprotocol [0+]
-
-### v5
-GroupId string [0+]
-SessionTimeoutMs int32 [0+]
-RebalanceTimeoutMs int32 [1+]
-MemberId string [0+]
-GroupInstanceId string [5+]
-ProtocolType string [0+]
-Protocols []joingrouprequestprotocol [0+]
-
-
-## JoinGroupResponse v0..v3
-
-### v0
-ErrorCode int16 [0+]
-GenerationId int32 [0+]
-ProtocolName string [0+]
-Leader string [0+]
-MemberId string [0+]
-Members []joingroupresponsemember [0+]
-
-### v1
-ErrorCode int16 [0+]
-GenerationId int32 [0+]
-ProtocolName string [0+]
-Leader string [0+]
-MemberId string [0+]
-Members []joingroupresponsemember [0+]
-
-### v2
-ThrottleTimeMs int32 [2+]
-ErrorCode int16 [0+]
-GenerationId int32 [0+]
-ProtocolName string [0+]
-Leader string [0+]
-MemberId string [0+]
-Members []joingroupresponsemember [0+]
-
-### v3
-ThrottleTimeMs int32 [2+]
-ErrorCode int16 [0+]
-GenerationId int32 [0+]
-ProtocolName string [0+]
-Leader string [0+]
-MemberId string [0+]
-Members []joingroupresponsemember [0+]
-
-
-## OffsetCommitRequest v0..v3
-
-### v0
-GroupId string [0+]
-Topics []offsetcommitrequesttopic [0+]
-
-### v1
-GroupId string [0+]
-GenerationIdOrMemberEpoch int32 [1+]
-MemberId string [1+]
-Topics []offsetcommitrequesttopic [0+]
-
-### v2
-GroupId string [0+]
-GenerationIdOrMemberEpoch int32 [1+]
-MemberId string [1+]
-RetentionTimeMs int64 [2-4]
-Topics []offsetcommitrequesttopic [0+]
-
-### v3
-GroupId string [0+]
-GenerationIdOrMemberEpoch int32 [1+]
-MemberId string [1+]
-RetentionTimeMs int64 [2-4]
-Topics []offsetcommitrequesttopic [0+]
-
-
-## OffsetCommitResponse v0..v2
-
-### v0
-Topics []offsetcommitresponsetopic [0+]
-
-### v1
-Topics []offsetcommitresponsetopic [0+]
-
-### v2
-Topics []offsetcommitresponsetopic [0+]
-
-
-## CreateTopicsRequest v0..v7
-
-### v0
-Topics []creatabletopic [0+]
-timeoutMs int32 [0+]
-
-### v1
-Topics []creatabletopic [0+]
-timeoutMs int32 [0+]
-validateOnly bool [1+]
-
-### v2
-Topics []creatabletopic [0+]
-timeoutMs int32 [0+]
-validateOnly bool [1+]
-
-### v3
-Topics []creatabletopic [0+]
-timeoutMs int32 [0+]
-validateOnly bool [1+]
-
-### v4
-Topics []creatabletopic [0+]
-timeoutMs int32 [0+]
-validateOnly bool [1+]
-
-### v5
-Topics []creatabletopic [0+]
-timeoutMs int32 [0+]
-validateOnly bool [1+]
-
-### v6
-Topics []creatabletopic [0+]
-timeoutMs int32 [0+]
-validateOnly bool [1+]
-
-### v7
-Topics []creatabletopic [0+]
-timeoutMs int32 [0+]
-validateOnly bool [1+]
-
-
-## SyncGroupRequest v0..v3
-
-### v0
-GroupId string [0+]
-GenerationId int32 [0+]
-MemberId string [0+]
-Assignments []syncgrouprequestassignment [0+]
-
-### v1
-GroupId string [0+]
-GenerationId int32 [0+]
-MemberId string [0+]
-Assignments []syncgrouprequestassignment [0+]
-
-### v2
-GroupId string [0+]
-GenerationId int32 [0+]
-MemberId string [0+]
-Assignments []syncgrouprequestassignment [0+]
-
-### v3
-GroupId string [0+]
-GenerationId int32 [0+]
-MemberId string [0+]
-GroupInstanceId string [3+]
-Assignments []syncgrouprequestassignment [0+]
-
-
-## HeartbeatRequest v0..v3
-
-### v0
-GroupId string [0+]
-GenerationId int32 [0+]
-MemberId string [0+]
-
-### v1
-GroupId string [0+]
-GenerationId int32 [0+]
-MemberId string [0+]
-
-### v2
-GroupId string [0+]
-GenerationId int32 [0+]
-MemberId string [0+]
-
-### v3
-GroupId string [0+]
-GenerationId int32 [0+]
-MemberId string [0+]
-GroupInstanceId string [3+]
+# Kafka wire layouts per version — generated from message/*.json
+
+Source: apache/kafka 3.6.1, `clients/src/main/resources/common/message/*.json`
+(verbatim artifacts in this directory). **Generated by `dump_layouts.py` —
+do not edit by hand.**
+
+Conventions: `[]Name` = array (int32 count + Name*, Name's fields listed
+indented below); `key` = map key (KString+Key pair semantics per KIP-516-era
+encoding); `null` = nullable in this version; `tag#N` = KIP-482 tagged field
+N (written after the schema fields); `flexible` = KString/KArray compact
+encoding + tagged-field block (schema versions). Every version listed
+exactly matches the schema's `versions` gates — no hand curation.
+
+## Produce Request — key 0, v0..v9, flexible 9+
+
+### Request v0
+  Acks int16
+  TimeoutMs int32
+  TopicData []TopicProduceData
+      Name string key
+      PartitionData []PartitionProduceData
+          Index int32
+          Records records null
+
+### Request v1
+  Acks int16
+  TimeoutMs int32
+  TopicData []TopicProduceData
+      Name string key
+      PartitionData []PartitionProduceData
+          Index int32
+          Records records null
+
+### Request v2
+  Acks int16
+  TimeoutMs int32
+  TopicData []TopicProduceData
+      Name string key
+      PartitionData []PartitionProduceData
+          Index int32
+          Records records null
+
+### Request v3
+  TransactionalId string null
+  Acks int16
+  TimeoutMs int32
+  TopicData []TopicProduceData
+      Name string key
+      PartitionData []PartitionProduceData
+          Index int32
+          Records records null
+
+### Request v4
+  TransactionalId string null
+  Acks int16
+  TimeoutMs int32
+  TopicData []TopicProduceData
+      Name string key
+      PartitionData []PartitionProduceData
+          Index int32
+          Records records null
+
+### Request v5
+  TransactionalId string null
+  Acks int16
+  TimeoutMs int32
+  TopicData []TopicProduceData
+      Name string key
+      PartitionData []PartitionProduceData
+          Index int32
+          Records records null
+
+### Request v6
+  TransactionalId string null
+  Acks int16
+  TimeoutMs int32
+  TopicData []TopicProduceData
+      Name string key
+      PartitionData []PartitionProduceData
+          Index int32
+          Records records null
+
+### Request v7
+  TransactionalId string null
+  Acks int16
+  TimeoutMs int32
+  TopicData []TopicProduceData
+      Name string key
+      PartitionData []PartitionProduceData
+          Index int32
+          Records records null
+
+### Request v8
+  TransactionalId string null
+  Acks int16
+  TimeoutMs int32
+  TopicData []TopicProduceData
+      Name string key
+      PartitionData []PartitionProduceData
+          Index int32
+          Records records null
+
+### Request v9
+  TransactionalId string null
+  Acks int16
+  TimeoutMs int32
+  TopicData []TopicProduceData
+      Name string key
+      PartitionData []PartitionProduceData
+          Index int32
+          Records records null
+
+## Produce Response — key 0, v0..v9, flexible 9+
+
+### Response v0
+  Responses []TopicProduceResponse
+      Name string key
+      PartitionResponses []PartitionProduceResponse
+          Index int32
+          ErrorCode int16
+          BaseOffset int64
+
+### Response v1
+  Responses []TopicProduceResponse
+      Name string key
+      PartitionResponses []PartitionProduceResponse
+          Index int32
+          ErrorCode int16
+          BaseOffset int64
+  ThrottleTimeMs int32
+
+### Response v2
+  Responses []TopicProduceResponse
+      Name string key
+      PartitionResponses []PartitionProduceResponse
+          Index int32
+          ErrorCode int16
+          BaseOffset int64
+          LogAppendTimeMs int64
+  ThrottleTimeMs int32
+
+### Response v3
+  Responses []TopicProduceResponse
+      Name string key
+      PartitionResponses []PartitionProduceResponse
+          Index int32
+          ErrorCode int16
+          BaseOffset int64
+          LogAppendTimeMs int64
+  ThrottleTimeMs int32
+
+### Response v4
+  Responses []TopicProduceResponse
+      Name string key
+      PartitionResponses []PartitionProduceResponse
+          Index int32
+          ErrorCode int16
+          BaseOffset int64
+          LogAppendTimeMs int64
+  ThrottleTimeMs int32
+
+### Response v5
+  Responses []TopicProduceResponse
+      Name string key
+      PartitionResponses []PartitionProduceResponse
+          Index int32
+          ErrorCode int16
+          BaseOffset int64
+          LogAppendTimeMs int64
+          LogStartOffset int64
+  ThrottleTimeMs int32
+
+### Response v6
+  Responses []TopicProduceResponse
+      Name string key
+      PartitionResponses []PartitionProduceResponse
+          Index int32
+          ErrorCode int16
+          BaseOffset int64
+          LogAppendTimeMs int64
+          LogStartOffset int64
+  ThrottleTimeMs int32
+
+### Response v7
+  Responses []TopicProduceResponse
+      Name string key
+      PartitionResponses []PartitionProduceResponse
+          Index int32
+          ErrorCode int16
+          BaseOffset int64
+          LogAppendTimeMs int64
+          LogStartOffset int64
+  ThrottleTimeMs int32
+
+### Response v8
+  Responses []TopicProduceResponse
+      Name string key
+      PartitionResponses []PartitionProduceResponse
+          Index int32
+          ErrorCode int16
+          BaseOffset int64
+          LogAppendTimeMs int64
+          LogStartOffset int64
+          RecordErrors []BatchIndexAndErrorMessage
+              BatchIndex int32
+              BatchIndexErrorMessage string null
+          ErrorMessage string null
+  ThrottleTimeMs int32
+
+### Response v9
+  Responses []TopicProduceResponse
+      Name string key
+      PartitionResponses []PartitionProduceResponse
+          Index int32
+          ErrorCode int16
+          BaseOffset int64
+          LogAppendTimeMs int64
+          LogStartOffset int64
+          RecordErrors []BatchIndexAndErrorMessage
+              BatchIndex int32
+              BatchIndexErrorMessage string null
+          ErrorMessage string null
+  ThrottleTimeMs int32
+
+## Fetch Request — key 1, v0..v15, flexible 12+
+
+### Request v0
+  ReplicaId int32
+  MaxWaitMs int32
+  MinBytes int32
+  Topics []FetchTopic
+      Topic string
+      Partitions []FetchPartition
+          Partition int32
+          FetchOffset int64
+          PartitionMaxBytes int32
+
+### Request v1
+  ReplicaId int32
+  MaxWaitMs int32
+  MinBytes int32
+  Topics []FetchTopic
+      Topic string
+      Partitions []FetchPartition
+          Partition int32
+          FetchOffset int64
+          PartitionMaxBytes int32
+
+### Request v2
+  ReplicaId int32
+  MaxWaitMs int32
+  MinBytes int32
+  Topics []FetchTopic
+      Topic string
+      Partitions []FetchPartition
+          Partition int32
+          FetchOffset int64
+          PartitionMaxBytes int32
+
+### Request v3
+  ReplicaId int32
+  MaxWaitMs int32
+  MinBytes int32
+  MaxBytes int32
+  Topics []FetchTopic
+      Topic string
+      Partitions []FetchPartition
+          Partition int32
+          FetchOffset int64
+          PartitionMaxBytes int32
+
+### Request v4
+  ReplicaId int32
+  MaxWaitMs int32
+  MinBytes int32
+  MaxBytes int32
+  IsolationLevel int8
+  Topics []FetchTopic
+      Topic string
+      Partitions []FetchPartition
+          Partition int32
+          FetchOffset int64
+          PartitionMaxBytes int32
+
+### Request v5
+  ReplicaId int32
+  MaxWaitMs int32
+  MinBytes int32
+  MaxBytes int32
+  IsolationLevel int8
+  Topics []FetchTopic
+      Topic string
+      Partitions []FetchPartition
+          Partition int32
+          FetchOffset int64
+          LogStartOffset int64
+          PartitionMaxBytes int32
+
+### Request v6
+  ReplicaId int32
+  MaxWaitMs int32
+  MinBytes int32
+  MaxBytes int32
+  IsolationLevel int8
+  Topics []FetchTopic
+      Topic string
+      Partitions []FetchPartition
+          Partition int32
+          FetchOffset int64
+          LogStartOffset int64
+          PartitionMaxBytes int32
+
+### Request v7
+  ReplicaId int32
+  MaxWaitMs int32
+  MinBytes int32
+  MaxBytes int32
+  IsolationLevel int8
+  SessionId int32
+  SessionEpoch int32
+  Topics []FetchTopic
+      Topic string
+      Partitions []FetchPartition
+          Partition int32
+          FetchOffset int64
+          LogStartOffset int64
+          PartitionMaxBytes int32
+  ForgottenTopicsData []ForgottenTopic
+      Topic string
+      Partitions []int32
+
+### Request v8
+  ReplicaId int32
+  MaxWaitMs int32
+  MinBytes int32
+  MaxBytes int32
+  IsolationLevel int8
+  SessionId int32
+  SessionEpoch int32
+  Topics []FetchTopic
+      Topic string
+      Partitions []FetchPartition
+          Partition int32
+          FetchOffset int64
+          LogStartOffset int64
+          PartitionMaxBytes int32
+  ForgottenTopicsData []ForgottenTopic
+      Topic string
+      Partitions []int32
+
+### Request v9
+  ReplicaId int32
+  MaxWaitMs int32
+  MinBytes int32
+  MaxBytes int32
+  IsolationLevel int8
+  SessionId int32
+  SessionEpoch int32
+  Topics []FetchTopic
+      Topic string
+      Partitions []FetchPartition
+          Partition int32
+          CurrentLeaderEpoch int32
+          FetchOffset int64
+          LogStartOffset int64
+          PartitionMaxBytes int32
+  ForgottenTopicsData []ForgottenTopic
+      Topic string
+      Partitions []int32
+
+### Request v10
+  ReplicaId int32
+  MaxWaitMs int32
+  MinBytes int32
+  MaxBytes int32
+  IsolationLevel int8
+  SessionId int32
+  SessionEpoch int32
+  Topics []FetchTopic
+      Topic string
+      Partitions []FetchPartition
+          Partition int32
+          CurrentLeaderEpoch int32
+          FetchOffset int64
+          LogStartOffset int64
+          PartitionMaxBytes int32
+  ForgottenTopicsData []ForgottenTopic
+      Topic string
+      Partitions []int32
+
+### Request v11
+  ReplicaId int32
+  MaxWaitMs int32
+  MinBytes int32
+  MaxBytes int32
+  IsolationLevel int8
+  SessionId int32
+  SessionEpoch int32
+  Topics []FetchTopic
+      Topic string
+      Partitions []FetchPartition
+          Partition int32
+          CurrentLeaderEpoch int32
+          FetchOffset int64
+          LogStartOffset int64
+          PartitionMaxBytes int32
+  ForgottenTopicsData []ForgottenTopic
+      Topic string
+      Partitions []int32
+  RackId string
+
+### Request v12
+  ClusterId string null tag#0
+  ReplicaId int32
+  MaxWaitMs int32
+  MinBytes int32
+  MaxBytes int32
+  IsolationLevel int8
+  SessionId int32
+  SessionEpoch int32
+  Topics []FetchTopic
+      Topic string
+      Partitions []FetchPartition
+          Partition int32
+          CurrentLeaderEpoch int32
+          FetchOffset int64
+          LastFetchedEpoch int32
+          LogStartOffset int64
+          PartitionMaxBytes int32
+  ForgottenTopicsData []ForgottenTopic
+      Topic string
+      Partitions []int32
+  RackId string
+
+### Request v13
+  ClusterId string null tag#0
+  ReplicaId int32
+  MaxWaitMs int32
+  MinBytes int32
+  MaxBytes int32
+  IsolationLevel int8
+  SessionId int32
+  SessionEpoch int32
+  Topics []FetchTopic
+      TopicId uuid
+      Partitions []FetchPartition
+          Partition int32
+          CurrentLeaderEpoch int32
+          FetchOffset int64
+          LastFetchedEpoch int32
+          LogStartOffset int64
+          PartitionMaxBytes int32
+  ForgottenTopicsData []ForgottenTopic
+      TopicId uuid
+      Partitions []int32
+  RackId string
+
+### Request v14
+  ClusterId string null tag#0
+  ReplicaId int32
+  MaxWaitMs int32
+  MinBytes int32
+  MaxBytes int32
+  IsolationLevel int8
+  SessionId int32
+  SessionEpoch int32
+  Topics []FetchTopic
+      TopicId uuid
+      Partitions []FetchPartition
+          Partition int32
+          CurrentLeaderEpoch int32
+          FetchOffset int64
+          LastFetchedEpoch int32
+          LogStartOffset int64
+          PartitionMaxBytes int32
+  ForgottenTopicsData []ForgottenTopic
+      TopicId uuid
+      Partitions []int32
+  RackId string
+
+### Request v15
+  ClusterId string null tag#0
+  ReplicaState ReplicaState tag#1
+      ReplicaId int32
+      ReplicaEpoch int64
+  MaxWaitMs int32
+  MinBytes int32
+  MaxBytes int32
+  IsolationLevel int8
+  SessionId int32
+  SessionEpoch int32
+  Topics []FetchTopic
+      TopicId uuid
+      Partitions []FetchPartition
+          Partition int32
+          CurrentLeaderEpoch int32
+          FetchOffset int64
+          LastFetchedEpoch int32
+          LogStartOffset int64
+          PartitionMaxBytes int32
+  ForgottenTopicsData []ForgottenTopic
+      TopicId uuid
+      Partitions []int32
+  RackId string
+
+## Fetch Response — key 1, v0..v15, flexible 12+
+
+### Response v0
+  Responses []FetchableTopicResponse
+      Topic string
+      Partitions []PartitionData
+          PartitionIndex int32
+          ErrorCode int16
+          HighWatermark int64
+          Records records null
+
+### Response v1
+  ThrottleTimeMs int32
+  Responses []FetchableTopicResponse
+      Topic string
+      Partitions []PartitionData
+          PartitionIndex int32
+          ErrorCode int16
+          HighWatermark int64
+          Records records null
+
+### Response v2
+  ThrottleTimeMs int32
+  Responses []FetchableTopicResponse
+      Topic string
+      Partitions []PartitionData
+          PartitionIndex int32
+          ErrorCode int16
+          HighWatermark int64
+          Records records null
+
+### Response v3
+  ThrottleTimeMs int32
+  Responses []FetchableTopicResponse
+      Topic string
+      Partitions []PartitionData
+          PartitionIndex int32
+          ErrorCode int16
+          HighWatermark int64
+          Records records null
+
+### Response v4
+  ThrottleTimeMs int32
+  Responses []FetchableTopicResponse
+      Topic string
+      Partitions []PartitionData
+          PartitionIndex int32
+          ErrorCode int16
+          HighWatermark int64
+          LastStableOffset int64
+          AbortedTransactions []AbortedTransaction null
+              ProducerId int64
+              FirstOffset int64
+          Records records null
+
+### Response v5
+  ThrottleTimeMs int32
+  Responses []FetchableTopicResponse
+      Topic string
+      Partitions []PartitionData
+          PartitionIndex int32
+          ErrorCode int16
+          HighWatermark int64
+          LastStableOffset int64
+          LogStartOffset int64
+          AbortedTransactions []AbortedTransaction null
+              ProducerId int64
+              FirstOffset int64
+          Records records null
+
+### Response v6
+  ThrottleTimeMs int32
+  Responses []FetchableTopicResponse
+      Topic string
+      Partitions []PartitionData
+          PartitionIndex int32
+          ErrorCode int16
+          HighWatermark int64
+          LastStableOffset int64
+          LogStartOffset int64
+          AbortedTransactions []AbortedTransaction null
+              ProducerId int64
+              FirstOffset int64
+          Records records null
+
+### Response v7
+  ThrottleTimeMs int32
+  ErrorCode int16
+  SessionId int32
+  Responses []FetchableTopicResponse
+      Topic string
+      Partitions []PartitionData
+          PartitionIndex int32
+          ErrorCode int16
+          HighWatermark int64
+          LastStableOffset int64
+          LogStartOffset int64
+          AbortedTransactions []AbortedTransaction null
+              ProducerId int64
+              FirstOffset int64
+          Records records null
+
+### Response v8
+  ThrottleTimeMs int32
+  ErrorCode int16
+  SessionId int32
+  Responses []FetchableTopicResponse
+      Topic string
+      Partitions []PartitionData
+          PartitionIndex int32
+          ErrorCode int16
+          HighWatermark int64
+          LastStableOffset int64
+          LogStartOffset int64
+          AbortedTransactions []AbortedTransaction null
+              ProducerId int64
+              FirstOffset int64
+          Records records null
+
+### Response v9
+  ThrottleTimeMs int32
+  ErrorCode int16
+  SessionId int32
+  Responses []FetchableTopicResponse
+      Topic string
+      Partitions []PartitionData
+          PartitionIndex int32
+          ErrorCode int16
+          HighWatermark int64
+          LastStableOffset int64
+          LogStartOffset int64
+          AbortedTransactions []AbortedTransaction null
+              ProducerId int64
+              FirstOffset int64
+          Records records null
+
+### Response v10
+  ThrottleTimeMs int32
+  ErrorCode int16
+  SessionId int32
+  Responses []FetchableTopicResponse
+      Topic string
+      Partitions []PartitionData
+          PartitionIndex int32
+          ErrorCode int16
+          HighWatermark int64
+          LastStableOffset int64
+          LogStartOffset int64
+          AbortedTransactions []AbortedTransaction null
+              ProducerId int64
+              FirstOffset int64
+          Records records null
+
+### Response v11
+  ThrottleTimeMs int32
+  ErrorCode int16
+  SessionId int32
+  Responses []FetchableTopicResponse
+      Topic string
+      Partitions []PartitionData
+          PartitionIndex int32
+          ErrorCode int16
+          HighWatermark int64
+          LastStableOffset int64
+          LogStartOffset int64
+          AbortedTransactions []AbortedTransaction null
+              ProducerId int64
+              FirstOffset int64
+          PreferredReadReplica int32
+          Records records null
+
+### Response v12
+  ThrottleTimeMs int32
+  ErrorCode int16
+  SessionId int32
+  Responses []FetchableTopicResponse
+      Topic string
+      Partitions []PartitionData
+          PartitionIndex int32
+          ErrorCode int16
+          HighWatermark int64
+          LastStableOffset int64
+          LogStartOffset int64
+          DivergingEpoch EpochEndOffset tag#0
+              Epoch int32
+              EndOffset int64
+          CurrentLeader LeaderIdAndEpoch tag#1
+              LeaderId int32
+              LeaderEpoch int32
+          SnapshotId SnapshotId tag#2
+              EndOffset int64
+              Epoch int32
+          AbortedTransactions []AbortedTransaction null
+              ProducerId int64
+              FirstOffset int64
+          PreferredReadReplica int32
+          Records records null
+
+### Response v13
+  ThrottleTimeMs int32
+  ErrorCode int16
+  SessionId int32
+  Responses []FetchableTopicResponse
+      TopicId uuid
+      Partitions []PartitionData
+          PartitionIndex int32
+          ErrorCode int16
+          HighWatermark int64
+          LastStableOffset int64
+          LogStartOffset int64
+          DivergingEpoch EpochEndOffset tag#0
+              Epoch int32
+              EndOffset int64
+          CurrentLeader LeaderIdAndEpoch tag#1
+              LeaderId int32
+              LeaderEpoch int32
+          SnapshotId SnapshotId tag#2
+              EndOffset int64
+              Epoch int32
+          AbortedTransactions []AbortedTransaction null
+              ProducerId int64
+              FirstOffset int64
+          PreferredReadReplica int32
+          Records records null
+
+### Response v14
+  ThrottleTimeMs int32
+  ErrorCode int16
+  SessionId int32
+  Responses []FetchableTopicResponse
+      TopicId uuid
+      Partitions []PartitionData
+          PartitionIndex int32
+          ErrorCode int16
+          HighWatermark int64
+          LastStableOffset int64
+          LogStartOffset int64
+          DivergingEpoch EpochEndOffset tag#0
+              Epoch int32
+              EndOffset int64
+          CurrentLeader LeaderIdAndEpoch tag#1
+              LeaderId int32
+              LeaderEpoch int32
+          SnapshotId SnapshotId tag#2
+              EndOffset int64
+              Epoch int32
+          AbortedTransactions []AbortedTransaction null
+              ProducerId int64
+              FirstOffset int64
+          PreferredReadReplica int32
+          Records records null
+
+### Response v15
+  ThrottleTimeMs int32
+  ErrorCode int16
+  SessionId int32
+  Responses []FetchableTopicResponse
+      TopicId uuid
+      Partitions []PartitionData
+          PartitionIndex int32
+          ErrorCode int16
+          HighWatermark int64
+          LastStableOffset int64
+          LogStartOffset int64
+          DivergingEpoch EpochEndOffset tag#0
+              Epoch int32
+              EndOffset int64
+          CurrentLeader LeaderIdAndEpoch tag#1
+              LeaderId int32
+              LeaderEpoch int32
+          SnapshotId SnapshotId tag#2
+              EndOffset int64
+              Epoch int32
+          AbortedTransactions []AbortedTransaction null
+              ProducerId int64
+              FirstOffset int64
+          PreferredReadReplica int32
+          Records records null
+
+## ListOffsets Request — key 2, v0..v8, flexible 6+
+
+### Request v0
+  ReplicaId int32
+  Topics []ListOffsetsTopic
+      Name string
+      Partitions []ListOffsetsPartition
+          PartitionIndex int32
+          Timestamp int64
+          MaxNumOffsets int32
+
+### Request v1
+  ReplicaId int32
+  Topics []ListOffsetsTopic
+      Name string
+      Partitions []ListOffsetsPartition
+          PartitionIndex int32
+          Timestamp int64
+
+### Request v2
+  ReplicaId int32
+  IsolationLevel int8
+  Topics []ListOffsetsTopic
+      Name string
+      Partitions []ListOffsetsPartition
+          PartitionIndex int32
+          Timestamp int64
+
+### Request v3
+  ReplicaId int32
+  IsolationLevel int8
+  Topics []ListOffsetsTopic
+      Name string
+      Partitions []ListOffsetsPartition
+          PartitionIndex int32
+          Timestamp int64
+
+### Request v4
+  ReplicaId int32
+  IsolationLevel int8
+  Topics []ListOffsetsTopic
+      Name string
+      Partitions []ListOffsetsPartition
+          PartitionIndex int32
+          CurrentLeaderEpoch int32
+          Timestamp int64
+
+### Request v5
+  ReplicaId int32
+  IsolationLevel int8
+  Topics []ListOffsetsTopic
+      Name string
+      Partitions []ListOffsetsPartition
+          PartitionIndex int32
+          CurrentLeaderEpoch int32
+          Timestamp int64
+
+### Request v6
+  ReplicaId int32
+  IsolationLevel int8
+  Topics []ListOffsetsTopic
+      Name string
+      Partitions []ListOffsetsPartition
+          PartitionIndex int32
+          CurrentLeaderEpoch int32
+          Timestamp int64
+
+### Request v7
+  ReplicaId int32
+  IsolationLevel int8
+  Topics []ListOffsetsTopic
+      Name string
+      Partitions []ListOffsetsPartition
+          PartitionIndex int32
+          CurrentLeaderEpoch int32
+          Timestamp int64
+
+### Request v8
+  ReplicaId int32
+  IsolationLevel int8
+  Topics []ListOffsetsTopic
+      Name string
+      Partitions []ListOffsetsPartition
+          PartitionIndex int32
+          CurrentLeaderEpoch int32
+          Timestamp int64
+
+## ListOffsets Response — key 2, v0..v8, flexible 6+
+
+### Response v0
+  Topics []ListOffsetsTopicResponse
+      Name string
+      Partitions []ListOffsetsPartitionResponse
+          PartitionIndex int32
+          ErrorCode int16
+          OldStyleOffsets []int64
+
+### Response v1
+  Topics []ListOffsetsTopicResponse
+      Name string
+      Partitions []ListOffsetsPartitionResponse
+          PartitionIndex int32
+          ErrorCode int16
+          Timestamp int64
+          Offset int64
+
+### Response v2
+  ThrottleTimeMs int32
+  Topics []ListOffsetsTopicResponse
+      Name string
+      Partitions []ListOffsetsPartitionResponse
+          PartitionIndex int32
+          ErrorCode int16
+          Timestamp int64
+          Offset int64
+
+### Response v3
+  ThrottleTimeMs int32
+  Topics []ListOffsetsTopicResponse
+      Name string
+      Partitions []ListOffsetsPartitionResponse
+          PartitionIndex int32
+          ErrorCode int16
+          Timestamp int64
+          Offset int64
+
+### Response v4
+  ThrottleTimeMs int32
+  Topics []ListOffsetsTopicResponse
+      Name string
+      Partitions []ListOffsetsPartitionResponse
+          PartitionIndex int32
+          ErrorCode int16
+          Timestamp int64
+          Offset int64
+          LeaderEpoch int32
+
+### Response v5
+  ThrottleTimeMs int32
+  Topics []ListOffsetsTopicResponse
+      Name string
+      Partitions []ListOffsetsPartitionResponse
+          PartitionIndex int32
+          ErrorCode int16
+          Timestamp int64
+          Offset int64
+          LeaderEpoch int32
+
+### Response v6
+  ThrottleTimeMs int32
+  Topics []ListOffsetsTopicResponse
+      Name string
+      Partitions []ListOffsetsPartitionResponse
+          PartitionIndex int32
+          ErrorCode int16
+          Timestamp int64
+          Offset int64
+          LeaderEpoch int32
+
+### Response v7
+  ThrottleTimeMs int32
+  Topics []ListOffsetsTopicResponse
+      Name string
+      Partitions []ListOffsetsPartitionResponse
+          PartitionIndex int32
+          ErrorCode int16
+          Timestamp int64
+          Offset int64
+          LeaderEpoch int32
+
+### Response v8
+  ThrottleTimeMs int32
+  Topics []ListOffsetsTopicResponse
+      Name string
+      Partitions []ListOffsetsPartitionResponse
+          PartitionIndex int32
+          ErrorCode int16
+          Timestamp int64
+          Offset int64
+          LeaderEpoch int32
+
+## Metadata Request — key 3, v0..v12, flexible 9+
+
+### Request v0
+  Topics []MetadataRequestTopic
+      Name string
+
+### Request v1
+  Topics []MetadataRequestTopic null
+      Name string
+
+### Request v2
+  Topics []MetadataRequestTopic null
+      Name string
+
+### Request v3
+  Topics []MetadataRequestTopic null
+      Name string
+
+### Request v4
+  Topics []MetadataRequestTopic null
+      Name string
+  AllowAutoTopicCreation bool
+
+### Request v5
+  Topics []MetadataRequestTopic null
+      Name string
+  AllowAutoTopicCreation bool
+
+### Request v6
+  Topics []MetadataRequestTopic null
+      Name string
+  AllowAutoTopicCreation bool
+
+### Request v7
+  Topics []MetadataRequestTopic null
+      Name string
+  AllowAutoTopicCreation bool
+
+### Request v8
+  Topics []MetadataRequestTopic null
+      Name string
+  AllowAutoTopicCreation bool
+  IncludeClusterAuthorizedOperations bool
+  IncludeTopicAuthorizedOperations bool
+
+### Request v9
+  Topics []MetadataRequestTopic null
+      Name string
+  AllowAutoTopicCreation bool
+  IncludeClusterAuthorizedOperations bool
+  IncludeTopicAuthorizedOperations bool
+
+### Request v10
+  Topics []MetadataRequestTopic null
+      TopicId uuid
+      Name string null
+  AllowAutoTopicCreation bool
+  IncludeClusterAuthorizedOperations bool
+  IncludeTopicAuthorizedOperations bool
+
+### Request v11
+  Topics []MetadataRequestTopic null
+      TopicId uuid
+      Name string null
+  AllowAutoTopicCreation bool
+  IncludeTopicAuthorizedOperations bool
+
+### Request v12
+  Topics []MetadataRequestTopic null
+      TopicId uuid
+      Name string null
+  AllowAutoTopicCreation bool
+  IncludeTopicAuthorizedOperations bool
+
+## Metadata Response — key 3, v0..v12, flexible 9+
+
+### Response v0
+  Brokers []MetadataResponseBroker
+      NodeId int32 key
+      Host string
+      Port int32
+  Topics []MetadataResponseTopic
+      ErrorCode int16
+      Name string key
+      Partitions []MetadataResponsePartition
+          ErrorCode int16
+          PartitionIndex int32
+          LeaderId int32
+          ReplicaNodes []int32
+          IsrNodes []int32
+
+### Response v1
+  Brokers []MetadataResponseBroker
+      NodeId int32 key
+      Host string
+      Port int32
+      Rack string null
+  ControllerId int32
+  Topics []MetadataResponseTopic
+      ErrorCode int16
+      Name string key
+      IsInternal bool
+      Partitions []MetadataResponsePartition
+          ErrorCode int16
+          PartitionIndex int32
+          LeaderId int32
+          ReplicaNodes []int32
+          IsrNodes []int32
+
+### Response v2
+  Brokers []MetadataResponseBroker
+      NodeId int32 key
+      Host string
+      Port int32
+      Rack string null
+  ClusterId string null
+  ControllerId int32
+  Topics []MetadataResponseTopic
+      ErrorCode int16
+      Name string key
+      IsInternal bool
+      Partitions []MetadataResponsePartition
+          ErrorCode int16
+          PartitionIndex int32
+          LeaderId int32
+          ReplicaNodes []int32
+          IsrNodes []int32
+
+### Response v3
+  ThrottleTimeMs int32
+  Brokers []MetadataResponseBroker
+      NodeId int32 key
+      Host string
+      Port int32
+      Rack string null
+  ClusterId string null
+  ControllerId int32
+  Topics []MetadataResponseTopic
+      ErrorCode int16
+      Name string key
+      IsInternal bool
+      Partitions []MetadataResponsePartition
+          ErrorCode int16
+          PartitionIndex int32
+          LeaderId int32
+          ReplicaNodes []int32
+          IsrNodes []int32
+
+### Response v4
+  ThrottleTimeMs int32
+  Brokers []MetadataResponseBroker
+      NodeId int32 key
+      Host string
+      Port int32
+      Rack string null
+  ClusterId string null
+  ControllerId int32
+  Topics []MetadataResponseTopic
+      ErrorCode int16
+      Name string key
+      IsInternal bool
+      Partitions []MetadataResponsePartition
+          ErrorCode int16
+          PartitionIndex int32
+          LeaderId int32
+          ReplicaNodes []int32
+          IsrNodes []int32
+
+### Response v5
+  ThrottleTimeMs int32
+  Brokers []MetadataResponseBroker
+      NodeId int32 key
+      Host string
+      Port int32
+      Rack string null
+  ClusterId string null
+  ControllerId int32
+  Topics []MetadataResponseTopic
+      ErrorCode int16
+      Name string key
+      IsInternal bool
+      Partitions []MetadataResponsePartition
+          ErrorCode int16
+          PartitionIndex int32
+          LeaderId int32
+          ReplicaNodes []int32
+          IsrNodes []int32
+          OfflineReplicas []int32
+
+### Response v6
+  ThrottleTimeMs int32
+  Brokers []MetadataResponseBroker
+      NodeId int32 key
+      Host string
+      Port int32
+      Rack string null
+  ClusterId string null
+  ControllerId int32
+  Topics []MetadataResponseTopic
+      ErrorCode int16
+      Name string key
+      IsInternal bool
+      Partitions []MetadataResponsePartition
+          ErrorCode int16
+          PartitionIndex int32
+          LeaderId int32
+          ReplicaNodes []int32
+          IsrNodes []int32
+          OfflineReplicas []int32
+
+### Response v7
+  ThrottleTimeMs int32
+  Brokers []MetadataResponseBroker
+      NodeId int32 key
+      Host string
+      Port int32
+      Rack string null
+  ClusterId string null
+  ControllerId int32
+  Topics []MetadataResponseTopic
+      ErrorCode int16
+      Name string key
+      IsInternal bool
+      Partitions []MetadataResponsePartition
+          ErrorCode int16
+          PartitionIndex int32
+          LeaderId int32
+          LeaderEpoch int32
+          ReplicaNodes []int32
+          IsrNodes []int32
+          OfflineReplicas []int32
+
+### Response v8
+  ThrottleTimeMs int32
+  Brokers []MetadataResponseBroker
+      NodeId int32 key
+      Host string
+      Port int32
+      Rack string null
+  ClusterId string null
+  ControllerId int32
+  Topics []MetadataResponseTopic
+      ErrorCode int16
+      Name string key
+      IsInternal bool
+      Partitions []MetadataResponsePartition
+          ErrorCode int16
+          PartitionIndex int32
+          LeaderId int32
+          LeaderEpoch int32
+          ReplicaNodes []int32
+          IsrNodes []int32
+          OfflineReplicas []int32
+      TopicAuthorizedOperations int32
+  ClusterAuthorizedOperations int32
+
+### Response v9
+  ThrottleTimeMs int32
+  Brokers []MetadataResponseBroker
+      NodeId int32 key
+      Host string
+      Port int32
+      Rack string null
+  ClusterId string null
+  ControllerId int32
+  Topics []MetadataResponseTopic
+      ErrorCode int16
+      Name string key
+      IsInternal bool
+      Partitions []MetadataResponsePartition
+          ErrorCode int16
+          PartitionIndex int32
+          LeaderId int32
+          LeaderEpoch int32
+          ReplicaNodes []int32
+          IsrNodes []int32
+          OfflineReplicas []int32
+      TopicAuthorizedOperations int32
+  ClusterAuthorizedOperations int32
+
+### Response v10
+  ThrottleTimeMs int32
+  Brokers []MetadataResponseBroker
+      NodeId int32 key
+      Host string
+      Port int32
+      Rack string null
+  ClusterId string null
+  ControllerId int32
+  Topics []MetadataResponseTopic
+      ErrorCode int16
+      Name string key
+      TopicId uuid
+      IsInternal bool
+      Partitions []MetadataResponsePartition
+          ErrorCode int16
+          PartitionIndex int32
+          LeaderId int32
+          LeaderEpoch int32
+          ReplicaNodes []int32
+          IsrNodes []int32
+          OfflineReplicas []int32
+      TopicAuthorizedOperations int32
+  ClusterAuthorizedOperations int32
+
+### Response v11
+  ThrottleTimeMs int32
+  Brokers []MetadataResponseBroker
+      NodeId int32 key
+      Host string
+      Port int32
+      Rack string null
+  ClusterId string null
+  ControllerId int32
+  Topics []MetadataResponseTopic
+      ErrorCode int16
+      Name string key
+      TopicId uuid
+      IsInternal bool
+      Partitions []MetadataResponsePartition
+          ErrorCode int16
+          PartitionIndex int32
+          LeaderId int32
+          LeaderEpoch int32
+          ReplicaNodes []int32
+          IsrNodes []int32
+          OfflineReplicas []int32
+      TopicAuthorizedOperations int32
+
+### Response v12
+  ThrottleTimeMs int32
+  Brokers []MetadataResponseBroker
+      NodeId int32 key
+      Host string
+      Port int32
+      Rack string null
+  ClusterId string null
+  ControllerId int32
+  Topics []MetadataResponseTopic
+      ErrorCode int16
+      Name string key null
+      TopicId uuid
+      IsInternal bool
+      Partitions []MetadataResponsePartition
+          ErrorCode int16
+          PartitionIndex int32
+          LeaderId int32
+          LeaderEpoch int32
+          ReplicaNodes []int32
+          IsrNodes []int32
+          OfflineReplicas []int32
+      TopicAuthorizedOperations int32
+
+## LeaderAndIsr Request — key 4, v0..v7, flexible 4+
+
+### Request v0
+  ControllerId int32
+  ControllerEpoch int32
+  UngroupedPartitionStates []LeaderAndIsrPartitionState
+  LiveLeaders []LeaderAndIsrLiveLeader
+      BrokerId int32
+      HostName string
+      Port int32
+
+### Request v1
+  ControllerId int32
+  ControllerEpoch int32
+  UngroupedPartitionStates []LeaderAndIsrPartitionState
+  LiveLeaders []LeaderAndIsrLiveLeader
+      BrokerId int32
+      HostName string
+      Port int32
+
+### Request v2
+  ControllerId int32
+  ControllerEpoch int32
+  BrokerEpoch int64
+  TopicStates []LeaderAndIsrTopicState
+      TopicName string
+      PartitionStates []LeaderAndIsrPartitionState
+  LiveLeaders []LeaderAndIsrLiveLeader
+      BrokerId int32
+      HostName string
+      Port int32
+
+### Request v3
+  ControllerId int32
+  ControllerEpoch int32
+  BrokerEpoch int64
+  TopicStates []LeaderAndIsrTopicState
+      TopicName string
+      PartitionStates []LeaderAndIsrPartitionState
+  LiveLeaders []LeaderAndIsrLiveLeader
+      BrokerId int32
+      HostName string
+      Port int32
+
+### Request v4
+  ControllerId int32
+  ControllerEpoch int32
+  BrokerEpoch int64
+  TopicStates []LeaderAndIsrTopicState
+      TopicName string
+      PartitionStates []LeaderAndIsrPartitionState
+  LiveLeaders []LeaderAndIsrLiveLeader
+      BrokerId int32
+      HostName string
+      Port int32
+
+### Request v5
+  ControllerId int32
+  ControllerEpoch int32
+  BrokerEpoch int64
+  Type int8
+  TopicStates []LeaderAndIsrTopicState
+      TopicName string
+      TopicId uuid
+      PartitionStates []LeaderAndIsrPartitionState
+  LiveLeaders []LeaderAndIsrLiveLeader
+      BrokerId int32
+      HostName string
+      Port int32
+
+### Request v6
+  ControllerId int32
+  ControllerEpoch int32
+  BrokerEpoch int64
+  Type int8
+  TopicStates []LeaderAndIsrTopicState
+      TopicName string
+      TopicId uuid
+      PartitionStates []LeaderAndIsrPartitionState
+  LiveLeaders []LeaderAndIsrLiveLeader
+      BrokerId int32
+      HostName string
+      Port int32
+
+### Request v7
+  ControllerId int32
+  isKRaftController bool
+  ControllerEpoch int32
+  BrokerEpoch int64
+  Type int8
+  TopicStates []LeaderAndIsrTopicState
+      TopicName string
+      TopicId uuid
+      PartitionStates []LeaderAndIsrPartitionState
+  LiveLeaders []LeaderAndIsrLiveLeader
+      BrokerId int32
+      HostName string
+      Port int32
+
+## LeaderAndIsr Response — key 4, v0..v7, flexible 4+
+
+### Response v0
+  ErrorCode int16
+  PartitionErrors []LeaderAndIsrPartitionError
+
+### Response v1
+  ErrorCode int16
+  PartitionErrors []LeaderAndIsrPartitionError
+
+### Response v2
+  ErrorCode int16
+  PartitionErrors []LeaderAndIsrPartitionError
+
+### Response v3
+  ErrorCode int16
+  PartitionErrors []LeaderAndIsrPartitionError
+
+### Response v4
+  ErrorCode int16
+  PartitionErrors []LeaderAndIsrPartitionError
+
+### Response v5
+  ErrorCode int16
+  Topics []LeaderAndIsrTopicError
+      TopicId uuid key
+      PartitionErrors []LeaderAndIsrPartitionError
+
+### Response v6
+  ErrorCode int16
+  Topics []LeaderAndIsrTopicError
+      TopicId uuid key
+      PartitionErrors []LeaderAndIsrPartitionError
+
+### Response v7
+  ErrorCode int16
+  Topics []LeaderAndIsrTopicError
+      TopicId uuid key
+      PartitionErrors []LeaderAndIsrPartitionError
+
+## StopReplica Request — key 5, v0..v4, flexible 2+
+
+### Request v0
+  ControllerId int32
+  ControllerEpoch int32
+  DeletePartitions bool
+  UngroupedPartitions []StopReplicaPartitionV0
+      TopicName string
+      PartitionIndex int32
+
+### Request v1
+  ControllerId int32
+  ControllerEpoch int32
+  BrokerEpoch int64
+  DeletePartitions bool
+  Topics []StopReplicaTopicV1
+      Name string
+      PartitionIndexes []int32
+
+### Request v2
+  ControllerId int32
+  ControllerEpoch int32
+  BrokerEpoch int64
+  DeletePartitions bool
+  Topics []StopReplicaTopicV1
+      Name string
+      PartitionIndexes []int32
+
+### Request v3
+  ControllerId int32
+  ControllerEpoch int32
+  BrokerEpoch int64
+  TopicStates []StopReplicaTopicState
+      TopicName string
+      PartitionStates []StopReplicaPartitionState
+          PartitionIndex int32
+          LeaderEpoch int32
+          DeletePartition bool
+
+### Request v4
+  ControllerId int32
+  isKRaftController bool
+  ControllerEpoch int32
+  BrokerEpoch int64
+  TopicStates []StopReplicaTopicState
+      TopicName string
+      PartitionStates []StopReplicaPartitionState
+          PartitionIndex int32
+          LeaderEpoch int32
+          DeletePartition bool
+
+## StopReplica Response — key 5, v0..v4, flexible 2+
+
+### Response v0
+  ErrorCode int16
+  PartitionErrors []StopReplicaPartitionError
+      TopicName string
+      PartitionIndex int32
+      ErrorCode int16
+
+### Response v1
+  ErrorCode int16
+  PartitionErrors []StopReplicaPartitionError
+      TopicName string
+      PartitionIndex int32
+      ErrorCode int16
+
+### Response v2
+  ErrorCode int16
+  PartitionErrors []StopReplicaPartitionError
+      TopicName string
+      PartitionIndex int32
+      ErrorCode int16
+
+### Response v3
+  ErrorCode int16
+  PartitionErrors []StopReplicaPartitionError
+      TopicName string
+      PartitionIndex int32
+      ErrorCode int16
+
+### Response v4
+  ErrorCode int16
+  PartitionErrors []StopReplicaPartitionError
+      TopicName string
+      PartitionIndex int32
+      ErrorCode int16
+
+## UpdateMetadata Request — key 6, v0..v8, flexible 6+
+
+### Request v0
+  ControllerId int32
+  ControllerEpoch int32
+  UngroupedPartitionStates []UpdateMetadataPartitionState
+  LiveBrokers []UpdateMetadataBroker
+      Id int32
+      V0Host string
+      V0Port int32
+
+### Request v1
+  ControllerId int32
+  ControllerEpoch int32
+  UngroupedPartitionStates []UpdateMetadataPartitionState
+  LiveBrokers []UpdateMetadataBroker
+      Id int32
+      Endpoints []UpdateMetadataEndpoint
+          Port int32
+          Host string
+          SecurityProtocol int16
+
+### Request v2
+  ControllerId int32
+  ControllerEpoch int32
+  UngroupedPartitionStates []UpdateMetadataPartitionState
+  LiveBrokers []UpdateMetadataBroker
+      Id int32
+      Endpoints []UpdateMetadataEndpoint
+          Port int32
+          Host string
+          SecurityProtocol int16
+      Rack string null
+
+### Request v3
+  ControllerId int32
+  ControllerEpoch int32
+  UngroupedPartitionStates []UpdateMetadataPartitionState
+  LiveBrokers []UpdateMetadataBroker
+      Id int32
+      Endpoints []UpdateMetadataEndpoint
+          Port int32
+          Host string
+          Listener string
+          SecurityProtocol int16
+      Rack string null
+
+### Request v4
+  ControllerId int32
+  ControllerEpoch int32
+  UngroupedPartitionStates []UpdateMetadataPartitionState
+  LiveBrokers []UpdateMetadataBroker
+      Id int32
+      Endpoints []UpdateMetadataEndpoint
+          Port int32
+          Host string
+          Listener string
+          SecurityProtocol int16
+      Rack string null
+
+### Request v5
+  ControllerId int32
+  ControllerEpoch int32
+  BrokerEpoch int64
+  TopicStates []UpdateMetadataTopicState
+      TopicName string
+      PartitionStates []UpdateMetadataPartitionState
+  LiveBrokers []UpdateMetadataBroker
+      Id int32
+      Endpoints []UpdateMetadataEndpoint
+          Port int32
+          Host string
+          Listener string
+          SecurityProtocol int16
+      Rack string null
+
+### Request v6
+  ControllerId int32
+  ControllerEpoch int32
+  BrokerEpoch int64
+  TopicStates []UpdateMetadataTopicState
+      TopicName string
+      PartitionStates []UpdateMetadataPartitionState
+  LiveBrokers []UpdateMetadataBroker
+      Id int32
+      Endpoints []UpdateMetadataEndpoint
+          Port int32
+          Host string
+          Listener string
+          SecurityProtocol int16
+      Rack string null
+
+### Request v7
+  ControllerId int32
+  ControllerEpoch int32
+  BrokerEpoch int64
+  TopicStates []UpdateMetadataTopicState
+      TopicName string
+      TopicId uuid
+      PartitionStates []UpdateMetadataPartitionState
+  LiveBrokers []UpdateMetadataBroker
+      Id int32
+      Endpoints []UpdateMetadataEndpoint
+          Port int32
+          Host string
+          Listener string
+          SecurityProtocol int16
+      Rack string null
+
+### Request v8
+  ControllerId int32
+  isKRaftController bool
+  Type int8 tag#0
+  ControllerEpoch int32
+  BrokerEpoch int64
+  TopicStates []UpdateMetadataTopicState
+      TopicName string
+      TopicId uuid
+      PartitionStates []UpdateMetadataPartitionState
+  LiveBrokers []UpdateMetadataBroker
+      Id int32
+      Endpoints []UpdateMetadataEndpoint
+          Port int32
+          Host string
+          Listener string
+          SecurityProtocol int16
+      Rack string null
+
+## UpdateMetadata Response — key 6, v0..v8, flexible 6+
+
+### Response v0
+  ErrorCode int16
+
+### Response v1
+  ErrorCode int16
+
+### Response v2
+  ErrorCode int16
+
+### Response v3
+  ErrorCode int16
+
+### Response v4
+  ErrorCode int16
+
+### Response v5
+  ErrorCode int16
+
+### Response v6
+  ErrorCode int16
+
+### Response v7
+  ErrorCode int16
+
+### Response v8
+  ErrorCode int16
+
+## ControlledShutdown Request — key 7, v0..v3, flexible 3+
+
+### Request v0
+  BrokerId int32
+
+### Request v1
+  BrokerId int32
+
+### Request v2
+  BrokerId int32
+  BrokerEpoch int64
+
+### Request v3
+  BrokerId int32
+  BrokerEpoch int64
+
+## ControlledShutdown Response — key 7, v0..v3, flexible 3+
+
+### Response v0
+  ErrorCode int16
+  RemainingPartitions []RemainingPartition
+      TopicName string key
+      PartitionIndex int32 key
+
+### Response v1
+  ErrorCode int16
+  RemainingPartitions []RemainingPartition
+      TopicName string key
+      PartitionIndex int32 key
+
+### Response v2
+  ErrorCode int16
+  RemainingPartitions []RemainingPartition
+      TopicName string key
+      PartitionIndex int32 key
+
+### Response v3
+  ErrorCode int16
+  RemainingPartitions []RemainingPartition
+      TopicName string key
+      PartitionIndex int32 key
+
+## OffsetCommit Request — key 8, v0..v9, flexible 8+
+
+### Request v0
+  GroupId string
+  Topics []OffsetCommitRequestTopic
+      Name string
+      Partitions []OffsetCommitRequestPartition
+          PartitionIndex int32
+          CommittedOffset int64
+          CommittedMetadata string null
+
+### Request v1
+  GroupId string
+  GenerationIdOrMemberEpoch int32
+  MemberId string
+  Topics []OffsetCommitRequestTopic
+      Name string
+      Partitions []OffsetCommitRequestPartition
+          PartitionIndex int32
+          CommittedOffset int64
+          CommitTimestamp int64
+          CommittedMetadata string null
+
+### Request v2
+  GroupId string
+  GenerationIdOrMemberEpoch int32
+  MemberId string
+  RetentionTimeMs int64
+  Topics []OffsetCommitRequestTopic
+      Name string
+      Partitions []OffsetCommitRequestPartition
+          PartitionIndex int32
+          CommittedOffset int64
+          CommittedMetadata string null
+
+### Request v3
+  GroupId string
+  GenerationIdOrMemberEpoch int32
+  MemberId string
+  RetentionTimeMs int64
+  Topics []OffsetCommitRequestTopic
+      Name string
+      Partitions []OffsetCommitRequestPartition
+          PartitionIndex int32
+          CommittedOffset int64
+          CommittedMetadata string null
+
+### Request v4
+  GroupId string
+  GenerationIdOrMemberEpoch int32
+  MemberId string
+  RetentionTimeMs int64
+  Topics []OffsetCommitRequestTopic
+      Name string
+      Partitions []OffsetCommitRequestPartition
+          PartitionIndex int32
+          CommittedOffset int64
+          CommittedMetadata string null
+
+### Request v5
+  GroupId string
+  GenerationIdOrMemberEpoch int32
+  MemberId string
+  Topics []OffsetCommitRequestTopic
+      Name string
+      Partitions []OffsetCommitRequestPartition
+          PartitionIndex int32
+          CommittedOffset int64
+          CommittedMetadata string null
+
+### Request v6
+  GroupId string
+  GenerationIdOrMemberEpoch int32
+  MemberId string
+  Topics []OffsetCommitRequestTopic
+      Name string
+      Partitions []OffsetCommitRequestPartition
+          PartitionIndex int32
+          CommittedOffset int64
+          CommittedLeaderEpoch int32
+          CommittedMetadata string null
+
+### Request v7
+  GroupId string
+  GenerationIdOrMemberEpoch int32
+  MemberId string
+  GroupInstanceId string null
+  Topics []OffsetCommitRequestTopic
+      Name string
+      Partitions []OffsetCommitRequestPartition
+          PartitionIndex int32
+          CommittedOffset int64
+          CommittedLeaderEpoch int32
+          CommittedMetadata string null
+
+### Request v8
+  GroupId string
+  GenerationIdOrMemberEpoch int32
+  MemberId string
+  GroupInstanceId string null
+  Topics []OffsetCommitRequestTopic
+      Name string
+      Partitions []OffsetCommitRequestPartition
+          PartitionIndex int32
+          CommittedOffset int64
+          CommittedLeaderEpoch int32
+          CommittedMetadata string null
+
+### Request v9
+  GroupId string
+  GenerationIdOrMemberEpoch int32
+  MemberId string
+  GroupInstanceId string null
+  Topics []OffsetCommitRequestTopic
+      Name string
+      Partitions []OffsetCommitRequestPartition
+          PartitionIndex int32
+          CommittedOffset int64
+          CommittedLeaderEpoch int32
+          CommittedMetadata string null
+
+## OffsetCommit Response — key 8, v0..v9, flexible 8+
+
+### Response v0
+  Topics []OffsetCommitResponseTopic
+      Name string
+      Partitions []OffsetCommitResponsePartition
+          PartitionIndex int32
+          ErrorCode int16
+
+### Response v1
+  Topics []OffsetCommitResponseTopic
+      Name string
+      Partitions []OffsetCommitResponsePartition
+          PartitionIndex int32
+          ErrorCode int16
+
+### Response v2
+  Topics []OffsetCommitResponseTopic
+      Name string
+      Partitions []OffsetCommitResponsePartition
+          PartitionIndex int32
+          ErrorCode int16
+
+### Response v3
+  ThrottleTimeMs int32
+  Topics []OffsetCommitResponseTopic
+      Name string
+      Partitions []OffsetCommitResponsePartition
+          PartitionIndex int32
+          ErrorCode int16
+
+### Response v4
+  ThrottleTimeMs int32
+  Topics []OffsetCommitResponseTopic
+      Name string
+      Partitions []OffsetCommitResponsePartition
+          PartitionIndex int32
+          ErrorCode int16
+
+### Response v5
+  ThrottleTimeMs int32
+  Topics []OffsetCommitResponseTopic
+      Name string
+      Partitions []OffsetCommitResponsePartition
+          PartitionIndex int32
+          ErrorCode int16
+
+### Response v6
+  ThrottleTimeMs int32
+  Topics []OffsetCommitResponseTopic
+      Name string
+      Partitions []OffsetCommitResponsePartition
+          PartitionIndex int32
+          ErrorCode int16
+
+### Response v7
+  ThrottleTimeMs int32
+  Topics []OffsetCommitResponseTopic
+      Name string
+      Partitions []OffsetCommitResponsePartition
+          PartitionIndex int32
+          ErrorCode int16
+
+### Response v8
+  ThrottleTimeMs int32
+  Topics []OffsetCommitResponseTopic
+      Name string
+      Partitions []OffsetCommitResponsePartition
+          PartitionIndex int32
+          ErrorCode int16
+
+### Response v9
+  ThrottleTimeMs int32
+  Topics []OffsetCommitResponseTopic
+      Name string
+      Partitions []OffsetCommitResponsePartition
+          PartitionIndex int32
+          ErrorCode int16
+
+## OffsetFetch Request — key 9, v0..v8, flexible 6+
+
+### Request v0
+  GroupId string
+  Topics []OffsetFetchRequestTopic
+      Name string
+      PartitionIndexes []int32
+
+### Request v1
+  GroupId string
+  Topics []OffsetFetchRequestTopic
+      Name string
+      PartitionIndexes []int32
+
+### Request v2
+  GroupId string
+  Topics []OffsetFetchRequestTopic null
+      Name string
+      PartitionIndexes []int32
+
+### Request v3
+  GroupId string
+  Topics []OffsetFetchRequestTopic null
+      Name string
+      PartitionIndexes []int32
+
+### Request v4
+  GroupId string
+  Topics []OffsetFetchRequestTopic null
+      Name string
+      PartitionIndexes []int32
+
+### Request v5
+  GroupId string
+  Topics []OffsetFetchRequestTopic null
+      Name string
+      PartitionIndexes []int32
+
+### Request v6
+  GroupId string
+  Topics []OffsetFetchRequestTopic null
+      Name string
+      PartitionIndexes []int32
+
+### Request v7
+  GroupId string
+  Topics []OffsetFetchRequestTopic null
+      Name string
+      PartitionIndexes []int32
+  RequireStable bool
+
+### Request v8
+  Groups []OffsetFetchRequestGroup
+      groupId string
+      Topics []OffsetFetchRequestTopics null
+          Name string
+          PartitionIndexes []int32
+  RequireStable bool
+
+## OffsetFetch Response — key 9, v0..v8, flexible 6+
+
+### Response v0
+  Topics []OffsetFetchResponseTopic
+      Name string
+      Partitions []OffsetFetchResponsePartition
+          PartitionIndex int32
+          CommittedOffset int64
+          Metadata string null
+          ErrorCode int16
+
+### Response v1
+  Topics []OffsetFetchResponseTopic
+      Name string
+      Partitions []OffsetFetchResponsePartition
+          PartitionIndex int32
+          CommittedOffset int64
+          Metadata string null
+          ErrorCode int16
+
+### Response v2
+  Topics []OffsetFetchResponseTopic
+      Name string
+      Partitions []OffsetFetchResponsePartition
+          PartitionIndex int32
+          CommittedOffset int64
+          Metadata string null
+          ErrorCode int16
+  ErrorCode int16
+
+### Response v3
+  ThrottleTimeMs int32
+  Topics []OffsetFetchResponseTopic
+      Name string
+      Partitions []OffsetFetchResponsePartition
+          PartitionIndex int32
+          CommittedOffset int64
+          Metadata string null
+          ErrorCode int16
+  ErrorCode int16
+
+### Response v4
+  ThrottleTimeMs int32
+  Topics []OffsetFetchResponseTopic
+      Name string
+      Partitions []OffsetFetchResponsePartition
+          PartitionIndex int32
+          CommittedOffset int64
+          Metadata string null
+          ErrorCode int16
+  ErrorCode int16
+
+### Response v5
+  ThrottleTimeMs int32
+  Topics []OffsetFetchResponseTopic
+      Name string
+      Partitions []OffsetFetchResponsePartition
+          PartitionIndex int32
+          CommittedOffset int64
+          CommittedLeaderEpoch int32
+          Metadata string null
+          ErrorCode int16
+  ErrorCode int16
+
+### Response v6
+  ThrottleTimeMs int32
+  Topics []OffsetFetchResponseTopic
+      Name string
+      Partitions []OffsetFetchResponsePartition
+          PartitionIndex int32
+          CommittedOffset int64
+          CommittedLeaderEpoch int32
+          Metadata string null
+          ErrorCode int16
+  ErrorCode int16
+
+### Response v7
+  ThrottleTimeMs int32
+  Topics []OffsetFetchResponseTopic
+      Name string
+      Partitions []OffsetFetchResponsePartition
+          PartitionIndex int32
+          CommittedOffset int64
+          CommittedLeaderEpoch int32
+          Metadata string null
+          ErrorCode int16
+  ErrorCode int16
+
+### Response v8
+  ThrottleTimeMs int32
+  Groups []OffsetFetchResponseGroup
+      groupId string
+      Topics []OffsetFetchResponseTopics
+          Name string
+          Partitions []OffsetFetchResponsePartitions
+              PartitionIndex int32
+              CommittedOffset int64
+              CommittedLeaderEpoch int32
+              Metadata string null
+              ErrorCode int16
+      ErrorCode int16
+
+## FindCoordinator Request — key 10, v0..v4, flexible 3+
+
+### Request v0
+  Key string
+
+### Request v1
+  Key string
+  KeyType int8
+
+### Request v2
+  Key string
+  KeyType int8
+
+### Request v3
+  Key string
+  KeyType int8
+
+### Request v4
+  KeyType int8
+  CoordinatorKeys []string
+
+## FindCoordinator Response — key 10, v0..v4, flexible 3+
+
+### Response v0
+  ErrorCode int16
+  NodeId int32
+  Host string
+  Port int32
+
+### Response v1
+  ThrottleTimeMs int32
+  ErrorCode int16
+  ErrorMessage string null
+  NodeId int32
+  Host string
+  Port int32
+
+### Response v2
+  ThrottleTimeMs int32
+  ErrorCode int16
+  ErrorMessage string null
+  NodeId int32
+  Host string
+  Port int32
+
+### Response v3
+  ThrottleTimeMs int32
+  ErrorCode int16
+  ErrorMessage string null
+  NodeId int32
+  Host string
+  Port int32
+
+### Response v4
+  ThrottleTimeMs int32
+  Coordinators []Coordinator
+      Key string
+      NodeId int32
+      Host string
+      Port int32
+      ErrorCode int16
+      ErrorMessage string null
+
+## JoinGroup Request — key 11, v0..v9, flexible 6+
+
+### Request v0
+  GroupId string
+  SessionTimeoutMs int32
+  MemberId string
+  ProtocolType string
+  Protocols []JoinGroupRequestProtocol
+      Name string key
+      Metadata bytes
+
+### Request v1
+  GroupId string
+  SessionTimeoutMs int32
+  RebalanceTimeoutMs int32
+  MemberId string
+  ProtocolType string
+  Protocols []JoinGroupRequestProtocol
+      Name string key
+      Metadata bytes
+
+### Request v2
+  GroupId string
+  SessionTimeoutMs int32
+  RebalanceTimeoutMs int32
+  MemberId string
+  ProtocolType string
+  Protocols []JoinGroupRequestProtocol
+      Name string key
+      Metadata bytes
+
+### Request v3
+  GroupId string
+  SessionTimeoutMs int32
+  RebalanceTimeoutMs int32
+  MemberId string
+  ProtocolType string
+  Protocols []JoinGroupRequestProtocol
+      Name string key
+      Metadata bytes
+
+### Request v4
+  GroupId string
+  SessionTimeoutMs int32
+  RebalanceTimeoutMs int32
+  MemberId string
+  ProtocolType string
+  Protocols []JoinGroupRequestProtocol
+      Name string key
+      Metadata bytes
+
+### Request v5
+  GroupId string
+  SessionTimeoutMs int32
+  RebalanceTimeoutMs int32
+  MemberId string
+  GroupInstanceId string null
+  ProtocolType string
+  Protocols []JoinGroupRequestProtocol
+      Name string key
+      Metadata bytes
+
+### Request v6
+  GroupId string
+  SessionTimeoutMs int32
+  RebalanceTimeoutMs int32
+  MemberId string
+  GroupInstanceId string null
+  ProtocolType string
+  Protocols []JoinGroupRequestProtocol
+      Name string key
+      Metadata bytes
+
+### Request v7
+  GroupId string
+  SessionTimeoutMs int32
+  RebalanceTimeoutMs int32
+  MemberId string
+  GroupInstanceId string null
+  ProtocolType string
+  Protocols []JoinGroupRequestProtocol
+      Name string key
+      Metadata bytes
+
+### Request v8
+  GroupId string
+  SessionTimeoutMs int32
+  RebalanceTimeoutMs int32
+  MemberId string
+  GroupInstanceId string null
+  ProtocolType string
+  Protocols []JoinGroupRequestProtocol
+      Name string key
+      Metadata bytes
+  Reason string null
+
+### Request v9
+  GroupId string
+  SessionTimeoutMs int32
+  RebalanceTimeoutMs int32
+  MemberId string
+  GroupInstanceId string null
+  ProtocolType string
+  Protocols []JoinGroupRequestProtocol
+      Name string key
+      Metadata bytes
+  Reason string null
+
+## JoinGroup Response — key 11, v0..v9, flexible 6+
+
+### Response v0
+  ErrorCode int16
+  GenerationId int32
+  ProtocolName string
+  Leader string
+  MemberId string
+  Members []JoinGroupResponseMember
+      MemberId string
+      Metadata bytes
+
+### Response v1
+  ErrorCode int16
+  GenerationId int32
+  ProtocolName string
+  Leader string
+  MemberId string
+  Members []JoinGroupResponseMember
+      MemberId string
+      Metadata bytes
+
+### Response v2
+  ThrottleTimeMs int32
+  ErrorCode int16
+  GenerationId int32
+  ProtocolName string
+  Leader string
+  MemberId string
+  Members []JoinGroupResponseMember
+      MemberId string
+      Metadata bytes
+
+### Response v3
+  ThrottleTimeMs int32
+  ErrorCode int16
+  GenerationId int32
+  ProtocolName string
+  Leader string
+  MemberId string
+  Members []JoinGroupResponseMember
+      MemberId string
+      Metadata bytes
+
+### Response v4
+  ThrottleTimeMs int32
+  ErrorCode int16
+  GenerationId int32
+  ProtocolName string
+  Leader string
+  MemberId string
+  Members []JoinGroupResponseMember
+      MemberId string
+      Metadata bytes
+
+### Response v5
+  ThrottleTimeMs int32
+  ErrorCode int16
+  GenerationId int32
+  ProtocolName string
+  Leader string
+  MemberId string
+  Members []JoinGroupResponseMember
+      MemberId string
+      GroupInstanceId string null
+      Metadata bytes
+
+### Response v6
+  ThrottleTimeMs int32
+  ErrorCode int16
+  GenerationId int32
+  ProtocolName string
+  Leader string
+  MemberId string
+  Members []JoinGroupResponseMember
+      MemberId string
+      GroupInstanceId string null
+      Metadata bytes
+
+### Response v7
+  ThrottleTimeMs int32
+  ErrorCode int16
+  GenerationId int32
+  ProtocolType string null
+  ProtocolName string null
+  Leader string
+  MemberId string
+  Members []JoinGroupResponseMember
+      MemberId string
+      GroupInstanceId string null
+      Metadata bytes
+
+### Response v8
+  ThrottleTimeMs int32
+  ErrorCode int16
+  GenerationId int32
+  ProtocolType string null
+  ProtocolName string null
+  Leader string
+  MemberId string
+  Members []JoinGroupResponseMember
+      MemberId string
+      GroupInstanceId string null
+      Metadata bytes
+
+### Response v9
+  ThrottleTimeMs int32
+  ErrorCode int16
+  GenerationId int32
+  ProtocolType string null
+  ProtocolName string null
+  Leader string
+  SkipAssignment bool
+  MemberId string
+  Members []JoinGroupResponseMember
+      MemberId string
+      GroupInstanceId string null
+      Metadata bytes
+
+## Heartbeat Request — key 12, v0..v4, flexible 4+
+
+### Request v0
+  GroupId string
+  GenerationId int32
+  MemberId string
+
+### Request v1
+  GroupId string
+  GenerationId int32
+  MemberId string
+
+### Request v2
+  GroupId string
+  GenerationId int32
+  MemberId string
+
+### Request v3
+  GroupId string
+  GenerationId int32
+  MemberId string
+  GroupInstanceId string null
+
+### Request v4
+  GroupId string
+  GenerationId int32
+  MemberId string
+  GroupInstanceId string null
+
+## Heartbeat Response — key 12, v0..v4, flexible 4+
+
+### Response v0
+  ErrorCode int16
+
+### Response v1
+  ThrottleTimeMs int32
+  ErrorCode int16
+
+### Response v2
+  ThrottleTimeMs int32
+  ErrorCode int16
+
+### Response v3
+  ThrottleTimeMs int32
+  ErrorCode int16
+
+### Response v4
+  ThrottleTimeMs int32
+  ErrorCode int16
+
+## LeaveGroup Request — key 13, v0..v5, flexible 4+
+
+### Request v0
+  GroupId string
+  MemberId string
+
+### Request v1
+  GroupId string
+  MemberId string
+
+### Request v2
+  GroupId string
+  MemberId string
+
+### Request v3
+  GroupId string
+  Members []MemberIdentity
+      MemberId string
+      GroupInstanceId string null
+
+### Request v4
+  GroupId string
+  Members []MemberIdentity
+      MemberId string
+      GroupInstanceId string null
+
+### Request v5
+  GroupId string
+  Members []MemberIdentity
+      MemberId string
+      GroupInstanceId string null
+      Reason string null
+
+## LeaveGroup Response — key 13, v0..v5, flexible 4+
+
+### Response v0
+  ErrorCode int16
+
+### Response v1
+  ThrottleTimeMs int32
+  ErrorCode int16
+
+### Response v2
+  ThrottleTimeMs int32
+  ErrorCode int16
+
+### Response v3
+  ThrottleTimeMs int32
+  ErrorCode int16
+  Members []MemberResponse
+      MemberId string
+      GroupInstanceId string null
+      ErrorCode int16
+
+### Response v4
+  ThrottleTimeMs int32
+  ErrorCode int16
+  Members []MemberResponse
+      MemberId string
+      GroupInstanceId string null
+      ErrorCode int16
+
+### Response v5
+  ThrottleTimeMs int32
+  ErrorCode int16
+  Members []MemberResponse
+      MemberId string
+      GroupInstanceId string null
+      ErrorCode int16
+
+## SyncGroup Request — key 14, v0..v5, flexible 4+
+
+### Request v0
+  GroupId string
+  GenerationId int32
+  MemberId string
+  Assignments []SyncGroupRequestAssignment
+      MemberId string
+      Assignment bytes
+
+### Request v1
+  GroupId string
+  GenerationId int32
+  MemberId string
+  Assignments []SyncGroupRequestAssignment
+      MemberId string
+      Assignment bytes
+
+### Request v2
+  GroupId string
+  GenerationId int32
+  MemberId string
+  Assignments []SyncGroupRequestAssignment
+      MemberId string
+      Assignment bytes
+
+### Request v3
+  GroupId string
+  GenerationId int32
+  MemberId string
+  GroupInstanceId string null
+  Assignments []SyncGroupRequestAssignment
+      MemberId string
+      Assignment bytes
+
+### Request v4
+  GroupId string
+  GenerationId int32
+  MemberId string
+  GroupInstanceId string null
+  Assignments []SyncGroupRequestAssignment
+      MemberId string
+      Assignment bytes
+
+### Request v5
+  GroupId string
+  GenerationId int32
+  MemberId string
+  GroupInstanceId string null
+  ProtocolType string null
+  ProtocolName string null
+  Assignments []SyncGroupRequestAssignment
+      MemberId string
+      Assignment bytes
+
+## SyncGroup Response — key 14, v0..v5, flexible 4+
+
+### Response v0
+  ErrorCode int16
+  Assignment bytes
+
+### Response v1
+  ThrottleTimeMs int32
+  ErrorCode int16
+  Assignment bytes
+
+### Response v2
+  ThrottleTimeMs int32
+  ErrorCode int16
+  Assignment bytes
+
+### Response v3
+  ThrottleTimeMs int32
+  ErrorCode int16
+  Assignment bytes
+
+### Response v4
+  ThrottleTimeMs int32
+  ErrorCode int16
+  Assignment bytes
+
+### Response v5
+  ThrottleTimeMs int32
+  ErrorCode int16
+  ProtocolType string null
+  ProtocolName string null
+  Assignment bytes
+
+## DescribeGroups Request — key 15, v0..v5, flexible 5+
+
+### Request v0
+  Groups []string
+
+### Request v1
+  Groups []string
+
+### Request v2
+  Groups []string
+
+### Request v3
+  Groups []string
+  IncludeAuthorizedOperations bool
+
+### Request v4
+  Groups []string
+  IncludeAuthorizedOperations bool
+
+### Request v5
+  Groups []string
+  IncludeAuthorizedOperations bool
+
+## DescribeGroups Response — key 15, v0..v5, flexible 5+
+
+### Response v0
+  Groups []DescribedGroup
+      ErrorCode int16
+      GroupId string
+      GroupState string
+      ProtocolType string
+      ProtocolData string
+      Members []DescribedGroupMember
+          MemberId string
+          ClientId string
+          ClientHost string
+          MemberMetadata bytes
+          MemberAssignment bytes
+
+### Response v1
+  ThrottleTimeMs int32
+  Groups []DescribedGroup
+      ErrorCode int16
+      GroupId string
+      GroupState string
+      ProtocolType string
+      ProtocolData string
+      Members []DescribedGroupMember
+          MemberId string
+          ClientId string
+          ClientHost string
+          MemberMetadata bytes
+          MemberAssignment bytes
+
+### Response v2
+  ThrottleTimeMs int32
+  Groups []DescribedGroup
+      ErrorCode int16
+      GroupId string
+      GroupState string
+      ProtocolType string
+      ProtocolData string
+      Members []DescribedGroupMember
+          MemberId string
+          ClientId string
+          ClientHost string
+          MemberMetadata bytes
+          MemberAssignment bytes
+
+### Response v3
+  ThrottleTimeMs int32
+  Groups []DescribedGroup
+      ErrorCode int16
+      GroupId string
+      GroupState string
+      ProtocolType string
+      ProtocolData string
+      Members []DescribedGroupMember
+          MemberId string
+          ClientId string
+          ClientHost string
+          MemberMetadata bytes
+          MemberAssignment bytes
+      AuthorizedOperations int32
+
+### Response v4
+  ThrottleTimeMs int32
+  Groups []DescribedGroup
+      ErrorCode int16
+      GroupId string
+      GroupState string
+      ProtocolType string
+      ProtocolData string
+      Members []DescribedGroupMember
+          MemberId string
+          GroupInstanceId string null
+          ClientId string
+          ClientHost string
+          MemberMetadata bytes
+          MemberAssignment bytes
+      AuthorizedOperations int32
+
+### Response v5
+  ThrottleTimeMs int32
+  Groups []DescribedGroup
+      ErrorCode int16
+      GroupId string
+      GroupState string
+      ProtocolType string
+      ProtocolData string
+      Members []DescribedGroupMember
+          MemberId string
+          GroupInstanceId string null
+          ClientId string
+          ClientHost string
+          MemberMetadata bytes
+          MemberAssignment bytes
+      AuthorizedOperations int32
+
+## ListGroups Request — key 16, v0..v4, flexible 3+
+
+### Request v0
+  (no body fields)
+
+### Request v1
+  (no body fields)
+
+### Request v2
+  (no body fields)
+
+### Request v3
+  (no body fields)
+
+### Request v4
+  StatesFilter []string
+
+## ListGroups Response — key 16, v0..v4, flexible 3+
+
+### Response v0
+  ErrorCode int16
+  Groups []ListedGroup
+      GroupId string
+      ProtocolType string
+
+### Response v1
+  ThrottleTimeMs int32
+  ErrorCode int16
+  Groups []ListedGroup
+      GroupId string
+      ProtocolType string
+
+### Response v2
+  ThrottleTimeMs int32
+  ErrorCode int16
+  Groups []ListedGroup
+      GroupId string
+      ProtocolType string
+
+### Response v3
+  ThrottleTimeMs int32
+  ErrorCode int16
+  Groups []ListedGroup
+      GroupId string
+      ProtocolType string
+
+### Response v4
+  ThrottleTimeMs int32
+  ErrorCode int16
+  Groups []ListedGroup
+      GroupId string
+      ProtocolType string
+      GroupState string
+
+## SaslHandshake Request — key 17, v0..v1, flexible none
+
+### Request v0
+  Mechanism string
+
+### Request v1
+  Mechanism string
+
+## SaslHandshake Response — key 17, v0..v1, flexible none
+
+### Response v0
+  ErrorCode int16
+  Mechanisms []string
+
+### Response v1
+  ErrorCode int16
+  Mechanisms []string
+
+## ApiVersions Request — key 18, v0..v3, flexible 3+
+
+### Request v0
+  (no body fields)
+
+### Request v1
+  (no body fields)
+
+### Request v2
+  (no body fields)
+
+### Request v3
+  ClientSoftwareName string
+  ClientSoftwareVersion string
+
+## ApiVersions Response — key 18, v0..v3, flexible 3+
+
+### Response v0
+  ErrorCode int16
+  ApiKeys []ApiVersion
+      ApiKey int16 key
+      MinVersion int16
+      MaxVersion int16
+
+### Response v1
+  ErrorCode int16
+  ApiKeys []ApiVersion
+      ApiKey int16 key
+      MinVersion int16
+      MaxVersion int16
+  ThrottleTimeMs int32
+
+### Response v2
+  ErrorCode int16
+  ApiKeys []ApiVersion
+      ApiKey int16 key
+      MinVersion int16
+      MaxVersion int16
+  ThrottleTimeMs int32
+
+### Response v3
+  ErrorCode int16
+  ApiKeys []ApiVersion
+      ApiKey int16 key
+      MinVersion int16
+      MaxVersion int16
+  ThrottleTimeMs int32
+  SupportedFeatures []SupportedFeatureKey tag#0
+      Name string key
+      MinVersion int16
+      MaxVersion int16
+  FinalizedFeaturesEpoch int64 tag#1
+  FinalizedFeatures []FinalizedFeatureKey tag#2
+      Name string key
+      MaxVersionLevel int16
+      MinVersionLevel int16
+  ZkMigrationReady bool tag#3
+
+## CreateTopics Request — key 19, v0..v7, flexible 5+
+
+### Request v0
+  Topics []CreatableTopic
+      Name string key
+      NumPartitions int32
+      ReplicationFactor int16
+      Assignments []CreatableReplicaAssignment
+          PartitionIndex int32 key
+          BrokerIds []int32
+      Configs []CreateableTopicConfig
+          Name string key
+          Value string null
+  timeoutMs int32
+
+### Request v1
+  Topics []CreatableTopic
+      Name string key
+      NumPartitions int32
+      ReplicationFactor int16
+      Assignments []CreatableReplicaAssignment
+          PartitionIndex int32 key
+          BrokerIds []int32
+      Configs []CreateableTopicConfig
+          Name string key
+          Value string null
+  timeoutMs int32
+  validateOnly bool
+
+### Request v2
+  Topics []CreatableTopic
+      Name string key
+      NumPartitions int32
+      ReplicationFactor int16
+      Assignments []CreatableReplicaAssignment
+          PartitionIndex int32 key
+          BrokerIds []int32
+      Configs []CreateableTopicConfig
+          Name string key
+          Value string null
+  timeoutMs int32
+  validateOnly bool
+
+### Request v3
+  Topics []CreatableTopic
+      Name string key
+      NumPartitions int32
+      ReplicationFactor int16
+      Assignments []CreatableReplicaAssignment
+          PartitionIndex int32 key
+          BrokerIds []int32
+      Configs []CreateableTopicConfig
+          Name string key
+          Value string null
+  timeoutMs int32
+  validateOnly bool
+
+### Request v4
+  Topics []CreatableTopic
+      Name string key
+      NumPartitions int32
+      ReplicationFactor int16
+      Assignments []CreatableReplicaAssignment
+          PartitionIndex int32 key
+          BrokerIds []int32
+      Configs []CreateableTopicConfig
+          Name string key
+          Value string null
+  timeoutMs int32
+  validateOnly bool
+
+### Request v5
+  Topics []CreatableTopic
+      Name string key
+      NumPartitions int32
+      ReplicationFactor int16
+      Assignments []CreatableReplicaAssignment
+          PartitionIndex int32 key
+          BrokerIds []int32
+      Configs []CreateableTopicConfig
+          Name string key
+          Value string null
+  timeoutMs int32
+  validateOnly bool
+
+### Request v6
+  Topics []CreatableTopic
+      Name string key
+      NumPartitions int32
+      ReplicationFactor int16
+      Assignments []CreatableReplicaAssignment
+          PartitionIndex int32 key
+          BrokerIds []int32
+      Configs []CreateableTopicConfig
+          Name string key
+          Value string null
+  timeoutMs int32
+  validateOnly bool
+
+### Request v7
+  Topics []CreatableTopic
+      Name string key
+      NumPartitions int32
+      ReplicationFactor int16
+      Assignments []CreatableReplicaAssignment
+          PartitionIndex int32 key
+          BrokerIds []int32
+      Configs []CreateableTopicConfig
+          Name string key
+          Value string null
+  timeoutMs int32
+  validateOnly bool
+
+## CreateTopics Response — key 19, v0..v7, flexible 5+
+
+### Response v0
+  Topics []CreatableTopicResult
+      Name string key
+      ErrorCode int16
+
+### Response v1
+  Topics []CreatableTopicResult
+      Name string key
+      ErrorCode int16
+      ErrorMessage string null
+
+### Response v2
+  ThrottleTimeMs int32
+  Topics []CreatableTopicResult
+      Name string key
+      ErrorCode int16
+      ErrorMessage string null
+
+### Response v3
+  ThrottleTimeMs int32
+  Topics []CreatableTopicResult
+      Name string key
+      ErrorCode int16
+      ErrorMessage string null
+
+### Response v4
+  ThrottleTimeMs int32
+  Topics []CreatableTopicResult
+      Name string key
+      ErrorCode int16
+      ErrorMessage string null
+
+### Response v5
+  ThrottleTimeMs int32
+  Topics []CreatableTopicResult
+      Name string key
+      ErrorCode int16
+      ErrorMessage string null
+      TopicConfigErrorCode int16 tag#0
+      NumPartitions int32
+      ReplicationFactor int16
+      Configs []CreatableTopicConfigs null
+          Name string
+          Value string null
+          ReadOnly bool
+          ConfigSource int8
+          IsSensitive bool
+
+### Response v6
+  ThrottleTimeMs int32
+  Topics []CreatableTopicResult
+      Name string key
+      ErrorCode int16
+      ErrorMessage string null
+      TopicConfigErrorCode int16 tag#0
+      NumPartitions int32
+      ReplicationFactor int16
+      Configs []CreatableTopicConfigs null
+          Name string
+          Value string null
+          ReadOnly bool
+          ConfigSource int8
+          IsSensitive bool
+
+### Response v7
+  ThrottleTimeMs int32
+  Topics []CreatableTopicResult
+      Name string key
+      TopicId uuid
+      ErrorCode int16
+      ErrorMessage string null
+      TopicConfigErrorCode int16 tag#0
+      NumPartitions int32
+      ReplicationFactor int16
+      Configs []CreatableTopicConfigs null
+          Name string
+          Value string null
+          ReadOnly bool
+          ConfigSource int8
+          IsSensitive bool
+
+## DeleteTopics Request — key 20, v0..v6, flexible 4+
+
+### Request v0
+  TopicNames []string
+  TimeoutMs int32
+
+### Request v1
+  TopicNames []string
+  TimeoutMs int32
+
+### Request v2
+  TopicNames []string
+  TimeoutMs int32
+
+### Request v3
+  TopicNames []string
+  TimeoutMs int32
+
+### Request v4
+  TopicNames []string
+  TimeoutMs int32
+
+### Request v5
+  TopicNames []string
+  TimeoutMs int32
+
+### Request v6
+  Topics []DeleteTopicState
+      Name string null
+      TopicId uuid
+  TimeoutMs int32
+
+## DeleteTopics Response — key 20, v0..v6, flexible 4+
+
+### Response v0
+  Responses []DeletableTopicResult
+      Name string key
+      ErrorCode int16
+
+### Response v1
+  ThrottleTimeMs int32
+  Responses []DeletableTopicResult
+      Name string key
+      ErrorCode int16
+
+### Response v2
+  ThrottleTimeMs int32
+  Responses []DeletableTopicResult
+      Name string key
+      ErrorCode int16
+
+### Response v3
+  ThrottleTimeMs int32
+  Responses []DeletableTopicResult
+      Name string key
+      ErrorCode int16
+
+### Response v4
+  ThrottleTimeMs int32
+  Responses []DeletableTopicResult
+      Name string key
+      ErrorCode int16
+
+### Response v5
+  ThrottleTimeMs int32
+  Responses []DeletableTopicResult
+      Name string key
+      ErrorCode int16
+      ErrorMessage string null
+
+### Response v6
+  ThrottleTimeMs int32
+  Responses []DeletableTopicResult
+      Name string key null
+      TopicId uuid
+      ErrorCode int16
+      ErrorMessage string null
+
+## DeleteRecords Request — key 21, v0..v2, flexible 2+
+
+### Request v0
+  Topics []DeleteRecordsTopic
+      Name string
+      Partitions []DeleteRecordsPartition
+          PartitionIndex int32
+          Offset int64
+  TimeoutMs int32
+
+### Request v1
+  Topics []DeleteRecordsTopic
+      Name string
+      Partitions []DeleteRecordsPartition
+          PartitionIndex int32
+          Offset int64
+  TimeoutMs int32
+
+### Request v2
+  Topics []DeleteRecordsTopic
+      Name string
+      Partitions []DeleteRecordsPartition
+          PartitionIndex int32
+          Offset int64
+  TimeoutMs int32
+
+## DeleteRecords Response — key 21, v0..v2, flexible 2+
+
+### Response v0
+  ThrottleTimeMs int32
+  Topics []DeleteRecordsTopicResult
+      Name string key
+      Partitions []DeleteRecordsPartitionResult
+          PartitionIndex int32 key
+          LowWatermark int64
+          ErrorCode int16
+
+### Response v1
+  ThrottleTimeMs int32
+  Topics []DeleteRecordsTopicResult
+      Name string key
+      Partitions []DeleteRecordsPartitionResult
+          PartitionIndex int32 key
+          LowWatermark int64
+          ErrorCode int16
+
+### Response v2
+  ThrottleTimeMs int32
+  Topics []DeleteRecordsTopicResult
+      Name string key
+      Partitions []DeleteRecordsPartitionResult
+          PartitionIndex int32 key
+          LowWatermark int64
+          ErrorCode int16
+
+## InitProducerId Request — key 22, v0..v4, flexible 2+
+
+### Request v0
+  TransactionalId string null
+  TransactionTimeoutMs int32
+
+### Request v1
+  TransactionalId string null
+  TransactionTimeoutMs int32
+
+### Request v2
+  TransactionalId string null
+  TransactionTimeoutMs int32
+
+### Request v3
+  TransactionalId string null
+  TransactionTimeoutMs int32
+  ProducerId int64
+  ProducerEpoch int16
+
+### Request v4
+  TransactionalId string null
+  TransactionTimeoutMs int32
+  ProducerId int64
+  ProducerEpoch int16
+
+## InitProducerId Response — key 22, v0..v4, flexible 2+
+
+### Response v0
+  ThrottleTimeMs int32
+  ErrorCode int16
+  ProducerId int64
+  ProducerEpoch int16
+
+### Response v1
+  ThrottleTimeMs int32
+  ErrorCode int16
+  ProducerId int64
+  ProducerEpoch int16
+
+### Response v2
+  ThrottleTimeMs int32
+  ErrorCode int16
+  ProducerId int64
+  ProducerEpoch int16
+
+### Response v3
+  ThrottleTimeMs int32
+  ErrorCode int16
+  ProducerId int64
+  ProducerEpoch int16
+
+### Response v4
+  ThrottleTimeMs int32
+  ErrorCode int16
+  ProducerId int64
+  ProducerEpoch int16
+
+## OffsetForLeaderEpoch Request — key 23, v0..v4, flexible 4+
+
+### Request v0
+  Topics []OffsetForLeaderTopic
+      Topic string key
+      Partitions []OffsetForLeaderPartition
+          Partition int32
+          LeaderEpoch int32
+
+### Request v1
+  Topics []OffsetForLeaderTopic
+      Topic string key
+      Partitions []OffsetForLeaderPartition
+          Partition int32
+          LeaderEpoch int32
+
+### Request v2
+  Topics []OffsetForLeaderTopic
+      Topic string key
+      Partitions []OffsetForLeaderPartition
+          Partition int32
+          CurrentLeaderEpoch int32
+          LeaderEpoch int32
+
+### Request v3
+  ReplicaId int32
+  Topics []OffsetForLeaderTopic
+      Topic string key
+      Partitions []OffsetForLeaderPartition
+          Partition int32
+          CurrentLeaderEpoch int32
+          LeaderEpoch int32
+
+### Request v4
+  ReplicaId int32
+  Topics []OffsetForLeaderTopic
+      Topic string key
+      Partitions []OffsetForLeaderPartition
+          Partition int32
+          CurrentLeaderEpoch int32
+          LeaderEpoch int32
+
+## OffsetForLeaderEpoch Response — key 23, v0..v4, flexible 4+
+
+### Response v0
+  Topics []OffsetForLeaderTopicResult
+      Topic string key
+      Partitions []EpochEndOffset
+          ErrorCode int16
+          Partition int32
+          EndOffset int64
+
+### Response v1
+  Topics []OffsetForLeaderTopicResult
+      Topic string key
+      Partitions []EpochEndOffset
+          ErrorCode int16
+          Partition int32
+          LeaderEpoch int32
+          EndOffset int64
+
+### Response v2
+  ThrottleTimeMs int32
+  Topics []OffsetForLeaderTopicResult
+      Topic string key
+      Partitions []EpochEndOffset
+          ErrorCode int16
+          Partition int32
+          LeaderEpoch int32
+          EndOffset int64
+
+### Response v3
+  ThrottleTimeMs int32
+  Topics []OffsetForLeaderTopicResult
+      Topic string key
+      Partitions []EpochEndOffset
+          ErrorCode int16
+          Partition int32
+          LeaderEpoch int32
+          EndOffset int64
+
+### Response v4
+  ThrottleTimeMs int32
+  Topics []OffsetForLeaderTopicResult
+      Topic string key
+      Partitions []EpochEndOffset
+          ErrorCode int16
+          Partition int32
+          LeaderEpoch int32
+          EndOffset int64
+
+## AddPartitionsToTxn Request — key 24, v0..v4, flexible 3+
+
+### Request v0
+  V3AndBelowTransactionalId string
+  V3AndBelowProducerId int64
+  V3AndBelowProducerEpoch int16
+  V3AndBelowTopics []AddPartitionsToTxnTopic
+
+### Request v1
+  V3AndBelowTransactionalId string
+  V3AndBelowProducerId int64
+  V3AndBelowProducerEpoch int16
+  V3AndBelowTopics []AddPartitionsToTxnTopic
+
+### Request v2
+  V3AndBelowTransactionalId string
+  V3AndBelowProducerId int64
+  V3AndBelowProducerEpoch int16
+  V3AndBelowTopics []AddPartitionsToTxnTopic
+
+### Request v3
+  V3AndBelowTransactionalId string
+  V3AndBelowProducerId int64
+  V3AndBelowProducerEpoch int16
+  V3AndBelowTopics []AddPartitionsToTxnTopic
+
+### Request v4
+  Transactions []AddPartitionsToTxnTransaction
+      TransactionalId string key
+      ProducerId int64
+      ProducerEpoch int16
+      VerifyOnly bool
+      Topics []AddPartitionsToTxnTopic
+
+## AddPartitionsToTxn Response — key 24, v0..v4, flexible 3+
+
+### Response v0
+  ThrottleTimeMs int32
+  ResultsByTopicV3AndBelow []AddPartitionsToTxnTopicResult
+
+### Response v1
+  ThrottleTimeMs int32
+  ResultsByTopicV3AndBelow []AddPartitionsToTxnTopicResult
+
+### Response v2
+  ThrottleTimeMs int32
+  ResultsByTopicV3AndBelow []AddPartitionsToTxnTopicResult
+
+### Response v3
+  ThrottleTimeMs int32
+  ResultsByTopicV3AndBelow []AddPartitionsToTxnTopicResult
+
+### Response v4
+  ThrottleTimeMs int32
+  ErrorCode int16
+  ResultsByTransaction []AddPartitionsToTxnResult
+      TransactionalId string key
+      TopicResults []AddPartitionsToTxnTopicResult
+
+## AddOffsetsToTxn Request — key 25, v0..v3, flexible 3+
+
+### Request v0
+  TransactionalId string
+  ProducerId int64
+  ProducerEpoch int16
+  GroupId string
+
+### Request v1
+  TransactionalId string
+  ProducerId int64
+  ProducerEpoch int16
+  GroupId string
+
+### Request v2
+  TransactionalId string
+  ProducerId int64
+  ProducerEpoch int16
+  GroupId string
+
+### Request v3
+  TransactionalId string
+  ProducerId int64
+  ProducerEpoch int16
+  GroupId string
+
+## AddOffsetsToTxn Response — key 25, v0..v3, flexible 3+
+
+### Response v0
+  ThrottleTimeMs int32
+  ErrorCode int16
+
+### Response v1
+  ThrottleTimeMs int32
+  ErrorCode int16
+
+### Response v2
+  ThrottleTimeMs int32
+  ErrorCode int16
+
+### Response v3
+  ThrottleTimeMs int32
+  ErrorCode int16
+
+## EndTxn Request — key 26, v0..v3, flexible 3+
+
+### Request v0
+  TransactionalId string
+  ProducerId int64
+  ProducerEpoch int16
+  Committed bool
+
+### Request v1
+  TransactionalId string
+  ProducerId int64
+  ProducerEpoch int16
+  Committed bool
+
+### Request v2
+  TransactionalId string
+  ProducerId int64
+  ProducerEpoch int16
+  Committed bool
+
+### Request v3
+  TransactionalId string
+  ProducerId int64
+  ProducerEpoch int16
+  Committed bool
+
+## EndTxn Response — key 26, v0..v3, flexible 3+
+
+### Response v0
+  ThrottleTimeMs int32
+  ErrorCode int16
+
+### Response v1
+  ThrottleTimeMs int32
+  ErrorCode int16
+
+### Response v2
+  ThrottleTimeMs int32
+  ErrorCode int16
+
+### Response v3
+  ThrottleTimeMs int32
+  ErrorCode int16
+
+## WriteTxnMarkers Request — key 27, v0..v1, flexible 1+
+
+### Request v0
+  Markers []WritableTxnMarker
+      ProducerId int64
+      ProducerEpoch int16
+      TransactionResult bool
+      Topics []WritableTxnMarkerTopic
+          Name string
+          PartitionIndexes []int32
+      CoordinatorEpoch int32
+
+### Request v1
+  Markers []WritableTxnMarker
+      ProducerId int64
+      ProducerEpoch int16
+      TransactionResult bool
+      Topics []WritableTxnMarkerTopic
+          Name string
+          PartitionIndexes []int32
+      CoordinatorEpoch int32
+
+## WriteTxnMarkers Response — key 27, v0..v1, flexible 1+
+
+### Response v0
+  Markers []WritableTxnMarkerResult
+      ProducerId int64
+      Topics []WritableTxnMarkerTopicResult
+          Name string
+          Partitions []WritableTxnMarkerPartitionResult
+              PartitionIndex int32
+              ErrorCode int16
+
+### Response v1
+  Markers []WritableTxnMarkerResult
+      ProducerId int64
+      Topics []WritableTxnMarkerTopicResult
+          Name string
+          Partitions []WritableTxnMarkerPartitionResult
+              PartitionIndex int32
+              ErrorCode int16
+
+## TxnOffsetCommit Request — key 28, v0..v3, flexible 3+
+
+### Request v0
+  TransactionalId string
+  GroupId string
+  ProducerId int64
+  ProducerEpoch int16
+  Topics []TxnOffsetCommitRequestTopic
+      Name string
+      Partitions []TxnOffsetCommitRequestPartition
+          PartitionIndex int32
+          CommittedOffset int64
+          CommittedMetadata string null
+
+### Request v1
+  TransactionalId string
+  GroupId string
+  ProducerId int64
+  ProducerEpoch int16
+  Topics []TxnOffsetCommitRequestTopic
+      Name string
+      Partitions []TxnOffsetCommitRequestPartition
+          PartitionIndex int32
+          CommittedOffset int64
+          CommittedMetadata string null
+
+### Request v2
+  TransactionalId string
+  GroupId string
+  ProducerId int64
+  ProducerEpoch int16
+  Topics []TxnOffsetCommitRequestTopic
+      Name string
+      Partitions []TxnOffsetCommitRequestPartition
+          PartitionIndex int32
+          CommittedOffset int64
+          CommittedLeaderEpoch int32
+          CommittedMetadata string null
+
+### Request v3
+  TransactionalId string
+  GroupId string
+  ProducerId int64
+  ProducerEpoch int16
+  GenerationId int32
+  MemberId string
+  GroupInstanceId string null
+  Topics []TxnOffsetCommitRequestTopic
+      Name string
+      Partitions []TxnOffsetCommitRequestPartition
+          PartitionIndex int32
+          CommittedOffset int64
+          CommittedLeaderEpoch int32
+          CommittedMetadata string null
+
+## TxnOffsetCommit Response — key 28, v0..v3, flexible 3+
+
+### Response v0
+  ThrottleTimeMs int32
+  Topics []TxnOffsetCommitResponseTopic
+      Name string
+      Partitions []TxnOffsetCommitResponsePartition
+          PartitionIndex int32
+          ErrorCode int16
+
+### Response v1
+  ThrottleTimeMs int32
+  Topics []TxnOffsetCommitResponseTopic
+      Name string
+      Partitions []TxnOffsetCommitResponsePartition
+          PartitionIndex int32
+          ErrorCode int16
+
+### Response v2
+  ThrottleTimeMs int32
+  Topics []TxnOffsetCommitResponseTopic
+      Name string
+      Partitions []TxnOffsetCommitResponsePartition
+          PartitionIndex int32
+          ErrorCode int16
+
+### Response v3
+  ThrottleTimeMs int32
+  Topics []TxnOffsetCommitResponseTopic
+      Name string
+      Partitions []TxnOffsetCommitResponsePartition
+          PartitionIndex int32
+          ErrorCode int16
+
+## DescribeConfigs Request — key 32, v0..v4, flexible 4+
+
+### Request v0
+  Resources []DescribeConfigsResource
+      ResourceType int8
+      ResourceName string
+      ConfigurationKeys []string null
+
+### Request v1
+  Resources []DescribeConfigsResource
+      ResourceType int8
+      ResourceName string
+      ConfigurationKeys []string null
+  IncludeSynonyms bool
+
+### Request v2
+  Resources []DescribeConfigsResource
+      ResourceType int8
+      ResourceName string
+      ConfigurationKeys []string null
+  IncludeSynonyms bool
+
+### Request v3
+  Resources []DescribeConfigsResource
+      ResourceType int8
+      ResourceName string
+      ConfigurationKeys []string null
+  IncludeSynonyms bool
+  IncludeDocumentation bool
+
+### Request v4
+  Resources []DescribeConfigsResource
+      ResourceType int8
+      ResourceName string
+      ConfigurationKeys []string null
+  IncludeSynonyms bool
+  IncludeDocumentation bool
+
+## DescribeConfigs Response — key 32, v0..v4, flexible 4+
+
+### Response v0
+  ThrottleTimeMs int32
+  Results []DescribeConfigsResult
+      ErrorCode int16
+      ErrorMessage string null
+      ResourceType int8
+      ResourceName string
+      Configs []DescribeConfigsResourceResult
+          Name string
+          Value string null
+          ReadOnly bool
+          IsDefault bool
+          IsSensitive bool
+
+### Response v1
+  ThrottleTimeMs int32
+  Results []DescribeConfigsResult
+      ErrorCode int16
+      ErrorMessage string null
+      ResourceType int8
+      ResourceName string
+      Configs []DescribeConfigsResourceResult
+          Name string
+          Value string null
+          ReadOnly bool
+          ConfigSource int8
+          IsSensitive bool
+          Synonyms []DescribeConfigsSynonym
+              Name string
+              Value string null
+              Source int8
+
+### Response v2
+  ThrottleTimeMs int32
+  Results []DescribeConfigsResult
+      ErrorCode int16
+      ErrorMessage string null
+      ResourceType int8
+      ResourceName string
+      Configs []DescribeConfigsResourceResult
+          Name string
+          Value string null
+          ReadOnly bool
+          ConfigSource int8
+          IsSensitive bool
+          Synonyms []DescribeConfigsSynonym
+              Name string
+              Value string null
+              Source int8
+
+### Response v3
+  ThrottleTimeMs int32
+  Results []DescribeConfigsResult
+      ErrorCode int16
+      ErrorMessage string null
+      ResourceType int8
+      ResourceName string
+      Configs []DescribeConfigsResourceResult
+          Name string
+          Value string null
+          ReadOnly bool
+          ConfigSource int8
+          IsSensitive bool
+          Synonyms []DescribeConfigsSynonym
+              Name string
+              Value string null
+              Source int8
+          ConfigType int8
+          Documentation string null
+
+### Response v4
+  ThrottleTimeMs int32
+  Results []DescribeConfigsResult
+      ErrorCode int16
+      ErrorMessage string null
+      ResourceType int8
+      ResourceName string
+      Configs []DescribeConfigsResourceResult
+          Name string
+          Value string null
+          ReadOnly bool
+          ConfigSource int8
+          IsSensitive bool
+          Synonyms []DescribeConfigsSynonym
+              Name string
+              Value string null
+              Source int8
+          ConfigType int8
+          Documentation string null
+
+## AlterConfigs Request — key 33, v0..v2, flexible 2+
+
+### Request v0
+  Resources []AlterConfigsResource
+      ResourceType int8 key
+      ResourceName string key
+      Configs []AlterableConfig
+          Name string key
+          Value string null
+  ValidateOnly bool
+
+### Request v1
+  Resources []AlterConfigsResource
+      ResourceType int8 key
+      ResourceName string key
+      Configs []AlterableConfig
+          Name string key
+          Value string null
+  ValidateOnly bool
+
+### Request v2
+  Resources []AlterConfigsResource
+      ResourceType int8 key
+      ResourceName string key
+      Configs []AlterableConfig
+          Name string key
+          Value string null
+  ValidateOnly bool
+
+## AlterConfigs Response — key 33, v0..v2, flexible 2+
+
+### Response v0
+  ThrottleTimeMs int32
+  Responses []AlterConfigsResourceResponse
+      ErrorCode int16
+      ErrorMessage string null
+      ResourceType int8
+      ResourceName string
+
+### Response v1
+  ThrottleTimeMs int32
+  Responses []AlterConfigsResourceResponse
+      ErrorCode int16
+      ErrorMessage string null
+      ResourceType int8
+      ResourceName string
+
+### Response v2
+  ThrottleTimeMs int32
+  Responses []AlterConfigsResourceResponse
+      ErrorCode int16
+      ErrorMessage string null
+      ResourceType int8
+      ResourceName string
+
+## SaslAuthenticate Request — key 36, v0..v2, flexible 2+
+
+### Request v0
+  AuthBytes bytes
+
+### Request v1
+  AuthBytes bytes
+
+### Request v2
+  AuthBytes bytes
+
+## SaslAuthenticate Response — key 36, v0..v2, flexible 2+
+
+### Response v0
+  ErrorCode int16
+  ErrorMessage string null
+  AuthBytes bytes
+
+### Response v1
+  ErrorCode int16
+  ErrorMessage string null
+  AuthBytes bytes
+  SessionLifetimeMs int64
+
+### Response v2
+  ErrorCode int16
+  ErrorMessage string null
+  AuthBytes bytes
+  SessionLifetimeMs int64
+
+## CreatePartitions Request — key 37, v0..v3, flexible 2+
+
+### Request v0
+  Topics []CreatePartitionsTopic
+      Name string key
+      Count int32
+      Assignments []CreatePartitionsAssignment null
+          BrokerIds []int32
+  TimeoutMs int32
+  ValidateOnly bool
+
+### Request v1
+  Topics []CreatePartitionsTopic
+      Name string key
+      Count int32
+      Assignments []CreatePartitionsAssignment null
+          BrokerIds []int32
+  TimeoutMs int32
+  ValidateOnly bool
+
+### Request v2
+  Topics []CreatePartitionsTopic
+      Name string key
+      Count int32
+      Assignments []CreatePartitionsAssignment null
+          BrokerIds []int32
+  TimeoutMs int32
+  ValidateOnly bool
+
+### Request v3
+  Topics []CreatePartitionsTopic
+      Name string key
+      Count int32
+      Assignments []CreatePartitionsAssignment null
+          BrokerIds []int32
+  TimeoutMs int32
+  ValidateOnly bool
+
+## CreatePartitions Response — key 37, v0..v3, flexible 2+
+
+### Response v0
+  ThrottleTimeMs int32
+  Results []CreatePartitionsTopicResult
+      Name string
+      ErrorCode int16
+      ErrorMessage string null
+
+### Response v1
+  ThrottleTimeMs int32
+  Results []CreatePartitionsTopicResult
+      Name string
+      ErrorCode int16
+      ErrorMessage string null
+
+### Response v2
+  ThrottleTimeMs int32
+  Results []CreatePartitionsTopicResult
+      Name string
+      ErrorCode int16
+      ErrorMessage string null
+
+### Response v3
+  ThrottleTimeMs int32
+  Results []CreatePartitionsTopicResult
+      Name string
+      ErrorCode int16
+      ErrorMessage string null
+
+## DeleteGroups Request — key 42, v0..v2, flexible 2+
+
+### Request v0
+  GroupsNames []string
+
+### Request v1
+  GroupsNames []string
+
+### Request v2
+  GroupsNames []string
+
+## DeleteGroups Response — key 42, v0..v2, flexible 2+
+
+### Response v0
+  ThrottleTimeMs int32
+  Results []DeletableGroupResult
+      GroupId string key
+      ErrorCode int16
+
+### Response v1
+  ThrottleTimeMs int32
+  Results []DeletableGroupResult
+      GroupId string key
+      ErrorCode int16
+
+### Response v2
+  ThrottleTimeMs int32
+  Results []DeletableGroupResult
+      GroupId string key
+      ErrorCode int16
+
+## AlterPartitionReassignments Request — key 45, v0..v0, flexible 0+
+
+### Request v0
+  TimeoutMs int32
+  Topics []ReassignableTopic
+      Name string
+      Partitions []ReassignablePartition
+          PartitionIndex int32
+          Replicas []int32 null
+
+## AlterPartitionReassignments Response — key 45, v0..v0, flexible 0+
+
+### Response v0
+  ThrottleTimeMs int32
+  ErrorCode int16
+  ErrorMessage string null
+  Responses []ReassignableTopicResponse
+      Name string
+      Partitions []ReassignablePartitionResponse
+          PartitionIndex int32
+          ErrorCode int16
+          ErrorMessage string null
+
+## ListPartitionReassignments Request — key 46, v0..v0, flexible 0+
+
+### Request v0
+  TimeoutMs int32
+  Topics []ListPartitionReassignmentsTopics null
+      Name string
+      PartitionIndexes []int32
+
+## ListPartitionReassignments Response — key 46, v0..v0, flexible 0+
+
+### Response v0
+  ThrottleTimeMs int32
+  ErrorCode int16
+  ErrorMessage string null
+  Topics []OngoingTopicReassignment
+      Name string
+      Partitions []OngoingPartitionReassignment
+          PartitionIndex int32
+          Replicas []int32
+          AddingReplicas []int32
+          RemovingReplicas []int32
+
+## OffsetDelete Request — key 47, v0..v0, flexible none
+
+### Request v0
+  GroupId string
+  Topics []OffsetDeleteRequestTopic
+      Name string key
+      Partitions []OffsetDeleteRequestPartition
+          PartitionIndex int32
+
+## OffsetDelete Response — key 47, v0..v0, flexible none
+
+### Response v0
+  ErrorCode int16
+  ThrottleTimeMs int32
+  Topics []OffsetDeleteResponseTopic
+      Name string key
+      Partitions []OffsetDeleteResponsePartition
+          PartitionIndex int32 key
+          ErrorCode int16
