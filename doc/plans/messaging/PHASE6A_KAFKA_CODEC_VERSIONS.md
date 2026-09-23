@@ -98,14 +98,14 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
 | v0 | base (7 fields): Acks, TimeoutMs, TopicData, Name, PartitionData, Index, Records | ☐ | |
-| v1 | unchanged | ☐ | |
-| v2 | unchanged | ☐ | |
+| v1 | + ThrottleTimeMs:int32[1+] | ☐ | |
+| v2 | + LogAppendTimeMs:int64[2+] | ☐ | |
 | v3 | + TransactionalId:string[3+](null:3+) | ☐ | |
 | v4 | unchanged | ☐ | |
-| v5 | unchanged | ☐ | |
+| v5 | + LogStartOffset:int64[5+] | ☐ | |
 | v6 | unchanged | ☐ | |
 | v7 | unchanged | ☐ | |
-| v8 | unchanged | ☐ | |
+| v8 | + RecordErrors:[]BatchIndexAndErrorMessage[8+], BatchIndex:int32[8+], BatchIndexErrorMessage:string[8+](null:8+), ErrorMessage:string[8+](null:8+) | ☐ | |
 | v9 | unchanged | ☐ | |
 
 ### Fetch (API 1) — v0..v15
@@ -113,19 +113,19 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
 | v0 | base (9 fields): ReplicaId, MaxWaitMs, MinBytes, Topics, Topic, Partitions, Partition, FetchOffset, PartitionMaxBytes | ☐ | |
-| v1 | unchanged | ☐ | |
+| v1 | + ThrottleTimeMs:int32[1+] | ☐ | |
 | v2 | unchanged | ☐ | |
 | v3 | + MaxBytes:int32[3+] | ☐ | |
-| v4 | + IsolationLevel:int8[4+] | ☐ | |
-| v5 | + LogStartOffset:int64[5+] | ☐ | |
+| v4 | + IsolationLevel:int8[4+], LastStableOffset:int64[4+], AbortedTransactions:[]AbortedTransaction[4+](null:4+), ProducerId:int64[4+], FirstOffset:int64[4+] | ☐ | |
+| v5 | + LogStartOffset:int64[5+], LogStartOffset:int64[5+] | ☐ | |
 | v6 | unchanged | ☐ | |
-| v7 | + SessionId:int32[7+], SessionEpoch:int32[7+], ForgottenTopicsData:[]ForgottenTopic[7+], Topic:string[7-12], Partitions:[]int32[7+] | ☐ | |
+| v7 | + SessionId:int32[7+], SessionEpoch:int32[7+], ForgottenTopicsData:[]ForgottenTopic[7+], Topic:string[7-12], Partitions:[]int32[7+], ErrorCode:int16[7+], SessionId:int32[7+] | ☐ | |
 | v8 | unchanged | ☐ | |
 | v9 | + CurrentLeaderEpoch:int32[9+] | ☐ | |
 | v10 | unchanged | ☐ | |
-| v11 | + RackId:string[11+] | ☐ | |
-| v12 | + ClusterId:string[12+](null:12+), LastFetchedEpoch:int32[12+] | ☐ | |
-| v13 | + TopicId:uuid[13+], TopicId:uuid[13+]<br>− Topic:string[0-12], Topic:string[7-12] | ☐ | |
+| v11 | + RackId:string[11+], PreferredReadReplica:int32[11+] | ☐ | |
+| v12 | + ClusterId:string[12+](null:12+), LastFetchedEpoch:int32[12+], DivergingEpoch:EpochEndOffset[12+], Epoch:int32[12+], EndOffset:int64[12+], CurrentLeader:LeaderIdAndEpoch[12+], LeaderId:int32[12+], LeaderEpoch:int32[12+], SnapshotId:SnapshotId[12+], EndOffset:int64[0+], Epoch:int32[0+] | ☐ | |
+| v13 | + TopicId:uuid[13+], TopicId:uuid[13+], TopicId:uuid[13+]<br>− Topic:string[0-12], Topic:string[7-12], Topic:string[0-12] | ☐ | |
 | v14 | unchanged | ☐ | |
 | v15 | + ReplicaState:ReplicaState[15+], ReplicaId:int32[15+], ReplicaEpoch:int64[15+]<br>− ReplicaId:int32[0-14] | ☐ | |
 
@@ -134,10 +134,10 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
 | v0 | base (7 fields): ReplicaId, Topics, Name, Partitions, PartitionIndex, Timestamp, MaxNumOffsets | ☐ | |
-| v1 | − MaxNumOffsets:int32[0] | ☐ | |
-| v2 | + IsolationLevel:int8[2+] | ☐ | |
+| v1 | + Timestamp:int64[1+], Offset:int64[1+]<br>− MaxNumOffsets:int32[0], OldStyleOffsets:[]int64[0] | ☐ | |
+| v2 | + IsolationLevel:int8[2+], ThrottleTimeMs:int32[2+] | ☐ | |
 | v3 | unchanged | ☐ | |
-| v4 | + CurrentLeaderEpoch:int32[4+] | ☐ | |
+| v4 | + CurrentLeaderEpoch:int32[4+], LeaderEpoch:int32[4+] | ☐ | |
 | v5 | unchanged | ☐ | |
 | v6 | unchanged | ☐ | |
 | v7 | unchanged | ☐ | |
@@ -150,17 +150,17 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
 | v0 | base (2 fields): Topics, Name | ☐ | |
-| v1 | unchanged | ☐ | |
-| v2 | unchanged | ☐ | |
-| v3 | unchanged | ☐ | |
+| v1 | + Rack:string[1+](null:1+), ControllerId:int32[1+], IsInternal:bool[1+] | ☐ | |
+| v2 | + ClusterId:string[2+](null:2+) | ☐ | |
+| v3 | + ThrottleTimeMs:int32[3+] | ☐ | |
 | v4 | + AllowAutoTopicCreation:bool[4+] | ☐ | |
-| v5 | unchanged | ☐ | |
+| v5 | + OfflineReplicas:[]int32[5+] | ☐ | |
 | v6 | unchanged | ☐ | |
-| v7 | unchanged | ☐ | |
-| v8 | + IncludeClusterAuthorizedOperations:bool[8-10], IncludeTopicAuthorizedOperations:bool[8+] | ☐ | |
+| v7 | + LeaderEpoch:int32[7+] | ☐ | |
+| v8 | + IncludeClusterAuthorizedOperations:bool[8-10], IncludeTopicAuthorizedOperations:bool[8+], TopicAuthorizedOperations:int32[8+], ClusterAuthorizedOperations:int32[8-10] | ☐ | |
 | v9 | unchanged | ☐ | |
-| v10 | + TopicId:uuid[10+] | ☐ | |
-| v11 | − IncludeClusterAuthorizedOperations:bool[8-10] | ☐ | |
+| v10 | + TopicId:uuid[10+], TopicId:uuid[10+] | ☐ | |
+| v11 | − IncludeClusterAuthorizedOperations:bool[8-10], ClusterAuthorizedOperations:int32[8-10] | ☐ | |
 | v12 | unchanged | ☐ | |
 
 ### LeaderAndIsr (API 4) — v0..v7
@@ -172,7 +172,7 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | v2 | + BrokerEpoch:int64[2+], TopicStates:[]LeaderAndIsrTopicState[2+], TopicName:string[2+], PartitionStates:[]LeaderAndIsrPartitionState[2+]<br>− UngroupedPartitionStates:[]LeaderAndIsrPartitionState[0-1] | ☐ | |
 | v3 | unchanged | ☐ | |
 | v4 | unchanged | ☐ | |
-| v5 | + Type:int8[5+], TopicId:uuid[5+] | ☐ | |
+| v5 | + Type:int8[5+], TopicId:uuid[5+], Topics:[]LeaderAndIsrTopicError[5+], TopicId:uuid[5+](key), PartitionErrors:[]LeaderAndIsrPartitionError[5+]<br>− PartitionErrors:[]LeaderAndIsrPartitionError[0-4] | ☐ | |
 | v6 | unchanged | ☐ | |
 | v7 | + isKRaftController:bool[7+] | ☐ | |
 
@@ -214,8 +214,8 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
 | v0 | base (5 fields): Topics, Topic, Partitions, Partition, LeaderEpoch | ☐ | |
-| v1 | unchanged | ☐ | |
-| v2 | + CurrentLeaderEpoch:int32[2+] | ☐ | |
+| v1 | + LeaderEpoch:int32[1+] | ☐ | |
+| v2 | + CurrentLeaderEpoch:int32[2+], ThrottleTimeMs:int32[2+] | ☐ | |
 | v3 | + ReplicaId:int32[3+] | ☐ | |
 | v4 | unchanged | ☐ | |
 
@@ -228,7 +228,7 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | v0 | base (7 fields): GroupId, Topics, Name, Partitions, PartitionIndex, CommittedOffset, CommittedMetadata | ☐ | |
 | v1 | + GenerationIdOrMemberEpoch:int32[1+], MemberId:string[1+], CommitTimestamp:int64[1] | ☐ | |
 | v2 | + RetentionTimeMs:int64[2-4]<br>− CommitTimestamp:int64[1] | ☐ | |
-| v3 | unchanged | ☐ | |
+| v3 | + ThrottleTimeMs:int32[3+] | ☐ | |
 | v4 | unchanged | ☐ | |
 | v5 | − RetentionTimeMs:int64[2-4] | ☐ | |
 | v6 | + CommittedLeaderEpoch:int32[6+] | ☐ | |
@@ -242,23 +242,23 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 |---------|----------------------------------------|--------|--------|
 | v0 | base (4 fields): GroupId, Topics, Name, PartitionIndexes | ☐ | |
 | v1 | unchanged | ☐ | |
-| v2 | unchanged | ☐ | |
-| v3 | unchanged | ☐ | |
+| v2 | + ErrorCode:int16[2-7] | ☐ | |
+| v3 | + ThrottleTimeMs:int32[3+] | ☐ | |
 | v4 | unchanged | ☐ | |
-| v5 | unchanged | ☐ | |
+| v5 | + CommittedLeaderEpoch:int32[5-7] | ☐ | |
 | v6 | unchanged | ☐ | |
 | v7 | + RequireStable:bool[7+] | ☐ | |
-| v8 | + Groups:[]OffsetFetchRequestGroup[8+], groupId:string[8+], Topics:[]OffsetFetchRequestTopics[8+](null:8+), Name:string[8+], PartitionIndexes:[]int32[8+]<br>− GroupId:string[0-7], Topics:[]OffsetFetchRequestTopic[0-7](null:2-7), Name:string[0-7], PartitionIndexes:[]int32[0-7] | ☐ | |
+| v8 | + Groups:[]OffsetFetchRequestGroup[8+], groupId:string[8+], Topics:[]OffsetFetchRequestTopics[8+](null:8+), Name:string[8+], PartitionIndexes:[]int32[8+], Groups:[]OffsetFetchResponseGroup[8+], groupId:string[8+], Topics:[]OffsetFetchResponseTopics[8+], Name:string[8+], Partitions:[]OffsetFetchResponsePartitions[8+], PartitionIndex:int32[8+], CommittedOffset:int64[8+], CommittedLeaderEpoch:int32[8+], Metadata:string[8+](null:8+), ErrorCode:int16[8+], ErrorCode:int16[8+]<br>− GroupId:string[0-7], Topics:[]OffsetFetchRequestTopic[0-7](null:2-7), Name:string[0-7], PartitionIndexes:[]int32[0-7], Topics:[]OffsetFetchResponseTopic[0-7], Name:string[0-7], Partitions:[]OffsetFetchResponsePartition[0-7], PartitionIndex:int32[0-7], CommittedOffset:int64[0-7], CommittedLeaderEpoch:int32[5-7], Metadata:string[0-7](null:0-7), ErrorCode:int16[0-7], ErrorCode:int16[2-7] | ☐ | |
 
 ### FindCoordinator (API 10) — v0..v4
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
 | v0 | base (1 fields): Key | ☐ | |
-| v1 | + KeyType:int8[1+] | ☐ | |
+| v1 | + KeyType:int8[1+], ThrottleTimeMs:int32[1+], ErrorMessage:string[1-3](null:1-3) | ☐ | |
 | v2 | unchanged | ☐ | |
 | v3 | unchanged | ☐ | |
-| v4 | + CoordinatorKeys:[]string[4+]<br>− Key:string[0-3] | ☐ | |
+| v4 | + CoordinatorKeys:[]string[4+], Coordinators:[]Coordinator[4+], Key:string[4+], NodeId:int32[4+], Host:string[4+], Port:int32[4+], ErrorCode:int16[4+], ErrorMessage:string[4+](null:4+)<br>− Key:string[0-3], ErrorCode:int16[0-3], ErrorMessage:string[1-3](null:1-3), NodeId:int32[0-3], Host:string[0-3], Port:int32[0-3] | ☐ | |
 
 ### JoinGroup (API 11) — v0..v9
 
@@ -266,21 +266,21 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 |---------|----------------------------------------|--------|--------|
 | v0 | base (7 fields): GroupId, SessionTimeoutMs, MemberId, ProtocolType, Protocols, Name, Metadata | ☐ | |
 | v1 | + RebalanceTimeoutMs:int32[1+] | ☐ | |
-| v2 | unchanged | ☐ | |
+| v2 | + ThrottleTimeMs:int32[2+] | ☐ | |
 | v3 | unchanged | ☐ | |
 | v4 | unchanged | ☐ | |
-| v5 | + GroupInstanceId:string[5+](null:5+) | ☐ | |
+| v5 | + GroupInstanceId:string[5+](null:5+), GroupInstanceId:string[5+](null:5+) | ☐ | |
 | v6 | unchanged | ☐ | |
-| v7 | unchanged | ☐ | |
+| v7 | + ProtocolType:string[7+](null:7+) | ☐ | |
 | v8 | + Reason:string[8+](null:8+) | ☐ | |
-| v9 | unchanged | ☐ | |
+| v9 | + SkipAssignment:bool[9+] | ☐ | |
 
 ### Heartbeat (API 12) — v0..v4
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
 | v0 | base (3 fields): GroupId, GenerationId, MemberId | ☐ | |
-| v1 | unchanged | ☐ | |
+| v1 | + ThrottleTimeMs:int32[1+] | ☐ | |
 | v2 | unchanged | ☐ | |
 | v3 | + GroupInstanceId:string[3+](null:3+) | ☐ | |
 | v4 | unchanged | ☐ | |
@@ -290,9 +290,9 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
 | v0 | base (2 fields): GroupId, MemberId | ☐ | |
-| v1 | unchanged | ☐ | |
+| v1 | + ThrottleTimeMs:int32[1+] | ☐ | |
 | v2 | unchanged | ☐ | |
-| v3 | + Members:[]MemberIdentity[3+], MemberId:string[3+], GroupInstanceId:string[3+](null:3+)<br>− MemberId:string[0-2] | ☐ | |
+| v3 | + Members:[]MemberIdentity[3+], MemberId:string[3+], GroupInstanceId:string[3+](null:3+), Members:[]MemberResponse[3+], MemberId:string[3+], GroupInstanceId:string[3+](null:3+), ErrorCode:int16[3+]<br>− MemberId:string[0-2] | ☐ | |
 | v4 | unchanged | ☐ | |
 | v5 | + Reason:string[5+](null:5+) | ☐ | |
 
@@ -301,21 +301,21 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
 | v0 | base (6 fields): GroupId, GenerationId, MemberId, Assignments, MemberId, Assignment | ☐ | |
-| v1 | unchanged | ☐ | |
+| v1 | + ThrottleTimeMs:int32[1+] | ☐ | |
 | v2 | unchanged | ☐ | |
 | v3 | + GroupInstanceId:string[3+](null:3+) | ☐ | |
 | v4 | unchanged | ☐ | |
-| v5 | + ProtocolType:string[5+](null:5+), ProtocolName:string[5+](null:5+) | ☐ | |
+| v5 | + ProtocolType:string[5+](null:5+), ProtocolName:string[5+](null:5+), ProtocolType:string[5+](null:5+), ProtocolName:string[5+](null:5+) | ☐ | |
 
 ### DescribeGroups (API 15) — v0..v5
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
 | v0 | base (1 fields): Groups | ☐ | |
-| v1 | unchanged | ☐ | |
+| v1 | + ThrottleTimeMs:int32[1+] | ☐ | |
 | v2 | unchanged | ☐ | |
-| v3 | + IncludeAuthorizedOperations:bool[3+] | ☐ | |
-| v4 | unchanged | ☐ | |
+| v3 | + IncludeAuthorizedOperations:bool[3+], AuthorizedOperations:int32[3+] | ☐ | |
+| v4 | + GroupInstanceId:string[4+](null:4+) | ☐ | |
 | v5 | unchanged | ☐ | |
 
 ### ListGroups (API 16) — v0..v4
@@ -323,10 +323,10 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
 | v0 | base (0 fields):  | ☐ | |
-| v1 | unchanged | ☐ | |
+| v1 | + ThrottleTimeMs:int32[1+] | ☐ | |
 | v2 | unchanged | ☐ | |
 | v3 | unchanged | ☐ | |
-| v4 | + StatesFilter:[]string[4+] | ☐ | |
+| v4 | + StatesFilter:[]string[4+], GroupState:string[4+] | ☐ | |
 
 ### OffsetDelete (API 47) — v0..v0
 
@@ -354,7 +354,7 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | v1 | unchanged | ☐ | |
 | v2 | unchanged | ☐ | |
 | v3 | unchanged | ☐ | |
-| v4 | + Transactions:[]AddPartitionsToTxnTransaction[4+], TransactionalId:string[4+](key), ProducerId:int64[4+], ProducerEpoch:int16[4+], VerifyOnly:bool[4+], Topics:[]AddPartitionsToTxnTopic[4+]<br>− V3AndBelowTransactionalId:string[0-3], V3AndBelowProducerId:int64[0-3], V3AndBelowProducerEpoch:int16[0-3], V3AndBelowTopics:[]AddPartitionsToTxnTopic[0-3] | ☐ | |
+| v4 | + Transactions:[]AddPartitionsToTxnTransaction[4+], TransactionalId:string[4+](key), ProducerId:int64[4+], ProducerEpoch:int16[4+], VerifyOnly:bool[4+], Topics:[]AddPartitionsToTxnTopic[4+], ErrorCode:int16[4+], ResultsByTransaction:[]AddPartitionsToTxnResult[4+], TransactionalId:string[4+](key), TopicResults:[]AddPartitionsToTxnTopicResult[4+]<br>− V3AndBelowTransactionalId:string[0-3], V3AndBelowProducerId:int64[0-3], V3AndBelowProducerEpoch:int16[0-3], V3AndBelowTopics:[]AddPartitionsToTxnTopic[0-3], ResultsByTopicV3AndBelow:[]AddPartitionsToTxnTopicResult[0-3] | ☐ | |
 
 ### AddOffsetsToTxn (API 25) — v0..v3
 
@@ -397,25 +397,25 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
 | v0 | base (11 fields): Topics, Name, NumPartitions, ReplicationFactor, Assignments, PartitionIndex, BrokerIds, Configs, Name, Value, timeoutMs | ☐ | |
-| v1 | + validateOnly:bool[1+] | ☐ | |
-| v2 | unchanged | ☐ | |
+| v1 | + validateOnly:bool[1+], ErrorMessage:string[1+](null:0+) | ☐ | |
+| v2 | + ThrottleTimeMs:int32[2+] | ☐ | |
 | v3 | unchanged | ☐ | |
 | v4 | unchanged | ☐ | |
-| v5 | unchanged | ☐ | |
+| v5 | + TopicConfigErrorCode:int16[5+], NumPartitions:int32[5+], ReplicationFactor:int16[5+], Configs:[]CreatableTopicConfigs[5+](null:5+), Name:string[5+], Value:string[5+](null:5+), ReadOnly:bool[5+], ConfigSource:int8[5+], IsSensitive:bool[5+] | ☐ | |
 | v6 | unchanged | ☐ | |
-| v7 | unchanged | ☐ | |
+| v7 | + TopicId:uuid[7+] | ☐ | |
 
 ### DeleteTopics (API 20) — v0..v6
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
 | v0 | base (2 fields): TopicNames, TimeoutMs | ☐ | |
-| v1 | unchanged | ☐ | |
+| v1 | + ThrottleTimeMs:int32[1+] | ☐ | |
 | v2 | unchanged | ☐ | |
 | v3 | unchanged | ☐ | |
 | v4 | unchanged | ☐ | |
-| v5 | unchanged | ☐ | |
-| v6 | + Topics:[]DeleteTopicState[6+], Name:string[6+](null:6+), TopicId:uuid[6+]<br>− TopicNames:[]string[0-5] | ☐ | |
+| v5 | + ErrorMessage:string[5+](null:5+) | ☐ | |
+| v6 | + Topics:[]DeleteTopicState[6+], Name:string[6+](null:6+), TopicId:uuid[6+], TopicId:uuid[6+]<br>− TopicNames:[]string[0-5] | ☐ | |
 
 ### DeleteRecords (API 21) — v0..v2
 
@@ -447,9 +447,9 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
 | v0 | base (4 fields): Resources, ResourceType, ResourceName, ConfigurationKeys | ☐ | |
-| v1 | + IncludeSynonyms:bool[1+] | ☐ | |
+| v1 | + IncludeSynonyms:bool[1+], ConfigSource:int8[1+], Synonyms:[]DescribeConfigsSynonym[1+], Name:string[1+], Value:string[1+](null:0+), Source:int8[1+]<br>− IsDefault:bool[0] | ☐ | |
 | v2 | unchanged | ☐ | |
-| v3 | + IncludeDocumentation:bool[3+] | ☐ | |
+| v3 | + IncludeDocumentation:bool[3+], ConfigType:int8[3+], Documentation:string[3+](null:0+) | ☐ | |
 | v4 | unchanged | ☐ | |
 
 ### AlterConfigs (API 33) — v0..v2
@@ -478,26 +478,25 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (1 fields): Mechanism | ☐ | |
+| v0 | base (1 fields): Mechanism | ✓ | v0 commit (see PROGRESS.md) |
 | v1 | unchanged | ☐ | |
 
 ### ApiVersions (API 18) — v0..v3
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (0 fields):  | ☐ | |
-| v1 | unchanged | ☐ | |
+| v0 | base (0 fields):  | ✓ | v0 commit (see PROGRESS.md) |
+| v1 | + ThrottleTimeMs:int32[1+] | ☐ | |
 | v2 | unchanged | ☐ | |
-| v3 | + ClientSoftwareName:string[3+], ClientSoftwareVersion:string[3+] | ☐ | |
+| v3 | + ClientSoftwareName:string[3+], ClientSoftwareVersion:string[3+], SupportedFeatures:[]SupportedFeatureKey[3+], Name:string[3+](key), MinVersion:int16[3+], MaxVersion:int16[3+], FinalizedFeaturesEpoch:int64[3+], FinalizedFeatures:[]FinalizedFeatureKey[3+], Name:string[3+](key), MaxVersionLevel:int16[3+], MinVersionLevel:int16[3+], ZkMigrationReady:bool[3+] | ☐ | |
 
 ### SaslAuthenticate (API 36) — v0..v2
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (1 fields): AuthBytes | ☐ | |
-| v1 | unchanged | ☐ | |
+| v0 | base (1 fields): AuthBytes | ✓ | v0 commit (see PROGRESS.md) |
+| v1 | + SessionLifetimeMs:int64[1+] | ☐ | |
 | v2 | unchanged | ☐ | |
-
 
 
 ## 5. Interop (Phase 6 proper) — unchanged scope, gated

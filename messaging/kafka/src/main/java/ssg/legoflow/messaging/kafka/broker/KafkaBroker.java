@@ -1086,7 +1086,8 @@ public final class KafkaBroker implements AutoCloseable {
 
         if (connState.currentMechanism == null) {
             return KafkaCodec.encodeSaslAuthenticateResponse(
-                    new SaslAuthenticateResponse(KafkaErrors.ILLEGAL_SASL_STATE.code(), new byte[0], 0));
+                    new SaslAuthenticateResponse(KafkaErrors.ILLEGAL_SASL_STATE.code(),
+                            "no SASL mechanism negotiated", new byte[0], 0));
         }
 
         try {
@@ -1097,12 +1098,12 @@ public final class KafkaBroker implements AutoCloseable {
                         connState.currentMechanism.authenticatedUser());
             }
             return KafkaCodec.encodeSaslAuthenticateResponse(
-                    new SaslAuthenticateResponse(KafkaErrors.NONE.code(), responseBytes, 0));
+                    new SaslAuthenticateResponse(KafkaErrors.NONE.code(), "", responseBytes, 0));
         } catch (AuthenticationException e) {
             LOG.debug("SASL authentication failed: {}", e.getMessage());
             return KafkaCodec.encodeSaslAuthenticateResponse(
                     new SaslAuthenticateResponse(KafkaErrors.ILLEGAL_SASL_STATE.code(),
-                            e.getMessage().getBytes(java.nio.charset.StandardCharsets.UTF_8), 0));
+                            e.getMessage(), new byte[0], 0));
         }
     }
 

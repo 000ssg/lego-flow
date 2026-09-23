@@ -798,12 +798,13 @@ class KafkaCodecTest {
     @Test
     void testSaslAuthenticateResponse() {
         byte[] authBytes = "v=serverSig".getBytes(java.nio.charset.StandardCharsets.UTF_8);
-        var resp = new SaslAuthenticateResponse((short) 0, authBytes, 3600000L);
+        // v0 layout (spec 3.6.1): errorCode, errorMessage, authBytes — NO sessionLifetimeMs
+        var resp = new SaslAuthenticateResponse((short) 0, "", authBytes, 0L);
         byte[] encoded = KafkaCodec.encodeSaslAuthenticateResponse(resp);
         var decoded = KafkaCodec.decodeSaslAuthenticateResponse(ByteBuffer.wrap(encoded));
         assertThat(decoded.errorCode()).isZero();
+        assertThat(decoded.errorMessage()).isEmpty();
         assertThat(decoded.authBytes()).isEqualTo(authBytes);
-        assertThat(decoded.sessionLifetimeMs()).isEqualTo(3600000L);
     }
 
     // ===== LeaderAndIsr (4) =====

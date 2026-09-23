@@ -88,11 +88,15 @@ def api_table(api):
     lines.append("|---------|----------------------------------------|--------|--------|")
     prev = []
     for v in range(maxv + 1):
-        cur = [field_sig(f) for f in collect_req_fields(req["fields"], v)]
+        cur = [field_sig(f) for f in collect_fields(req["fields"], v)]
+        rpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "message", f"{api}Response.json")
+        if os.path.exists(rpath):
+            resp = load(f"{api}Response.json")
+            cur += [field_sig(f) for f in collect_fields(resp["fields"], v)]
         cur_set = set(cur)
         prev_set = set(prev)
         if v == 0:
-            base_fields = [f["name"] for f in collect_req_fields(req["fields"], 0)]
+            base_fields = [f["name"] for f in collect_fields(req["fields"], 0)]
             lines.append(f"| v0 | base ({len(base_fields)} fields): {', '.join(base_fields)} | ☐ | |")
         else:
             added = [s for s in cur if s not in prev_set]
@@ -111,19 +115,22 @@ def api_table(api):
     return "\n".join(lines)
 
 
-def collect_req_fields(fields, version):
-    """Fields (incl. nested) present at `version`, with their FULL signature."""
+def collect_fields(fields, version):
+    """Fields (incl. nested) present at `version`, with their FULL signature.
+
+    Used for BOTH request and response field trees; the Δ in a table row is
+    taken over the union of the two (a version sub-task implements both sides).
+    """
     out = []
 
-    def walk(fs, gate_override):
+    def walk(fs):
         for f in fs:
-            gate = f.get("versions")
-            if not covers(gate, version):
+            if not covers(f.get("versions"), version):
                 continue
             out.append(f)
             if "fields" in f:
-                walk(f["fields"], gate)
-    walk(fields, None)
+                walk(f["fields"])
+    walk(fields)
     return out
 
 

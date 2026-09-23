@@ -104,55 +104,38 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeApiVersionsRequest(ApiVersionsRequest req) {
-        // Simple version: no body needed for v0
-        return new byte[0];
+        return ApiVersionsCodec.encodeRequest((short) 0, req);
     }
 
     /**
-     * Decodes an ApiVersions request body.
+     * Decodes an ApiVersions request body (v0 — the negotiation entry point uses v0).
      *
      * @param buf the buffer
      * @return the decoded request
      */
     public static ApiVersionsRequest decodeApiVersionsRequest(ByteBuffer buf) {
-        return new ApiVersionsRequest();
+        return ApiVersionsCodec.decodeRequest((short) 0, buf);
     }
 
     /**
-     * Encodes an ApiVersions response body.
+     * Encodes an ApiVersions response body (v0 — the broker advertises v0; the response version
+     * is chosen by the request version, which is always v0 on the wire today).
      *
      * @param resp the response
      * @return the encoded bytes
      */
     public static byte[] encodeApiVersionsResponse(ApiVersionsResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(2 + 4 + resp.apiKeys().size() * 6);
-        buf.putShort(resp.errorCode());
-        buf.putInt(resp.apiKeys().size());
-        for (var ak : resp.apiKeys()) {
-            buf.putShort(ak.apiKey());
-            buf.putShort(ak.minVersion());
-            buf.putShort(ak.maxVersion());
-        }
-        buf.flip();
-        byte[] result = new byte[buf.remaining()];
-        buf.get(result);
-        return result;
+        return ApiVersionsCodec.encodeResponse((short) 0, resp);
     }
 
     /**
-     * Decodes an ApiVersions response body.
+     * Decodes an ApiVersions response body (v0).
      *
      * @param buf the buffer
      * @return the decoded response
      */
     public static ApiVersionsResponse decodeApiVersionsResponse(ByteBuffer buf) {
-        short errorCode = buf.getShort();
-        int count = buf.getInt();
-        List<ApiVersionsResponse.ApiVersion> keys = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            keys.add(new ApiVersionsResponse.ApiVersion(buf.getShort(), buf.getShort(), buf.getShort()));
-        }
-        return new ApiVersionsResponse(errorCode, keys);
+        return ApiVersionsCodec.decodeResponse((short) 0, buf);
     }
 
     // ===== Metadata (3) =====
@@ -1821,53 +1804,37 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeSaslHandshakeRequest(SaslHandshakeRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(256);
-        writeString(buf, req.mechanism());
-        buf.flip();
-        return toBytes(buf);
+        return SaslHandshakeCodec.encodeRequest((short) 0, req);
     }
 
     /**
-     * Decodes a SaslHandshake request body.
+     * Decodes a SaslHandshake request body (v0).
      *
      * @param buf the buffer
      * @return the decoded request
      */
     public static SaslHandshakeRequest decodeSaslHandshakeRequest(ByteBuffer buf) {
-        return new SaslHandshakeRequest(readString(buf));
+        return SaslHandshakeCodec.decodeRequest((short) 0, buf);
     }
 
     /**
-     * Encodes a SaslHandshake response body.
+     * Encodes a SaslHandshake response body (v0).
      *
      * @param resp the response
      * @return the encoded bytes
      */
     public static byte[] encodeSaslHandshakeResponse(SaslHandshakeResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putShort(resp.errorCode());
-        buf.putInt(resp.mechanisms().size());
-        for (String m : resp.mechanisms()) {
-            writeString(buf, m);
-        }
-        buf.flip();
-        return toBytes(buf);
+        return SaslHandshakeCodec.encodeResponse((short) 0, resp);
     }
 
     /**
-     * Decodes a SaslHandshake response body.
+     * Decodes a SaslHandshake response body (v0).
      *
      * @param buf the buffer
      * @return the decoded response
      */
     public static SaslHandshakeResponse decodeSaslHandshakeResponse(ByteBuffer buf) {
-        short errorCode = buf.getShort();
-        int count = buf.getInt();
-        List<String> mechanisms = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            mechanisms.add(readString(buf));
-        }
-        return new SaslHandshakeResponse(errorCode, mechanisms);
+        return SaslHandshakeCodec.decodeResponse((short) 0, buf);
     }
 
     // ===== SaslAuthenticate (36) =====
@@ -1879,57 +1846,37 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeSaslAuthenticateRequest(SaslAuthenticateRequest req) {
-        byte[] authBytes = req.authBytes() != null ? req.authBytes() : new byte[0];
-        ByteBuffer buf = BufferPool.getBuffer(4 + authBytes.length);
-        buf.putInt(authBytes.length);
-        buf.put(authBytes);
-        buf.flip();
-        return toBytes(buf);
+        return SaslAuthenticateCodec.encodeRequest((short) 0, req);
     }
 
     /**
-     * Decodes a SaslAuthenticate request body.
+     * Decodes a SaslAuthenticate request body (v0).
      *
      * @param buf the buffer
      * @return the decoded request
      */
     public static SaslAuthenticateRequest decodeSaslAuthenticateRequest(ByteBuffer buf) {
-        int len = buf.getInt();
-        byte[] authBytes = new byte[len];
-        if (len > 0) buf.get(authBytes);
-        return new SaslAuthenticateRequest(authBytes);
+        return SaslAuthenticateCodec.decodeRequest((short) 0, buf);
     }
 
     /**
-     * Encodes a SaslAuthenticate response body.
+     * Encodes a SaslAuthenticate response body (v0: errorCode + errorMessage + authBytes).
      *
      * @param resp the response
      * @return the encoded bytes
      */
     public static byte[] encodeSaslAuthenticateResponse(SaslAuthenticateResponse resp) {
-        byte[] authBytes = resp.authBytes() != null ? resp.authBytes() : new byte[0];
-        ByteBuffer buf = BufferPool.getBuffer(2 + 4 + authBytes.length + 8);
-        buf.putShort(resp.errorCode());
-        buf.putInt(authBytes.length);
-        buf.put(authBytes);
-        buf.putLong(resp.sessionLifetimeMs());
-        buf.flip();
-        return toBytes(buf);
+        return SaslAuthenticateCodec.encodeResponse((short) 0, resp);
     }
 
     /**
-     * Decodes a SaslAuthenticate response body.
+     * Decodes a SaslAuthenticate response body (v0).
      *
      * @param buf the buffer
      * @return the decoded response
      */
     public static SaslAuthenticateResponse decodeSaslAuthenticateResponse(ByteBuffer buf) {
-        short errorCode = buf.getShort();
-        int len = buf.getInt();
-        byte[] authBytes = new byte[len];
-        if (len > 0) buf.get(authBytes);
-        long sessionLifetimeMs = buf.getLong();
-        return new SaslAuthenticateResponse(errorCode, authBytes, sessionLifetimeMs);
+        return SaslAuthenticateCodec.decodeResponse((short) 0, buf);
     }
 
     // ===== LeaderAndIsr (4) =====
