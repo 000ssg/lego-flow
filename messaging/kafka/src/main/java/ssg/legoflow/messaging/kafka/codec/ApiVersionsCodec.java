@@ -19,7 +19,9 @@ import java.util.List;
  * <ul>
  *   <li>v0 — request: no body; response: errorCode + []{apiKey,min,max}</li>
  *   <li>v1 — response adds {@code throttleTimeMs} (int32)</li>
- *   <li>v2 — unchanged vs v1 (sub-task pending)</li>
+ *   <li>v2 — unchanged vs v1 (byte-identical request and response in the 3.6.1 schema;
+ *       v2 only changes throttle semantics — brokers may send responses before throttling
+ *       on quota violation)</li>
  *   <li>v3 — flexible encoding + request client name/version fields + response tagged fields
  *       (SupportedFeatures, FinalizedFeaturesEpoch, FinalizedFeatures, ZkMigrationReady)
  *       (sub-task pending)</li>
@@ -47,6 +49,7 @@ public final class ApiVersionsCodec {
         switch (version) {
             case 0:
             case 1: // v1 request is byte-identical to v0 (no fields until v3 flexible)
+            case 2: // v2 request is byte-identical to v1 (no fields until v3 flexible)
                 return encodeRequestV0(req);
             default:
                 throw new CodecNotImplementedException("ApiVersions request v" + version + " not implemented");
@@ -65,6 +68,7 @@ public final class ApiVersionsCodec {
         switch (version) {
             case 0:
             case 1:
+            case 2: // v2 request byte-identical to v1
                 return decodeRequestV0(buf);
             default:
                 throw new CodecNotImplementedException("ApiVersions request v" + version + " not implemented");
@@ -84,6 +88,7 @@ public final class ApiVersionsCodec {
             case 0:
                 return encodeResponseV0(resp);
             case 1:
+            case 2: // v2 response byte-identical to v1 (no fields until v3 flexible)
                 return encodeResponseV1(resp);
             default:
                 throw new CodecNotImplementedException("ApiVersions response v" + version + " not implemented");
@@ -103,6 +108,7 @@ public final class ApiVersionsCodec {
             case 0:
                 return decodeResponseV0(buf);
             case 1:
+            case 2: // v2 response byte-identical to v1
                 return decodeResponseV1(buf);
             default:
                 throw new CodecNotImplementedException("ApiVersions response v" + version + " not implemented");

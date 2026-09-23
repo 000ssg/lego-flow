@@ -894,3 +894,9 @@ Next sub-task (same rules): ApiVersions v2 (response unchanged vs v1 → shared 
 | Source files modified | 3 (ApiVersionsCodec, SaslAuthenticateCodec, SaslHandshakeCodec) + 1 test |
 | Tests | 441 (module), +5 in NegotiationAuthCodecTest (14→19) |
 | Plan docs | PHASE6A_KAFKA_CODEC_VERSIONS.md (3 v1 rows ✓), PROGRESS.md (log + status), this file |
+
+## 2026-09-23: Negotiation/Auth v2 row — ApiVersions v2 (byte-identical vs v1)
+
+- Spec verification (3.6.1 `ApiVersionsRequest.json` / `ApiVersionsResponse.json`): v2 adds no fields — request has no fields until v3, response v2 layout = v1 (the v2 change is throttle semantics only, per the schema notes).
+- Mechanism (plan §3): byte-identical version → shared v1 methods (`case 2:` fall-through in all four dispatch methods of `ApiVersionsCodec`).
+- Tests: `NegotiationAuthCodecTest$ApiVersions` 5→7 — v2 request byte-identity, v2 response round-trip + byte-identical-to-v1 assertion; v3 stub added (next sub-task, flexible encoding).

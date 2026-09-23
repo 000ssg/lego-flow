@@ -104,13 +104,41 @@ class NegotiationAuthCodecTest {
         }
 
         @Test
-        @DisplayName("v2 throws CodecNotImplementedException (unchanged layout, pending)")
-        void v2Throws() {
+        @DisplayName("v2 request is byte-identical to v1 (spec: no request fields until v3)")
+        void v2RequestIdenticalToV1() {
+            assertArrayEquals(new byte[0],
+                    ApiVersionsCodec.encodeRequest((short) 2, new ApiVersionsRequest()));
+            ApiVersionsRequest decoded =
+                    ApiVersionsCodec.decodeRequest((short) 2,
+                            ByteBuffer.wrap(ApiVersionsCodec.encodeRequest((short) 2, new ApiVersionsRequest())));
+            assertEquals(new ApiVersionsRequest(), decoded);
+        }
+
+        @Test
+        @DisplayName("v2 response round-trips — byte-identical to v1 in the 3.6.1 schema")
+        void v2ResponseRoundTrip() {
+            List<ApiVersionsResponse.ApiVersion> keys = List.of(
+                    new ApiVersionsResponse.ApiVersion((short) 0, (short) 0, (short) 6));
+            ApiVersionsResponse resp = new ApiVersionsResponse((short) 0, keys, 250L);
+
+            byte[] body = ApiVersionsCodec.encodeResponse((short) 2, resp);
+            assertArrayEquals(
+                    ApiVersionsCodec.encodeResponse((short) 1, resp),
+                    body, "v2 must be byte-identical to v1");
+            assertEquals(16, body.length, "v2 = v1 layout: 2 + 4 + 1*6 + 4");
+
+            ApiVersionsResponse decoded = ApiVersionsCodec.decodeResponse((short) 2, ByteBuffer.wrap(body));
+            assertEquals(resp, decoded);
+        }
+
+        @Test
+        @DisplayName("v3 throws CodecNotImplementedException (flexible encoding, pending)")
+        void v3Throws() {
             assertThrows(CodecNotImplementedException.class,
-                    () -> ApiVersionsCodec.encodeResponse((short) 2,
+                    () -> ApiVersionsCodec.encodeResponse((short) 3,
                             new ApiVersionsResponse((short) 0, List.of(), 100L)));
             assertThrows(CodecNotImplementedException.class,
-                    () -> ApiVersionsCodec.decodeResponse((short) 2, ByteBuffer.allocate(6)));
+                    () -> ApiVersionsCodec.decodeResponse((short) 3, ByteBuffer.allocate(6)));
         }
     }
 
