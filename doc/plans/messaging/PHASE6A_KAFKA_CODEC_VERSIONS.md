@@ -103,7 +103,7 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | v3 | + TransactionalId:string[3+](null:3+) | ✓ | 6fac46ae |
 | v4 | unchanged | ✓ | 108852d8 |
 | v5 | + LogStartOffset:int64[5+] | ✓ | 89200df9 |
-| v6 | unchanged | ☐ | |
+| v6 | unchanged | ✓ | 73fcc9e1 |
 | v7 | unchanged | ☐ | |
 | v8 | + RecordErrors:[]BatchIndexAndErrorMessage[8+], BatchIndex:int32[8+], BatchIndexErrorMessage:string[8+](null:8+), ErrorMessage:string[8+](null:8+) | ☐ | |
 | v9 | → flexible encoding | ☐ | |
