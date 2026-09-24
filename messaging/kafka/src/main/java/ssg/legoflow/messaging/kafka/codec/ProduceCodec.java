@@ -35,13 +35,16 @@ import java.util.List;
  *       unchanged vs v2 (LogStartOffset arrives in v5) and shares the v2 methods.</li>
  *   <li>v4 — unchanged in both directions (spec: no field version ranges differ at
  *       v4+ vs v3); all four dispatches fall through to the v3 methods.</li>
+ *   <li>v5 — request unchanged; the response partition gains LogStartOffset(int64)
+ *       after LogAppendTimeMs (spec default -1, unavailable); dedicated response
+ *       methods, partition width 22 to 30 bytes.</li>
  * </ul>
  *
  * <p>The {@link ProduceRequest} model keeps {@code transactionalId} for v3+; at v0–v2 it
  * is never written or read (decoded as null), at v3 it is the leading field.
- * {@link ProduceResponse} keeps {@code throttleTimeMs} (v1+) and the partition-level
- * {@code logAppendTimeMs} (v2+); at v0 both carried values are discarded on encode and
- * defaulted (0 / -1) on decode.
+ * {@link ProduceResponse} keeps {@code throttleTimeMs} (v1+), the partition-level
+ * {@code logAppendTimeMs} (v2+) and {@code logStartOffset} (v5+); at v0–v4 the absent
+ * values are discarded on encode and defaulted (0 / -1 / -1) on decode.
  *
  * @since 0.1.0
  */
@@ -72,6 +75,7 @@ public final class ProduceCodec {
                 return encodeRequestV0(req);
             case 3: // v3 request adds a leading nullable TransactionalId
             case 4: // v4 request unchanged vs v3
+            case 5: // v5 request unchanged vs v4
                 return encodeRequestV3(req);
             default:
                 throw new CodecNotImplementedException("Produce request v" + version + " not implemented");
@@ -94,6 +98,7 @@ public final class ProduceCodec {
                 return decodeRequestV0(buf);
             case 3: // v3 request adds a leading nullable TransactionalId
             case 4: // v4 request unchanged vs v3
+            case 5: // v5 request unchanged vs v4
                 return decodeRequestV3(buf);
             default:
                 throw new CodecNotImplementedException("Produce request v" + version + " not implemented");
@@ -119,6 +124,8 @@ public final class ProduceCodec {
             case 3: // v3 response unchanged vs v2 (LogStartOffset arrives in v5)
             case 4: // v4 response unchanged vs v3
                 return encodeResponseV2(resp);
+            case 5: // v5 response partition gains LogStartOffset(int64)
+                return encodeResponseV5(resp);
             default:
                 throw new CodecNotImplementedException("Produce response v" + version + " not implemented");
         }
@@ -143,6 +150,8 @@ public final class ProduceCodec {
             case 3: // v3 response unchanged vs v2 (LogStartOffset arrives in v5)
             case 4: // v4 response unchanged vs v3
                 return decodeResponseV2(buf);
+            case 5: // v5 response partition gains LogStartOffset(int64)
+                return decodeResponseV5(buf);
             default:
                 throw new CodecNotImplementedException("Produce response v" + version + " not implemented");
         }
@@ -393,6 +402,67 @@ public final class ProduceCodec {
                 // LogAppendTimeMs:int64 — new in v2, spec default -1 (ignorable).
                 long logAppendTimeMs = buf.getLong();
                 partitions.add(new ProduceResponse.PartitionResponse(index, errorCode, baseOffset, logAppendTimeMs));
+            }
+            topics.add(new ProduceResponse.TopicResponse(name, partitions));
+        }
+        // Trailing ThrottleTimeMs:int32 — retained from v1.
+        int throttleTimeMs = buf.getInt();
+        return new ProduceResponse(topics, throttleTimeMs);
+    }
+
+    // ===== v5 — request unchanged vs v3 (shared V3 methods above).
+    // ===== v5 — response: per-partition LogStartOffset(int64) after LogAppendTimeMs,
+    // =====   trailing ThrottleTimeMs(int32) retained (partition width 22 to 30 bytes) =====
+
+    private static byte[] encodeResponseV5(ProduceResponse resp) {
+        // Fixed overhead: topic count(int32) + ThrottleTimeMs(int32) = 8.
+        // Per topic: 4 (partition count) + 2 (name length) + name.
+        // Per partition response: 4 (index) + 2 (error) + 8 (offset) + 8 (logAppendTime)
+        // + 8 (logStartOffset) = 30.
+        int size = 8;
+        for (var topic : resp.responses()) {
+            size += 4 + 2 + topic.name().getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
+            size += 30 * topic.partitionResponses().size();
+        }
+        ByteBuffer buf = BufferPool.getBuffer(size);
+        buf.putInt(resp.responses().size());
+        for (var topic : resp.responses()) {
+            KafkaCodecPrimitives.writeString(buf, topic.name());
+            buf.putInt(topic.partitionResponses().size());
+            for (var pr : topic.partitionResponses()) {
+                buf.putInt(pr.partitionIndex());
+                buf.putShort(pr.errorCode());
+                buf.putLong(pr.baseOffset());
+                // LogAppendTimeMs:int64 — v2+, carried value written verbatim.
+                buf.putLong(pr.logAppendTimeMs());
+                // LogStartOffset:int64 — new in v5, spec default -1 when the broker
+                // has no value; the carried model value is written verbatim.
+                buf.putLong(pr.logStartOffset());
+            }
+        }
+        // Trailing ThrottleTimeMs:int32 — retained from v1.
+        buf.putInt(resp.throttleTimeMs());
+        buf.flip();
+        return KafkaCodecPrimitives.toBytes(buf);
+    }
+
+    private static ProduceResponse decodeResponseV5(ByteBuffer buf) {
+        int topicCount = buf.getInt();
+        List<ProduceResponse.TopicResponse> topics = new ArrayList<>(topicCount);
+        for (int i = 0; i < topicCount; i++) {
+            String name = KafkaCodecPrimitives.readString(buf);
+            int partCount = buf.getInt();
+            List<ProduceResponse.PartitionResponse> partitions = new ArrayList<>(partCount);
+            for (int j = 0; j < partCount; j++) {
+                int index = buf.getInt();
+                short errorCode = buf.getShort();
+                long baseOffset = buf.getLong();
+                // LogAppendTimeMs:int64 — v2+, spec default -1.
+                long logAppendTimeMs = buf.getLong();
+                // LogStartOffset:int64 — new in v5, spec default -1.
+                long logStartOffset = buf.getLong();
+                partitions.add(new ProduceResponse.PartitionResponse(index, errorCode, baseOffset,
+                        logAppendTimeMs, logStartOffset));
             }
             topics.add(new ProduceResponse.TopicResponse(name, partitions));
         }

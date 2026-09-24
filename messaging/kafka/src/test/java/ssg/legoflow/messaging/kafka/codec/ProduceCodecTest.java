@@ -41,7 +41,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  *       is unchanged vs v2 (LogStartOffset is v5+) and shares the v2 methods.</li>
  *   <li>v4: unchanged in both directions (no field version range differs at v4+ vs v3)
  *       — all four dispatches fall through to the v3 methods.</li>
- *   <li>v5+ throw {@link CodecNotImplementedException} (no silent fall-through).</li>
+ *   <li>v5: request unchanged vs v3 (falls through to the v3 methods); the response
+ *       partition gains LogStartOffset(int64) after LogAppendTimeMs (spec default -1,
+ *       unavailable) — dedicated V5 response methods, partition width 22 to 30 bytes.</li>
+ *   <li>v6+ throw {@link CodecNotImplementedException} (no silent fall-through).</li>
  * </ul>
  */
 class ProduceCodecTest {
@@ -532,6 +535,83 @@ class ProduceCodecTest {
             // v2/v3 layout: topicCount(4) + (2+5) + partCount(4) + 22 + throttle(4) = 41
             assertEquals(41, bodyV4.length, "v2 layout unchanged at v4");
         }
+
+        @Test
+        @DisplayName("v5 request is byte-identical to v4 (request unchanged)")
+        void v5RequestByteIdenticalToV4() {
+            var req = new ProduceRequest("producer-1", (short) -1, 30000,
+                    List.of(new ProduceRequest.TopicData("topic", List.of(
+                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3})))));
+
+            byte[] bodyV5 = ProduceCodec.encodeRequest((short) 5, req);
+            byte[] bodyV4 = ProduceCodec.encodeRequest((short) 4, req);
+            assertArrayEquals(bodyV4, bodyV5, "v5 request must be byte-identical to v4");
+            // v3 layout: 32 v0 body + 5 leading nullable string (producer-1 = 10 chars → 2+10)
+            assertEquals(44, bodyV5.length, "v3 layout unchanged at v5");
+        }
+
+        @Test
+        @DisplayName("v5 response round-trips the per-partition LogStartOffset")
+        void v5RoundTrip() {
+            var resp = new ProduceResponse(List.of(
+                    new ProduceResponse.TopicResponse("t1", List.of(
+                            new ProduceResponse.PartitionResponse(0, (short) 0, 1L, 111L, 999L),
+                            new ProduceResponse.PartitionResponse(1, (short) 3, -1L, -1L, 0L)))),
+                    120);
+
+            byte[] body = ProduceCodec.encodeResponse((short) 5, resp);
+            var decoded = ProduceCodec.decodeResponse((short) 5, ByteBuffer.wrap(body));
+
+            var parts = decoded.responses().getFirst().partitionResponses();
+            assertEquals(999L, parts.get(0).logStartOffset());
+            assertEquals(0L, parts.get(1).logStartOffset());
+            assertEquals(111L, parts.get(0).logAppendTimeMs());
+            assertEquals((short) 3, parts.get(1).errorCode());
+            assertEquals(120, decoded.throttleTimeMs());
+        }
+
+        @Test
+        @DisplayName("v5 response exact byte layout — partition width 30, trailing throttle")
+        void v5ExactBytes() {
+            var resp = new ProduceResponse(List.of(
+                    new ProduceResponse.TopicResponse("topic", List.of(
+                            new ProduceResponse.PartitionResponse(3, (short) 5, 100L, 999L, 777L)))), 888);
+
+            byte[] body = ProduceCodec.encodeResponse((short) 5, resp);
+
+            // topicCount(4) + name(2+5) + partCount(4) + (index 4 + error 2 + offset 8 + append 8 + start 8) + throttle(4) = 49
+            assertEquals(49, body.length, "4+(2+5)+4+30+4");
+
+            ByteBuffer buf = ByteBuffer.wrap(body);
+            assertEquals(1, buf.getInt(), "TopicData count");
+            assertEquals(5, buf.getShort(), "Name length");
+            byte[] name = new byte[5];
+            buf.get(name);
+            assertEquals("topic", StandardCharsets.UTF_8.decode(ByteBuffer.wrap(name)).toString(), "Name");
+            assertEquals(1, buf.getInt(), "PartitionResponse count");
+            assertEquals(3, buf.getInt(), "Partition index");
+            assertEquals((short) 5, buf.getShort(), "ErrorCode");
+            assertEquals(100L, buf.getLong(), "BaseOffset");
+            assertEquals(999L, buf.getLong(), "LogAppendTimeMs");
+            assertEquals(777L, buf.getLong(), "LogStartOffset (new in v5)");
+            assertEquals(888, buf.getInt(), "ThrottleTimeMs");
+            assertEquals(0, buf.remaining(), "no further fields at v5");
+        }
+
+        @Test
+        @DisplayName("v5 response decodes a partition with logStartOffset -1 (spec default)")
+        void v5ErrorPartitionWithDefaultLogStartOffset() {
+            var resp = new ProduceResponse(List.of(
+                    new ProduceResponse.TopicResponse("t", List.of(
+                            new ProduceResponse.PartitionResponse(2, KafkaErrorsForTest.UNKNOWN_TOPIC, -1L, -1L)))), 0);
+
+            byte[] body = ProduceCodec.encodeResponse((short) 5, resp);
+            var decoded = ProduceCodec.decodeResponse((short) 5, ByteBuffer.wrap(body));
+
+            var pr = decoded.responses().getFirst().partitionResponses().getFirst();
+            assertEquals(KafkaErrorsForTest.UNKNOWN_TOPIC, pr.errorCode());
+            assertEquals(-1L, pr.logStartOffset(), "spec default -1 round-trips");
+        }
     }
 
     @Nested
@@ -539,45 +619,45 @@ class ProduceCodecTest {
     class Dispatch {
 
         @Test
-        @DisplayName("v5 request encode throws CodecNotImplementedException (next unimplemented)")
-        void v5RequestEncodeNotImplemented() {
+        @DisplayName("v6 request encode throws CodecNotImplementedException (next unimplemented)")
+        void v6RequestEncodeNotImplemented() {
             var req = new ProduceRequest(null, (short) 1, 1000,
                     List.of(new ProduceRequest.TopicData("t", List.of(
                             new ProduceRequest.PartitionData(0, new byte[]{1})))));
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.encodeRequest((short) 5, req));
+                    () -> ProduceCodec.encodeRequest((short) 6, req));
         }
 
         @Test
-        @DisplayName("v5 request decode throws CodecNotImplementedException")
-        void v5RequestDecodeNotImplemented() {
+        @DisplayName("v6 request decode throws CodecNotImplementedException")
+        void v6RequestDecodeNotImplemented() {
             var req = new ProduceRequest(null, (short) 1, 1000,
                     List.of(new ProduceRequest.TopicData("t", List.of(
                             new ProduceRequest.PartitionData(0, new byte[]{1})))));
             byte[] body = ProduceCodec.encodeRequest((short) 0, req);
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.decodeRequest((short) 5, ByteBuffer.wrap(body)));
+                    () -> ProduceCodec.decodeRequest((short) 6, ByteBuffer.wrap(body)));
         }
 
         @Test
-        @DisplayName("v5 response encode throws CodecNotImplementedException")
-        void v5ResponseEncodeNotImplemented() {
+        @DisplayName("v6 response encode throws CodecNotImplementedException")
+        void v6ResponseEncodeNotImplemented() {
             var resp = new ProduceResponse(List.of(
                     new ProduceResponse.TopicResponse("t", List.of(
                             new ProduceResponse.PartitionResponse(0, (short) 0, 0L, 0L)))), 0);
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.encodeResponse((short) 5, resp));
+                    () -> ProduceCodec.encodeResponse((short) 6, resp));
         }
 
         @Test
-        @DisplayName("v5 response decode throws CodecNotImplementedException")
-        void v5ResponseDecodeNotImplemented() {
+        @DisplayName("v6 response decode throws CodecNotImplementedException")
+        void v6ResponseDecodeNotImplemented() {
             var resp = new ProduceResponse(List.of(
                     new ProduceResponse.TopicResponse("t", List.of(
                             new ProduceResponse.PartitionResponse(0, (short) 0, 0L, 0L)))), 0);
             byte[] body = ProduceCodec.encodeResponse((short) 0, resp);
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.decodeResponse((short) 5, ByteBuffer.wrap(body)));
+                    () -> ProduceCodec.decodeResponse((short) 6, ByteBuffer.wrap(body)));
         }
     }
 
