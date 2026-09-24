@@ -38,6 +38,9 @@ import java.util.List;
  *   <li>v5 — request unchanged; the response partition gains LogStartOffset(int64)
  *       after LogAppendTimeMs (spec default -1, unavailable); dedicated response
  *       methods, partition width 22 to 30 bytes.</li>
+ *   <li>v6 — unchanged in both directions (spec: no field version ranges differ at
+ *       v6+ vs v5; RecordErrors/ErrorMessage arrive in v8); all four dispatches fall
+ *       through to the v3/v5 methods.</li>
  * </ul>
  *
  * <p>The {@link ProduceRequest} model keeps {@code transactionalId} for v3+; at v0–v2 it
@@ -76,6 +79,7 @@ public final class ProduceCodec {
             case 3: // v3 request adds a leading nullable TransactionalId
             case 4: // v4 request unchanged vs v3
             case 5: // v5 request unchanged vs v4
+            case 6: // v6 request unchanged vs v5
                 return encodeRequestV3(req);
             default:
                 throw new CodecNotImplementedException("Produce request v" + version + " not implemented");
@@ -99,6 +103,7 @@ public final class ProduceCodec {
             case 3: // v3 request adds a leading nullable TransactionalId
             case 4: // v4 request unchanged vs v3
             case 5: // v5 request unchanged vs v4
+            case 6: // v6 request unchanged vs v5
                 return decodeRequestV3(buf);
             default:
                 throw new CodecNotImplementedException("Produce request v" + version + " not implemented");
@@ -125,6 +130,7 @@ public final class ProduceCodec {
             case 4: // v4 response unchanged vs v3
                 return encodeResponseV2(resp);
             case 5: // v5 response partition gains LogStartOffset(int64)
+            case 6: // v6 response unchanged vs v5
                 return encodeResponseV5(resp);
             default:
                 throw new CodecNotImplementedException("Produce response v" + version + " not implemented");
@@ -151,6 +157,7 @@ public final class ProduceCodec {
             case 4: // v4 response unchanged vs v3
                 return decodeResponseV2(buf);
             case 5: // v5 response partition gains LogStartOffset(int64)
+            case 6: // v6 response unchanged vs v5
                 return decodeResponseV5(buf);
             default:
                 throw new CodecNotImplementedException("Produce response v" + version + " not implemented");
