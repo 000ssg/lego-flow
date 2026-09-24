@@ -104,7 +104,7 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | v4 | unchanged | ✓ | 108852d8 |
 | v5 | + LogStartOffset:int64[5+] | ✓ | 89200df9 |
 | v6 | unchanged | ✓ | 73fcc9e1 |
-| v7 | unchanged | ☐ | |
+| v7 | unchanged | ✓ | 0c3688dc |
 | v8 | + RecordErrors:[]BatchIndexAndErrorMessage[8+], BatchIndex:int32[8+], BatchIndexErrorMessage:string[8+](null:8+), ErrorMessage:string[8+](null:8+) | ☐ | |
 | v9 | → flexible encoding | ☐ | |
 
