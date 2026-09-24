@@ -98,7 +98,7 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
 | v0 | base (7 fields): Acks, TimeoutMs, TopicData, Name, PartitionData, Index, Records | ✓ | c7c24c8b |
-| v1 | + ThrottleTimeMs:int32[1+] | ☐ | |
+| v1 | + ThrottleTimeMs:int32[1+] | ✓ | 3e6d9a3c |
 | v2 | + LogAppendTimeMs:int64[2+] | ☐ | |
 | v3 | + TransactionalId:string[3+](null:3+) | ☐ | |
 | v4 | unchanged | ☐ | |
