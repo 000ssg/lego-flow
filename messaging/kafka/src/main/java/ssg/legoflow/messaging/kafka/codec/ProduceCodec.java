@@ -33,6 +33,8 @@ import java.util.List;
  *       ("or null if the producer is not transactional") — the first request framing
  *       change since v0, so the v3 request has dedicated methods; the response is
  *       unchanged vs v2 (LogStartOffset arrives in v5) and shares the v2 methods.</li>
+ *   <li>v4 — unchanged in both directions (spec: no field version ranges differ at
+ *       v4+ vs v3); all four dispatches fall through to the v3 methods.</li>
  * </ul>
  *
  * <p>The {@link ProduceRequest} model keeps {@code transactionalId} for v3+; at v0–v2 it
@@ -69,6 +71,7 @@ public final class ProduceCodec {
             case 2: // v2 request unchanged vs v1
                 return encodeRequestV0(req);
             case 3: // v3 request adds a leading nullable TransactionalId
+            case 4: // v4 request unchanged vs v3
                 return encodeRequestV3(req);
             default:
                 throw new CodecNotImplementedException("Produce request v" + version + " not implemented");
@@ -90,6 +93,7 @@ public final class ProduceCodec {
             case 2: // v2 request unchanged vs v1
                 return decodeRequestV0(buf);
             case 3: // v3 request adds a leading nullable TransactionalId
+            case 4: // v4 request unchanged vs v3
                 return decodeRequestV3(buf);
             default:
                 throw new CodecNotImplementedException("Produce request v" + version + " not implemented");
@@ -113,6 +117,7 @@ public final class ProduceCodec {
             case 2:
                 return encodeResponseV2(resp);
             case 3: // v3 response unchanged vs v2 (LogStartOffset arrives in v5)
+            case 4: // v4 response unchanged vs v3
                 return encodeResponseV2(resp);
             default:
                 throw new CodecNotImplementedException("Produce response v" + version + " not implemented");
@@ -136,6 +141,7 @@ public final class ProduceCodec {
             case 2:
                 return decodeResponseV2(buf);
             case 3: // v3 response unchanged vs v2 (LogStartOffset arrives in v5)
+            case 4: // v4 response unchanged vs v3
                 return decodeResponseV2(buf);
             default:
                 throw new CodecNotImplementedException("Produce response v" + version + " not implemented");
