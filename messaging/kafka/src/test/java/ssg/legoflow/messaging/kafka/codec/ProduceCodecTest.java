@@ -36,7 +36,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  *   <li>v2: request still byte-identical to v0 (TransactionalId is v3+); each response
  *       partition gains LogAppendTimeMs(int64) after BaseOffset (spec default -1), the
  *       trailing ThrottleTimeMs(int32) is retained from v1.</li>
- *   <li>v3+ throw {@link CodecNotImplementedException} (no silent fall-through).</li>
+ *   <li>v3: the request gains a leading nullable TransactionalId(string) before Acks —
+ *       the first request framing change since v0 (dedicated V3 methods); the response
+ *       is unchanged vs v2 (LogStartOffset is v5+) and shares the v2 methods.</li>
+ *   <li>v4+ throw {@link CodecNotImplementedException} (no silent fall-through).</li>
  * </ul>
  */
 class ProduceCodecTest {
@@ -91,6 +94,83 @@ class ProduceCodecTest {
             byte[] body = ProduceCodec.encodeRequest((short) 1, req);
             var decoded = ProduceCodec.decodeRequest((short) 1, ByteBuffer.wrap(body));
             assertNull(decoded.topicData().getFirst().partitionData().getFirst().records());
+        }
+
+        @Test
+        @DisplayName("v3 request round-trips the leading nullable TransactionalId")
+        void v3RoundTrip() {
+            var req = new ProduceRequest("producer-1", (short) -1, 30000,
+                    List.of(new ProduceRequest.TopicData("topic", List.of(
+                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3})))));
+
+            byte[] body = ProduceCodec.encodeRequest((short) 3, req);
+            var decoded = ProduceCodec.decodeRequest((short) 3, ByteBuffer.wrap(body));
+
+            assertEquals("producer-1", decoded.transactionalId());
+            assertEquals((short) -1, decoded.acks());
+            assertEquals(30000, decoded.timeoutMs());
+            assertEquals("topic", decoded.topicData().getFirst().name());
+            assertArrayEquals(new byte[]{1, 2, 3},
+                    decoded.topicData().getFirst().partitionData().getFirst().records());
+        }
+
+        @Test
+        @DisplayName("v3 null TransactionalId round-trips (written as length -1)")
+        void v3NullTransactionalId() {
+            var req = new ProduceRequest(null, (short) 1, 5000,
+                    List.of(new ProduceRequest.TopicData("t", List.of(
+                            new ProduceRequest.PartitionData(7, null)))));
+
+            byte[] body = ProduceCodec.encodeRequest((short) 3, req);
+            // v0 body was 25 bytes for this shape; v3 adds 2 (the -1 nullable-string length)
+            assertEquals(27, body.length);
+            ByteBuffer buf = ByteBuffer.wrap(body);
+            assertEquals((short) -1, buf.getShort(), "Transaction... null");
+            assertEquals(25, buf.remaining(), "remainder must be exactly the v0 body");
+
+            var decoded = ProduceCodec.decodeRequest((short) 3, ByteBuffer.wrap(body));
+            assertNull(decoded.transactionalId());
+            assertNull(decoded.topicData().getFirst().partitionData().getFirst().records());
+        }
+
+        @Test
+        @DisplayName("v3 exact byte layout — TransactionalId(string) leads, then the v0 body")
+        void v3ExactBytes() {
+            var req = new ProduceRequest("txn", (short) -1, 30000,
+                    List.of(new ProduceRequest.TopicData("topic", List.of(
+                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3})))));
+
+            byte[] body = ProduceCodec.encodeRequest((short) 3, req);
+            byte[] v0Body = ProduceCodec.encodeRequest((short) 0, req);
+
+            // v3 = v0 body (32) + leading nullable string (2 + 3) = 37
+            assertEquals(37, body.length, "32 + (2+3)");
+
+            ByteBuffer buf = ByteBuffer.wrap(body);
+            assertEquals(3, buf.getShort(), "TransactionalId length");
+            byte[] txn = new byte[3];
+            buf.get(txn);
+            assertEquals("txn", StandardCharsets.UTF_8.decode(ByteBuffer.wrap(txn)).toString(), "TransactionalId");
+            assertEquals((short) -1, buf.getShort(), "Acks (after TransactionalId)");
+            assertEquals(30000, buf.getInt(), "TimeoutMs");
+            assertEquals(1, buf.getInt(), "TopicData count");
+            assertEquals(5, buf.getShort(), "Name length");
+            byte[] name = new byte[5];
+            buf.get(name);
+            assertEquals("topic", StandardCharsets.UTF_8.decode(ByteBuffer.wrap(name)).toString(), "Name");
+            assertEquals(1, buf.getInt(), "PartitionData count");
+            assertEquals(0, buf.getInt(), "Partition index");
+            assertEquals(3, buf.getInt(), "Records length");
+            byte[] records = new byte[3];
+            buf.get(records);
+            assertArrayEquals(new byte[]{1, 2, 3}, records, "Records");
+            assertEquals(0, buf.remaining(), "body must be exactly consumed");
+
+            // The tail must be byte-identical to the v0 body (v3 only prepends).
+            byte[] tail = new byte[v0Body.length];
+            buf.position(0);
+            System.arraycopy(body, 5, tail, 0, v0Body.length);
+            assertArrayEquals(v0Body, tail, "v3 body after the leading field must equal the v0 body");
         }
 
         @Test
@@ -387,6 +467,23 @@ class ProduceCodecTest {
             assertEquals(222L, decoded.responses().get(1).partitionResponses().get(0).logAppendTimeMs());
             assertEquals(55, decoded.throttleTimeMs());
         }
+
+        @Test
+        @DisplayName("v3 response is byte-identical to v2 (LogStartOffset arrives in v5)")
+        void v3ResponseByteIdenticalToV2() {
+            var resp = new ProduceResponse(List.of(
+                    new ProduceResponse.TopicResponse("t1", List.of(
+                            new ProduceResponse.PartitionResponse(0, (short) 0, 1L, 111L),
+                            new ProduceResponse.PartitionResponse(1, (short) 3, -1L, -1L))),
+                    new ProduceResponse.TopicResponse("t2", List.of(
+                            new ProduceResponse.PartitionResponse(0, (short) 0, 7L, 222L)))), 55);
+
+            byte[] bodyV3 = ProduceCodec.encodeResponse((short) 3, resp);
+            byte[] bodyV2 = ProduceCodec.encodeResponse((short) 2, resp);
+            assertArrayEquals(bodyV2, bodyV3, "v3 response must be byte-identical to v2");
+            // v2 layout: topicCount(4) + t1(2+2) + partCount(4) + 2x22 + t2(2+2) + partCount(4) + 22 + throttle(4) = 90
+            assertEquals(90, bodyV3.length, "v2 layout unchanged at v3");
+        }
     }
 
     @Nested
@@ -394,45 +491,45 @@ class ProduceCodecTest {
     class Dispatch {
 
         @Test
-        @DisplayName("v3 request encode throws CodecNotImplementedException (next unimplemented)")
-        void v3RequestEncodeNotImplemented() {
-            var req = new ProduceRequest("txn", (short) 1, 1000,
+        @DisplayName("v4 request encode throws CodecNotImplementedException (next unimplemented)")
+        void v4RequestEncodeNotImplemented() {
+            var req = new ProduceRequest(null, (short) 1, 1000,
                     List.of(new ProduceRequest.TopicData("t", List.of(
                             new ProduceRequest.PartitionData(0, new byte[]{1})))));
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.encodeRequest((short) 3, req));
+                    () -> ProduceCodec.encodeRequest((short) 4, req));
         }
 
         @Test
-        @DisplayName("v3 request decode throws CodecNotImplementedException")
-        void v3RequestDecodeNotImplemented() {
+        @DisplayName("v4 request decode throws CodecNotImplementedException")
+        void v4RequestDecodeNotImplemented() {
             var req = new ProduceRequest(null, (short) 1, 1000,
                     List.of(new ProduceRequest.TopicData("t", List.of(
                             new ProduceRequest.PartitionData(0, new byte[]{1})))));
             byte[] body = ProduceCodec.encodeRequest((short) 0, req);
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.decodeRequest((short) 3, ByteBuffer.wrap(body)));
+                    () -> ProduceCodec.decodeRequest((short) 4, ByteBuffer.wrap(body)));
         }
 
         @Test
-        @DisplayName("v3 response encode throws CodecNotImplementedException")
-        void v3ResponseEncodeNotImplemented() {
+        @DisplayName("v4 response encode throws CodecNotImplementedException")
+        void v4ResponseEncodeNotImplemented() {
             var resp = new ProduceResponse(List.of(
                     new ProduceResponse.TopicResponse("t", List.of(
                             new ProduceResponse.PartitionResponse(0, (short) 0, 0L, 0L)))), 0);
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.encodeResponse((short) 3, resp));
+                    () -> ProduceCodec.encodeResponse((short) 4, resp));
         }
 
         @Test
-        @DisplayName("v3 response decode throws CodecNotImplementedException")
-        void v3ResponseDecodeNotImplemented() {
+        @DisplayName("v4 response decode throws CodecNotImplementedException")
+        void v4ResponseDecodeNotImplemented() {
             var resp = new ProduceResponse(List.of(
                     new ProduceResponse.TopicResponse("t", List.of(
                             new ProduceResponse.PartitionResponse(0, (short) 0, 0L, 0L)))), 0);
             byte[] body = ProduceCodec.encodeResponse((short) 0, resp);
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.decodeResponse((short) 3, ByteBuffer.wrap(body)));
+                    () -> ProduceCodec.decodeResponse((short) 4, ByteBuffer.wrap(body)));
         }
     }
 

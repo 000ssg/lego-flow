@@ -29,12 +29,17 @@ import java.util.List;
  *   <li>v2 — request still byte-identical to v0; each response partition gains
  *       LogAppendTimeMs(int64) after BaseOffset (spec default -1, ignorable), the
  *       trailing ThrottleTimeMs(int32) is retained from v1.</li>
+ *   <li>v3 — the request gains a leading nullable TransactionalId(string) before Acks
+ *       ("or null if the producer is not transactional") — the first request framing
+ *       change since v0, so the v3 request has dedicated methods; the response is
+ *       unchanged vs v2 (LogStartOffset arrives in v5) and shares the v2 methods.</li>
  * </ul>
  *
  * <p>The {@link ProduceRequest} model keeps {@code transactionalId} for v3+; at v0–v2 it
- * is never written or read (decoded as null). {@link ProduceResponse} keeps
- * {@code throttleTimeMs} (v1+) and the partition-level {@code logAppendTimeMs} (v2+);
- * at v0 both carried values are discarded on encode and defaulted (0 / -1) on decode.
+ * is never written or read (decoded as null), at v3 it is the leading field.
+ * {@link ProduceResponse} keeps {@code throttleTimeMs} (v1+) and the partition-level
+ * {@code logAppendTimeMs} (v2+); at v0 both carried values are discarded on encode and
+ * defaulted (0 / -1) on decode.
  *
  * @since 0.1.0
  */
@@ -63,6 +68,8 @@ public final class ProduceCodec {
             case 1: // v1 request is byte-identical to v0 (spec: "Version 1 and 2 are the same as version 0")
             case 2: // v2 request unchanged vs v1
                 return encodeRequestV0(req);
+            case 3: // v3 request adds a leading nullable TransactionalId
+                return encodeRequestV3(req);
             default:
                 throw new CodecNotImplementedException("Produce request v" + version + " not implemented");
         }
@@ -82,6 +89,8 @@ public final class ProduceCodec {
             case 1: // v1 request byte-identical to v0
             case 2: // v2 request unchanged vs v1
                 return decodeRequestV0(buf);
+            case 3: // v3 request adds a leading nullable TransactionalId
+                return decodeRequestV3(buf);
             default:
                 throw new CodecNotImplementedException("Produce request v" + version + " not implemented");
         }
@@ -103,6 +112,8 @@ public final class ProduceCodec {
                 return encodeResponseV1(resp);
             case 2:
                 return encodeResponseV2(resp);
+            case 3: // v3 response unchanged vs v2 (LogStartOffset arrives in v5)
+                return encodeResponseV2(resp);
             default:
                 throw new CodecNotImplementedException("Produce response v" + version + " not implemented");
         }
@@ -123,6 +134,8 @@ public final class ProduceCodec {
             case 1:
                 return decodeResponseV1(buf);
             case 2:
+                return decodeResponseV2(buf);
+            case 3: // v3 response unchanged vs v2 (LogStartOffset arrives in v5)
                 return decodeResponseV2(buf);
             default:
                 throw new CodecNotImplementedException("Produce response v" + version + " not implemented");
@@ -177,6 +190,59 @@ public final class ProduceCodec {
         }
         // TransactionalId does not exist at v0 (added v3) — no transaction at v0.
         return new ProduceRequest(null, acks, timeout, topics);
+    }
+
+    // ===== v3 — request: TransactionalId(nullable string), then the v0 body =====
+    // ===== v3 — response byte-identical to v2 (shared V2 methods below) =====
+
+    private static byte[] encodeRequestV3(ProduceRequest req) {
+        // Fixed overhead: TransactionalId(nullable string: 2 + name if present)
+        // + Acks(int16) + TimeoutMs(int32) + topic count(int32).
+        int size = 10 + (req.transactionalId() != null
+                ? 2 + req.transactionalId().getBytes(java.nio.charset.StandardCharsets.UTF_8).length
+                : 2);
+        for (var topic : req.topicData()) {
+            size += 4 + 2 + topic.name().getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
+            for (var pd : topic.partitionData()) {
+                size += 8 + (pd.records() != null ? pd.records().length : 0);
+            }
+        }
+        ByteBuffer buf = BufferPool.getBuffer(size);
+        KafkaCodecPrimitives.writeNullableString(buf, req.transactionalId());
+        buf.putShort(req.acks());
+        buf.putInt(req.timeoutMs());
+        buf.putInt(req.topicData().size());
+        for (var topic : req.topicData()) {
+            KafkaCodecPrimitives.writeString(buf, topic.name());
+            buf.putInt(topic.partitionData().size());
+            for (var pd : topic.partitionData()) {
+                buf.putInt(pd.index());
+                KafkaCodecPrimitives.writeBytesField(buf, pd.records());
+            }
+        }
+        buf.flip();
+        return KafkaCodecPrimitives.toBytes(buf);
+    }
+
+    private static ProduceRequest decodeRequestV3(ByteBuffer buf) {
+        // Leading nullable TransactionalId:string — the only v3 delta vs v0.
+        String transactionalId = KafkaCodecPrimitives.readNullableString(buf);
+        short acks = buf.getShort();
+        int timeout = buf.getInt();
+        int topicCount = buf.getInt();
+        List<ProduceRequest.TopicData> topics = new ArrayList<>(topicCount);
+        for (int i = 0; i < topicCount; i++) {
+            String name = KafkaCodecPrimitives.readString(buf);
+            int partCount = buf.getInt();
+            List<ProduceRequest.PartitionData> partitions = new ArrayList<>(partCount);
+            for (int j = 0; j < partCount; j++) {
+                int index = buf.getInt();
+                byte[] records = KafkaCodecPrimitives.readBytesField(buf);
+                partitions.add(new ProduceRequest.PartitionData(index, records));
+            }
+            topics.add(new ProduceRequest.TopicData(name, partitions));
+        }
+        return new ProduceRequest(transactionalId, acks, timeout, topics);
     }
 
     private static byte[] encodeResponseV0(ProduceResponse resp) {
