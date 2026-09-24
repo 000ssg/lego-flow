@@ -105,7 +105,7 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | v5 | + LogStartOffset:int64[5+] | ✓ | 89200df9 |
 | v6 | unchanged | ✓ | 73fcc9e1 |
 | v7 | unchanged | ✓ | 0c3688dc |
-| v8 | + RecordErrors:[]BatchIndexAndErrorMessage[8+], BatchIndex:int32[8+], BatchIndexErrorMessage:string[8+](null:8+), ErrorMessage:string[8+](null:8+) | ☐ | |
+| v8 | + RecordErrors:[]BatchIndexAndErrorMessage[8+], BatchIndex:int32[8+], BatchIndexErrorMessage:string[8+](null:8+), ErrorMessage:string[8+](null:8+) | ✓ | e563d861 |
 | v9 | → flexible encoding | ☐ | |
 
 ### Fetch (API 1) — v0..v15
