@@ -101,7 +101,7 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | v1 | + ThrottleTimeMs:int32[1+] | ✓ | 3e6d9a3c |
 | v2 | + LogAppendTimeMs:int64[2+] | ✓ | 6dc997a8 |
 | v3 | + TransactionalId:string[3+](null:3+) | ✓ | 6fac46ae |
-| v4 | unchanged | ☐ | |
+| v4 | unchanged | ✓ | 108852d8 |
 | v5 | + LogStartOffset:int64[5+] | ☐ | |
 | v6 | unchanged | ☐ | |
 | v7 | unchanged | ☐ | |
