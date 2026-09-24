@@ -967,3 +967,30 @@ Next sub-task (same rules): ApiVersions v2 (response unchanged vs v1 → shared 
   parameter).
 - Next: next sub-category per the plan matrix (Record I/O), then the deferred
   version-registry wiring row.
+
+## 2026-09-24: Kafka KRaft interop skeleton committed — Phase 6 scaffolding (gated on Phase 6a)
+
+- Context: Phase 6 (Kafka + WAMP composite interop) needs a real-broker reference test.
+  This commit lands its scaffolding **before** the Record I/O / Admin codec sub-tasks are
+  green, so it is kept as a compile-only WIP: the test is part of the `interop-kafka`
+  group, which CI runs with the `run-interop` label against the cp-kafka 7.6.1 KRaft
+  broker from `docker-compose` (localhost:9092). It does not run in the default build.
+- `interop-tests/pom.xml`: added `lego-flow-kafka` + `lego-flow-wamp` test dependencies
+  (both `ssg` groupId, `${project.version}`, test scope) and the Phase 6 group system
+  properties `interop.kafka.host/port` (localhost:9092) and `interop.wamp.host/port`
+  (localhost:8081) next to the existing SMTP/FTP block.
+- `interop-tests/src/test/java/ssg/legoflow/interop/kafka/KafkaKRaftInteropTest.java`
+  (192 lines, `@Tag("interop-kafka")`): exercises the production client path —
+  `KafkaClientService` opens `TcpDataChannel` + `PipelineKafkaTransport` through the
+  in-house `SelectableChannelManager`, then the protocol core
+  (`KafkaProducer`/`KafkaAdminClient`/`KafkaConsumer`) is constructed over that
+  transport. Current step coverage: ApiVersions negotiation, CreateTopics, Metadata,
+  Produce v3 + Fetch round-trip; later Phase 6 steps (multi-partition streaming,
+  transactions) extend the same class.
+- Verification: `mvn -pl interop-tests test-compile` green (forced recompile of the
+  fresh file after a stale `target` class from 09-23). No assertions run yet — the
+  test is gated on the Phase 6a sub-tasks it exercises (Record I/O v0–v3, Admin
+  CreateTopics v0, Negotiation ✓ already done); per plan §4 interop is the final
+  verifier, not the development driver.
+- Next: Record I/O sub-category (Produce v0 first — the committed v0 layout predates
+  the spec-first reset and must be re-verified against `doc/spec/message/ProduceRequest.json`).
