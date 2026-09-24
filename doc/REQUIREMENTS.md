@@ -994,3 +994,40 @@ Next sub-task (same rules): ApiVersions v2 (response unchanged vs v1 → shared 
   verifier, not the development driver.
 - Next: Record I/O sub-category (Produce v0 first — the committed v0 layout predates
   the spec-first reset and must be re-verified against `doc/spec/message/ProduceRequest.json`).
+
+## 2026-09-24: Record I/O sub-category started — Produce v0 (API 0) spec-correct, dedicated ProduceCodec
+
+- Context: Phase 6a step 3 (Record I/O, 35 rows) begins with the first row, Produce
+  v0. Per the spec-first ground rule (plan §3), the committed v0 layout from the
+  green 416-test baseline was re-derived from `doc/spec/message/Produce{Request,
+  Response}.json` (3.6.1) instead of trusted. It turned out to be a **layout bug**:
+  the inline `KafkaCodec.encodeProduceRequest` unconditionally wrote a leading
+  nullable `transactionalId` (a v3+ field) — a v3-shaped body under a v0 frame that
+  a real broker misparses — and `encodeProduceResponse` wrote a per-partition
+  `logAppendTimeMs` (v2+) and a trailing `throttleTimeMs` (v1+).
+- `ProduceCodec` (new): dedicated per-API class following the Negotiation/Auth
+  pattern (`SaslHandshakeCodec`/`ApiVersionsCodec`/`SaslAuthenticateCodec`),
+  `short version` dispatch, `CodecNotImplementedException` for unimplemented
+  versions (no silent fall-through), `BufferPool` + `KafkaCodecPrimitives` reuse
+  (v0 is all fixed-width — no new primitives). `ProduceRequest`/`ProduceResponse`
+  records are unchanged: they keep `transactionalId` (v3+), `logAppendTimeMs`
+  (v2+) and `throttleTimeMs` (v1+) for the later rows; at v0 those values are
+  discarded on encode and defaulted (null / -1 / 0) on decode.
+- v0 layouts (spec field order): request = Acks(int16) + TimeoutMs(int32) +
+  TopicData[](Name(string16) + PartitionData[](Index(int32) + Records(nullable
+  bytes))); response = TopicData[](Name(string16) + PartitionResponse[](Index
+  (int32) + ErrorCode(int16) + BaseOffset(int64))). The façade methods
+  `KafkaCodec.encodeProduceRequest/decodeProduceRequest/encodeProduceResponse/
+  decodeProduceResponse` now delegate at the in-house pinned v0; the in-memory
+  broker and the client pin v0, so no wire change for the in-house path.
+- Tests: new `ProduceCodecTest` (11 tests: exact-byte v0 request — 25-byte
+  null-records and 32-byte records cases verifying every field offset incl. no
+  leading transactionalId; exact-byte v0 response — 25 bytes; round-trips incl.
+  multi-topic/mixed records presence; error-code partition; v1/v3 dispatch
+  throws). `KafkaCodecTest` Produce section re-pinned to v0 (85→85, 1:1
+  replacement); the old `testProduceRequest` asserted the buggy transactionalId
+  round-trip. Full module suite **470 green** (was 459). Interop-tests recompile
+  clean against the delegating façade.
+- Next: Produce v1 (response + ThrottleTimeMs) per the one-version-per-sub-task
+  rule; the Phase 6 `KafkaKRaftInteropTest` (357e7e08) stays gated/compile-only
+  until the Produce v3 row + the Record I/O / Admin paths it exercises are green.

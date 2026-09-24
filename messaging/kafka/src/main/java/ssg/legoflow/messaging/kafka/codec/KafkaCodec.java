@@ -292,83 +292,53 @@ public final class KafkaCodec {
 
     // ===== Produce (0) =====
 
+    /**
+     * Encodes a Produce request body.
+     *
+     * <p>Phase 6a: delegates to {@link ProduceCodec} at the in-house pinned version (v0).
+     * The old inline layout unconditionally wrote a leading nullable TransactionalId
+     * (a v3+ field), which produced a v3-shaped body under a v0 frame that a real broker
+     * misparses; the v0 layout (Acks + TimeoutMs + TopicData) is spec-correct now.
+     *
+     * @param req the request
+     * @return the encoded bytes
+     */
     public static byte[] encodeProduceRequest(ProduceRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(65536);
-        writeNullableString(buf, req.transactionalId());
-        buf.putShort(req.acks());
-        buf.putInt(req.timeoutMs());
-        buf.putInt(req.topicData().size());
-        for (var td : req.topicData()) {
-            writeString(buf, td.name());
-            buf.putInt(td.partitionData().size());
-            for (var pd : td.partitionData()) {
-                buf.putInt(pd.index());
-                buf.putInt(pd.records() != null ? pd.records().length : -1);
-                if (pd.records() != null) buf.put(pd.records());
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return ProduceCodec.encodeRequest(ProduceCodec.PINNED_VERSION, req);
     }
 
+    /**
+     * Decodes a Produce request body (v0).
+     *
+     * @param buf the buffer
+     * @return the decoded request
+     */
     public static ProduceRequest decodeProduceRequest(ByteBuffer buf) {
-        String txnId = readNullableString(buf);
-        short acks = buf.getShort();
-        int timeout = buf.getInt();
-        int topicCount = buf.getInt();
-        List<ProduceRequest.TopicData> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String name = readString(buf);
-            int partCount = buf.getInt();
-            List<ProduceRequest.PartitionData> partitions = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                int idx = buf.getInt();
-                int recLen = buf.getInt();
-                byte[] records = null;
-                if (recLen >= 0) {
-                    records = new byte[recLen];
-                    buf.get(records);
-                }
-                partitions.add(new ProduceRequest.PartitionData(idx, records));
-            }
-            topics.add(new ProduceRequest.TopicData(name, partitions));
-        }
-        return new ProduceRequest(txnId, acks, timeout, topics);
+        return ProduceCodec.decodeRequest(ProduceCodec.PINNED_VERSION, buf);
     }
 
+    /**
+     * Encodes a Produce response body (v0: TopicData + PartitionResponse).
+     *
+     * <p>Phase 6a: delegates to {@link ProduceCodec} at v0. The old inline layout wrote
+     * a per-partition LogAppendTimeMs (v2+) and a trailing ThrottleTimeMs (v1+); v0 writes
+     * neither, so both carried values are discarded at this version.
+     *
+     * @param resp the response
+     * @return the encoded bytes
+     */
     public static byte[] encodeProduceResponse(ProduceResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(16384);
-        buf.putInt(resp.responses().size());
-        for (var tr : resp.responses()) {
-            writeString(buf, tr.name());
-            buf.putInt(tr.partitionResponses().size());
-            for (var pr : tr.partitionResponses()) {
-                buf.putInt(pr.partitionIndex());
-                buf.putShort(pr.errorCode());
-                buf.putLong(pr.baseOffset());
-                buf.putLong(pr.logAppendTimeMs());
-            }
-        }
-        buf.putInt(resp.throttleTimeMs());
-        buf.flip();
-        return toBytes(buf);
+        return ProduceCodec.encodeResponse(ProduceCodec.PINNED_VERSION, resp);
     }
 
+    /**
+     * Decodes a Produce response body (v0).
+     *
+     * @param buf the buffer
+     * @return the decoded response
+     */
     public static ProduceResponse decodeProduceResponse(ByteBuffer buf) {
-        int topicCount = buf.getInt();
-        List<ProduceResponse.TopicResponse> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String name = readString(buf);
-            int partCount = buf.getInt();
-            List<ProduceResponse.PartitionResponse> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                parts.add(new ProduceResponse.PartitionResponse(
-                        buf.getInt(), buf.getShort(), buf.getLong(), buf.getLong()));
-            }
-            topics.add(new ProduceResponse.TopicResponse(name, parts));
-        }
-        int throttle = buf.getInt();
-        return new ProduceResponse(topics, throttle);
+        return ProduceCodec.decodeResponse(ProduceCodec.PINNED_VERSION, buf);
     }
 
     // ===== Fetch (1) =====
