@@ -221,4 +221,79 @@ final class KafkaCodecPrimitives {
         if (len > 0) buf.get(bytes);
         return bytes;
     }
+
+    // ===== Non-nullable compact strings + tagged-field skipping (flexible versions) =====
+    // Used by ApiVersions v3, where several string fields (clientSoftwareName, feature
+    // names) are non-nullable on the wire: varint(length + 1) + UTF-8 bytes, no null marker.
+
+    /**
+     * Writes a non-nullable string in flexible encoding: varint(length + 1) + UTF-8 bytes.
+     * A null value is treated as the empty string (varint 1), matching the non-nullable
+     * default on the wire.
+     */
+    static void writeCompactStringNonNullable(ByteBuffer buf, String s) {
+        if (s == null) {
+            s = "";
+        }
+        byte[] bytes = s.getBytes(StandardCharsets.UTF_8);
+        writeVarint(buf, bytes.length + 1);
+        buf.put(bytes);
+    }
+
+    /**
+     * Reads a non-nullable string in flexible encoding.
+     *
+     * @return the string; the empty string if the length varint was 0 (defensive — a valid
+     *         non-nullable field never encodes 0)
+     */
+    static String readCompactStringNonNullable(ByteBuffer buf) {
+        int len = readVarint(buf);
+        if (len <= 0) {
+            return "";
+        }
+        len -= 1;
+        byte[] bytes = new byte[len];
+        if (len > 0) {
+            buf.get(bytes);
+        }
+        return new String(bytes, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Skips a tagged-fields section: the varint count, then for each field the tag varint,
+     * the size varint, and the size bytes. Struct elements and messages carry such a trailer
+     * in flexible versions; unknown fields are skipped rather than parsed.
+     */
+    static void skipTaggedFields(ByteBuffer buf) {
+        int count = readVarint(buf);
+        for (int i = 0; i < count; i++) {
+            readVarint(buf); // tag
+            int size = readVarint(buf);
+            int pos = buf.position();
+            buf.position(pos + size);
+        }
+    }
+
+    /**
+     * Reads a tagged-fields section in flexible encoding: the varint count, then for each
+     * field the tag varint, the size varint, and a positioned {@code content} view of the
+     * field's bytes. Unlike {@link #skipTaggedFields}, this one hands the content to the
+     * caller for typed parsing (size is not pre-consumed).
+     *
+     * @param buf     the read position (advanced past the whole section)
+     * @param tag     the current tag number, or -1 before the first field
+     * @param content remaining content bytes of the current field (empty if none)
+     * @return the next tag number, or -1 when the section is exhausted
+     */
+    static int nextTaggedField(ByteBuffer buf, int tag, ByteBuffer content) {
+        // position = count on first call (tag == -1)
+        if (tag < 0) {
+            return readVarint(buf);
+        }
+        int next = readVarint(buf);
+        int size = readVarint(buf);
+        int pos = buf.position();
+        buf.position(pos + size);
+        return next;
+    }
 }

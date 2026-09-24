@@ -488,7 +488,7 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | v0 | base (0 fields):  | ✓ | v0 commit (see PROGRESS.md) |
 | v1 | + ThrottleTimeMs:int32[1+] | ✓ | v1 commit (see PROGRESS.md) |
 | v2 | unchanged | ✓ | v2 commit (see PROGRESS.md) |
-| v3 | + ClientSoftwareName:string[3+], ClientSoftwareVersion:string[3+], SupportedFeatures:[]SupportedFeatureKey[3+], Name:string[3+](key), MinVersion:int16[3+], MaxVersion:int16[3+], FinalizedFeaturesEpoch:int64[3+], FinalizedFeatures:[]FinalizedFeatureKey[3+], Name:string[3+](key), MaxVersionLevel:int16[3+], MinVersionLevel:int16[3+], ZkMigrationReady:bool[3+]<br>→ flexible encoding | ☐ | |
+| v3 | + ClientSoftwareName:string[3+], ClientSoftwareVersion:string[3+], SupportedFeatures:[]SupportedFeatureKey[3+], Name:string[3+](key), MinVersion:int16[3+], MaxVersion:int16[3+], FinalizedFeaturesEpoch:int64[3+], FinalizedFeatures:[]FinalizedFeatureKey[3+], Name:string[3+](key), MaxVersionLevel:int16[3+], MinVersionLevel:int16[3+], ZkMigrationReady:bool[3+]<br>→ flexible encoding | ✓ | v3 commit (see PROGRESS.md) |
 
 ### SaslAuthenticate (API 36) — v0..v2
 

@@ -927,3 +927,43 @@ Next sub-task (same rules): ApiVersions v2 (response unchanged vs v1 → shared 
   deferred "ApiVersions negotiation + version registry in `KafkaConnection`" row.
 - Next sub-task: ApiVersions v3 (flexible + 4 new request fields + tagged fields) —
   last row of the Negotiation/Auth sub-category.
+
+## 2026-09-24: Negotiation/Auth v3 — ApiVersions v3 (flexible encoding; last row of the sub-category)
+
+- Spec (3.6.1): ApiVersions v3 is the first flexible version **and** the first with new
+  fields on both sides. Request adds `ClientSoftwareName`/`ClientSoftwareVersion`
+  (non-nullable compact strings — null→empty, so both encode as `varint(1)` prefix)
+  followed by a trailing tagged section (count 0 — no request tags in 3.6.1). Response:
+  `ErrorCode` + a **compact** ApiKeys array (each `ApiVersion` = 3×int16 + a per-element
+  tagged trailer `varint(0)`) + `ThrottleTimeMs`, then a tagged section with a **leading
+  count varint** (no trailing sentinel) and, when present, tag 0 = `SupportedFeatures`
+  (implicit compact array), tag 1 = `FinalizedFeaturesEpoch` (int64), tag 2 =
+  `FinalizedFeatures` (implicit compact array), tag 3 = `ZkMigrationReady` (bool). Two
+  wire details pinned from the 3.6.1 generated sources (`ApiVersionsResponseData`):
+  feature `minVersion`/`maxVersion`/`minVersionLevel`/`maxVersionLevel` are **int16**
+  (not int32), and `FinalizedFeatureKey` writes **maxVersionLevel before minVersionLevel**
+  (a 3.6.1 ordering quirk, mirrored exactly).
+- Implemented: dedicated `encodeRequestV3`/`decodeRequestV3`/`encodeResponseV3`/
+  `decodeResponseV3` in `ApiVersionsCodec` (reusing the varint + non-nullable compact
+  string primitives from the SaslAuthenticate v2 row). The tagged section is decoded over
+  a `slice()` window; absent tags fall back to the record defaults (empty lists, `-1L`
+  `ABSENT_FINALIZED_EPOCH`, `false` `zkMigrationReady`), which re-encode byte-identically
+  because the encoder omits absent tags — round-trip is stable. `ApiVersionsResponse`
+  record gains the four v3 components (`supportedFeatures`, `finalizedFeaturesEpoch`,
+  `finalizedFeatures`, `zkMigrationReady`); the existing convenience constructors are
+  preserved (they emit the absent-tag defaults), and the `-1L` sentinel is exposed as
+  `ApiVersionsResponse.ABSENT_FINALIZED_EPOCH`.
+- Tests: 6 new ApiVersions v3 cases in `NegotiationAuthCodecTest` (nested 7→12, the v3
+  stub removed): exact 13-byte request + null→empty round-trip; exact 15-byte minimal
+  response (every byte asserted); absent-features decode→defaults→byte-identical re-encode;
+  an exact 54-byte all-four-tags vector verifying every offset incl. max-before-min
+  ordering, int16 feature versions, and the implicit-list `varint(size+1)` tag payload
+  size (11, not 24 — the size varint covers only the payload, the array marker is part of
+  it); unknown-tag skip advancing to the exact boundary. Full module suite **459 green**
+  (was 454).
+- Out of scope (unchanged): facade/broker version-echo wiring + flexible response headers
+  — still the deferred "ApiVersions negotiation + version registry in `KafkaConnection`"
+  row (facade dispatches at v0; the v3 paths are unit-tested via the `short version`
+  parameter).
+- Next: next sub-category per the plan matrix (Record I/O), then the deferred
+  version-registry wiring row.

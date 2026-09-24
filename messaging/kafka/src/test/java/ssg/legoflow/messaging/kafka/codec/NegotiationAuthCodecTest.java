@@ -19,7 +19,6 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -138,13 +137,147 @@ class NegotiationAuthCodecTest {
         }
 
         @Test
-        @DisplayName("v3 throws CodecNotImplementedException (flexible encoding, pending)")
-        void v3Throws() {
-            assertThrows(CodecNotImplementedException.class,
-                    () -> ApiVersionsCodec.encodeResponse((short) 3,
-                            new ApiVersionsResponse((short) 0, List.of(), 100L)));
-            assertThrows(CodecNotImplementedException.class,
-                    () -> ApiVersionsCodec.decodeResponse((short) 3, ByteBuffer.allocate(6)));
+        @DisplayName("v3 request encodes to exact bytes: 2 non-nullable compact strings + tagged count 0")
+        void v3RequestExactBytes() {
+            ApiVersionsRequest req = new ApiVersionsRequest("kafka", "3.6.1");
+            byte[] body = ApiVersionsCodec.encodeRequest((short) 3, req);
+            // "kafka": varint(6) + 5 bytes; "3.6.1": varint(6) + 5 bytes; tagged count varint(0)
+            assertArrayEquals(
+                    new byte[]{0x06, 'k', 'a', 'f', 'k', 'a', 0x06, '3', '.', '6', '.', '1', 0x00},
+                    body);
+
+            ApiVersionsRequest decoded = ApiVersionsCodec.decodeRequest((short) 3, ByteBuffer.wrap(body));
+            assertEquals(req, decoded);
+        }
+
+        @Test
+        @DisplayName("v3 request null values default to empty compact strings and round-trip")
+        void v3RequestNullsAreEmptyStrings() {
+            byte[] body = ApiVersionsCodec.encodeRequest((short) 3, new ApiVersionsRequest());
+            assertArrayEquals(new byte[]{0x01, 0x01, 0x00}, body);
+            assertEquals(new ApiVersionsRequest(),
+                    ApiVersionsCodec.decodeRequest((short) 3, ByteBuffer.wrap(body)));
+        }
+
+        @Test
+        @DisplayName("v3 response minimal: 1 apiKey, no features — 17 exact bytes")
+        void v3ResponseMinimalExactBytes() {
+            ApiVersionsResponse resp = new ApiVersionsResponse((short) 0,
+                    List.of(new ApiVersionsResponse.ApiVersion((short) 18, (short) 0, (short) 3)), 150L);
+            byte[] body = ApiVersionsCodec.encodeResponse((short) 3, resp);
+            // errorCode(2) + array varint(size+1=2)(1) + apiKey 3*2(6) + element tagged count(1) + throttle(4) + tagged section count(1) = 15
+            assertEquals(15, body.length, "2 + 1 + 6 + 1 + 4 + 1");
+            ByteBuffer buf = ByteBuffer.wrap(body);
+            assertEquals(0, buf.getShort(), "errorCode");
+            assertEquals(2, body[2] & 0xFF, "compact array marker = size+1");
+            buf.position(3);
+            assertEquals(18, buf.getShort(), "apiKey");
+            assertEquals(0, buf.getShort(), "minVersion");
+            assertEquals(3, buf.getShort(), "maxVersion");
+            assertEquals(0, body[9] & 0xFF, "per-element tagged count");
+            buf.position(10);
+            assertEquals(150, buf.getInt(), "throttleTimeMs");
+            assertEquals(0, body[14] & 0xFF, "tagged section count = 0");
+        }
+
+        @Test
+        @DisplayName("v3 response without feature tags decodes to defaults (-1 epoch, empty lists, false flag)")
+        void v3ResponseAbsentFeaturesDefault() {
+            ApiVersionsResponse resp = new ApiVersionsResponse((short) 0,
+                    List.of(new ApiVersionsResponse.ApiVersion((short) 0, (short) 0, (short) 6)), 0L);
+            byte[] body = ApiVersionsCodec.encodeResponse((short) 3, resp);
+
+            ApiVersionsResponse decoded = ApiVersionsCodec.decodeResponse((short) 3, ByteBuffer.wrap(body));
+            assertEquals(resp, decoded, "absent tags must decode to the record defaults");
+            assertEquals(ApiVersionsResponse.ABSENT_FINALIZED_EPOCH, decoded.finalizedFeaturesEpoch());
+            assertTrue(decoded.supportedFeatures().isEmpty());
+            assertTrue(decoded.finalizedFeatures().isEmpty());
+            assertEquals(false, decoded.zkMigrationReady());
+            // re-encoding the decoded value is byte-identical (absent tags stay absent)
+            assertArrayEquals(body, ApiVersionsCodec.encodeResponse((short) 3, decoded));
+        }
+
+        @Test
+        @DisplayName("v3 response with all four feature tags — exact 54-byte vector")
+        void v3ResponseAllFeatureTagsExactBytes() {
+            ApiVersionsResponse resp = new ApiVersionsResponse((short) 0,
+                    List.of(new ApiVersionsResponse.ApiVersion((short) 18, (short) 0, (short) 3)), 150L,
+                    List.of(new ApiVersionsResponse.SupportedFeatureKey("rack", (short) 0, (short) 1)),
+                    42L,
+                    List.of(new ApiVersionsResponse.FinalizedFeatureKey("rack", (short) 1, (short) 0)),
+                    true);
+            byte[] body = ApiVersionsCodec.encodeResponse((short) 3, resp);
+            // errorCode(2) + array marker(1) + element[3*2 + trailer(1)] + throttle(4) + section count(1)
+            // + tag0: tag(1) size(1) payload(11)  [list count(1) + "rack"(prefix1+4) + min(2) max(2) trailer(1)]
+            // + tag1: tag(1) size(1) long(8)
+            // + tag2: tag(1) size(1) payload(11) [list count(1) + "rack"(prefix1+4) + max(2) min(2) trailer(1)]
+            // + tag3: tag(1) size(1) byte(1)
+            assertEquals(54, body.length, "exact v3 wire size");
+            ByteBuffer buf = ByteBuffer.wrap(body);
+            assertEquals(0, buf.getShort(), "errorCode");                    // pos 2
+            assertEquals(2, body[2] & 0xFF, "array marker = size+1");
+            buf.position(3);
+            assertEquals(18, buf.getShort(), "apiKey");                      // pos 4
+            assertEquals(0, buf.getShort(), "minVersion");                   // pos 6
+            assertEquals(3, buf.getShort(), "maxVersion");                   // pos 8
+            assertEquals(0, body[9] & 0xFF, "per-element tagged count");
+            buf.position(10);
+            assertEquals(150, buf.getInt(), "throttleTimeMs");               // pos 14
+            assertEquals(4, body[14] & 0xFF, "tagged section count = 4");
+            assertEquals(0, body[15] & 0xFF, "tag 0");
+            assertEquals(11, body[16] & 0xFF, "tag 0 payload size");
+            assertEquals(2, body[17] & 0xFF, "implicit list count = size+1");
+            assertEquals(5, body[18] & 0xFF, "compact string prefix len+1");
+            assertEquals("rack", new String(body, 19, 4, java.nio.charset.StandardCharsets.UTF_8), "feature name");
+            assertEquals(0, buf.position(23).getShort(), "supported.minVersion");
+            assertEquals(1, buf.position(25).getShort(), "supported.maxVersion");
+            assertEquals(0, body[27] & 0xFF, "supported element tagged count");
+            assertEquals(1, body[28] & 0xFF, "tag 1");
+            assertEquals(8, body[29] & 0xFF, "tag 1 size");
+            assertEquals(42L, buf.position(30).getLong(), "finalizedFeaturesEpoch");
+            assertEquals(2, body[38] & 0xFF, "tag 2");
+            assertEquals(11, body[39] & 0xFF, "tag 2 payload size");
+            assertEquals(2, body[40] & 0xFF, "implicit list count");
+            assertEquals(5, body[41] & 0xFF, "compact string prefix len+1");
+            assertEquals("rack", new String(body, 42, 4, java.nio.charset.StandardCharsets.UTF_8), "finalized name");
+            assertEquals(1, buf.position(46).getShort(), "finalized.maxVersionLevel (wire: max before min)");
+            assertEquals(0, buf.position(48).getShort(), "finalized.minVersionLevel");
+            assertEquals(0, body[50] & 0xFF, "finalized element tagged count");
+            assertEquals(3, body[51] & 0xFF, "tag 3");
+            assertEquals(1, body[52] & 0xFF, "tag 3 size");
+            assertEquals(1, body[53] & 0xFF, "zkMigrationReady byte");
+
+            ApiVersionsResponse decoded = ApiVersionsCodec.decodeResponse((short) 3, ByteBuffer.wrap(body));
+            assertEquals(resp, decoded, "decoded record must equal the encoded one");
+            assertArrayEquals(body, ApiVersionsCodec.encodeResponse((short) 3, decoded),
+                    "re-encode must be byte-identical");
+        }
+
+        @Test
+        @DisplayName("v3 response decoder skips unknown tags and advances to the exact tag boundary")
+        void v3ResponseUnknownTagSkipped() {
+            byte[] base = ApiVersionsCodec.encodeResponse((short) 3,
+                    new ApiVersionsResponse((short) 0,
+                            List.of(new ApiVersionsResponse.ApiVersion((short) 18, (short) 0, (short) 3)), 150L));
+            assertEquals(15, base.length);
+            // splice: keep base[0..13] (everything through throttle), override the
+            // tagged-section count at 14 from 0 to 1, then append one unknown tag
+            // (7) with size 5 and 5 payload bytes.
+            byte[] spliced = new byte[15 + 1 + 7];
+            System.arraycopy(base, 0, spliced, 0, 14);
+            spliced[14] = 0x01; // tagged count = 1
+            spliced[15] = 0x07; // unknown tag 7
+            spliced[16] = 0x05; // size 5
+            spliced[17] = (byte) 0xDE;
+            spliced[18] = (byte) 0xAD;
+            spliced[19] = (byte) 0xBE;
+            spliced[20] = (byte) 0xEF;
+            spliced[21] = 0x12;
+
+            ApiVersionsResponse decoded = ApiVersionsCodec.decodeResponse((short) 3, ByteBuffer.wrap(spliced));
+            assertEquals(new ApiVersionsResponse((short) 0,
+                    List.of(new ApiVersionsResponse.ApiVersion((short) 18, (short) 0, (short) 3)), 150L), decoded,
+                    "unknown tag must be skipped entirely");
         }
     }
 
