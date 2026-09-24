@@ -30,7 +30,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  *       ErrorCode(int16) + BaseOffset(int64))). <b>No</b> ThrottleTimeMs (v1+) and no
  *       LogAppendTimeMs (v2+): carried model values are discarded on encode; decoded
  *       values are defaulted (0 / -1).</li>
- *   <li>v1+ throw {@link CodecNotImplementedException} (no silent fall-through).</li>
+ *   <li>v1: request byte-identical to v0 ("Version 1 and 2 are the same as version 0");
+ *       response = v0 layout + trailing ThrottleTimeMs(int32) after the TopicData array
+ *       (LogAppendTimeMs is a v2+ field — still absent in the v1 partition).</li>
+ *   <li>v2+ throw {@link CodecNotImplementedException} (no silent fall-through).</li>
  * </ul>
  */
 class ProduceCodecTest {
@@ -38,6 +41,36 @@ class ProduceCodecTest {
     @Nested
     @DisplayName("Produce request (key 0)")
     class Request {
+
+        @Test
+        @DisplayName("v1 request is byte-identical to v0 (spec: v1 same as v0)")
+        void v1RequestByteIdenticalToV0() {
+            var req = new ProduceRequest(null, (short) -1, 30000,
+                    List.of(new ProduceRequest.TopicData("topic", List.of(
+                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3})))));
+
+            byte[] v0 = ProduceCodec.encodeRequest((short) 0, req);
+            byte[] v1 = ProduceCodec.encodeRequest((short) 1, req);
+
+            assertArrayEquals(v0, v1, "v1 request must be byte-identical to v0");
+            var decoded = ProduceCodec.decodeRequest((short) 1, ByteBuffer.wrap(v1));
+            assertNull(decoded.transactionalId(), "v1 has no TransactionalId (added v3)");
+            assertEquals((short) -1, decoded.acks());
+            assertEquals(30000, decoded.timeoutMs());
+            assertEquals("topic", decoded.topicData().getFirst().name());
+        }
+
+        @Test
+        @DisplayName("v1 request round-trips with null records")
+        void v1RequestNullRecords() {
+            var req = new ProduceRequest(null, (short) 1, 5000,
+                    List.of(new ProduceRequest.TopicData("t", List.of(
+                            new ProduceRequest.PartitionData(7, null)))));
+
+            byte[] body = ProduceCodec.encodeRequest((short) 1, req);
+            var decoded = ProduceCodec.decodeRequest((short) 1, ByteBuffer.wrap(body));
+            assertNull(decoded.topicData().getFirst().partitionData().getFirst().records());
+        }
 
         @Test
         @DisplayName("v0 round-trips acks/timeout/topics with records")
@@ -198,6 +231,70 @@ class ProduceCodecTest {
             assertEquals(KafkaErrorsForTest.UNKNOWN_TOPIC, pr.errorCode());
             assertEquals(-1L, pr.baseOffset());
         }
+
+        @Test
+        @DisplayName("v1 response round-trips the trailing ThrottleTimeMs (LogAppendTimeMs still absent)")
+        void v1RoundTrip() {
+            var resp = new ProduceResponse(List.of(
+                    new ProduceResponse.TopicResponse("topic", List.of(
+                            new ProduceResponse.PartitionResponse(0, (short) 0, 42L, 999L)))), 250);
+
+            byte[] body = ProduceCodec.encodeResponse((short) 1, resp);
+            var decoded = ProduceCodec.decodeResponse((short) 1, ByteBuffer.wrap(body));
+
+            assertEquals(1, decoded.responses().size());
+            var pr = decoded.responses().getFirst().partitionResponses().getFirst();
+            assertEquals(0, pr.partitionIndex());
+            assertEquals(42L, pr.baseOffset());
+            assertEquals(-1L, pr.logAppendTimeMs(), "v1 has no LogAppendTimeMs (added v2) — default -1");
+            assertEquals(250, decoded.throttleTimeMs(), "v1 writes the carried ThrottleTimeMs");
+        }
+
+        @Test
+        @DisplayName("v1 exact byte layout — v0 body + trailing ThrottleTimeMs(int32); no LogAppendTimeMs")
+        void v1ExactBytes() {
+            var resp = new ProduceResponse(List.of(
+                    new ProduceResponse.TopicResponse("topic", List.of(
+                            new ProduceResponse.PartitionResponse(3, (short) 5, 100L, 777L)))), 1234);
+
+            byte[] body = ProduceCodec.encodeResponse((short) 1, resp);
+
+            // topicCount(4) + name(2+5) + partCount(4) + (index 4 + error 2 + offset 8) + throttle(4) = 33
+            assertEquals(33, body.length, "4+(2+5)+4+14+4");
+
+            ByteBuffer buf = ByteBuffer.wrap(body);
+            assertEquals(1, buf.getInt(), "TopicData count");
+            assertEquals(5, buf.getShort(), "Name length");
+            byte[] name = new byte[5];
+            buf.get(name);
+            assertEquals("topic", StandardCharsets.UTF_8.decode(ByteBuffer.wrap(name)).toString(), "Name");
+            assertEquals(1, buf.getInt(), "PartitionResponse count");
+            assertEquals(3, buf.getInt(), "Partition index");
+            assertEquals((short) 5, buf.getShort(), "ErrorCode");
+            assertEquals(100L, buf.getLong(), "BaseOffset");
+            assertEquals(1234, buf.getInt(), "ThrottleTimeMs (trailing, after the array)");
+            assertEquals(0, buf.remaining(), "no LogAppendTimeMs at v1");
+        }
+
+        @Test
+        @DisplayName("v1 response across multiple topics carries one trailing throttle")
+        void v1MultipleTopics() {
+            var resp = new ProduceResponse(List.of(
+                    new ProduceResponse.TopicResponse("t1", List.of(
+                            new ProduceResponse.PartitionResponse(0, (short) 0, 1L, 0L),
+                            new ProduceResponse.PartitionResponse(1, (short) 3, -1L, 0L))),
+                    new ProduceResponse.TopicResponse("t2", List.of(
+                            new ProduceResponse.PartitionResponse(0, (short) 0, 7L, 0L)))), 55);
+
+            byte[] body = ProduceCodec.encodeResponse((short) 1, resp);
+            var decoded = ProduceCodec.decodeResponse((short) 1, ByteBuffer.wrap(body));
+
+            assertEquals(2, decoded.responses().size());
+            assertEquals(2, decoded.responses().get(0).partitionResponses().size());
+            assertEquals((short) 3, decoded.responses().get(0).partitionResponses().get(1).errorCode());
+            assertEquals(7L, decoded.responses().get(1).partitionResponses().get(0).baseOffset());
+            assertEquals(55, decoded.throttleTimeMs());
+        }
     }
 
     @Nested
@@ -205,13 +302,13 @@ class ProduceCodecTest {
     class Dispatch {
 
         @Test
-        @DisplayName("v1 request throws CodecNotImplementedException (not a silent fall-through)")
-        void v1RequestNotImplemented() {
+        @DisplayName("v2 request throws CodecNotImplementedException (not a silent fall-through)")
+        void v2RequestNotImplemented() {
             var req = new ProduceRequest(null, (short) 1, 1000,
                     List.of(new ProduceRequest.TopicData("t", List.of(
                             new ProduceRequest.PartitionData(0, new byte[]{1})))));
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.encodeRequest((short) 1, req));
+                    () -> ProduceCodec.encodeRequest((short) 2, req));
         }
 
         @Test
@@ -225,24 +322,24 @@ class ProduceCodecTest {
         }
 
         @Test
-        @DisplayName("v1 response throws CodecNotImplementedException")
-        void v1ResponseNotImplemented() {
+        @DisplayName("v2 response throws CodecNotImplementedException")
+        void v2ResponseNotImplemented() {
             var resp = new ProduceResponse(List.of(
                     new ProduceResponse.TopicResponse("t", List.of(
                             new ProduceResponse.PartitionResponse(0, (short) 0, 0L, 0L)))), 0);
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.encodeResponse((short) 1, resp));
+                    () -> ProduceCodec.encodeResponse((short) 2, resp));
         }
 
         @Test
-        @DisplayName("v1 decode throws CodecNotImplementedException")
-        void v1DecodeNotImplemented() {
+        @DisplayName("v2 request decode throws CodecNotImplementedException")
+        void v2DecodeNotImplemented() {
             var req = new ProduceRequest(null, (short) 1, 1000,
                     List.of(new ProduceRequest.TopicData("t", List.of(
                             new ProduceRequest.PartitionData(0, new byte[]{1})))));
             byte[] body = ProduceCodec.encodeRequest((short) 0, req);
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.decodeRequest((short) 1, ByteBuffer.wrap(body)));
+                    () -> ProduceCodec.decodeRequest((short) 2, ByteBuffer.wrap(body)));
         }
     }
 
