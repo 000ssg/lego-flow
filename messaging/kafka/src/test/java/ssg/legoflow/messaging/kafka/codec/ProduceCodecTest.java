@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Produce (API key 0) v0 unit tests — Phase 6a, Record I/O, first row.
@@ -49,7 +50,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  *       the v3/v5 methods.</li>
  *   <li>v7: unchanged in both directions (no field version range differs at v7+ vs v6)
  *       — all four dispatches fall through to the v3/v5 methods.</li>
- *   <li>v8+ throw {@link CodecNotImplementedException} (no silent fall-through).</li>
+ *   <li>v8: request unchanged vs v7 (falls through to the v3 methods); the response
+ *       partition gains RecordErrors([]BatchIndexAndErrorMessage: BatchIndex int32 +
+ *       BatchIndexErrorMessage string|null) and a trailing nullable ErrorMessage(string)
+ *       after LogStartOffset (both ignorable) — dedicated response methods, partition
+ *       width 30 + variable bytes.</li>
+ *   <li>v9+ throw {@link CodecNotImplementedException}.</li>
  * </ul>
  */
 class ProduceCodecTest {
@@ -709,49 +715,155 @@ class ProduceCodecTest {
     }
 
     @Nested
+    @DisplayName("v8 request")
+    class RequestV8 {
+
+        @Test
+        @DisplayName("v8 request is byte-identical to v7 (no request field differs at v8+)")
+        void v8RequestByteIdenticalToV7() {
+            var req = new ProduceRequest("txn-1", (short) -1, 5000,
+                    List.of(new ProduceRequest.TopicData("t8",
+                            List.of(new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3}),
+                                    new ProduceRequest.PartitionData(1, new byte[0])))));
+
+            byte[] bodyV8 = ProduceCodec.encodeRequest((short) 8, req);
+            byte[] bodyV7 = ProduceCodec.encodeRequest((short) 7, req);
+            assertArrayEquals(bodyV7, bodyV8, "v8 request must be byte-identical to v7");
+        }
+
+        @Test
+        @DisplayName("v8 request round-trips through the v3 methods (no dedicated path)")
+        void v8RequestRoundTrip() {
+            var req = new ProduceRequest("txn-8", (short) -1, 60000,
+                    List.of(new ProduceRequest.TopicData("tx8",
+                            List.of(new ProduceRequest.PartitionData(2, new byte[]{9, 8, 7, 6})))));
+
+            byte[] body = ProduceCodec.encodeRequest((short) 8, req);
+            var decoded = ProduceCodec.decodeRequest((short) 8, ByteBuffer.wrap(body));
+
+            assertEquals("txn-8", decoded.transactionalId());
+            assertEquals((short) -1, decoded.acks());
+            assertEquals(60000, decoded.timeoutMs());
+            assertEquals("tx8", decoded.topicData().getFirst().name());
+            assertEquals(2, decoded.topicData().getFirst().partitionData().getFirst().index());
+            assertArrayEquals(new byte[]{9, 8, 7, 6},
+                    decoded.topicData().getFirst().partitionData().getFirst().records());
+        }
+    }
+
+    @Nested
+    @DisplayName("v8 response")
+    class ResponseV8 {
+
+        @Test
+        @DisplayName("v8 response round-trips RecordErrors and ErrorMessage")
+        void v8RoundTrip() {
+            var resp = new ProduceResponse(List.of(
+                    new ProduceResponse.TopicResponse("topic", List.of(
+                            new ProduceResponse.PartitionResponse(0, (short) 0, 42L, 111L, 999L,
+                                    List.of(new ProduceResponse.PartitionResponse.BatchIndexAndErrorMessage(
+                                            7, "corrupt batch"),
+                                            new ProduceResponse.PartitionResponse.BatchIndexAndErrorMessage(
+                                                    9, null)),
+                                    "summary message")))), 30);
+
+            byte[] body = ProduceCodec.encodeResponse((short) 8, resp);
+            var decoded = ProduceCodec.decodeResponse((short) 8, ByteBuffer.wrap(body));
+
+            var pr = decoded.responses().getFirst().partitionResponses().getFirst();
+            assertEquals(42L, pr.baseOffset());
+            assertEquals(111L, pr.logAppendTimeMs());
+            assertEquals(999L, pr.logStartOffset());
+            assertEquals(2, pr.recordErrors().size());
+            assertEquals(7, pr.recordErrors().get(0).batchIndex());
+            assertEquals("corrupt batch", pr.recordErrors().get(0).batchIndexErrorMessage());
+            assertEquals(9, pr.recordErrors().get(1).batchIndex());
+            assertNull(pr.recordErrors().get(1).batchIndexErrorMessage());
+            assertEquals("summary message", pr.errorMessage());
+            assertEquals(30, decoded.throttleTimeMs());
+        }
+
+        @Test
+        @DisplayName("v8 response has the exact expected wire layout")
+        void v8ExactBytes() {
+            var resp = new ProduceResponse(List.of(
+                    new ProduceResponse.TopicResponse("t", List.of(
+                            new ProduceResponse.PartitionResponse(0, (short) 0, 1L, 0L, -1L,
+                                    List.of(new ProduceResponse.PartitionResponse.BatchIndexAndErrorMessage(
+                                            3, "bad")),
+                                    "sum")))), 0);
+
+            byte[] body = ProduceCodec.encodeResponse((short) 8, resp);
+            // topicCount(4) + t(2+1) + partCount(4) + 30 + recordErrors count(4)
+            // + entry batchIndex(4) + "bad"(2+3) + "sum"(2+3) + throttle(4) = 63
+            assertEquals(63, body.length, "exact v8 wire layout");
+            var decoded = ProduceCodec.decodeResponse((short) 8, ByteBuffer.wrap(body));
+            assertEquals("bad", decoded.responses().getFirst().partitionResponses()
+                    .getFirst().recordErrors().getFirst().batchIndexErrorMessage());
+        }
+
+        @Test
+        @DisplayName("v8 response round-trips null recordErrors/errorMessage as empty array / null")
+        void v8NullErrorsRoundTrip() {
+            var resp = new ProduceResponse(List.of(
+                    new ProduceResponse.TopicResponse("t", List.of(
+                            new ProduceResponse.PartitionResponse(0, (short) 0, 0L, 0L)))), 0);
+            // 5-arg compat constructor: logStartOffset -1, recordErrors null, errorMessage null.
+
+            byte[] body = ProduceCodec.encodeResponse((short) 8, resp);
+            // 30 + recordErrors count(4) + errorMessage len(2) + 0 = 36 per partition.
+            var decoded = ProduceCodec.decodeResponse((short) 8, ByteBuffer.wrap(body));
+
+            var pr = decoded.responses().getFirst().partitionResponses().getFirst();
+            assertTrue(pr.recordErrors().isEmpty(), "null recordErrors decodes as an empty array");
+            assertNull(pr.errorMessage());
+        }
+    }
+
+    @Nested
     @DisplayName("Version dispatch")
     class Dispatch {
 
         @Test
-        @DisplayName("v8 request encode throws CodecNotImplementedException (next unimplemented)")
-        void v8RequestEncodeNotImplemented() {
+        @DisplayName("v9 request encode throws CodecNotImplementedException (next unimplemented)")
+        void v9RequestEncodeNotImplemented() {
             var req = new ProduceRequest(null, (short) 1, 1000,
                     List.of(new ProduceRequest.TopicData("t", List.of(
                             new ProduceRequest.PartitionData(0, new byte[]{1})))));
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.encodeRequest((short) 8, req));
+                    () -> ProduceCodec.encodeRequest((short) 9, req));
         }
 
         @Test
-        @DisplayName("v8 request decode throws CodecNotImplementedException")
-        void v8RequestDecodeNotImplemented() {
+        @DisplayName("v9 request decode throws CodecNotImplementedException")
+        void v9RequestDecodeNotImplemented() {
             var req = new ProduceRequest(null, (short) 1, 1000,
                     List.of(new ProduceRequest.TopicData("t", List.of(
                             new ProduceRequest.PartitionData(0, new byte[]{1})))));
             byte[] body = ProduceCodec.encodeRequest((short) 0, req);
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.decodeRequest((short) 8, ByteBuffer.wrap(body)));
+                    () -> ProduceCodec.decodeRequest((short) 9, ByteBuffer.wrap(body)));
         }
 
         @Test
-        @DisplayName("v8 response encode throws CodecNotImplementedException")
-        void v8ResponseEncodeNotImplemented() {
+        @DisplayName("v9 response encode throws CodecNotImplementedException")
+        void v9ResponseEncodeNotImplemented() {
             var resp = new ProduceResponse(List.of(
                     new ProduceResponse.TopicResponse("t", List.of(
                             new ProduceResponse.PartitionResponse(0, (short) 0, 0L, 0L)))), 0);
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.encodeResponse((short) 8, resp));
+                    () -> ProduceCodec.encodeResponse((short) 9, resp));
         }
 
         @Test
-        @DisplayName("v8 response decode throws CodecNotImplementedException")
-        void v8ResponseDecodeNotImplemented() {
+        @DisplayName("v9 response decode throws CodecNotImplementedException")
+        void v9ResponseDecodeNotImplemented() {
             var resp = new ProduceResponse(List.of(
                     new ProduceResponse.TopicResponse("t", List.of(
                             new ProduceResponse.PartitionResponse(0, (short) 0, 0L, 0L)))), 0);
             byte[] body = ProduceCodec.encodeResponse((short) 0, resp);
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.decodeResponse((short) 8, ByteBuffer.wrap(body)));
+                    () -> ProduceCodec.decodeResponse((short) 9, ByteBuffer.wrap(body)));
         }
     }
 

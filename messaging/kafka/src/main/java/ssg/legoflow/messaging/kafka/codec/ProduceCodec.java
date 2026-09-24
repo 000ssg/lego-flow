@@ -43,6 +43,10 @@ import java.util.List;
  *       through to the v3/v5 methods.</li>
  *   <li>v7 — unchanged in both directions (spec: no field version ranges differ at
  *       v7+ vs v6); all four dispatches fall through to the v3/v5 methods.</li>
+ *   <li>v8 — request unchanged; the response partition gains RecordErrors
+ *       ([]BatchIndexAndErrorMessage: BatchIndex int32 + BatchIndexErrorMessage
+ *       string|null) and a trailing nullable ErrorMessage(string) after LogStartOffset
+ *       (both ignorable). Dedicated response methods, partition width 30 to 38+ bytes.</li>
  * </ul>
  *
  * <p>The {@link ProduceRequest} model keeps {@code transactionalId} for v3+; at v0–v2 it
@@ -83,6 +87,7 @@ public final class ProduceCodec {
             case 5: // v5 request unchanged vs v4
             case 6: // v6 request unchanged vs v5
             case 7: // v7 request unchanged vs v6
+            case 8: // v8 request unchanged vs v7
                 return encodeRequestV3(req);
             default:
                 throw new CodecNotImplementedException("Produce request v" + version + " not implemented");
@@ -108,6 +113,7 @@ public final class ProduceCodec {
             case 5: // v5 request unchanged vs v4
             case 6: // v6 request unchanged vs v5
             case 7: // v7 request unchanged vs v6
+            case 8: // v8 request unchanged vs v7
                 return decodeRequestV3(buf);
             default:
                 throw new CodecNotImplementedException("Produce request v" + version + " not implemented");
@@ -137,6 +143,8 @@ public final class ProduceCodec {
             case 6: // v6 response unchanged vs v5
             case 7: // v7 response unchanged vs v6
                 return encodeResponseV5(resp);
+            case 8: // v8 response partition gains RecordErrors + ErrorMessage
+                return encodeResponseV8(resp);
             default:
                 throw new CodecNotImplementedException("Produce response v" + version + " not implemented");
         }
@@ -165,6 +173,8 @@ public final class ProduceCodec {
             case 6: // v6 response unchanged vs v5
             case 7: // v7 response unchanged vs v6
                 return decodeResponseV5(buf);
+            case 8: // v8 response partition gains RecordErrors + ErrorMessage
+                return decodeResponseV8(buf);
             default:
                 throw new CodecNotImplementedException("Produce response v" + version + " not implemented");
         }
@@ -476,6 +486,106 @@ public final class ProduceCodec {
                 long logStartOffset = buf.getLong();
                 partitions.add(new ProduceResponse.PartitionResponse(index, errorCode, baseOffset,
                         logAppendTimeMs, logStartOffset));
+            }
+            topics.add(new ProduceResponse.TopicResponse(name, partitions));
+        }
+        // Trailing ThrottleTimeMs:int32 — retained from v1.
+        int throttleTimeMs = buf.getInt();
+        return new ProduceResponse(topics, throttleTimeMs);
+    }
+
+    // ===== v8 — request unchanged vs v7 (shared V3 methods above).
+    // ===== v8 — response: per-partition RecordErrors (a count-prefixed array of
+    // =====   {BatchIndex:int32, BatchIndexErrorMessage:string|null}) and a trailing
+    // =====   ErrorMessage(string|null) after LogStartOffset (both ignorable) =====
+
+    private static byte[] encodeResponseV8(ProduceResponse resp) {
+        // Fixed overhead: topic count(int32) + ThrottleTimeMs(int32) = 8.
+        // Per topic: 4 (partition count) + 2 (name length) + name.
+        // Per partition response: 4 (index) + 2 (error) + 8 (baseOffset) + 8 (logAppendTime)
+        // + 8 (logStartOffset) = 30, plus 4 (recordErrors count) + per-entry 4 (batchIndex)
+        // + 2 (len) + msg, plus 2 (len) + msg for ErrorMessage (0 each when null).
+        int size = 8;
+        for (var topic : resp.responses()) {
+            size += 4 + 2 + topic.name().getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
+            for (var pr : topic.partitionResponses()) {
+                size += 30 + 4;
+                var errs = pr.recordErrors();
+                if (errs != null) {
+                    for (var e : errs) {
+                        int entryLen = e.batchIndexErrorMessage() == null ? 0
+                                : e.batchIndexErrorMessage().getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
+                        size += 4 + 2 + entryLen;
+                    }
+                }
+                var msg = pr.errorMessage();
+                if (msg != null) {
+                    size += 2 + msg.getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
+                }
+            }
+        }
+        ByteBuffer buf = BufferPool.getBuffer(size);
+        buf.putInt(resp.responses().size());
+        for (var topic : resp.responses()) {
+            KafkaCodecPrimitives.writeString(buf, topic.name());
+            buf.putInt(topic.partitionResponses().size());
+            for (var pr : topic.partitionResponses()) {
+                buf.putInt(pr.partitionIndex());
+                buf.putShort(pr.errorCode());
+                buf.putLong(pr.baseOffset());
+                // LogAppendTimeMs:int64 — v2+, carried value written verbatim.
+                buf.putLong(pr.logAppendTimeMs());
+                // LogStartOffset:int64 — v5+, spec default -1.
+                buf.putLong(pr.logStartOffset());
+                // RecordErrors:[]BatchIndexAndErrorMessage — v8+, ignorable; write an
+                // empty array when the model carries none.
+                var errs = pr.recordErrors();
+                buf.putInt(errs == null ? 0 : errs.size());
+                if (errs != null) {
+                    for (var e : errs) {
+                        buf.putInt(e.batchIndex());
+                        KafkaCodecPrimitives.writeNullableString(buf, e.batchIndexErrorMessage());
+                    }
+                }
+                // ErrorMessage:string|null — v8+, ignorable.
+                KafkaCodecPrimitives.writeNullableString(buf, pr.errorMessage());
+            }
+        }
+        // Trailing ThrottleTimeMs:int32 — retained from v1.
+        buf.putInt(resp.throttleTimeMs());
+        buf.flip();
+        return KafkaCodecPrimitives.toBytes(buf);
+    }
+
+    private static ProduceResponse decodeResponseV8(ByteBuffer buf) {
+        int topicCount = buf.getInt();
+        List<ProduceResponse.TopicResponse> topics = new ArrayList<>(topicCount);
+        for (int i = 0; i < topicCount; i++) {
+            String name = KafkaCodecPrimitives.readString(buf);
+            int partCount = buf.getInt();
+            List<ProduceResponse.PartitionResponse> partitions = new ArrayList<>(partCount);
+            for (int j = 0; j < partCount; j++) {
+                int index = buf.getInt();
+                short errorCode = buf.getShort();
+                long baseOffset = buf.getLong();
+                // LogAppendTimeMs:int64 — v2+, spec default -1.
+                long logAppendTimeMs = buf.getLong();
+                // LogStartOffset:int64 — v5+, spec default -1.
+                long logStartOffset = buf.getLong();
+                // RecordErrors:[]BatchIndexAndErrorMessage — v8+, ignorable.
+                int errorCount = buf.getInt();
+                List<ProduceResponse.PartitionResponse.BatchIndexAndErrorMessage> errs =
+                        new ArrayList<>(errorCount);
+                for (int k = 0; k < errorCount; k++) {
+                    int batchIndex = buf.getInt();
+                    String batchIndexErrorMessage = KafkaCodecPrimitives.readNullableString(buf);
+                    errs.add(new ProduceResponse.PartitionResponse.BatchIndexAndErrorMessage(
+                            batchIndex, batchIndexErrorMessage));
+                }
+                // ErrorMessage:string|null — v8+, ignorable.
+                String errorMessage = KafkaCodecPrimitives.readNullableString(buf);
+                partitions.add(new ProduceResponse.PartitionResponse(index, errorCode, baseOffset,
+                        logAppendTimeMs, logStartOffset, errs, errorMessage));
             }
             topics.add(new ProduceResponse.TopicResponse(name, partitions));
         }
