@@ -26,12 +26,15 @@ import java.util.List;
  *       version 0"); response adds a trailing ThrottleTimeMs(int32) after the TopicData
  *       array. The v1 request shares the v0 methods; the v1 response has dedicated
  *       methods (the partition layout is still v0 — LogAppendTimeMs arrives in v2).</li>
+ *   <li>v2 — request still byte-identical to v0; each response partition gains
+ *       LogAppendTimeMs(int64) after BaseOffset (spec default -1, ignorable), the
+ *       trailing ThrottleTimeMs(int32) is retained from v1.</li>
  * </ul>
  *
- * <p>The {@link ProduceRequest} model keeps {@code transactionalId} for v3+; at v0/v1 it
+ * <p>The {@link ProduceRequest} model keeps {@code transactionalId} for v3+; at v0–v2 it
  * is never written or read (decoded as null). {@link ProduceResponse} keeps
  * {@code throttleTimeMs} (v1+) and the partition-level {@code logAppendTimeMs} (v2+);
- * at v0 the carried throttle value is discarded on encode and defaulted to 0 on decode.
+ * at v0 both carried values are discarded on encode and defaulted (0 / -1) on decode.
  *
  * @since 0.1.0
  */
@@ -58,6 +61,7 @@ public final class ProduceCodec {
         switch (version) {
             case 0:
             case 1: // v1 request is byte-identical to v0 (spec: "Version 1 and 2 are the same as version 0")
+            case 2: // v2 request unchanged vs v1
                 return encodeRequestV0(req);
             default:
                 throw new CodecNotImplementedException("Produce request v" + version + " not implemented");
@@ -76,6 +80,7 @@ public final class ProduceCodec {
         switch (version) {
             case 0:
             case 1: // v1 request byte-identical to v0
+            case 2: // v2 request unchanged vs v1
                 return decodeRequestV0(buf);
             default:
                 throw new CodecNotImplementedException("Produce request v" + version + " not implemented");
@@ -96,6 +101,8 @@ public final class ProduceCodec {
                 return encodeResponseV0(resp);
             case 1:
                 return encodeResponseV1(resp);
+            case 2:
+                return encodeResponseV2(resp);
             default:
                 throw new CodecNotImplementedException("Produce response v" + version + " not implemented");
         }
@@ -115,6 +122,8 @@ public final class ProduceCodec {
                 return decodeResponseV0(buf);
             case 1:
                 return decodeResponseV1(buf);
+            case 2:
+                return decodeResponseV2(buf);
             default:
                 throw new CodecNotImplementedException("Produce response v" + version + " not implemented");
         }
@@ -262,6 +271,60 @@ public final class ProduceCodec {
             topics.add(new ProduceResponse.TopicResponse(name, partitions));
         }
         // Trailing ThrottleTimeMs:int32 — signed int32 per spec.
+        int throttleTimeMs = buf.getInt();
+        return new ProduceResponse(topics, throttleTimeMs);
+    }
+
+    // ===== v2 — request byte-identical to v0 (shared V0 methods above).
+    // ===== v2 — response: per-partition LogAppendTimeMs(int64) after BaseOffset, trailing ThrottleTimeMs(int32) =====
+
+    private static byte[] encodeResponseV2(ProduceResponse resp) {
+        // Fixed overhead: topic count(int32) + ThrottleTimeMs(int32) = 8.
+        // Per topic: 4 (partition count) + 2 (name length) + name.
+        // Per partition response: 4 (index) + 2 (error) + 8 (offset) + 8 (logAppendTime) = 22.
+        int size = 8;
+        for (var topic : resp.responses()) {
+            size += 4 + 2 + topic.name().getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
+            size += 22 * topic.partitionResponses().size();
+        }
+        ByteBuffer buf = BufferPool.getBuffer(size);
+        buf.putInt(resp.responses().size());
+        for (var topic : resp.responses()) {
+            KafkaCodecPrimitives.writeString(buf, topic.name());
+            buf.putInt(topic.partitionResponses().size());
+            for (var pr : topic.partitionResponses()) {
+                buf.putInt(pr.partitionIndex());
+                buf.putShort(pr.errorCode());
+                buf.putLong(pr.baseOffset());
+                // LogAppendTimeMs:int64 — spec default -1 when the broker has no value;
+                // the carried model value is written verbatim.
+                buf.putLong(pr.logAppendTimeMs());
+            }
+        }
+        // Trailing ThrottleTimeMs:int32 — retained from v1.
+        buf.putInt(resp.throttleTimeMs());
+        buf.flip();
+        return KafkaCodecPrimitives.toBytes(buf);
+    }
+
+    private static ProduceResponse decodeResponseV2(ByteBuffer buf) {
+        int topicCount = buf.getInt();
+        List<ProduceResponse.TopicResponse> topics = new ArrayList<>(topicCount);
+        for (int i = 0; i < topicCount; i++) {
+            String name = KafkaCodecPrimitives.readString(buf);
+            int partCount = buf.getInt();
+            List<ProduceResponse.PartitionResponse> partitions = new ArrayList<>(partCount);
+            for (int j = 0; j < partCount; j++) {
+                int index = buf.getInt();
+                short errorCode = buf.getShort();
+                long baseOffset = buf.getLong();
+                // LogAppendTimeMs:int64 — new in v2, spec default -1 (ignorable).
+                long logAppendTimeMs = buf.getLong();
+                partitions.add(new ProduceResponse.PartitionResponse(index, errorCode, baseOffset, logAppendTimeMs));
+            }
+            topics.add(new ProduceResponse.TopicResponse(name, partitions));
+        }
+        // Trailing ThrottleTimeMs:int32 — retained from v1.
         int throttleTimeMs = buf.getInt();
         return new ProduceResponse(topics, throttleTimeMs);
     }
