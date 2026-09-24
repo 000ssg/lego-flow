@@ -47,7 +47,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  *   <li>v6: unchanged in both directions (no field version range differs at v6+ vs v5;
  *       RecordErrors/ErrorMessage arrive in v8) — all four dispatches fall through to
  *       the v3/v5 methods.</li>
- *   <li>v7+ throw {@link CodecNotImplementedException} (no silent fall-through).</li>
+ *   <li>v7: unchanged in both directions (no field version range differs at v7+ vs v6)
+ *       — all four dispatches fall through to the v3/v5 methods.</li>
+ *   <li>v8+ throw {@link CodecNotImplementedException} (no silent fall-through).</li>
  * </ul>
  */
 class ProduceCodecTest {
@@ -661,6 +663,49 @@ class ProduceCodecTest {
             // v5 layout: topicCount(4) + (2+5) + partCount(4) + 30 + throttle(4) = 49
             assertEquals(49, bodyV6.length, "v5 layout unchanged at v6");
         }
+
+        @Test
+        @DisplayName("v7 request is byte-identical to v6 (unchanged version)")
+        void v7RequestByteIdenticalToV6() {
+            var req = new ProduceRequest("producer-7", (short) -1, 30000,
+                    List.of(new ProduceRequest.TopicData("topic", List.of(
+                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3})))));
+
+            byte[] bodyV7 = ProduceCodec.encodeRequest((short) 7, req);
+            byte[] bodyV6 = ProduceCodec.encodeRequest((short) 6, req);
+            assertArrayEquals(bodyV6, bodyV7, "v7 request must be byte-identical to v6");
+        }
+
+        @Test
+        @DisplayName("v7 request round-trips through the v3 methods (no dedicated path)")
+        void v7RoundTrip() {
+            var req = new ProduceRequest("producer-7", (short) 1, 5000,
+                    List.of(new ProduceRequest.TopicData("t", List.of(
+                            new ProduceRequest.PartitionData(7, new byte[]{9})))));
+
+            byte[] body = ProduceCodec.encodeRequest((short) 7, req);
+            var decoded = ProduceCodec.decodeRequest((short) 7, ByteBuffer.wrap(body));
+
+            assertEquals("producer-7", decoded.transactionalId());
+            assertEquals((short) 1, decoded.acks());
+            assertEquals(5000, decoded.timeoutMs());
+            assertEquals("t", decoded.topicData().getFirst().name());
+            assertEquals(7, decoded.topicData().getFirst().partitionData().getFirst().index());
+            assertArrayEquals(new byte[]{9}, decoded.topicData().getFirst().partitionData().getFirst().records());
+        }
+
+        @Test
+        @DisplayName("v7 response is byte-identical to v6 (RecordErrors arrive in v8)")
+        void v7ResponseByteIdenticalToV6() {
+            var resp = new ProduceResponse(List.of(
+                    new ProduceResponse.TopicResponse("topic", List.of(
+                            new ProduceResponse.PartitionResponse(0, (short) 0, 42L, 111L, 999L)))), 250);
+
+            byte[] bodyV7 = ProduceCodec.encodeResponse((short) 7, resp);
+            byte[] bodyV6 = ProduceCodec.encodeResponse((short) 6, resp);
+            assertArrayEquals(bodyV6, bodyV7, "v7 response must be byte-identical to v6");
+            assertEquals(49, bodyV7.length, "v5/v6 layout unchanged at v7");
+        }
     }
 
     @Nested
@@ -668,45 +713,45 @@ class ProduceCodecTest {
     class Dispatch {
 
         @Test
-        @DisplayName("v7 request encode throws CodecNotImplementedException (next unimplemented)")
-        void v7RequestEncodeNotImplemented() {
+        @DisplayName("v8 request encode throws CodecNotImplementedException (next unimplemented)")
+        void v8RequestEncodeNotImplemented() {
             var req = new ProduceRequest(null, (short) 1, 1000,
                     List.of(new ProduceRequest.TopicData("t", List.of(
                             new ProduceRequest.PartitionData(0, new byte[]{1})))));
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.encodeRequest((short) 7, req));
+                    () -> ProduceCodec.encodeRequest((short) 8, req));
         }
 
         @Test
-        @DisplayName("v7 request decode throws CodecNotImplementedException")
-        void v7RequestDecodeNotImplemented() {
+        @DisplayName("v8 request decode throws CodecNotImplementedException")
+        void v8RequestDecodeNotImplemented() {
             var req = new ProduceRequest(null, (short) 1, 1000,
                     List.of(new ProduceRequest.TopicData("t", List.of(
                             new ProduceRequest.PartitionData(0, new byte[]{1})))));
             byte[] body = ProduceCodec.encodeRequest((short) 0, req);
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.decodeRequest((short) 7, ByteBuffer.wrap(body)));
+                    () -> ProduceCodec.decodeRequest((short) 8, ByteBuffer.wrap(body)));
         }
 
         @Test
-        @DisplayName("v7 response encode throws CodecNotImplementedException")
-        void v7ResponseEncodeNotImplemented() {
+        @DisplayName("v8 response encode throws CodecNotImplementedException")
+        void v8ResponseEncodeNotImplemented() {
             var resp = new ProduceResponse(List.of(
                     new ProduceResponse.TopicResponse("t", List.of(
                             new ProduceResponse.PartitionResponse(0, (short) 0, 0L, 0L)))), 0);
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.encodeResponse((short) 7, resp));
+                    () -> ProduceCodec.encodeResponse((short) 8, resp));
         }
 
         @Test
-        @DisplayName("v7 response decode throws CodecNotImplementedException")
-        void v7ResponseDecodeNotImplemented() {
+        @DisplayName("v8 response decode throws CodecNotImplementedException")
+        void v8ResponseDecodeNotImplemented() {
             var resp = new ProduceResponse(List.of(
                     new ProduceResponse.TopicResponse("t", List.of(
                             new ProduceResponse.PartitionResponse(0, (short) 0, 0L, 0L)))), 0);
             byte[] body = ProduceCodec.encodeResponse((short) 0, resp);
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.decodeResponse((short) 7, ByteBuffer.wrap(body)));
+                    () -> ProduceCodec.decodeResponse((short) 8, ByteBuffer.wrap(body)));
         }
     }
 

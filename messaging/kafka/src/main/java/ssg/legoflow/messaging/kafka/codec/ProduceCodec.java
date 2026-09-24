@@ -41,6 +41,8 @@ import java.util.List;
  *   <li>v6 — unchanged in both directions (spec: no field version ranges differ at
  *       v6+ vs v5; RecordErrors/ErrorMessage arrive in v8); all four dispatches fall
  *       through to the v3/v5 methods.</li>
+ *   <li>v7 — unchanged in both directions (spec: no field version ranges differ at
+ *       v7+ vs v6); all four dispatches fall through to the v3/v5 methods.</li>
  * </ul>
  *
  * <p>The {@link ProduceRequest} model keeps {@code transactionalId} for v3+; at v0–v2 it
@@ -80,6 +82,7 @@ public final class ProduceCodec {
             case 4: // v4 request unchanged vs v3
             case 5: // v5 request unchanged vs v4
             case 6: // v6 request unchanged vs v5
+            case 7: // v7 request unchanged vs v6
                 return encodeRequestV3(req);
             default:
                 throw new CodecNotImplementedException("Produce request v" + version + " not implemented");
@@ -104,6 +107,7 @@ public final class ProduceCodec {
             case 4: // v4 request unchanged vs v3
             case 5: // v5 request unchanged vs v4
             case 6: // v6 request unchanged vs v5
+            case 7: // v7 request unchanged vs v6
                 return decodeRequestV3(buf);
             default:
                 throw new CodecNotImplementedException("Produce request v" + version + " not implemented");
@@ -131,6 +135,7 @@ public final class ProduceCodec {
                 return encodeResponseV2(resp);
             case 5: // v5 response partition gains LogStartOffset(int64)
             case 6: // v6 response unchanged vs v5
+            case 7: // v7 response unchanged vs v6
                 return encodeResponseV5(resp);
             default:
                 throw new CodecNotImplementedException("Produce response v" + version + " not implemented");
@@ -158,6 +163,7 @@ public final class ProduceCodec {
                 return decodeResponseV2(buf);
             case 5: // v5 response partition gains LogStartOffset(int64)
             case 6: // v6 response unchanged vs v5
+            case 7: // v7 response unchanged vs v6
                 return decodeResponseV5(buf);
             default:
                 throw new CodecNotImplementedException("Produce response v" + version + " not implemented");
