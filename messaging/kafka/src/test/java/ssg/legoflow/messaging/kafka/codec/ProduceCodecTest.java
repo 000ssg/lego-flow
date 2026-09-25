@@ -821,49 +821,207 @@ class ProduceCodecTest {
     }
 
     @Nested
+    @DisplayName("v9 request (flexible encoding)")
+    class RequestV9 {
+
+        @Test
+        @DisplayName("v9 request round-trips through the flex methods")
+        void v9RoundTrip() {
+            var req = new ProduceRequest("txn-1", (short) -1, 30000,
+                    List.of(new ProduceRequest.TopicData("topic", List.of(
+                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3}),
+                            new ProduceRequest.PartitionData(1, new byte[]{9})))));
+
+            byte[] body = ProduceCodec.encodeRequest((short) 9, req);
+            var decoded = ProduceCodec.decodeRequest((short) 9, ByteBuffer.wrap(body));
+
+            assertEquals("txn-1", decoded.transactionalId());
+            assertEquals((short) -1, decoded.acks());
+            assertEquals(30000, decoded.timeoutMs());
+            assertEquals("topic", decoded.topicData().getFirst().name());
+            assertEquals(2, decoded.topicData().getFirst().partitionData().size());
+            assertArrayEquals(new byte[]{1, 2, 3},
+                    decoded.topicData().getFirst().partitionData().get(0).records());
+            assertArrayEquals(new byte[]{9},
+                    decoded.topicData().getFirst().partitionData().get(1).records());
+        }
+
+        @Test
+        @DisplayName("v9 exact byte layout — varint length prefixes, fixed ints unchanged")
+        void v9ExactBytes() {
+            var req = new ProduceRequest("txn", (short) -1, 30000,
+                    List.of(new ProduceRequest.TopicData("topic", List.of(
+                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3})))));
+
+            byte[] body = ProduceCodec.encodeRequest((short) 9, req);
+            // txn: varint(4)+3=4; Acks 2; TimeoutMs 4; topicCount varint(2) 1;
+            // name varint(6)+5=6; partCount varint(2) 1; index 4; records varint(4)+3=4
+            assertEquals(26, body.length, "varint layout: 4+2+4+1+6+1+4+4");
+
+            ByteBuffer buf = ByteBuffer.wrap(body);
+            assertEquals(4, KafkaCodecPrimitives.readVarint(buf), "TransactionalId len varint (3+1)");
+            byte[] txn = new byte[3];
+            buf.get(txn);
+            assertEquals("txn", StandardCharsets.UTF_8.decode(ByteBuffer.wrap(txn)).toString());
+            assertEquals((short) -1, buf.getShort(), "Acks");
+            assertEquals(30000, buf.getInt(), "TimeoutMs");
+            assertEquals(2, KafkaCodecPrimitives.readVarint(buf), "TopicData count varint (1+1)");
+            assertEquals(6, KafkaCodecPrimitives.readVarint(buf), "Name len varint (5+1)");
+            byte[] name = new byte[5];
+            buf.get(name);
+            assertEquals("topic", StandardCharsets.UTF_8.decode(ByteBuffer.wrap(name)).toString());
+            assertEquals(2, KafkaCodecPrimitives.readVarint(buf), "PartitionData count varint (1+1)");
+            assertEquals(0, buf.getInt(), "Partition index");
+            assertEquals(4, KafkaCodecPrimitives.readVarint(buf), "Records len varint (3+1)");
+            byte[] records = new byte[3];
+            buf.get(records);
+            assertArrayEquals(new byte[]{1, 2, 3}, records, "Records");
+            assertEquals(0, buf.remaining(), "body must be exactly consumed");
+        }
+
+        @Test
+        @DisplayName("v9 null TransactionalId and null Records round-trip (varint 0 / varint 1)")
+        void v9NullsRoundTrip() {
+            var req = new ProduceRequest(null, (short) 1, 1000,
+                    List.of(new ProduceRequest.TopicData("t", List.of(
+                            new ProduceRequest.PartitionData(0, null)))));
+
+            byte[] body = ProduceCodec.encodeRequest((short) 9, req);
+            // 1 (null txn) + 2 + 4 + 1 (topicCount) + 2 (name) + 1 (partCount) + 4 + 1 (null records) = 16
+            assertEquals(16, body.length, "varint null markers");
+            var decoded = ProduceCodec.decodeRequest((short) 9, ByteBuffer.wrap(body));
+            assertNull(decoded.transactionalId());
+            assertNull(decoded.topicData().getFirst().partitionData().getFirst().records(),
+                    "null records decodes as null");
+        }
+    }
+
+    @Nested
+    @DisplayName("v9 response (flexible encoding)")
+    class ResponseV9 {
+
+        @Test
+        @DisplayName("v9 response round-trips RecordErrors and ErrorMessage with flex length prefixes")
+        void v9RoundTrip() {
+            var resp = new ProduceResponse(List.of(
+                    new ProduceResponse.TopicResponse("topic", List.of(
+                            new ProduceResponse.PartitionResponse(0, (short) 0, 42L, 111L, 999L,
+                                    List.of(new ProduceResponse.PartitionResponse.BatchIndexAndErrorMessage(
+                                            7, "corrupt batch"),
+                                            new ProduceResponse.PartitionResponse.BatchIndexAndErrorMessage(
+                                                    9, null)),
+                                    "summary message")))), 30);
+
+            byte[] body = ProduceCodec.encodeResponse((short) 9, resp);
+            var decoded = ProduceCodec.decodeResponse((short) 9, ByteBuffer.wrap(body));
+
+            var pr = decoded.responses().getFirst().partitionResponses().getFirst();
+            assertEquals(42L, pr.baseOffset());
+            assertEquals(111L, pr.logAppendTimeMs());
+            assertEquals(999L, pr.logStartOffset());
+            assertEquals(2, pr.recordErrors().size());
+            assertEquals(7, pr.recordErrors().get(0).batchIndex());
+            assertEquals("corrupt batch", pr.recordErrors().get(0).batchIndexErrorMessage());
+            assertEquals(9, pr.recordErrors().get(1).batchIndex());
+            assertNull(pr.recordErrors().get(1).batchIndexErrorMessage());
+            assertEquals("summary message", pr.errorMessage());
+            assertEquals(30, decoded.throttleTimeMs());
+        }
+
+        @Test
+        @DisplayName("v9 response has the exact expected flex wire layout")
+        void v9ExactBytes() {
+            var resp = new ProduceResponse(List.of(
+                    new ProduceResponse.TopicResponse("t", List.of(
+                            new ProduceResponse.PartitionResponse(0, (short) 0, 1L, 0L, -1L,
+                                    List.of(new ProduceResponse.PartitionResponse.BatchIndexAndErrorMessage(
+                                            3, "bad")),
+                                    "sum")))), 0);
+
+            byte[] body = ProduceCodec.encodeResponse((short) 9, resp);
+            // count(1) + name(1+1) + partCount(1) + 30 + errCount(1)
+            // + entry batchIndex(4) + "bad"(1+3) + "sum"(1+3) + throttle(4) = 51
+            assertEquals(51, body.length, "exact v9 flex wire layout");
+
+            ByteBuffer buf = ByteBuffer.wrap(body);
+            assertEquals(2, KafkaCodecPrimitives.readVarint(buf), "Responses count varint (1+1)");
+            assertEquals(2, KafkaCodecPrimitives.readVarint(buf), "Name len varint (1+1)");
+            byte[] name = new byte[1];
+            buf.get(name);
+            assertEquals("t", StandardCharsets.UTF_8.decode(ByteBuffer.wrap(name)).toString());
+            assertEquals(2, KafkaCodecPrimitives.readVarint(buf), "PartitionResponses count varint (1+1)");
+            assertEquals(0, buf.getInt(), "Partition index");
+            assertEquals((short) 0, buf.getShort(), "ErrorCode");
+            assertEquals(1L, buf.getLong(), "BaseOffset");
+            assertEquals(0L, buf.getLong(), "LogAppendTimeMs");
+            assertEquals(-1L, buf.getLong(), "LogStartOffset");
+            assertEquals(2, KafkaCodecPrimitives.readVarint(buf), "RecordErrors count varint (1+1)");
+            assertEquals(3, buf.getInt(), "BatchIndex");
+            assertEquals(4, KafkaCodecPrimitives.readVarint(buf), "msg len varint (3+1)");
+            byte[] msg = new byte[3];
+            buf.get(msg);
+            assertEquals("bad", StandardCharsets.UTF_8.decode(ByteBuffer.wrap(msg)).toString());
+            assertEquals(4, KafkaCodecPrimitives.readVarint(buf), "ErrorMessage len varint (3+1)");
+            byte[] msg2 = new byte[3];
+            buf.get(msg2);
+            assertEquals("sum", StandardCharsets.UTF_8.decode(ByteBuffer.wrap(msg2)).toString());
+            assertEquals(0, buf.getInt(), "ThrottleTimeMs");
+            assertEquals(0, buf.remaining(), "body must be exactly consumed");
+        }
+
+        @Test
+        @DisplayName("v9 response round-trips null recordErrors/errorMessage as empty array / null")
+        void v9NullErrorsRoundTrip() {
+            var resp = new ProduceResponse(List.of(
+                    new ProduceResponse.TopicResponse("t", List.of(
+                            new ProduceResponse.PartitionResponse(0, (short) 0, 0L, 0L)))), 0);
+            // 5-arg compat constructor: logStartOffset -1, recordErrors null, errorMessage null.
+
+            byte[] body = ProduceCodec.encodeResponse((short) 9, resp);
+            var decoded = ProduceCodec.decodeResponse((short) 9, ByteBuffer.wrap(body));
+
+            var pr = decoded.responses().getFirst().partitionResponses().getFirst();
+            assertTrue(pr.recordErrors().isEmpty(), "null recordErrors decodes as an empty array");
+            assertNull(pr.errorMessage());
+        }
+    }
+
+    @Nested
     @DisplayName("Version dispatch")
     class Dispatch {
 
         @Test
-        @DisplayName("v9 request encode throws CodecNotImplementedException (next unimplemented)")
-        void v9RequestEncodeNotImplemented() {
+        @DisplayName("v10 request encode throws CodecNotImplementedException (beyond spec max v9)")
+        void v10RequestEncodeNotImplemented() {
             var req = new ProduceRequest(null, (short) 1, 1000,
                     List.of(new ProduceRequest.TopicData("t", List.of(
                             new ProduceRequest.PartitionData(0, new byte[]{1})))));
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.encodeRequest((short) 9, req));
+                    () -> ProduceCodec.encodeRequest((short) 10, req));
         }
 
         @Test
-        @DisplayName("v9 request decode throws CodecNotImplementedException")
-        void v9RequestDecodeNotImplemented() {
-            var req = new ProduceRequest(null, (short) 1, 1000,
-                    List.of(new ProduceRequest.TopicData("t", List.of(
-                            new ProduceRequest.PartitionData(0, new byte[]{1})))));
-            byte[] body = ProduceCodec.encodeRequest((short) 0, req);
+        @DisplayName("v10 request decode throws CodecNotImplementedException (beyond spec max v9)")
+        void v10RequestDecodeNotImplemented() {
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.decodeRequest((short) 9, ByteBuffer.wrap(body)));
+                    () -> ProduceCodec.decodeRequest((short) 10, ByteBuffer.wrap(new byte[0])));
         }
 
         @Test
-        @DisplayName("v9 response encode throws CodecNotImplementedException")
-        void v9ResponseEncodeNotImplemented() {
+        @DisplayName("v10 response encode throws CodecNotImplementedException (beyond spec max v9)")
+        void v10ResponseEncodeNotImplemented() {
             var resp = new ProduceResponse(List.of(
                     new ProduceResponse.TopicResponse("t", List.of(
                             new ProduceResponse.PartitionResponse(0, (short) 0, 0L, 0L)))), 0);
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.encodeResponse((short) 9, resp));
+                    () -> ProduceCodec.encodeResponse((short) 10, resp));
         }
 
         @Test
-        @DisplayName("v9 response decode throws CodecNotImplementedException")
-        void v9ResponseDecodeNotImplemented() {
-            var resp = new ProduceResponse(List.of(
-                    new ProduceResponse.TopicResponse("t", List.of(
-                            new ProduceResponse.PartitionResponse(0, (short) 0, 0L, 0L)))), 0);
-            byte[] body = ProduceCodec.encodeResponse((short) 0, resp);
+        @DisplayName("v10 response decode throws CodecNotImplementedException (beyond spec max v9)")
+        void v10ResponseDecodeNotImplemented() {
             assertThrows(CodecNotImplementedException.class,
-                    () -> ProduceCodec.decodeResponse((short) 9, ByteBuffer.wrap(body)));
+                    () -> ProduceCodec.decodeResponse((short) 10, ByteBuffer.wrap(new byte[0])));
         }
     }
 

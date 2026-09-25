@@ -47,6 +47,14 @@ import java.util.List;
  *       ([]BatchIndexAndErrorMessage: BatchIndex int32 + BatchIndexErrorMessage
  *       string|null) and a trailing nullable ErrorMessage(string) after LogStartOffset
  *       (both ignorable). Dedicated response methods, partition width 30 to 38+ bytes.</li>
+ *   <li>v9 — no field-layout change vs v8; the whole message switches to Kafka
+ *       flexible encoding ("flexibleVersions: 9+"): array counts and all string/bytes
+ *       lengths become unsigned varints (count + 1, null string = 0, null bytes = 1),
+ *       fixed-width integers are unchanged. The v9 request header additionally carries
+ *       the flexible bit (apiKey | 0x8000) — handled at frame level by
+ *       {@link KafkaCodec#encodeRequest} / {@link ApiKey#isFlexible}, not here.
+ *       v9 is the terminal version of the 3.6.1 Produce spec; v10+ throws
+ *       {@link CodecNotImplementedException}.</li>
  * </ul>
  *
  * <p>The {@link ProduceRequest} model keeps {@code transactionalId} for v3+; at v0–v2 it
@@ -89,7 +97,10 @@ public final class ProduceCodec {
             case 7: // v7 request unchanged vs v6
             case 8: // v8 request unchanged vs v7
                 return encodeRequestV3(req);
+            case 9: // v9 request: flexible encoding (varint length prefixes)
+                return encodeRequestV9(req);
             default:
+                // v10+ is beyond the 3.6.1 spec (validVersions 0-9) — no code path.
                 throw new CodecNotImplementedException("Produce request v" + version + " not implemented");
         }
     }
@@ -115,7 +126,10 @@ public final class ProduceCodec {
             case 7: // v7 request unchanged vs v6
             case 8: // v8 request unchanged vs v7
                 return decodeRequestV3(buf);
+            case 9: // v9 request: flexible encoding (varint length prefixes)
+                return decodeRequestV9(buf);
             default:
+                // v10+ is beyond the 3.6.1 spec (validVersions 0-9) — no code path.
                 throw new CodecNotImplementedException("Produce request v" + version + " not implemented");
         }
     }
@@ -145,7 +159,10 @@ public final class ProduceCodec {
                 return encodeResponseV5(resp);
             case 8: // v8 response partition gains RecordErrors + ErrorMessage
                 return encodeResponseV8(resp);
+            case 9: // v9 response: flexible encoding (varint length prefixes)
+                return encodeResponseV9(resp);
             default:
+                // v10+ is beyond the 3.6.1 spec (validVersions 0-9) — no code path.
                 throw new CodecNotImplementedException("Produce response v" + version + " not implemented");
         }
     }
@@ -175,7 +192,10 @@ public final class ProduceCodec {
                 return decodeResponseV5(buf);
             case 8: // v8 response partition gains RecordErrors + ErrorMessage
                 return decodeResponseV8(buf);
+            case 9: // v9 response: flexible encoding (varint length prefixes)
+                return decodeResponseV9(buf);
             default:
+                // v10+ is beyond the 3.6.1 spec (validVersions 0-9) — no code path.
                 throw new CodecNotImplementedException("Produce response v" + version + " not implemented");
         }
     }
@@ -584,6 +604,173 @@ public final class ProduceCodec {
                 }
                 // ErrorMessage:string|null — v8+, ignorable.
                 String errorMessage = KafkaCodecPrimitives.readNullableString(buf);
+                partitions.add(new ProduceResponse.PartitionResponse(index, errorCode, baseOffset,
+                        logAppendTimeMs, logStartOffset, errs, errorMessage));
+            }
+            topics.add(new ProduceResponse.TopicResponse(name, partitions));
+        }
+        // Trailing ThrottleTimeMs:int32 — retained from v1.
+        int throttleTimeMs = buf.getInt();
+        return new ProduceResponse(topics, throttleTimeMs);
+    }
+
+    // ===== v9 — request/response: flexible encoding (Kafka 3.0+).
+    // ===== Field layouts identical to v3 (request) and v8 (response); every array count
+    // ===== and string/bytes length becomes an unsigned varint (value + 1, null string =
+    // ===== varint 0, null bytes = varint 1). Fixed-width integers are unchanged.
+    // ===== The 3.6.1 spec declares no tagged_fields trailer, so the body ends with the
+    // ===== last field. The flexible header bit (apiKey | 0x8000) is frame-level —
+    // ===== see KafkaCodec.encodeRequest and ApiKey.isFlexible.
+
+    private static byte[] encodeRequestV9(ProduceRequest req) {
+        // Overhead estimate: every count/length varint is worst-case 5 bytes.
+        // TransactionalId: 5 (varint len) + name; Acks(2) + TimeoutMs(4);
+        // topic count(5); per topic: 5 (part count varint) + 5 (name len varint) + name;
+        // per partition: 4 (index) + 5 (records len varint) + record length.
+        int size = 2 + 4;
+        if (req.transactionalId() != null) {
+            size += 5 + req.transactionalId().getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
+        } else {
+            size += 1; // null = varint 0
+        }
+        size += 5; // topic count varint
+        for (var topic : req.topicData()) {
+            size += 5 + 5 + topic.name().getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
+            for (var pd : topic.partitionData()) {
+                size += 4 + 5 + (pd.records() != null ? pd.records().length : 1);
+            }
+        }
+        ByteBuffer buf = BufferPool.getBuffer(size);
+        // TransactionalId: nullable compact string (null = varint 0).
+        KafkaCodecPrimitives.writeCompactString(buf, req.transactionalId());
+        buf.putShort(req.acks());
+        buf.putInt(req.timeoutMs());
+        // TopicData:[]TopicProduceData — compact array (count + 1).
+        KafkaCodecPrimitives.writeVarint(buf, req.topicData().size() + 1);
+        for (var topic : req.topicData()) {
+            // Name: non-nullable compact string.
+            KafkaCodecPrimitives.writeCompactStringNonNullable(buf, topic.name());
+            // PartitionData:[]PartitionProduceData — compact array.
+            KafkaCodecPrimitives.writeVarint(buf, topic.partitionData().size() + 1);
+            for (var pd : topic.partitionData()) {
+                buf.putInt(pd.index());
+                // Records: nullable compact bytes (null = varint 1).
+                KafkaCodecPrimitives.writeCompactBytes(buf, pd.records());
+            }
+        }
+        buf.flip();
+        return KafkaCodecPrimitives.toBytes(buf);
+    }
+
+    private static ProduceRequest decodeRequestV9(ByteBuffer buf) {
+        // Leading nullable TransactionalId — v3+ field, now a compact string.
+        String transactionalId = KafkaCodecPrimitives.readCompactString(buf);
+        short acks = buf.getShort();
+        int timeout = buf.getInt();
+        // TopicData:[]TopicProduceData — compact array count.
+        int topicCount = KafkaCodecPrimitives.readVarint(buf) - 1;
+        List<ProduceRequest.TopicData> topics = new ArrayList<>(topicCount);
+        for (int i = 0; i < topicCount; i++) {
+            String name = KafkaCodecPrimitives.readCompactStringNonNullable(buf);
+            int partCount = KafkaCodecPrimitives.readVarint(buf) - 1;
+            List<ProduceRequest.PartitionData> partitions = new ArrayList<>(partCount);
+            for (int j = 0; j < partCount; j++) {
+                int index = buf.getInt();
+                byte[] records = KafkaCodecPrimitives.readCompactBytes(buf);
+                partitions.add(new ProduceRequest.PartitionData(index, records));
+            }
+            topics.add(new ProduceRequest.TopicData(name, partitions));
+        }
+        return new ProduceRequest(transactionalId, acks, timeout, topics);
+    }
+
+    private static byte[] encodeResponseV9(ProduceResponse resp) {
+        // Overhead estimate: every count/length varint is worst-case 5 bytes.
+        // Topic count(5) + ThrottleTimeMs(4).
+        int size = 5 + 4;
+        for (var topic : resp.responses()) {
+            size += 5 + 5 + topic.name().getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
+            for (var pr : topic.partitionResponses()) {
+                // 4 (index) + 2 (error) + 8 (baseOffset) + 8 (logAppendTime) + 8 (logStartOffset) = 30,
+                // + 5 (recordErrors count varint) + per-entry 4 (batchIndex) + 5 (msg len varint) + msg,
+                // + 5 (errorMessage len varint, 1 when null) + msg.
+                size += 30 + 5;
+                var errs = pr.recordErrors();
+                if (errs != null) {
+                    for (var e : errs) {
+                        size += 4 + 5 + (e.batchIndexErrorMessage() == null ? 1
+                                : e.batchIndexErrorMessage().getBytes(java.nio.charset.StandardCharsets.UTF_8).length);
+                    }
+                }
+                var msg = pr.errorMessage();
+                size += msg == null ? 1
+                        : 5 + msg.getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
+            }
+        }
+        ByteBuffer buf = BufferPool.getBuffer(size);
+        // Responses:[]TopicProduceResponse — compact array (count + 1).
+        KafkaCodecPrimitives.writeVarint(buf, resp.responses().size() + 1);
+        for (var topic : resp.responses()) {
+            // Name: non-nullable compact string.
+            KafkaCodecPrimitives.writeCompactStringNonNullable(buf, topic.name());
+            // PartitionResponses:[]PartitionProduceResponse — compact array.
+            KafkaCodecPrimitives.writeVarint(buf, topic.partitionResponses().size() + 1);
+            for (var pr : topic.partitionResponses()) {
+                buf.putInt(pr.partitionIndex());
+                buf.putShort(pr.errorCode());
+                buf.putLong(pr.baseOffset());
+                // LogAppendTimeMs:int64 — v2+, carried value written verbatim.
+                buf.putLong(pr.logAppendTimeMs());
+                // LogStartOffset:int64 — v5+, spec default -1.
+                buf.putLong(pr.logStartOffset());
+                // RecordErrors:[]BatchIndexAndErrorMessage — v8+, ignorable; compact array.
+                var errs = pr.recordErrors();
+                KafkaCodecPrimitives.writeVarint(buf, (errs == null ? 0 : errs.size()) + 1);
+                if (errs != null) {
+                    for (var e : errs) {
+                        buf.putInt(e.batchIndex());
+                        // BatchIndexErrorMessage: nullable compact string.
+                        KafkaCodecPrimitives.writeCompactString(buf, e.batchIndexErrorMessage());
+                    }
+                }
+                // ErrorMessage: nullable compact string — v8+, ignorable.
+                KafkaCodecPrimitives.writeCompactString(buf, pr.errorMessage());
+            }
+        }
+        // Trailing ThrottleTimeMs:int32 — retained from v1.
+        buf.putInt(resp.throttleTimeMs());
+        buf.flip();
+        return KafkaCodecPrimitives.toBytes(buf);
+    }
+
+    private static ProduceResponse decodeResponseV9(ByteBuffer buf) {
+        // Responses:[]TopicProduceResponse — compact array count.
+        int topicCount = KafkaCodecPrimitives.readVarint(buf) - 1;
+        List<ProduceResponse.TopicResponse> topics = new ArrayList<>(topicCount);
+        for (int i = 0; i < topicCount; i++) {
+            String name = KafkaCodecPrimitives.readCompactStringNonNullable(buf);
+            int partCount = KafkaCodecPrimitives.readVarint(buf) - 1;
+            List<ProduceResponse.PartitionResponse> partitions = new ArrayList<>(partCount);
+            for (int j = 0; j < partCount; j++) {
+                int index = buf.getInt();
+                short errorCode = buf.getShort();
+                long baseOffset = buf.getLong();
+                // LogAppendTimeMs:int64 — v2+, spec default -1.
+                long logAppendTimeMs = buf.getLong();
+                // LogStartOffset:int64 — v5+, spec default -1.
+                long logStartOffset = buf.getLong();
+                // RecordErrors:[]BatchIndexAndErrorMessage — v8+, ignorable; compact array.
+                int errorCount = KafkaCodecPrimitives.readVarint(buf) - 1;
+                List<ProduceResponse.PartitionResponse.BatchIndexAndErrorMessage> errs =
+                        new ArrayList<>(errorCount);
+                for (int k = 0; k < errorCount; k++) {
+                    int batchIndex = buf.getInt();
+                    String batchIndexErrorMessage = KafkaCodecPrimitives.readCompactString(buf);
+                    errs.add(new ProduceResponse.PartitionResponse.BatchIndexAndErrorMessage(
+                            batchIndex, batchIndexErrorMessage));
+                }
+                // ErrorMessage: nullable compact string — v8+, ignorable.
+                String errorMessage = KafkaCodecPrimitives.readCompactString(buf);
                 partitions.add(new ProduceResponse.PartitionResponse(index, errorCode, baseOffset,
                         logAppendTimeMs, logStartOffset, errs, errorMessage));
             }
