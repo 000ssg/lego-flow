@@ -116,7 +116,7 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | v1 | + ThrottleTimeMs:int32[1+] | ✓ | abcf8979 |
 | v2 | unchanged | ✓ | 9b78b1ee |
 | v3 | + MaxBytes:int32[3+] | ✓ | 1d536e56 |
-| v4 | + IsolationLevel:int8[4+], LastStableOffset:int64[4+], AbortedTransactions:[]AbortedTransaction[4+](null:4+), ProducerId:int64[4+], FirstOffset:int64[4+] | ☐ | |
+| v4 | + IsolationLevel:int8[4+], LastStableOffset:int64[4+], AbortedTransactions:[]AbortedTransaction[4+](null:4+), ProducerId:int64[4+], FirstOffset:int64[4+] | ✓ | dc42a65d |
 | v5 | + LogStartOffset:int64[5+], LogStartOffset:int64[5+] | ☐ | |
 | v6 | unchanged | ☐ | |
 | v7 | + SessionId:int32[7+], SessionEpoch:int32[7+], ForgottenTopicsData:[]ForgottenTopic[7+], Topic:string[7-12], Partitions:[]int32[7+], ErrorCode:int16[7+], SessionId:int32[7+] | ☐ | |
