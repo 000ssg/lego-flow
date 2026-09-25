@@ -343,85 +343,55 @@ public final class KafkaCodec {
 
     // ===== Fetch (1) =====
 
+    /**
+     * Encodes a Fetch request body (v0: ReplicaId + MaxWaitMs + MinBytes +
+     * Topics[Topic + Partitions[Partition + FetchOffset + PartitionMaxBytes]]).
+     *
+     * <p>Phase 6a: delegates to {@link FetchCodec} at v0. The old inline layout wrote
+     * MaxBytes (a v3+ field) while omitting ReplicaId (a v0+ field) — a v3-shaped body
+     * under a v0 frame; v0 is spec-correct here (MaxBytes is a v3+ value, carried in the
+     * model but absent from v0–v2 bodies).
+     *
+     * @param req the request
+     * @return the encoded bytes
+     */
     public static byte[] encodeFetchRequest(FetchRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(65536);
-        buf.putInt(req.maxWaitMs());
-        buf.putInt(req.minBytes());
-        buf.putInt(req.maxBytes());
-        buf.putInt(req.topics().size());
-        for (var tf : req.topics()) {
-            writeString(buf, tf.name());
-            buf.putInt(tf.partitions().size());
-            for (var pf : tf.partitions()) {
-                buf.putInt(pf.partition());
-                buf.putLong(pf.fetchOffset());
-                buf.putInt(pf.partitionMaxBytes());
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return FetchCodec.encodeRequest(FetchCodec.PINNED_VERSION, req);
     }
 
+    /**
+     * Decodes a Fetch request body (v0).
+     *
+     * @param buf the buffer
+     * @return the decoded request
+     */
     public static FetchRequest decodeFetchRequest(ByteBuffer buf) {
-        int maxWait = buf.getInt();
-        int minBytes = buf.getInt();
-        int maxBytes = buf.getInt();
-        int topicCount = buf.getInt();
-        List<FetchRequest.TopicFetch> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String name = readString(buf);
-            int partCount = buf.getInt();
-            List<FetchRequest.PartitionFetch> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                parts.add(new FetchRequest.PartitionFetch(buf.getInt(), buf.getLong(), buf.getInt()));
-            }
-            topics.add(new FetchRequest.TopicFetch(name, parts));
-        }
-        return new FetchRequest(maxWait, minBytes, maxBytes, topics);
+        return FetchCodec.decodeRequest(FetchCodec.PINNED_VERSION, buf);
     }
 
+    /**
+     * Encodes a Fetch response body (v0: Responses[Topic + Partitions[PartitionIndex +
+     * ErrorCode + HighWatermark + Records]]).
+     *
+     * <p>Phase 6a: delegates to {@link FetchCodec} at v0. The old inline layout wrote a
+     * leading ThrottleTimeMs (a v1+ field); v0 writes none, so the carried value is
+     * discarded at this version.
+     *
+     * @param resp the response
+     * @return the encoded bytes
+     */
     public static byte[] encodeFetchResponse(FetchResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(65536);
-        buf.putInt(resp.throttleTimeMs());
-        buf.putInt(resp.topics().size());
-        for (var tr : resp.topics()) {
-            writeString(buf, tr.name());
-            buf.putInt(tr.partitions().size());
-            for (var pr : tr.partitions()) {
-                buf.putInt(pr.partitionIndex());
-                buf.putShort(pr.errorCode());
-                buf.putLong(pr.highWatermark());
-                buf.putInt(pr.records() != null ? pr.records().length : -1);
-                if (pr.records() != null) buf.put(pr.records());
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return FetchCodec.encodeResponse(FetchCodec.PINNED_VERSION, resp);
     }
 
+    /**
+     * Decodes a Fetch response body (v0).
+     *
+     * @param buf the buffer
+     * @return the decoded response
+     */
     public static FetchResponse decodeFetchResponse(ByteBuffer buf) {
-        int throttle = buf.getInt();
-        int topicCount = buf.getInt();
-        List<FetchResponse.TopicResponse> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String name = readString(buf);
-            int partCount = buf.getInt();
-            List<FetchResponse.PartitionResponse> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                int pIdx = buf.getInt();
-                short err = buf.getShort();
-                long hw = buf.getLong();
-                int recLen = buf.getInt();
-                byte[] records = null;
-                if (recLen >= 0) {
-                    records = new byte[recLen];
-                    buf.get(records);
-                }
-                parts.add(new FetchResponse.PartitionResponse(pIdx, err, hw, records));
-            }
-            topics.add(new FetchResponse.TopicResponse(name, parts));
-        }
-        return new FetchResponse(throttle, topics);
+        return FetchCodec.decodeResponse(FetchCodec.PINNED_VERSION, buf);
     }
 
     // ===== ListOffsets (2) =====

@@ -5,18 +5,37 @@ import java.util.List;
 /**
  * Fetch request (API key 1) for consuming records.
  *
- * @param maxWaitMs  the maximum time to wait for data in milliseconds
- * @param minBytes   the minimum number of bytes to wait for
- * @param maxBytes   the maximum number of bytes to return
- * @param topics     the topics and partitions to fetch from
+ * <p>Layout per the 3.6.1 spec ({@code doc/spec/message/FetchRequest.json}):
+ * ReplicaId(int32, 0-14) + MaxWaitMs(int32, 0+) + MinBytes(int32, 0+) + MaxBytes(int32, 3+)
+ * + Topics[](Topic/TopicId + Partitions[](Partition, CurrentLeaderEpoch 9+, FetchOffset,
+ * LastFetchedEpoch 12+, LogStartOffset 5+, PartitionMaxBytes)).
+ *
+ * @param replicaId  the broker ID of the follower, or -1 if the request is from a consumer (v0+)
+ * @param maxWaitMs  the maximum time to wait for data in milliseconds (v0+)
+ * @param minBytes   the minimum number of bytes to wait for (v0+)
+ * @param maxBytes   the maximum number of bytes to return (v3+; absent from v0–v2 bodies)
+ * @param topics     the topics and partitions to fetch from (v0+)
  * @since 0.1.0
  */
-public record FetchRequest(int maxWaitMs, int minBytes, int maxBytes, List<TopicFetch> topics) {
+public record FetchRequest(int replicaId, int maxWaitMs, int minBytes, int maxBytes, List<TopicFetch> topics) {
+
+    /**
+     * Compatibility constructor (pre-Phase 6a call sites): consumer fetch with
+     * {@code replicaId = -1}.
+     *
+     * @param maxWaitMs the maximum time to wait for data in milliseconds
+     * @param minBytes  the minimum number of bytes to wait for
+     * @param maxBytes  the maximum number of bytes to return (v3+; discarded at v0–v2)
+     * @param topics    the topics and partitions to fetch from
+     */
+    public FetchRequest(int maxWaitMs, int minBytes, int maxBytes, List<TopicFetch> topics) {
+        this(-1, maxWaitMs, minBytes, maxBytes, topics);
+    }
 
     /**
      * Per-topic fetch request.
      *
-     * @param name       the topic name
+     * @param name       the topic name (v0–v12; replaced by TopicId at v13+)
      * @param partitions the partitions to fetch
      */
     public record TopicFetch(String name, List<PartitionFetch> partitions) {
@@ -25,9 +44,9 @@ public record FetchRequest(int maxWaitMs, int minBytes, int maxBytes, List<Topic
     /**
      * Per-partition fetch request.
      *
-     * @param partition        the partition index
-     * @param fetchOffset      the offset to start fetching from
-     * @param partitionMaxBytes the maximum bytes per partition
+     * @param partition        the partition index (v0+)
+     * @param fetchOffset      the offset to start fetching from (v0+)
+     * @param partitionMaxBytes the maximum bytes per partition (v0+)
      */
     public record PartitionFetch(int partition, long fetchOffset, int partitionMaxBytes) {
     }
