@@ -66,5 +66,41 @@ public record ProduceResponse(List<TopicResponse> responses, int throttleTimeMs)
                                  long logAppendTimeMs) {
             this(partitionIndex, errorCode, baseOffset, logAppendTimeMs, -1L, null, null);
         }
+
+        /**
+         * Entry point for the {@link Builder}.
+         */
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        /**
+         * Hybrid builder for {@link PartitionResponse}; defaults are the spec absent-values
+         * ({@code logAppendTimeMs = -1} is the v2+ default, {@code logStartOffset = -1} is the v5+
+         * default, {@code recordErrors = null} / {@code errorMessage = null} for pre-v8). A builder
+         * sets only the fields a given version carries.
+         */
+        public static final class Builder {
+            private int partitionIndex = 0;
+            private short errorCode = 0;
+            private long baseOffset = 0;
+            private long logAppendTimeMs = -1L; // v2+; absent default
+            private long logStartOffset = -1L; // v5+; absent default
+            private List<BatchIndexAndErrorMessage> recordErrors; // v8+; null = absent
+            private String errorMessage; // v8+; null = absent
+
+            public Builder partitionIndex(int v) { this.partitionIndex = v; return this; }
+            public Builder errorCode(short v) { this.errorCode = v; return this; }
+            public Builder baseOffset(long v) { this.baseOffset = v; return this; }
+            public Builder logAppendTimeMs(long v) { this.logAppendTimeMs = v; return this; }
+            public Builder logStartOffset(long v) { this.logStartOffset = v; return this; }
+            public Builder recordErrors(List<BatchIndexAndErrorMessage> v) { this.recordErrors = v; return this; }
+            public Builder errorMessage(String v) { this.errorMessage = v; return this; }
+
+            public PartitionResponse build() {
+                return new PartitionResponse(partitionIndex, errorCode, baseOffset,
+                        logAppendTimeMs, logStartOffset, recordErrors, errorMessage);
+            }
+        }
     }
 }

@@ -54,6 +54,42 @@ public record ApiVersionsResponse(short errorCode, List<ApiVersion> apiKeys, lon
     }
 
     /**
+     * Entry point for the {@link Builder}.
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Hybrid builder for {@link ApiVersionsResponse}: the convenience constructors remain; this
+     * named-field builder is the preferred entry point for new call sites. Each field defaults to
+     * the value the spec takes when its version feature is absent, so a builder sets only the
+     * fields a given version carries. {@code build()} delegates to the canonical constructor.
+     */
+    public static final class Builder {
+        private short errorCode = 0;
+        private List<ApiVersion> apiKeys = List.of();
+        private long throttleTimeMs = 0L; // v1+; absent default
+        private List<SupportedFeatureKey> supportedFeatures = List.of(); // v3+ tag 0; absent = empty
+        private long finalizedFeaturesEpoch = ABSENT_FINALIZED_EPOCH; // v3+ tag 1; -1 = absent
+        private List<FinalizedFeatureKey> finalizedFeatures = List.of(); // v3+ tag 2; absent = empty
+        private boolean zkMigrationReady = false; // v3+ tag 3; false = absent
+
+        public Builder errorCode(short v) { this.errorCode = v; return this; }
+        public Builder apiKeys(List<ApiVersion> v) { this.apiKeys = v; return this; }
+        public Builder throttleTimeMs(long v) { this.throttleTimeMs = v; return this; }
+        public Builder supportedFeatures(List<SupportedFeatureKey> v) { this.supportedFeatures = v; return this; }
+        public Builder finalizedFeaturesEpoch(long v) { this.finalizedFeaturesEpoch = v; return this; }
+        public Builder finalizedFeatures(List<FinalizedFeatureKey> v) { this.finalizedFeatures = v; return this; }
+        public Builder zkMigrationReady(boolean v) { this.zkMigrationReady = v; return this; }
+
+        public ApiVersionsResponse build() {
+            return new ApiVersionsResponse(errorCode, apiKeys, throttleTimeMs, supportedFeatures,
+                    finalizedFeaturesEpoch, finalizedFeatures, zkMigrationReady);
+        }
+    }
+
+    /**
      * A single API key version range.
      *
      * @param apiKey     the API key

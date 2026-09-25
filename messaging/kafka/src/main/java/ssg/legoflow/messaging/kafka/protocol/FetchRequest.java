@@ -72,6 +72,48 @@ public record FetchRequest(int replicaId, int maxWaitMs, int minBytes, int maxBy
     }
 
     /**
+     * Entry point for the {@link Builder}.
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Hybrid builder for {@link FetchRequest}: the canonical constructor and every compatibility
+     * constructor remain; this named-field builder is the preferred entry point for new call
+     * sites. Each field defaults to the spec value it takes when its version feature is absent,
+     * so a builder sets only the fields a given version carries. {@code build()} delegates to the
+     * canonical constructor with no per-version validation — the codec enforces field presence on
+     * write and auto-fills absent fields on read.
+     */
+    public static final class Builder {
+        private int replicaId = -1; // -1 = consumer
+        private int maxWaitMs = 0;
+        private int minBytes = 1;
+        private int maxBytes = 0; // v3+; absent default
+        private int isolationLevel = 0; // v4+; 0 = read_committed
+        private int sessionId = 0; // v7+; 0 = session creation
+        private int sessionEpoch = -1; // v7+; -1 when creating
+        private List<TopicFetch> topics = List.of();
+        private List<ForgottenTopic> forgottenTopics = List.of(); // v7+
+
+        public Builder replicaId(int v) { this.replicaId = v; return this; }
+        public Builder maxWaitMs(int v) { this.maxWaitMs = v; return this; }
+        public Builder minBytes(int v) { this.minBytes = v; return this; }
+        public Builder maxBytes(int v) { this.maxBytes = v; return this; }
+        public Builder isolationLevel(int v) { this.isolationLevel = v; return this; }
+        public Builder sessionId(int v) { this.sessionId = v; return this; }
+        public Builder sessionEpoch(int v) { this.sessionEpoch = v; return this; }
+        public Builder topics(List<TopicFetch> v) { this.topics = v; return this; }
+        public Builder forgottenTopics(List<ForgottenTopic> v) { this.forgottenTopics = v; return this; }
+
+        public FetchRequest build() {
+            return new FetchRequest(replicaId, maxWaitMs, minBytes, maxBytes, isolationLevel,
+                    sessionId, sessionEpoch, topics, forgottenTopics);
+        }
+    }
+
+    /**
      * Per-topic fetch request.
      *
      * @param name       the topic name (v0–v12; replaced by TopicId at v13+)
@@ -98,26 +140,73 @@ public record FetchRequest(int replicaId, int maxWaitMs, int minBytes, int maxBy
      * <p>Wire order per the 3.6.1 spec: Partition, CurrentLeaderEpoch (v9+), FetchOffset,
      * LastFetchedEpoch (v12+), LogStartOffset (v5+), PartitionMaxBytes.
      *
-     * @param partition        the partition index (v0+)
-     * @param fetchOffset      the offset to start fetching from (v0+)
-     * @param partitionMaxBytes the maximum bytes per partition (v0+)
-     * @param logStartOffset   the earliest available offset of the follower replica; the field is
-     *                         only used when the request is sent by the follower (v5+; absent from
-     *                         v0–v4 bodies, decoded as -1 there)
+     * @param partition           the partition index (v0+)
+     * @param currentLeaderEpoch  the current leader epoch of the partition (v9+; -1 when absent
+     *                            / unknown — the spec default; the value a consumer never sends)
+     * @param fetchOffset         the offset to start fetching from (v0+)
+     * @param partitionMaxBytes   the maximum bytes per partition (v0+)
+     * @param logStartOffset      the earliest available offset of the follower replica; the field is
+     *                            only used when the request is sent by the follower (v5+; absent from
+     *                            v0–v4 bodies, decoded as -1 there)
      */
-    public record PartitionFetch(int partition, long fetchOffset, int partitionMaxBytes,
-                                 long logStartOffset) {
+    public record PartitionFetch(int partition, int currentLeaderEpoch, long fetchOffset,
+                                 int partitionMaxBytes, long logStartOffset) {
 
         /**
-         * Compatibility constructor (pre-v5 call sites): {@code logStartOffset = -1}
-         * (the spec default; the value a consumer never sends).
+         * Compatibility constructor (pre-v9 call sites): {@code currentLeaderEpoch = -1}
+         * (the v9+ spec default; the value a consumer never sends).
+         *
+         * @param partition        the partition index
+         * @param fetchOffset      the offset to start fetching from
+         * @param partitionMaxBytes the maximum bytes per partition
+         * @param logStartOffset   the earliest available offset of the follower replica (v5+)
+         */
+        public PartitionFetch(int partition, long fetchOffset, int partitionMaxBytes,
+                              long logStartOffset) {
+            this(partition, -1, fetchOffset, partitionMaxBytes, logStartOffset);
+        }
+
+        /**
+         * Compatibility constructor (pre-v5 call sites): {@code currentLeaderEpoch = -1}
+         * (v9+) and {@code logStartOffset = -1} (v5+ spec defaults).
          *
          * @param partition        the partition index
          * @param fetchOffset      the offset to start fetching from
          * @param partitionMaxBytes the maximum bytes per partition
          */
         public PartitionFetch(int partition, long fetchOffset, int partitionMaxBytes) {
-            this(partition, fetchOffset, partitionMaxBytes, -1L);
+            this(partition, -1, fetchOffset, partitionMaxBytes, -1L);
+        }
+
+        /**
+         * Entry point for the {@link Builder}.
+         */
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        /**
+         * Hybrid builder for {@link PartitionFetch}; defaults are the spec absent-values
+         * ({@code currentLeaderEpoch = -1}, {@code logStartOffset = -1}), so a builder sets only
+         * the fields a given version carries.
+         */
+        public static final class Builder {
+            private int partition = 0;
+            private int currentLeaderEpoch = -1; // v9+; -1 = unknown (consumer default)
+            private long fetchOffset = 0;
+            private int partitionMaxBytes = 0;
+            private long logStartOffset = -1L; // v5+; -1 = absent
+
+            public Builder partition(int v) { this.partition = v; return this; }
+            public Builder currentLeaderEpoch(int v) { this.currentLeaderEpoch = v; return this; }
+            public Builder fetchOffset(long v) { this.fetchOffset = v; return this; }
+            public Builder partitionMaxBytes(int v) { this.partitionMaxBytes = v; return this; }
+            public Builder logStartOffset(long v) { this.logStartOffset = v; return this; }
+
+            public PartitionFetch build() {
+                return new PartitionFetch(partition, currentLeaderEpoch, fetchOffset,
+                        partitionMaxBytes, logStartOffset);
+            }
         }
     }
 }

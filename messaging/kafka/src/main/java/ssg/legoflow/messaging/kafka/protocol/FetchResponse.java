@@ -31,6 +31,36 @@ public record FetchResponse(int throttleTimeMs, short errorCode, int sessionId,
     }
 
     /**
+     * Entry point for the {@link Builder}.
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Hybrid builder for {@link FetchResponse}: the canonical and compatibility constructors
+     * remain; this named-field builder is the preferred entry point for new call sites. Each field
+     * defaults to the spec absent-value (top-level {@code errorCode = 0}, {@code sessionId = 0}
+     * are the v7+ defaults), so a builder sets only the fields a given version carries.
+     * {@code build()} delegates to the canonical constructor with no per-version validation.
+     */
+    public static final class Builder {
+        private int throttleTimeMs = 0; // v1+; absent default
+        private short errorCode = 0; // v7+; absent default
+        private int sessionId = 0; // v7+; absent default
+        private List<TopicResponse> topics = List.of();
+
+        public Builder throttleTimeMs(int v) { this.throttleTimeMs = v; return this; }
+        public Builder errorCode(short v) { this.errorCode = v; return this; }
+        public Builder sessionId(int v) { this.sessionId = v; return this; }
+        public Builder topics(List<TopicResponse> v) { this.topics = v; return this; }
+
+        public FetchResponse build() {
+            return new FetchResponse(throttleTimeMs, errorCode, sessionId, topics);
+        }
+    }
+
+    /**
      * Per-topic fetch response.
      *
      * @param name       the topic name (v0–v12; replaced by TopicId at v13+)
@@ -87,6 +117,42 @@ public record FetchResponse(int throttleTimeMs, short errorCode, int sessionId,
                                  long lastStableOffset, List<AbortedTransaction> abortedTransactions,
                                  byte[] records) {
             this(partitionIndex, errorCode, highWatermark, lastStableOffset, -1L, abortedTransactions, records);
+        }
+
+        /**
+         * Entry point for the {@link Builder}.
+         */
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        /**
+         * Hybrid builder for {@link PartitionResponse}; defaults are the spec absent-values
+         * ({@code lastStableOffset = -1}, {@code logStartOffset = -1},
+         * {@code abortedTransactions = null}), so a builder sets only the fields a given version
+         * carries.
+         */
+        public static final class Builder {
+            private int partitionIndex = 0;
+            private short errorCode = 0;
+            private long highWatermark = 0;
+            private long lastStableOffset = -1L; // v4+; absent default
+            private long logStartOffset = -1L; // v5+; absent default
+            private List<AbortedTransaction> abortedTransactions; // v4+; null = absent
+            private byte[] records;
+
+            public Builder partitionIndex(int v) { this.partitionIndex = v; return this; }
+            public Builder errorCode(short v) { this.errorCode = v; return this; }
+            public Builder highWatermark(long v) { this.highWatermark = v; return this; }
+            public Builder lastStableOffset(long v) { this.lastStableOffset = v; return this; }
+            public Builder logStartOffset(long v) { this.logStartOffset = v; return this; }
+            public Builder abortedTransactions(List<AbortedTransaction> v) { this.abortedTransactions = v; return this; }
+            public Builder records(byte[] v) { this.records = v; return this; }
+
+            public PartitionResponse build() {
+                return new PartitionResponse(partitionIndex, errorCode, highWatermark,
+                        lastStableOffset, logStartOffset, abortedTransactions, records);
+            }
         }
     }
 
