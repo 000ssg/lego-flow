@@ -4,6 +4,7 @@ import ssg.legoflow.messaging.nats.client.NatsClient;
 import ssg.legoflow.messaging.nats.client.NatsMessage;
 import ssg.legoflow.messaging.nats.protocol.ConnectOptions;
 import ssg.legoflow.messaging.nats.server.NatsServer;
+import ssg.legoflow.messaging.nats.transport.InMemoryNatsTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -26,19 +27,24 @@ public final class RequestReplyDemo {
     /**
      * Runs the request/reply demo.
      *
-     * @param port the server port (0 for ephemeral)
+     * @param port the server port (ignored — the demo now runs over an in-memory transport)
      * @return the reply data, or null if timeout
      * @throws IOException if connection fails
      * @throws InterruptedException if interrupted
      */
     public static String run(int port) throws IOException, InterruptedException {
-        try (var server = new NatsServer(port)) {
-            server.start(port);
-            int actualPort = server.port();
+        try (var server = new NatsServer()) {
+            server.start();
 
-            try (var service = new NatsClient("localhost", actualPort,
+            // One in-memory transport pair per client (each pair is one connection)
+            var servicePair = InMemoryNatsTransport.createPair();
+            server.handleConnection(servicePair[0]);
+            var requesterPair = InMemoryNatsTransport.createPair();
+            server.handleConnection(requesterPair[0]);
+
+            try (var service = new NatsClient(servicePair[1],
                     ConnectOptions.withDefaults("service"));
-                 var requester = new NatsClient("localhost", actualPort,
+                 var requester = new NatsClient(requesterPair[1],
                          ConnectOptions.withDefaults("requester"))) {
 
                 service.connect();

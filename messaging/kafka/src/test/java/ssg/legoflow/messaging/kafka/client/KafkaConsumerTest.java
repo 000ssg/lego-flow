@@ -13,14 +13,11 @@ import static org.assertj.core.api.Assertions.*;
 class KafkaConsumerTest {
 
     private KafkaBroker broker;
-    private int port;
 
     @BeforeEach
-    void setUp() throws IOException {
-        broker = new KafkaBroker("localhost", 0);
-        broker.start();
+    void setUp() {
+        broker = InMemoryKafka.broker();
         broker.createTopic("test", 3);
-        port = broker.port();
     }
 
     @AfterEach
@@ -29,7 +26,7 @@ class KafkaConsumerTest {
     }
 
     private void produceMessages(int count) throws IOException {
-        try (var producer = new KafkaProducer("localhost", port, "test-producer")) {
+        try (var producer = new KafkaProducer(InMemoryKafka.pair(broker)[1], "test-producer")) {
             producer.init();
             for (int i = 0; i < count; i++) {
                 producer.send("test", "key-" + i, "value-" + i);
@@ -41,7 +38,7 @@ class KafkaConsumerTest {
     void testSubscribeAndPoll() throws IOException {
         produceMessages(5);
 
-        try (var consumer = new KafkaConsumer("localhost", port, "consumer-1", "group-1")) {
+        try (var consumer = new KafkaConsumer(InMemoryKafka.pair(broker)[1], "consumer-1", "group-1")) {
             consumer.subscribe(List.of("test"));
             var records = consumer.poll(5000);
             assertThat(records).isNotEmpty();
@@ -52,7 +49,7 @@ class KafkaConsumerTest {
     void testConsumeAllMessages() throws IOException {
         produceMessages(10);
 
-        try (var consumer = new KafkaConsumer("localhost", port, "consumer-1", "group-1")) {
+        try (var consumer = new KafkaConsumer(InMemoryKafka.pair(broker)[1], "consumer-1", "group-1")) {
             consumer.subscribe(List.of("test"));
             var records = consumer.poll(5000);
             assertThat(records).hasSize(10);
@@ -63,7 +60,7 @@ class KafkaConsumerTest {
     void testConsumerRecordFields() throws IOException {
         produceMessages(1);
 
-        try (var consumer = new KafkaConsumer("localhost", port, "consumer-1", "group-1")) {
+        try (var consumer = new KafkaConsumer(InMemoryKafka.pair(broker)[1], "consumer-1", "group-1")) {
             consumer.subscribe(List.of("test"));
             var records = consumer.poll(5000);
             assertThat(records).hasSize(1);
@@ -79,7 +76,7 @@ class KafkaConsumerTest {
 
     @Test
     void testGroupMembership() throws IOException {
-        try (var consumer = new KafkaConsumer("localhost", port, "consumer-1", "group-1")) {
+        try (var consumer = new KafkaConsumer(InMemoryKafka.pair(broker)[1], "consumer-1", "group-1")) {
             consumer.subscribe(List.of("test"));
             assertThat(consumer.memberId()).isNotEmpty();
             assertThat(consumer.generationId()).isGreaterThan(0);
@@ -91,7 +88,7 @@ class KafkaConsumerTest {
     void testManualCommit() throws IOException {
         produceMessages(5);
 
-        try (var consumer = new KafkaConsumer("localhost", port, "consumer-1", "group-1",
+        try (var consumer = new KafkaConsumer(InMemoryKafka.pair(broker)[1], "consumer-1", "group-1",
                 false, 5000, 10000, 500)) {
             consumer.subscribe(List.of("test"));
             consumer.poll(5000);
@@ -104,7 +101,7 @@ class KafkaConsumerTest {
     void testSeek() throws IOException {
         produceMessages(10);
 
-        try (var consumer = new KafkaConsumer("localhost", port, "consumer-1", "group-1")) {
+        try (var consumer = new KafkaConsumer(InMemoryKafka.pair(broker)[1], "consumer-1", "group-1")) {
             consumer.subscribe(List.of("test"));
             consumer.poll(5000); // get assigned
 
@@ -122,7 +119,7 @@ class KafkaConsumerTest {
     void testSeekToBeginning() throws IOException {
         produceMessages(5);
 
-        try (var consumer = new KafkaConsumer("localhost", port, "consumer-1", "group-1")) {
+        try (var consumer = new KafkaConsumer(InMemoryKafka.pair(broker)[1], "consumer-1", "group-1")) {
             consumer.subscribe(List.of("test"));
             consumer.poll(5000);
             consumer.seekToBeginning();
@@ -136,7 +133,7 @@ class KafkaConsumerTest {
     void testPosition() throws IOException {
         produceMessages(5);
 
-        try (var consumer = new KafkaConsumer("localhost", port, "consumer-1", "group-1")) {
+        try (var consumer = new KafkaConsumer(InMemoryKafka.pair(broker)[1], "consumer-1", "group-1")) {
             consumer.subscribe(List.of("test"));
             consumer.poll(5000);
 
@@ -151,7 +148,7 @@ class KafkaConsumerTest {
         AtomicInteger assignedCount = new AtomicInteger(0);
         AtomicInteger revokedCount = new AtomicInteger(0);
 
-        try (var consumer = new KafkaConsumer("localhost", port, "consumer-1", "group-1")) {
+        try (var consumer = new KafkaConsumer(InMemoryKafka.pair(broker)[1], "consumer-1", "group-1")) {
             consumer.setRebalanceListener(new RebalanceListener() {
                 @Override
                 public void onPartitionsAssigned(java.util.Collection<TopicPartition> partitions) {
@@ -170,7 +167,7 @@ class KafkaConsumerTest {
 
     @Test
     void testEmptyPoll() throws IOException {
-        try (var consumer = new KafkaConsumer("localhost", port, "consumer-1", "group-1")) {
+        try (var consumer = new KafkaConsumer(InMemoryKafka.pair(broker)[1], "consumer-1", "group-1")) {
             consumer.subscribe(List.of("test"));
             var records = consumer.poll(100);
             assertThat(records).isEmpty();
@@ -179,7 +176,7 @@ class KafkaConsumerTest {
 
     @Test
     void testLeaveGroup() throws IOException {
-        try (var consumer = new KafkaConsumer("localhost", port, "consumer-1", "group-1")) {
+        try (var consumer = new KafkaConsumer(InMemoryKafka.pair(broker)[1], "consumer-1", "group-1")) {
             consumer.subscribe(List.of("test"));
             consumer.leaveGroup();
             // memberId should still be set from the join
@@ -197,7 +194,7 @@ class KafkaConsumerTest {
     void testConsumerWithStickyAssignmentStrategy() throws IOException {
         produceMessages(5);
 
-        try (var consumer = new KafkaConsumer("localhost", port, "consumer-1", "group-1")) {
+        try (var consumer = new KafkaConsumer(InMemoryKafka.pair(broker)[1], "consumer-1", "group-1")) {
             consumer.setAssignmentStrategy("sticky");
             assertThat(consumer.assignmentStrategy()).isEqualTo("sticky");
             consumer.subscribe(List.of("test"));
@@ -211,7 +208,7 @@ class KafkaConsumerTest {
     void testConsumerWithCooperativeStickyStrategy() throws IOException {
         produceMessages(5);
 
-        try (var consumer = new KafkaConsumer("localhost", port, "consumer-1", "group-1")) {
+        try (var consumer = new KafkaConsumer(InMemoryKafka.pair(broker)[1], "consumer-1", "group-1")) {
             consumer.setAssignmentStrategy("cooperative-sticky");
             assertThat(consumer.assignmentStrategy()).isEqualTo("cooperative-sticky");
             consumer.subscribe(List.of("test"));
@@ -226,7 +223,7 @@ class KafkaConsumerTest {
         List<TopicPartition> revoked = new ArrayList<>();
         List<TopicPartition> assigned = new ArrayList<>();
 
-        try (var consumer = new KafkaConsumer("localhost", port, "consumer-1", "group-coop")) {
+        try (var consumer = new KafkaConsumer(InMemoryKafka.pair(broker)[1], "consumer-1", "group-coop")) {
             consumer.setAssignmentStrategy("cooperative-sticky");
             consumer.setRebalanceListener(new RebalanceListener() {
                 @Override
@@ -249,7 +246,7 @@ class KafkaConsumerTest {
 
     @Test
     void testDefaultAssignmentStrategyIsRange() {
-        try (var consumer = new KafkaConsumer("localhost", port, "consumer-1", "group-1")) {
+        try (var consumer = new KafkaConsumer(InMemoryKafka.pair(broker)[1], "consumer-1", "group-1")) {
             assertThat(consumer.assignmentStrategy()).isEqualTo("range");
         }
     }

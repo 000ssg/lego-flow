@@ -6,6 +6,7 @@ import ssg.legoflow.messaging.kafka.protocol.*;
 import ssg.legoflow.messaging.kafka.record.Compression;
 import ssg.legoflow.messaging.kafka.record.Record;
 import ssg.legoflow.messaging.kafka.record.RecordBatch;
+import ssg.legoflow.messaging.kafka.transport.KafkaTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -56,10 +57,9 @@ public final class KafkaProducer implements AutoCloseable {
     private volatile boolean inTransaction = false;
 
     /**
-     * Creates a new Kafka producer.
+     * Creates a new Kafka producer over an injected transport.
      *
-     * @param host            the broker host
-     * @param port            the broker port
+     * @param transport       the connection transport (service layer or in-memory pair)
      * @param clientId        the client ID
      * @param partitioner     the partitioner strategy
      * @param acks            the acknowledgment mode (-1, 0, 1)
@@ -69,10 +69,10 @@ public final class KafkaProducer implements AutoCloseable {
      * @param idempotent      whether to enable idempotent mode
      * @param transactionalId the transactional ID (null for non-transactional)
      */
-    public KafkaProducer(String host, int port, String clientId, Partitioner partitioner,
+    public KafkaProducer(KafkaTransport transport, String clientId, Partitioner partitioner,
                          short acks, int retries, long retryBackoffMs, Compression compression,
                          boolean idempotent, String transactionalId) {
-        this.connection = new KafkaConnection(host, port, clientId);
+        this.connection = new KafkaConnection(transport, clientId);
         this.partitioner = partitioner != null ? partitioner : Partitioner.keyHash();
         this.acks = acks;
         this.retries = retries;
@@ -86,25 +86,32 @@ public final class KafkaProducer implements AutoCloseable {
     /**
      * Creates a simple non-idempotent producer.
      *
-     * @param host     the broker host
-     * @param port     the broker port
-     * @param clientId the client ID
+     * @param transport  the connection transport
+     * @param clientId   the client ID
      */
-    public KafkaProducer(String host, int port, String clientId) {
-        this(host, port, clientId, null, (short) 1, 3, 100, Compression.NONE, false, null);
+    public KafkaProducer(KafkaTransport transport, String clientId) {
+        this(transport, clientId, null, (short) 1, 3, 100, Compression.NONE, false, null);
     }
 
     /**
-     * Initializes the producer, establishing connection and (if idempotent) obtaining a producer ID.
+     * Initializes the producer, verifying the connection and (if idempotent) obtaining a
+     * producer ID.
      *
-     * @throws IOException if connection or initialization fails
+     * @throws IOException if connection is not open or initialization fails
      */
     public void init() throws IOException {
-        connection.connect();
+        if (!connection.isConnected()) {
+            throw new IOException("Connection not open");
+        }
 
         if (idempotent) {
             initProducerId();
         }
+    }
+
+    /** Exposes the underlying connection (for tests). */
+    KafkaConnection connection() {
+        return connection;
     }
 
     private void initProducerId() throws IOException {

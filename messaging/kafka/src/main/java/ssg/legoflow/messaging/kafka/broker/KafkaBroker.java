@@ -6,13 +6,11 @@ import ssg.legoflow.messaging.kafka.codec.KafkaCodec;
 import ssg.legoflow.messaging.kafka.common.*;
 import ssg.legoflow.messaging.kafka.protocol.*;
 import ssg.legoflow.messaging.kafka.record.RecordBatch;
+import ssg.legoflow.messaging.kafka.transport.KafkaTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -50,6 +48,7 @@ public final class KafkaBroker implements AutoCloseable {
     private final ReplicaManager replicaManager;
     private final Map<TopicPartition, List<Integer>> reassignments = new ConcurrentHashMap<>();
     private final Set<String> enabledMechanisms = Set.of("PLAIN", "SCRAM-SHA-256");
+    private final Set<KafkaTransport> activeConnections = ConcurrentHashMap.newKeySet();
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
     private final AtomicBoolean running = new AtomicBoolean(false);
 
@@ -64,8 +63,7 @@ public final class KafkaBroker implements AutoCloseable {
 
     private volatile ClusterMetadata clusterMetadata;
 
-    private volatile ServerSocketChannel serverChannel;
-    private volatile int boundPort;
+    private volatile int boundPort; // set by the service layer when it owns the socket
 
     /**
      * Creates a new Kafka broker with a custom storage backend.
@@ -109,33 +107,40 @@ public final class KafkaBroker implements AutoCloseable {
     }
 
     /**
-     * Starts the broker.
+     * Starts the headless broker core.
      *
-     * @throws IOException if binding fails
+     * <p>The broker binds <b>no socket</b>: connections arrive via
+     * {@link #handleConnection(KafkaTransport)} (driven by the service layer / an in-memory
+     * pair in tests). This method only starts the coordinator wiring and marks the broker
+     * running.
      */
-    public void start() throws IOException {
+    public void start() {
         if (!running.compareAndSet(false, true)) {
             throw new IllegalStateException("Broker already running");
         }
 
         transactionManager.setGroupCoordinator(groupCoordinator);
 
-        serverChannel = ServerSocketChannel.open();
-        serverChannel.bind(new InetSocketAddress(host, requestedPort));
-        boundPort = ((InetSocketAddress) serverChannel.getLocalAddress()).getPort();
-
-        LOG.info("Kafka broker started on {}:{} (brokerId={})", host, boundPort, brokerId);
-
-        executor.submit(this::acceptLoop);
+        LOG.info("Kafka broker started (brokerId={}, headless)", brokerId);
     }
 
     /**
-     * Returns the actual port the broker is bound to.
+     * Returns the port the broker listens on, or 0 when the core is headless (the service
+     * layer owns the socket and knows the real port).
      *
-     * @return the bound port
+     * @return the bound port, or 0
      */
     public int port() {
         return boundPort;
+    }
+
+    /**
+     * Sets the bound port. Called by the service layer once it has bound the real socket.
+     *
+     * @param port the bound port
+     */
+    public void setBoundPort(int port) {
+        this.boundPort = port;
     }
 
     /**
@@ -294,56 +299,73 @@ public final class KafkaBroker implements AutoCloseable {
 
     // --- Connection handling ---
 
-    private void acceptLoop() {
-        while (running.get()) {
-            try {
-                SocketChannel client = serverChannel.accept();
-                executor.submit(() -> handleConnection(client));
-            } catch (IOException e) {
-                if (running.get()) {
-                    LOG.error("Error accepting connection", e);
-                }
-            }
-        }
-    }
-
-    private void handleConnection(SocketChannel client) {
-        try (client) {
-            client.configureBlocking(true);
-            LOG.debug("Client connected: {}", client.getRemoteAddress());
+    /**
+     * Handles one connection until EOF. Called by the service layer for each accepted
+     * connection; the {@link KafkaTransport} is supplied by the caller (a
+     * {@code PipelineKafkaTransport} in production, an {@code InMemoryKafkaTransport} end in
+     * tests). The core talks only to the transport — <b>no sockets</b>.
+     *
+     * @param transport the connection transport
+     */
+    public void handleConnection(KafkaTransport transport) {
+        // Run the connection loop on the broker's virtual-thread executor (non-blocking
+        // for the caller — the service layer / a test just hands over a transport).
+        executor.submit(() -> {
             var connState = new ConnectionState();
+            activeConnections.add(transport);
+            try {
+                while (running.get() && transport.isOpen()) {
+                    // Read 4-byte length prefix. A read timeout is not EOF — keep waiting
+                    // (retry the same buffer) until the peer sends or closes.
+                    ByteBuffer lenBuf = ByteBuffer.allocate(4);
+                    while (running.get()) {
+                        int n = transport.receiveWithTimeout(lenBuf, 10, java.util.concurrent.TimeUnit.SECONDS);
+                        if (n < 0) {
+                            if (!transport.isOpen()) return; // true EOF
+                            continue; // timeout — keep waiting for the rest of the prefix
+                        }
+                        if (lenBuf.position() >= 4) break;
+                    }
+                    if (!running.get()) break;
+                    lenBuf.flip();
+                    int messageLen = lenBuf.getInt();
 
-            while (running.get() && client.isOpen()) {
-                // Read 4-byte length prefix
-                ByteBuffer lenBuf = ByteBuffer.allocate(4);
-                if (readFully(client, lenBuf) < 0) break;
-                lenBuf.flip();
-                int messageLen = lenBuf.getInt();
+                    if (messageLen <= 0 || messageLen > 100_000_000) {
+                        LOG.warn("Invalid message length: {}", messageLen);
+                        break;
+                    }
 
-                if (messageLen <= 0 || messageLen > 100_000_000) {
-                    LOG.warn("Invalid message length: {}", messageLen);
-                    break;
+                    // Read message body (timeout mid-frame = keep waiting, not EOF).
+                    ByteBuffer msgBuf = ByteBuffer.allocate(messageLen);
+                    while (running.get()) {
+                        int n = transport.receiveWithTimeout(msgBuf, 10, java.util.concurrent.TimeUnit.SECONDS);
+                        if (n < 0) {
+                            if (!transport.isOpen()) return; // true EOF
+                            continue; // timeout — keep waiting for the rest of the body
+                        }
+                        if (msgBuf.position() >= messageLen) break;
+                    }
+                    if (!running.get()) break;
+                    msgBuf.flip();
+
+                    // Decode header
+                    RequestHeader header = KafkaCodec.decodeRequestHeader(msgBuf);
+
+                    // Process request
+                    byte[] responseBody = processRequest(header, msgBuf, connState);
+
+                    // Send response
+                    ByteBuffer response = KafkaCodec.encodeResponse(
+                            new ResponseHeader(header.correlationId()), responseBody);
+                    transport.send(response);
                 }
-
-                // Read message body
-                ByteBuffer msgBuf = ByteBuffer.allocate(messageLen);
-                if (readFully(client, msgBuf) < 0) break;
-                msgBuf.flip();
-
-                // Decode header
-                RequestHeader header = KafkaCodec.decodeRequestHeader(msgBuf);
-
-                // Process request
-                byte[] responseBody = processRequest(header, msgBuf, connState);
-
-                // Send response
-                ByteBuffer response = KafkaCodec.encodeResponse(
-                        new ResponseHeader(header.correlationId()), responseBody);
-                writeFully(client, response);
+            } catch (Exception e) {
+                LOG.debug("Client disconnected: {}", e.getMessage());
+            } finally {
+                activeConnections.remove(transport);
+                transport.close();
             }
-        } catch (IOException e) {
-            LOG.debug("Client disconnected: {}", e.getMessage());
-        }
+        });
     }
 
     private byte[] processRequest(RequestHeader header, ByteBuffer body, ConnectionState connState) {
@@ -1064,7 +1086,8 @@ public final class KafkaBroker implements AutoCloseable {
 
         if (connState.currentMechanism == null) {
             return KafkaCodec.encodeSaslAuthenticateResponse(
-                    new SaslAuthenticateResponse(KafkaErrors.ILLEGAL_SASL_STATE.code(), new byte[0], 0));
+                    new SaslAuthenticateResponse(KafkaErrors.ILLEGAL_SASL_STATE.code(),
+                            "no SASL mechanism negotiated", new byte[0], 0));
         }
 
         try {
@@ -1075,38 +1098,24 @@ public final class KafkaBroker implements AutoCloseable {
                         connState.currentMechanism.authenticatedUser());
             }
             return KafkaCodec.encodeSaslAuthenticateResponse(
-                    new SaslAuthenticateResponse(KafkaErrors.NONE.code(), responseBytes, 0));
+                    new SaslAuthenticateResponse(KafkaErrors.NONE.code(), "", responseBytes, 0));
         } catch (AuthenticationException e) {
             LOG.debug("SASL authentication failed: {}", e.getMessage());
             return KafkaCodec.encodeSaslAuthenticateResponse(
                     new SaslAuthenticateResponse(KafkaErrors.ILLEGAL_SASL_STATE.code(),
-                            e.getMessage().getBytes(java.nio.charset.StandardCharsets.UTF_8), 0));
-        }
-    }
-
-    // --- I/O helpers ---
-
-    private int readFully(SocketChannel channel, ByteBuffer buf) throws IOException {
-        while (buf.hasRemaining()) {
-            int n = channel.read(buf);
-            if (n < 0) return -1;
-        }
-        return buf.position();
-    }
-
-    private void writeFully(SocketChannel channel, ByteBuffer buf) throws IOException {
-        while (buf.hasRemaining()) {
-            channel.write(buf);
+                            e.getMessage(), new byte[0], 0));
         }
     }
 
     @Override
     public void close() {
         if (running.compareAndSet(true, false)) {
-            try {
-                if (serverChannel != null) serverChannel.close();
-            } catch (IOException e) {
-                LOG.debug("Error closing server channel", e);
+            // Close active connections first so any read loop blocked in receiveWithTimeout
+            // wakes immediately (transport.close() -> EOF) instead of waiting for the read
+            // timeout. Without this, shutdown stalls until every idle connection's read
+            // times out.
+            for (var t : activeConnections) {
+                t.close();
             }
             executor.close();
             LOG.info("Kafka broker stopped");

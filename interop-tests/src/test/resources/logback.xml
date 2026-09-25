@@ -1,0 +1,22 @@
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>[%d{HH:mm:ss.SSS}] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Trace the actual data flow -->
+    <logger name="lego" level="TRACE"/>
+    <logger name="ssg.legoflow.service.channel" level="TRACE"/>
+    <logger name="ssg.legoflow.service.manager" level="TRACE"/>
+    <logger name="ssg.legoflow.messaging.amqp.transport" level="TRACE"/>
+    <logger name="ssg.legoflow.messaging.amqp.client" level="TRACE"/>
+    <logger name="ssg.legoflow.messaging.mqtt" level="DEBUG"/>
+    <logger name="ssg.legoflow.blocks" level="DEBUG"/>
+    <logger name="lego.eventloop" level="TRACE"/>
+    <logger name="lego.transport" level="TRACE"/>
+
+    <root level="WARN">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>

@@ -1,7 +1,7 @@
 package ssg.legoflow.messaging.nats.cluster;
 
 import org.junit.jupiter.api.Test;
-import ssg.legoflow.messaging.nats.client.NatsClient;
+import ssg.legoflow.messaging.nats.server.InMemoryNats;
 import ssg.legoflow.messaging.nats.server.NatsServer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -14,9 +14,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class NatsDistributedPubSubTest {
 
-    private NatsClusterConfig config(int port, String nodeId) {
+    private NatsClusterConfig config(String nodeId) {
         return NatsClusterConfig.builder()
-                .serverUrl("nats://localhost:" + port)
+                .serverUrl("nats://localhost:4222")
                 .clusterId("test-cluster")
                 .nodeId(nodeId)
                 .build();
@@ -25,14 +25,12 @@ class NatsDistributedPubSubTest {
     @Test
     void publish_and_subscribe() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
-            NatsClusterConfig cfg = config(port, "node-1");
+            NatsClusterConfig cfg = config("node-1");
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
                 NatsDistributedPubSub pubSub = new NatsDistributedPubSub(bus);
 
@@ -62,14 +60,12 @@ class NatsDistributedPubSubTest {
     @Test
     void publish_string_message() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
-            NatsClusterConfig cfg = config(port, "node-1");
+            NatsClusterConfig cfg = config("node-1");
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
                 NatsDistributedPubSub pubSub = new NatsDistributedPubSub(bus);
 
@@ -99,14 +95,12 @@ class NatsDistributedPubSubTest {
     @Test
     void wildcard_subscription() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
-            NatsClusterConfig cfg = config(port, "node-1");
+            NatsClusterConfig cfg = config("node-1");
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
                 NatsDistributedPubSub pubSub = new NatsDistributedPubSub(bus);
 
@@ -137,14 +131,12 @@ class NatsDistributedPubSubTest {
     @Test
     void multi_token_wildcard_subscription() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
-            NatsClusterConfig cfg = config(port, "node-1");
+            NatsClusterConfig cfg = config("node-1");
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
                 NatsDistributedPubSub pubSub = new NatsDistributedPubSub(bus);
 
@@ -175,18 +167,15 @@ class NatsDistributedPubSubTest {
     @Test
     void subscribeOthers_receives_peer_messages() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
             // Two nodes in the same cluster
-            NatsClusterConfig cfg1 = config(port, "node-A");
-            NatsClusterConfig cfg2 = config(port, "node-B");
+            NatsClusterConfig cfg1 = config("node-A");
+            NatsClusterConfig cfg2 = config("node-B");
 
-            try (var client1 = new NatsClient("localhost", port);
-                 var client2 = new NatsClient("localhost", port)) {
-                client1.connect();
-                client2.connect();
+            try (var client1 = InMemoryNats.client(server);
+                 var client2 = InMemoryNats.client(server)) {
 
                 NatsClusterBus bus1 = new NatsClusterBus(cfg1, client1);
                 NatsClusterBus bus2 = new NatsClusterBus(cfg2, client2);
@@ -222,14 +211,12 @@ class NatsDistributedPubSubTest {
     @Test
     void multiple_topics() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
-            NatsClusterConfig cfg = config(port, "node-1");
+            NatsClusterConfig cfg = config("node-1");
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
                 NatsDistributedPubSub pubSub = new NatsDistributedPubSub(bus);
 
@@ -259,14 +246,12 @@ class NatsDistributedPubSubTest {
     @Test
     void subscription_count() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
-            NatsClusterConfig cfg = config(port, "node-1");
+            NatsClusterConfig cfg = config("node-1");
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
                 NatsDistributedPubSub pubSub = new NatsDistributedPubSub(bus);
 
@@ -291,14 +276,12 @@ class NatsDistributedPubSubTest {
     @Test
     void close_clears_subscriptions() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
-            NatsClusterConfig cfg = config(port, "node-1");
+            NatsClusterConfig cfg = config("node-1");
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
                 NatsDistributedPubSub pubSub = new NatsDistributedPubSub(bus);
 
@@ -317,14 +300,12 @@ class NatsDistributedPubSubTest {
     @Test
     void returns_bus_reference() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
-            NatsClusterConfig cfg = config(port, "node-1");
+            NatsClusterConfig cfg = config("node-1");
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
                 NatsDistributedPubSub pubSub = new NatsDistributedPubSub(bus);
 
@@ -346,14 +327,12 @@ class NatsDistributedPubSubTest {
     @Test
     void null_topic_throws() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
-            NatsClusterConfig cfg = config(port, "node-1");
+            NatsClusterConfig cfg = config("node-1");
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
                 NatsDistributedPubSub pubSub = new NatsDistributedPubSub(bus);
 
@@ -375,14 +354,12 @@ class NatsDistributedPubSubTest {
     void topic_subject_prefix() throws Exception {
         // Verify that topics are prefixed with "events."
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
-            NatsClusterConfig cfg = config(port, "node-1");
+            NatsClusterConfig cfg = config("node-1");
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
 
                 // Subscribe at the bus level to see the full subject

@@ -2,13 +2,15 @@ package ssg.legoflow.messaging.stomp.core;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ssg.legoflow.messaging.stomp.core.transport.StompTransport;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import ssg.legoflow.messaging.stomp.transport.StompFrameCodec;
+import ssg.legoflow.messaging.stomp.transport.StompTransport;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 /**
  * STOMP 1.2 message broker.
  *
@@ -33,19 +35,21 @@ public class StompBroker implements AutoCloseable {
     private static final String SUPPORTED_VERSIONS = "1.0,1.1,1.2";
     private static final String SERVER_NAME = "LegoFlow-STOMP/1.2";
 
+    private final StompBrokerConfig config;
+
     /** Broker's heart-beat capability: can send at 10s, wants to receive at 10s. */
-    private int brokerSendCapability = 10000;
-    private int brokerReceiveDesire = 10000;
+    private int brokerSendCapability;
+    private int brokerReceiveDesire;
 
     private final Map<String, StompSession> sessions = new ConcurrentHashMap<>();
-    private final Map<String, StompTransport> transports = new ConcurrentHashMap<>();
+    private final Map<String, StompFrameCodec> codecs = new ConcurrentHashMap<>();
     private final Map<String, HeartbeatMonitor> heartbeats = new ConcurrentHashMap<>();
 
-    // Subscriptions: destination → list of Subscription records
-    private final Map<String, CopyOnWriteArrayList<Subscription>> destinationSubscriptions = new ConcurrentHashMap<>();
+    // Subscriptions: destination → priority queue of QueuedSubscription
+    private final Map<String, CopyOnWriteArrayList<QueuedSubscription>> destinationSubscriptions = new ConcurrentHashMap<>();
 
-    // Subscription lookup: sessionId:subscriptionId → Subscription
-    private final Map<String, Subscription> subscriptionIndex = new ConcurrentHashMap<>();
+    // Subscription lookup: sessionId:subscriptionId → QueuedSubscription
+    private final Map<String, QueuedSubscription> subscriptionIndex = new ConcurrentHashMap<>();
 
     // Transactions: sessionId:transactionId → StompTransaction
     private final Map<String, StompTransaction> transactions = new ConcurrentHashMap<>();
@@ -59,16 +63,56 @@ public class StompBroker implements AutoCloseable {
     private final AtomicLong sessionCounter = new AtomicLong(0);
     private volatile boolean running = true;
 
+    /** Protocol flow listener — set to null for no-ops. */
+    private volatile StompEventListener listener = null;
+
     /**
-     * Internal subscription record.
+     * Sets the protocol event listener.
+     *
+     * @param listener the listener, or {@code null} to disable
      */
-    record Subscription(String sessionId, String subscriptionId, String destination, String ackMode) {
+    public void setListener(StompEventListener listener) {
+        this.listener = listener;
+    }
+
+    /**
+     * Returns the current protocol event listener, or {@link StompEventListener#noOp()} if none.
+     */
+    public StompEventListener getListener() {
+        return listener != null ? listener : StompEventListener.noOp();
+    }
+
+    /**
+     * Internal subscription record with selector, priority queue, and max-size.
+     */
+    record QueuedSubscription(String sessionId, String subscriptionId, String destination,
+                               String ackMode, String selector,
+                               LinkedBlockingQueue<StompFrame> messageQueue,
+                               int maxQueueSize) {
     }
 
     /**
      * Internal pending acknowledgment record.
      */
     record PendingAck(String ackId, String sessionId, String subscriptionId, StompFrame message) {
+    }
+
+    /**
+     * Creates a broker with default settings (no auth, no ACL, no persistence).
+     */
+    public StompBroker() {
+        this(StompBrokerConfig.defaults());
+    }
+
+    /**
+     * Creates a broker with the given configuration.
+     *
+     * @param config the broker configuration
+     */
+    public StompBroker(StompBrokerConfig config) {
+        this.config = Objects.requireNonNull(config);
+        this.brokerSendCapability = config.heartbeatSend();
+        this.brokerReceiveDesire = config.heartbeatReceive();
     }
 
     /**
@@ -85,21 +129,22 @@ public class StompBroker implements AutoCloseable {
     /**
      * Accepts a new STOMP connection and processes frames on a virtual thread.
      *
-     * @param transport the transport for this connection
+     * @param transport the byte-level transport for this connection
      */
     public void accept(StompTransport transport) {
-        Thread.startVirtualThread(() -> handleConnection(transport));
+        var codec = new StompFrameCodec(transport);
+        Thread.startVirtualThread(() -> handleConnection(codec));
     }
 
     /**
      * Handles the lifecycle of a single client connection.
      */
-    private void handleConnection(StompTransport transport) {
+    private void handleConnection(StompFrameCodec codec) {
         String sessionId = null;
         boolean gracefulDisconnect = false;
         try {
-            while (running && transport.isOpen()) {
-                StompFrame frame = transport.receive();
+            while (running && codec.getTransport().isOpen()) {
+                StompFrame frame = codec.receive();
                 if (frame == null) break;
 
                 if (frame.isHeartbeat()) {
@@ -111,7 +156,7 @@ public class StompBroker implements AutoCloseable {
                 }
 
                 switch (frame.command()) {
-                    case CONNECT, STOMP -> sessionId = handleConnect(transport, frame);
+                    case CONNECT, STOMP -> sessionId = handleConnect(codec, frame);
                     case SEND -> handleSend(sessionId, frame);
                     case SUBSCRIBE -> handleSubscribe(sessionId, frame);
                     case UNSUBSCRIBE -> handleUnsubscribe(sessionId, frame);
@@ -140,7 +185,7 @@ public class StompBroker implements AutoCloseable {
     /**
      * Handles CONNECT/STOMP frame.
      */
-    private String handleConnect(StompTransport transport, StompFrame frame) {
+    private String handleConnect(StompFrameCodec codec, StompFrame frame) {
         // Version negotiation
         String acceptVersion = frame.header(StompHeaders.ACCEPT_VERSION);
         String negotiatedVersion = negotiateVersion(acceptVersion);
@@ -150,19 +195,32 @@ public class StompBroker implements AutoCloseable {
             errorHeaders.put(StompHeaders.CONTENT_TYPE, "text/plain");
             var errorFrame = StompFrame.withText(StompCommand.ERROR, errorHeaders,
                     "Supported protocol versions are " + SUPPORTED_VERSIONS);
-            transport.send(errorFrame);
-            transport.close();
+            codec.send(errorFrame);
+            codec.getTransport().close();
+            return null;
+        }
+
+        // Authentication
+        String login = frame.header(StompHeaders.LOGIN);
+        String passcode = frame.header(StompHeaders.PASSCODE);
+        if (config.authenticator() != null && !config.authenticator().authenticate(login, passcode)) {
+            var errorHeaders = new StompHeaders();
+            errorHeaders.put(StompHeaders.CONTENT_TYPE, "text/plain");
+            var errorFrame = StompFrame.withText(StompCommand.ERROR, errorHeaders,
+                    "Bad login or passcode");
+            codec.send(errorFrame);
+            codec.getTransport().close();
             return null;
         }
 
         String sessionId = "session-" + sessionCounter.incrementAndGet();
         var session = new StompSession(sessionId);
         session.setNegotiatedVersion(negotiatedVersion);
-        session.setLogin(frame.header(StompHeaders.LOGIN));
+        session.setLogin(login);
         session.setState(StompSession.State.CONNECTED);
 
         sessions.put(sessionId, session);
-        transports.put(sessionId, transport);
+        codecs.put(sessionId, codec);
 
         // Heart-beat negotiation
         var connectedHeaders = new StompHeaders();
@@ -194,8 +252,12 @@ public class StompBroker implements AutoCloseable {
             heartbeats.put(sessionId, hbMonitor);
         }
 
-        transport.send(new StompFrame(StompCommand.CONNECTED, connectedHeaders));
+        codec.send(new StompFrame(StompCommand.CONNECTED, connectedHeaders));
         LOG.debug("Session {} connected (version {})", sessionId, negotiatedVersion);
+        StompEventListener ev = listener;
+        if (ev != null) {
+            ev.onEvent(StompEventListener.EventType.SESSION_CONNECTED, sessionId, negotiatedVersion);
+        }
         return sessionId;
     }
 
@@ -209,6 +271,16 @@ public class StompBroker implements AutoCloseable {
         if (destination == null) {
             sendError(sessionId, "SEND frame missing destination header", frame.header(StompHeaders.RECEIPT));
             return;
+        }
+
+        // ACL check
+        var session = sessions.get(sessionId);
+        if (config.aclChecker() != null && session != null) {
+            if (!config.aclChecker().check(session.getLogin(), destination, "send")) {
+                sendError(sessionId, "Access denied: cannot send to " + destination,
+                        frame.header(StompHeaders.RECEIPT));
+                return;
+            }
         }
 
         String transactionId = frame.header(StompHeaders.TRANSACTION);
@@ -235,16 +307,32 @@ public class StompBroker implements AutoCloseable {
         var subs = destinationSubscriptions.get(destination);
         if (subs == null) return;
 
+        int priority = Integer.parseInt(sendFrame.headers().getOrDefault("priority", "4"));
+
         for (var sub : subs) {
             var session = sessions.get(sub.sessionId());
-            var transport = transports.get(sub.sessionId());
-            if (session == null || transport == null || !transport.isOpen()) continue;
+            var codec = codecs.get(sub.sessionId());
+            if (session == null || codec == null || !codec.getTransport().isOpen()) continue;
+
+            // Selector filtering
+            if (sub.selector() != null && !evaluateSelector(sub.selector(), sendFrame)) {
+                continue;
+            }
+
+            // Max-size check
+            if (sub.maxQueueSize() > 0 && sub.messageQueue().size() >= sub.maxQueueSize()) {
+                LOG.debug("Queue full for subscription {} on {}", sub.subscriptionId(), destination);
+                continue;
+            }
 
             String messageId = session.nextMessageId();
             var msgHeaders = new StompHeaders();
             msgHeaders.put(StompHeaders.DESTINATION, destination);
             msgHeaders.put(StompHeaders.MESSAGE_ID, messageId);
             msgHeaders.put(StompHeaders.SUBSCRIPTION, sub.subscriptionId());
+            if (priority >= 0 && priority <= 9) {
+                msgHeaders.put("priority", String.valueOf(priority));
+            }
 
             // Copy content-type if present
             String contentType = sendFrame.header(StompHeaders.CONTENT_TYPE);
@@ -271,12 +359,95 @@ public class StompBroker implements AutoCloseable {
             }
 
             var messageFrame = new StompFrame(StompCommand.MESSAGE, msgHeaders, sendFrame.body());
+
+            // Store in queue for persistence, then deliver
+            if (config.persistenceAdapter() != null) {
+                config.persistenceAdapter().queueMessage(destination, messageFrame);
+            }
+            sub.messageQueue().add(messageFrame);
+
             try {
-                transport.send(messageFrame);
+                codec.send(messageFrame);
+                StompEventListener ev = listener;
+                if (ev != null) {
+                    ev.onEvent(StompEventListener.EventType.MESSAGE_DELIVERED, sub.sessionId(), destination);
+                }
             } catch (Exception e) {
                 LOG.debug("Failed to deliver message to session {}: {}", sub.sessionId(), e.getMessage());
             }
         }
+    }
+
+    /**
+     * Evaluates a STOMP selector expression against a message frame.
+     * Supports simple comparison expressions: header &lt; op &gt; value
+     * e.g., "priority &gt; 5", "type = 'alert'"
+     */
+    private boolean evaluateSelector(String selector, StompFrame frame) {
+        try {
+            // Simple selector: header op value
+            if (selector.contains(">=")) return parseSelector(selector, ">=", frame);
+            if (selector.contains("<=")) return parseSelector(selector, "<=", frame);
+            if (selector.contains("=")) return parseSelector(selector, "=", frame);
+            if (selector.contains(">")) return parseSelector(selector, ">", frame);
+            if (selector.contains("<")) return parseSelector(selector, "<", frame);
+            if (selector.contains("!=")) return parseSelector(selector, "!=", frame);
+            // If no operator found, return true (accept)
+            return true;
+        } catch (Exception e) {
+            LOG.debug("Selector evaluation failed: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    private boolean parseSelector(String selector, String op, StompFrame frame) {
+        int opIndex = selector.indexOf(op);
+        if (opIndex < 0) return true;
+        String header = selector.substring(0, opIndex).trim();
+        String value = selector.substring(opIndex + op.length()).trim();
+        // Remove quotes
+        if (value.startsWith("'") && value.endsWith("'")) {
+            value = value.substring(1, value.length() - 1);
+        }
+
+        String frameValue = frame.header(header);
+        if (frameValue == null) return false;
+
+        if (op.equals("=")) return value.equals(frameValue);
+        if (op.equals("!=")) return !value.equals(frameValue);
+        // Numeric comparison
+        try {
+            double fv = Double.parseDouble(frameValue);
+            double sv = Double.parseDouble(value);
+            return compare(fv, sv, op);
+        } catch (NumberFormatException e) {
+            // String comparison
+            return compare(frameValue.compareTo(value), 0, op);
+        }
+    }
+
+    private boolean compare(double a, double b, String op) {
+        return switch (op) {
+            case "=" -> a == b;
+            case "!=" -> a != b;
+            case ">" -> a > b;
+            case "<" -> a < b;
+            case ">=" -> a >= b;
+            case "<=" -> a <= b;
+            default -> true;
+        };
+    }
+
+    private boolean compare(int cmp, int zero, String op) {
+        return switch (op) {
+            case "=" -> cmp == zero;
+            case "!=" -> cmp != zero;
+            case ">" -> cmp > zero;
+            case "<" -> cmp < zero;
+            case ">=" -> cmp >= zero;
+            case "<=" -> cmp <= zero;
+            default -> true;
+        };
     }
 
     /**
@@ -293,23 +464,37 @@ public class StompBroker implements AutoCloseable {
             return;
         }
 
+        // ACL check
+        var session = sessions.get(sessionId);
+        if (config.aclChecker() != null && session != null) {
+            if (!config.aclChecker().check(session.getLogin(), destination, "subscribe")) {
+                sendError(sessionId, "Access denied: cannot subscribe to " + destination,
+                        frame.header(StompHeaders.RECEIPT));
+                return;
+            }
+        }
+
         String ackMode = frame.headers().getOrDefault(StompHeaders.ACK, "auto");
         if (!"auto".equals(ackMode) && !"client".equals(ackMode) && !"client-individual".equals(ackMode)) {
             sendError(sessionId, "Invalid ack mode: " + ackMode, frame.header(StompHeaders.RECEIPT));
             return;
         }
 
-        var sub = new Subscription(sessionId, subId, destination, ackMode);
+        String selector = frame.header("selector");
+        int maxQueueSize = config.defaultMaxQueueSize();
+
+        var sub = new QueuedSubscription(sessionId, subId, destination, ackMode, selector,
+                new LinkedBlockingQueue<>(), maxQueueSize);
         destinationSubscriptions.computeIfAbsent(destination, k -> new CopyOnWriteArrayList<>()).add(sub);
         subscriptionIndex.put(sessionId + ":" + subId, sub);
 
-        var session = sessions.get(sessionId);
         if (session != null) {
             session.addSubscription(subId, destination);
         }
 
         sendReceipt(sessionId, frame);
-        LOG.debug("Session {} subscribed to {} (id={}, ack={})", sessionId, destination, subId, ackMode);
+        LOG.debug("Session {} subscribed to {} (id={}, ack={}, selector={}, max={})",
+                sessionId, destination, subId, ackMode, selector, maxQueueSize);
     }
 
     /**
@@ -533,6 +718,10 @@ public class StompBroker implements AutoCloseable {
 
         sendReceipt(sessionId, frame);
         LOG.debug("Session {} committed transaction {} ({} frames)", sessionId, transactionId, buffered.size());
+        StompEventListener ev = listener;
+        if (ev != null) {
+            ev.onEvent(StompEventListener.EventType.TRANSACTION_COMMITTED, sessionId, transactionId);
+        }
     }
 
     /**
@@ -563,6 +752,10 @@ public class StompBroker implements AutoCloseable {
 
         sendReceipt(sessionId, frame);
         LOG.debug("Session {} aborted transaction {}", sessionId, transactionId);
+        StompEventListener ev = listener;
+        if (ev != null) {
+            ev.onEvent(StompEventListener.EventType.TRANSACTION_ABORTED, sessionId, transactionId);
+        }
     }
 
     /**
@@ -579,6 +772,10 @@ public class StompBroker implements AutoCloseable {
         // Do not call cleanupSession here — the finally block in handleConnection
         // will do it after this method returns and the transport is properly flushed.
         LOG.debug("Session {} disconnected", sessionId);
+        StompEventListener ev = listener;
+        if (ev != null) {
+            ev.onEvent(StompEventListener.EventType.SESSION_DISCONNECTED, sessionId, null);
+        }
     }
 
     /**
@@ -590,9 +787,9 @@ public class StompBroker implements AutoCloseable {
             var receiptHeaders = new StompHeaders();
             receiptHeaders.put(StompHeaders.RECEIPT_ID, receiptId);
             var receiptFrame = new StompFrame(StompCommand.RECEIPT, receiptHeaders);
-            var transport = transports.get(sessionId);
-            if (transport != null && transport.isOpen()) {
-                transport.send(receiptFrame);
+            var codec = codecs.get(sessionId);
+            if (codec != null && codec.getTransport().isOpen()) {
+                codec.send(receiptFrame);
             }
         }
     }
@@ -602,8 +799,8 @@ public class StompBroker implements AutoCloseable {
      */
     void sendError(String sessionId, String message, String receiptId) {
         if (sessionId == null) return;
-        var transport = transports.get(sessionId);
-        if (transport == null || !transport.isOpen()) return;
+        var codec = codecs.get(sessionId);
+        if (codec == null || !codec.getTransport().isOpen()) return;
 
         var headers = new StompHeaders();
         headers.put(StompHeaders.MESSAGE_HEADER, message);
@@ -613,7 +810,7 @@ public class StompBroker implements AutoCloseable {
         }
 
         var errorFrame = StompFrame.withText(StompCommand.ERROR, headers, message);
-        transport.send(errorFrame);
+        codec.send(errorFrame);
         LOG.debug("Sent error to session {}: {}", sessionId, message);
     }
 
@@ -656,7 +853,7 @@ public class StompBroker implements AutoCloseable {
      */
     private void cleanupSession(String sessionId, boolean closeTransport) {
         sessions.remove(sessionId);
-        var transport = transports.remove(sessionId);
+        var codec = codecs.remove(sessionId);
         var hb = heartbeats.remove(sessionId);
         if (hb != null) hb.stop();
 
@@ -673,9 +870,9 @@ public class StompBroker implements AutoCloseable {
         pendingAcks.entrySet().removeIf(e -> e.getValue().sessionId().equals(sessionId));
         ackOrder.entrySet().removeIf(e -> e.getKey().startsWith(sessionId + ":"));
 
-        if (closeTransport && transport != null && transport.isOpen()) {
+        if (closeTransport && codec != null && codec.getTransport().isOpen()) {
             try {
-                transport.close();
+                codec.getTransport().close();
             } catch (Exception e) {
                 LOG.debug("Error closing transport for session {}: {}", sessionId, e.getMessage());
             }

@@ -2,34 +2,75 @@ package ssg.legoflow.messaging.stomp.client.service;
 
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.nio.ByteBuffer;
-/** Channel handler for STOMP client service. */
-public final class StompClientChannelHandler implements ChannelHandler {
-    private final StompClientService stompService;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-    public StompClientChannelHandler(StompClientService stompService) { this.stompService = stompService; }
+/**
+ * Channel handler for STOMP client service. Bridges pipeline events
+ * to the transport and handles the connection lifecycle.
+ *
+ * <p><b>Responsibility separation:</b> TCP lifecycle (finishConnect, interestOps,
+ * close) is handled entirely by {@code SelectableChannelManager} in the
+ * selector thread — protocol handlers never touch sockets or selector keys.
+ * This handler only signals protocol readiness.
+ */
+public final class StompClientChannelHandler implements ChannelHandler {
+
+    private static final Logger LOG = LoggerFactory.getLogger(StompClientChannelHandler.class);
+
+    private final StompClientService service;
+    private CountDownLatch connectLatch;
+    private final AtomicBoolean connectHandled = new AtomicBoolean(false);
+
+    public StompClientChannelHandler(StompClientService service, ssg.legoflow.service.ServiceContext ctx) {
+        this.service = service;
+    }
+
+    public void setConnectLatch(CountDownLatch latch) {
+        this.connectLatch = latch;
+    }
+
+    /**
+     * Called when TCP connect completes (fired by the manager after
+     * finishConnect). Only signals readiness for protocol processing.
+     */
+    @Override
+    public void onConnect(DataChannel channel) {
+        if (!connectHandled.compareAndSet(false, true)) {
+            return; // Already handled
+        }
+        if (connectLatch != null) {
+            connectLatch.countDown();
+        }
+        LOG.debug("STOMP client channel connected");
+    }
 
     @Override
     public void onRead(DataChannel channel, ByteBuffer data) {
-        if (data == null || !data.hasRemaining()) return;
-        try { stompService.consume(stompService.getServiceContext(), data); }
-        catch (Exception e) { onError(channel, e); }
+        var transport = service.getTransport();
+        if (transport != null) {
+            transport.onRead(channel, data);
+        }
     }
 
-    @Override public void onWrite(DataChannel channel) {}
-    @Override public void onConnect(DataChannel channel) {}
+    @Override
+    public void onWrite(DataChannel channel) {
+        var transport = service.getTransport();
+        if (transport != null) {
+            transport.onWrite(channel);
+        }
+    }
 
     @Override
     public void onDisconnect(DataChannel channel) {
-        try { if (stompService.isConnected()) stompService.disconnect(stompService.getServiceContext()); }
-        catch (Exception e) { onError(channel, e); }
+        LOG.debug("STOMP client channel disconnected");
     }
 
     @Override
     public void onError(DataChannel channel, Throwable cause) {
-        var ctx = stompService.getServiceContext();
-        if (ctx != null) ctx.setAttribute("stomp.client.error", cause);
+        LOG.warn("STOMP client channel error", cause);
     }
-
-    public StompClientService getStompService() { return stompService; }
 }

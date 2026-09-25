@@ -9,6 +9,8 @@ This document describes the development practices, patterns, and conventions use
 | Test patterns & anti-patterns | [doc/AGENTS_test_patterns.md](doc/AGENTS_test_patterns.md) | Writing/fixing tests, CI failures |
 | Protocol accuracy rules | [doc/AGENTS_protocol_accuracy.md](doc/AGENTS_protocol_accuracy.md) | Protocol tests, wire format, interop debugging |
 | AMQP module notes | [messaging/amqp/AGENTS.md](messaging/amqp/AGENTS.md) | AMQP-specific work |
+| MQTT module notes | [messaging/mqtt/AGENTS.md](messaging/mqtt/AGENTS.md) | MQTT-specific work |
+| STOMP module notes | [messaging/stomp/AGENTS.md](messaging/stomp/AGENTS.md) | STOMP-specific work |
 | Protocol client implementation | [messaging/amqp/AGENTS.md](messaging/amqp/AGENTS.md) | New protocol module |
 | Service patterns | [service/AGENTS.md](service/AGENTS.md) | Service layer work |
 

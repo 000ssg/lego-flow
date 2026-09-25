@@ -29,8 +29,8 @@ class StompClientTest {
 
     private StompClient createAndConnectClient() {
         var pair = InMemoryStompTransport.createPair();
-        broker.accept(pair[1]);
-        var client = new StompClient(pair[0]);
+        Thread.startVirtualThread(() -> broker.accept(pair[0]));
+        var client = new StompClient(pair[1]);
         client.connect("localhost");
         return client;
     }
@@ -50,7 +50,7 @@ class StompClientTest {
     @Test
     void testConnectWithAuth() {
         var pair = InMemoryStompTransport.createPair();
-        broker.accept(pair[1]);
+        Thread.startVirtualThread(() -> broker.accept(pair[1]));
         var client = new StompClient(pair[0]);
         var connected = client.connect("localhost", "user", "pass", 0, 0);
         try {
@@ -167,7 +167,7 @@ class StompClientTest {
     @Test
     void testErrorHandler() throws Exception {
         var pair = InMemoryStompTransport.createPair();
-        broker.accept(pair[1]);
+        Thread.startVirtualThread(() -> broker.accept(pair[1]));
         var client = new StompClient(pair[0]);
         client.connect("localhost");
 

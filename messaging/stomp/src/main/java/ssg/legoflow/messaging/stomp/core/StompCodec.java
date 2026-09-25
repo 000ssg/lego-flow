@@ -94,7 +94,56 @@ public final class StompCodec {
      * @return the parsed frame
      * @throws StompProtocolException if the frame is malformed
      */
+    /**
+     * Decodes STOMP frame bytes into a {@link StompFrame}.
+     *
+     * @param data the raw frame bytes
+     * @return the decoded frame
+     * @throws StompProtocolException if the frame is malformed
+     */
     public static StompFrame decode(byte[] data) {
+        return decode(data, true);
+    }
+
+    /**
+     * Decodes the sub-range {@code [offset, offset + length)} of {@code data}
+     * into a single frame.
+     *
+     * <p>Used by the frame reassembler
+     * ({@link ssg.legoflow.messaging.stomp.transport.StompFrameCodec}) to decode
+     * exactly one frame from a larger accumulated byte buffer.
+     *
+     * @param data     the byte buffer
+     * @param offset   start of the frame
+     * @param length   length of the frame
+     * @param strictNull see {@link #decode(byte[], boolean)}
+     * @return the decoded frame
+     * @throws StompProtocolException if the frame is malformed
+     */
+    public static StompFrame decode(byte[] data, int offset, int length, boolean strictNull) {
+        if (data == null) {
+            throw new StompProtocolException("Empty frame data");
+        }
+        if (offset < 0 || length < 0 || offset + length > data.length) {
+            throw new StompProtocolException(
+                    "Invalid range: offset=" + offset + ", length=" + length);
+        }
+        byte[] range = new byte[length];
+        System.arraycopy(data, offset, range, 0, length);
+        return decode(range, strictNull);
+    }
+
+    /**
+     * Decodes STOMP frame bytes into a {@link StompFrame} with configurable
+     * NULL terminator handling.
+     *
+     * @param data the raw frame bytes
+     * @param strictNull if true, throws when NULL terminator is missing after
+     *        a body without content-length; if false, accepts rest of data as body
+     * @return the decoded frame
+     * @throws StompProtocolException if the frame is malformed
+     */
+    public static StompFrame decode(byte[] data, boolean strictNull) {
         if (data == null || data.length == 0) {
             throw new StompProtocolException("Empty frame data");
         }
@@ -195,6 +244,9 @@ public final class StompCodec {
             // Read until NULL terminator
             int nullIdx = indexOf(data, NULL, pos);
             if (nullIdx < 0) {
+                if (strictNull && (command != StompCommand.HEARTBEAT)) {
+                    throw new StompProtocolException("Missing NULL terminator after body");
+                }
                 // No NULL found — use rest of data as body
                 body = Arrays.copyOfRange(data, pos, data.length);
             } else {
@@ -212,6 +264,137 @@ public final class StompCodec {
      * @return the parsed frame
      * @throws StompProtocolException if the frame is malformed
      */
+    /**
+     * Finds the end (exclusive) of the first complete frame in {@code data}.
+     *
+     * <p>Throws {@link FrameIncompleteException} when the buffer holds a partial
+     * frame (unterminated header line, unterminated body, or only EOL bytes with
+     * no NULL terminator) — the caller must wait for more bytes before decoding.
+     *
+     * <p>The returned boundary always splits on a frame terminator (NULL byte) or
+     * a content-length boundary, so {@code decode(data, 0, end)} yields a complete
+     * frame and {@code decode(data, end, data.length)} sees only subsequent frames.
+     *
+     * @param data     the accumulated byte stream
+     * @param strictNull when {@code false}, a frame with no NULL terminator is complete
+     *                   if the buffer holds nothing further (WebSocket message boundaries)
+     * @return exclusive end index of the first complete frame
+     * @throws FrameIncompleteException when the buffer holds a partial frame
+     */
+    public static int findFrameEnd(byte[] data, boolean strictNull) {
+        if (data == null || data.length == 0) {
+            throw new FrameIncompleteException("Empty frame data");
+        }
+
+        int pos = 0;
+
+        // Skip leading EOLs. An EOL at a frame boundary is a complete heart-beat
+        // frame (a frame never starts with EOL), so a leading EOL run always
+        // forms a complete frame on its own:
+        //   - EOL-only buffer       -> whole buffer is one heart-beat
+        //   - EOL run + NULL        -> one heart-beat frame (EOLs + NULL)
+        //   - EOL run + command     -> the EOL run is one heart-beat frame;
+        //                              the frame after it is handled on a
+        //                              subsequent call
+        while (pos < data.length && (data[pos] == LF || data[pos] == CR)) {
+            pos++;
+        }
+        if (pos >= data.length) {
+            return data.length; // complete heart-beat
+        }
+        if (data[pos] == NULL) {
+            return pos + 1; // heart-beat frame (optionally preceded by EOLs)
+        }
+        if (pos > 0) {
+            return pos; // leading EOL run is a complete heart-beat frame
+        }
+
+        // Parse command line
+        int commandEnd = indexOf(data, LF, pos);
+        if (commandEnd < 0) {
+            throw new FrameIncompleteException("No newline after command");
+        }
+        int commandLineEnd = commandEnd;
+        if (commandLineEnd > pos && data[commandLineEnd - 1] == CR) {
+            commandLineEnd--;
+        }
+        String commandStr = new String(data, pos, commandLineEnd - pos, StandardCharsets.UTF_8).trim();
+        StompCommand command;
+        try {
+            command = StompCommand.fromString(commandStr);
+        } catch (IllegalArgumentException e) {
+            throw new StompProtocolException("Unknown command: " + commandStr, e);
+        }
+
+        pos = commandEnd + 1;
+
+        // Scan the header block to its terminating blank line, extracting
+        // content-length. A header line without a trailing LF means the header
+        // block is still arriving -> incomplete.
+        int contentLength = -1;
+        while (true) {
+            if (pos >= data.length) {
+                throw new FrameIncompleteException("Missing header terminator");
+            }
+            if (data[pos] == LF || (data[pos] == CR && pos + 1 < data.length && data[pos + 1] == LF)) {
+                if (data[pos] == CR) pos++;
+                pos++; // skip the LF that closes the blank line
+                break;
+            }
+            int lineEnd = indexOf(data, LF, pos);
+            if (lineEnd < 0) {
+                throw new FrameIncompleteException("Unterminated header line");
+            }
+            int lineContentEnd = lineEnd;
+            if (lineContentEnd > pos && data[lineContentEnd - 1] == CR) {
+                lineContentEnd--;
+            }
+            String line = new String(data, pos, lineContentEnd - pos, StandardCharsets.UTF_8);
+            int colonIdx = findUnescapedColon(line);
+            if (colonIdx > 0) {
+                String key = unescapeHeaderValue(line.substring(0, colonIdx));
+                if (StompHeaders.CONTENT_LENGTH.equals(key)) {
+                    String v = unescapeHeaderValue(line.substring(colonIdx + 1));
+                    try {
+                        contentLength = Integer.parseInt(v.trim());
+                    } catch (NumberFormatException e) {
+                        throw new StompProtocolException("Invalid content-length: " + v, e);
+                    }
+                }
+            }
+            pos = lineEnd + 1;
+        }
+
+        // Body
+        if (contentLength >= 0) {
+            if (pos + contentLength > data.length) {
+                throw new FrameIncompleteException("Body shorter than content-length");
+            }
+            return pos + contentLength;
+        }
+
+        // No content-length: read until the NULL terminator
+        int nullIdx = indexOf(data, NULL, pos);
+        if (nullIdx < 0) {
+            if (strictNull) {
+                throw new FrameIncompleteException("Missing NULL terminator after body");
+            }
+            // Non-strict (WebSocket): message boundary delimits the frame
+            return data.length;
+        }
+        return nullIdx + 1;
+    }
+
+    /**
+     * Thrown by {@link #findFrameEnd} when the buffer holds a partial frame.
+     * Callers must wait for more bytes, not treat this as a protocol error.
+     */
+    public static final class FrameIncompleteException extends RuntimeException {
+        public FrameIncompleteException(String message) {
+            super(message);
+        }
+    }
+
     public static StompFrame decodeFromString(String text) {
         return decode(text.getBytes(StandardCharsets.UTF_8));
     }

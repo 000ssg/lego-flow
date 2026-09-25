@@ -26,7 +26,7 @@
 | Section | Requirement | Status | Verification |
 |---------|------------|--------|-------------|
 | CONNECTED | Connection confirmation with version, server, session | ✅ Implemented | `StompBroker.handleConnect()`; `StompBrokerTest`, `StompClientTest` |
-| MESSAGE | Deliver message with destination, message-id, subscription | ✅ Implemented | `StompBroker.deliverMessage()`; `StompBrokerTest`, `SimplePubSubDemoTest` |
+| MESSAGE | Deliver message with destination, message-id, subscription | ✅ Implemented | `StompBroker.deliverMessage()`; `StompBrokerTest`, `StompClientTest` |
 | RECEIPT | Confirm frame receipt with receipt-id | ✅ Implemented | `StompBroker.sendReceipt()`; `StompBrokerTest` |
 | ERROR | Error notification with message header | ✅ Implemented | `StompBroker.sendError()`; `StompBrokerTest` |
 
@@ -42,6 +42,7 @@
 | content-type | MIME type header support | ✅ Implemented | `StompHeaders.CONTENT_TYPE`; `StompCodecTest` |
 | NULL terminator | Frame terminated by NULL byte (\0) | ✅ Implemented | `StompCodec.encode()`; `StompCodecTest` |
 | EOL variants | Support both LF and CR+LF | ✅ Implemented | `StompCodec.decode()`; `StompCodecTest` |
+| Stream reassembly | TCP reads may carry a partial frame and/or several complete frames; all bytes must be delivered exactly once | ✅ Implemented | `StompFrameCodec` reassembler on `StompCodec.findFrameEnd()`; `StompFrameCodecTest` (batched/split/timeout/close) |
 | Heart-beat frame | Empty EOL frame (not a real command) | ✅ Implemented | `StompFrame.heartbeat()`, `StompCodec`; `StompCodecTest`, `StompFrameTest` |
 
 ### STOMP 1.2 -- Version Negotiation
@@ -78,8 +79,8 @@
 | Section | Requirement | Status | Verification |
 |---------|------------|--------|-------------|
 | BEGIN | Start named transaction | ✅ Implemented | `StompBroker.handleBegin()`; `StompBrokerTest`, `StompTransactionTest` |
-| COMMIT | Apply all buffered frames atomically | ✅ Implemented | `StompBroker.handleCommit()`; `StompBrokerTest`, `TransactionalDemoTest` |
-| ABORT | Discard all buffered frames | ✅ Implemented | `StompBroker.handleAbort()`; `StompBrokerTest`, `TransactionalDemoTest` |
+| COMMIT | Apply all buffered frames atomically | ✅ Implemented | `StompBroker.handleCommit()`; `StompBrokerTest`, `StompClientTest` |
+| ABORT | Discard all buffered frames | ✅ Implemented | `StompBroker.handleAbort()`; `StompBrokerTest`, `StompClientTest` |
 | Buffer SEND | SEND within transaction is buffered | ✅ Implemented | `StompTransaction.buffer()`; `StompTransactionTest` |
 | Buffer ACK/NACK | ACK/NACK within transaction is buffered | ✅ Implemented | `StompTransaction.buffer()`; `StompTransactionTest` |
 | Duplicate BEGIN | ERROR if transaction already active | ✅ Implemented | `StompBroker.handleBegin()`; `StompBrokerTest` |
@@ -120,24 +121,31 @@
 | Requirement | Status | Verification |
 |------------|--------|-------------|
 | Raw TCP transport | ✅ Implemented | `TcpStompTransport`, `TcpStompServer`, `TcpStompClient`; `TcpStompAdapterTest` |
+| Service pipeline transport (selector-thread NIO) | ✅ Implemented | `PipelineTransport` ring buffer + outbound queue; `StompClientService`/`StompServerService`; `PipelineTransportTest` |
 | WebSocket transport (v12.stomp subprotocol) | ✅ Implemented | `WebSocketStompTransport`, `WebSocketStompHandler` |
 | In-memory transport (testing) | ✅ Implemented | `InMemoryStompTransport`; used in all core/demo tests |
 
 ## Known Limitations
 
 - No destination wildcards or pattern matching (e.g., `/topic/**`)
-- No authentication framework (login/passcode accepted but not validated against a store)
-- No ACL / authorization for destination-level access control
-- No message persistence or durable subscriptions
-- No message selectors (SQL-based header filtering)
 - No broker-to-broker clustering or bridging
-- No message priority support
-- No maximum message size enforcement
 - WebSocket adapter depends on lego-flow-http module at runtime
+- Message persistence is in-memory only — no disk-based durable storage (e.g., database-backed `StompPersistenceAdapter`)
+
+## Advanced Features
+
+| Requirement | Status | Verification |
+|------------|--------|-------------|
+| Authentication (login/passcode validation) | ✅ Implemented | `StompBrokerConfig.authenticator()`; `StompAuthTest` |
+| ACL / destination-level access control | ✅ Implemented | `StompBrokerConfig.aclChecker()`; `StompAclTest` |
+| Message selectors (header filtering) | ✅ Implemented | `selector` header in SUBSCRIBE; simple expression evaluation; `StompSelectorTest` |
+| Message priority header forwarding | ✅ Implemented | `priority` header on SEND, forwarded in MESSAGE; `StompSelectorTest` |
+| Max queue size per subscription | ✅ Implemented | `defaultMaxQueueSize` in config; `StompSelectorTest` |
+| Persistence adapter SPI | ✅ Implemented | `StompPersistenceAdapter` interface with session/message storage; wired into broker lifecycle; `StompSelectorTest` |
+| In-memory persistence reference | ✅ Implemented | `InMemoryStompPersistenceAdapter` with `ConcurrentHashMap` storage |
 
 ## Test Coverage Summary
 
-- Total tests: 157
-- Key unit test classes: `StompCodecTest` (43), `StompHeadersTest` (14), `StompFrameTest` (10), `StompCommandTest` (5), `StompSessionTest` (10), `StompTransactionTest` (9), `HeartbeatMonitorTest` (17), `StompBrokerTest` (20), `StompClientTest` (12), `TcpStompAdapterTest` (8)
-- Key demo test classes: `SimplePubSubDemoTest`, `RequestReplyDemoTest`, `TransactionalDemoTest` (9 total)
-- Sections fully covered: all 16 commands (codec), frame format, header escaping, version negotiation, heart-beats, all 3 ack modes, transactions, receipts, TCP transport
+- Total tests: 233 (0 failures, 0 skipped)
+- Key unit test classes: `StompCodecTest` (43), `StompHeadersTest` (14), `StompFrameTest` (10), `StompCommandTest` (5), `StompSessionTest` (10), `StompTransactionTest` (9), `HeartbeatMonitorTest` (17), `StompBrokerTest` (20), `StompClientTest` (12), `TcpStompAdapterTest` (8), `StompAuthTest` (4), `StompAclTest` (4), `StompSelectorTest` (5), `StompFrameCodecTest` (16, incl. stream reassembly), `StompPersistenceTest`, `PipelineTransportTest`
+- Sections fully covered: all 16 commands (codec), frame format, header escaping, stream reassembly, version negotiation, heart-beats, all 3 ack modes, transactions, receipts, TCP transport, authentication, ACL, selectors, priority, max-size, persistence

@@ -111,15 +111,17 @@ class KafkaCodecTest {
     }
 
     // ===== Produce (0) =====
+    // Phase 6a: v0 moved to ProduceCodec + ProduceCodecTest (per-sub-category test mirror).
+    // These facade-level round-trips pin v0 through the façade; byte-level conformance
+    // lives in ProduceCodecTest.
 
     @Test
     void testProduceRequest() {
-        var req = new ProduceRequest("txn-1", (short) -1, 30000,
+        var req = new ProduceRequest(null, (short) -1, 30000,
                 List.of(new ProduceRequest.TopicData("topic", List.of(
                         new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3})))));
         byte[] encoded = KafkaCodec.encodeProduceRequest(req);
         var decoded = KafkaCodec.decodeProduceRequest(ByteBuffer.wrap(encoded));
-        assertThat(decoded.transactionalId()).isEqualTo("txn-1");
         assertThat(decoded.acks()).isEqualTo((short) -1);
         assertThat(decoded.timeoutMs()).isEqualTo(30000);
         assertThat(decoded.topicData()).hasSize(1);
@@ -128,25 +130,30 @@ class KafkaCodecTest {
     }
 
     @Test
-    void testProduceRequestNullTxnId() {
+    void testProduceRequestV0NullRecords() {
         var req = new ProduceRequest(null, (short) 1, 5000,
                 List.of(new ProduceRequest.TopicData("t", List.of(
-                        new ProduceRequest.PartitionData(0, new byte[0])))));
+                        new ProduceRequest.PartitionData(0, null)))));
         byte[] encoded = KafkaCodec.encodeProduceRequest(req);
         var decoded = KafkaCodec.decodeProduceRequest(ByteBuffer.wrap(encoded));
-        assertThat(decoded.transactionalId()).isNull();
+        assertThat(decoded.topicData().getFirst().partitionData().getFirst().records()).isNull();
     }
 
     @Test
     void testProduceResponse() {
+        // Model carries throttleTimeMs (a v1+ field); at v0 it is discarded on the wire,
+        // so a decode round-trip yields the v0 default of 0 regardless of the carried value.
         var resp = new ProduceResponse(List.of(
                 new ProduceResponse.TopicResponse("topic", List.of(
                         new ProduceResponse.PartitionResponse(0, (short) 0, 42L, 1234567890L)))), 100);
         byte[] encoded = KafkaCodec.encodeProduceResponse(resp);
         var decoded = KafkaCodec.decodeProduceResponse(ByteBuffer.wrap(encoded));
-        assertThat(decoded.throttleTimeMs()).isEqualTo(100);
         assertThat(decoded.responses()).hasSize(1);
         assertThat(decoded.responses().getFirst().partitionResponses().getFirst().baseOffset()).isEqualTo(42L);
+        // v0 response has no LogAppendTimeMs — decoder defaults it to -1.
+        assertThat(decoded.responses().getFirst().partitionResponses().getFirst().logAppendTimeMs()).isEqualTo(-1);
+        // v0 response has no ThrottleTimeMs — decoder defaults it to 0 (carried value discarded).
+        assertThat(decoded.throttleTimeMs()).isZero();
     }
 
     // ===== Fetch (1) =====
@@ -798,12 +805,13 @@ class KafkaCodecTest {
     @Test
     void testSaslAuthenticateResponse() {
         byte[] authBytes = "v=serverSig".getBytes(java.nio.charset.StandardCharsets.UTF_8);
-        var resp = new SaslAuthenticateResponse((short) 0, authBytes, 3600000L);
+        // v0 layout (spec 3.6.1): errorCode, errorMessage, authBytes — NO sessionLifetimeMs
+        var resp = new SaslAuthenticateResponse((short) 0, "", authBytes, 0L);
         byte[] encoded = KafkaCodec.encodeSaslAuthenticateResponse(resp);
         var decoded = KafkaCodec.decodeSaslAuthenticateResponse(ByteBuffer.wrap(encoded));
         assertThat(decoded.errorCode()).isZero();
+        assertThat(decoded.errorMessage()).isEmpty();
         assertThat(decoded.authBytes()).isEqualTo(authBytes);
-        assertThat(decoded.sessionLifetimeMs()).isEqualTo(3600000L);
     }
 
     // ===== LeaderAndIsr (4) =====

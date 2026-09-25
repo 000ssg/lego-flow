@@ -89,13 +89,12 @@ Three transport implementations exist:
 
 ## Testing Practices
 
-- Codec tests: encode/decode round-trips for all commands, header escaping, binary body, edge cases
-- Session tests: lifecycle state transitions, subscriptions, transactions, receipts
-- Transaction tests: buffer, commit, abort, error states
-- HeartbeatMonitor tests: parsing, negotiation, timer management
-- Broker integration tests: pub/sub, ack modes, transactions, receipts, error handling
-- Client tests: connect, subscribe, transactions, disconnect
+- All non-TCP tests use `InMemoryStompTransport` (no network I/O)
+- `StompEventListener` — fires at `SESSION_CONNECTED`, `SESSION_DISCONNECTED`, `MESSAGE_DELIVERED`, `TRANSACTION_COMMITTED`, `TRANSACTION_ABORTED`. Use `StompEventListener.latchOnFirst(EventType)` to synchronize tests with broker-side protocol progress without `Thread.sleep`. (This is the generic protocol flow listener pattern — see [doc/AGENTS_protocol_accuracy.md](../../../doc/AGENTS_protocol_accuracy.md) §11.)
+- Codec tests: encode/decode round-trips for all 16 commands, header escaping, binary body
+- Broker tests: pub/sub, ack modes (auto/client/client-individual), transactions, receipts, version negotiation
+- Client tests: connect, subscribe, send, transactions, disconnect
 - TCP adapter tests: full round-trip over real TCP sockets
-- Demo tests: pub/sub, request-reply, transactional messaging
-- All non-TCP tests use InMemoryStompTransport (no network I/O)
-- Test count: 157
+
+> **General test patterns**: See [../../../doc/AGENTS_test_patterns.md](../../../doc/AGENTS_test_patterns.md)
+> **Protocol accuracy rules**: See [../../../doc/AGENTS_protocol_accuracy.md](../../../doc/AGENTS_protocol_accuracy.md)

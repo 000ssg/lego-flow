@@ -29,6 +29,42 @@ public final class KafkaCodec {
      * @return the complete frame ready for transmission
      */
     public static ByteBuffer encodeRequest(RequestHeader header, byte[] payload) {
+        return encodeRequest(header, payload, false);
+    }
+
+    /**
+     * Encodes a request with its header into a length-prefixed frame.
+     *
+     * <p>When {@code flexible} is true the header uses the flexible (Kafka 3.0+) layout:
+     * apiKey has bit 15 set, correlationId is a signed varint, and clientId is a
+     * nullable compact (varint-length) string. The request body is already encoded
+     * by the caller at the matching version.
+     *
+     * @param header   the request header
+     * @param payload  the encoded request body
+     * @param flexible true for flexible versions (header layout)
+     * @return the complete frame ready for transmission
+     */
+    public static ByteBuffer encodeRequest(RequestHeader header, byte[] payload, boolean flexible) {
+        if (flexible) {
+            // Flexible header: apiKey|0x8000 (2) + apiVersion (2) + correlationId varint (1–5)
+            // + clientId compact string (1 + len, or 1 if null).
+            int corrVarintLen = KafkaCodecPrimitives.varintSize((header.correlationId() << 1) ^ (header.correlationId() >> 31));
+            int clientIdLen = header.clientId() == null ? 0
+                    : header.clientId().getBytes(StandardCharsets.UTF_8).length;
+            int headerSize = 2 + 2 + corrVarintLen + 1 + clientIdLen;
+            int totalSize = headerSize + payload.length;
+            ByteBuffer buf = BufferPool.getBuffer(4 + totalSize);
+            buf.putInt(totalSize);
+            buf.putShort((short) (header.apiKey() | 0x8000));
+            buf.putShort(header.apiVersion());
+            KafkaCodecPrimitives.writeVarintSigned(buf, header.correlationId());
+            KafkaCodecPrimitives.writeCompactString(buf, header.clientId());
+            buf.put(payload);
+            buf.flip();
+            return buf;
+        }
+
         byte[] clientIdBytes = header.clientId() != null
                 ? header.clientId().getBytes(StandardCharsets.UTF_8) : null;
         int clientIdLen = clientIdBytes != null ? clientIdBytes.length : 0;
@@ -85,6 +121,22 @@ public final class KafkaCodec {
     }
 
     /**
+     * Decodes a request header in flexible (Kafka 3.0+) layout: apiKey with bit 15
+     * (the flexible bit, stripped), apiVersion, correlationId as a signed varint,
+     * clientId as a nullable compact string.
+     *
+     * @param buf the buffer positioned after the 4-byte length prefix
+     * @return the decoded request header (apiKey without the flexible bit)
+     */
+    public static RequestHeader decodeRequestHeaderFlexible(ByteBuffer buf) {
+        short apiKey = (short) (buf.getShort() & 0x7FFF);
+        short apiVersion = buf.getShort();
+        int correlationId = KafkaCodecPrimitives.readVarintSigned(buf);
+        String clientId = KafkaCodecPrimitives.readCompactString(buf);
+        return new RequestHeader(apiKey, apiVersion, correlationId, clientId);
+    }
+
+    /**
      * Decodes a response header from a buffer (after the length prefix has been read).
      *
      * @param buf the buffer positioned after the 4-byte length prefix
@@ -104,55 +156,38 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeApiVersionsRequest(ApiVersionsRequest req) {
-        // Simple version: no body needed for v0
-        return new byte[0];
+        return ApiVersionsCodec.encodeRequest((short) 0, req);
     }
 
     /**
-     * Decodes an ApiVersions request body.
+     * Decodes an ApiVersions request body (v0 — the negotiation entry point uses v0).
      *
      * @param buf the buffer
      * @return the decoded request
      */
     public static ApiVersionsRequest decodeApiVersionsRequest(ByteBuffer buf) {
-        return new ApiVersionsRequest();
+        return ApiVersionsCodec.decodeRequest((short) 0, buf);
     }
 
     /**
-     * Encodes an ApiVersions response body.
+     * Encodes an ApiVersions response body (v0 — the broker advertises v0; the response version
+     * is chosen by the request version, which is always v0 on the wire today).
      *
      * @param resp the response
      * @return the encoded bytes
      */
     public static byte[] encodeApiVersionsResponse(ApiVersionsResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(2 + 4 + resp.apiKeys().size() * 6);
-        buf.putShort(resp.errorCode());
-        buf.putInt(resp.apiKeys().size());
-        for (var ak : resp.apiKeys()) {
-            buf.putShort(ak.apiKey());
-            buf.putShort(ak.minVersion());
-            buf.putShort(ak.maxVersion());
-        }
-        buf.flip();
-        byte[] result = new byte[buf.remaining()];
-        buf.get(result);
-        return result;
+        return ApiVersionsCodec.encodeResponse((short) 0, resp);
     }
 
     /**
-     * Decodes an ApiVersions response body.
+     * Decodes an ApiVersions response body (v0).
      *
      * @param buf the buffer
      * @return the decoded response
      */
     public static ApiVersionsResponse decodeApiVersionsResponse(ByteBuffer buf) {
-        short errorCode = buf.getShort();
-        int count = buf.getInt();
-        List<ApiVersionsResponse.ApiVersion> keys = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            keys.add(new ApiVersionsResponse.ApiVersion(buf.getShort(), buf.getShort(), buf.getShort()));
-        }
-        return new ApiVersionsResponse(errorCode, keys);
+        return ApiVersionsCodec.decodeResponse((short) 0, buf);
     }
 
     // ===== Metadata (3) =====
@@ -257,83 +292,53 @@ public final class KafkaCodec {
 
     // ===== Produce (0) =====
 
+    /**
+     * Encodes a Produce request body.
+     *
+     * <p>Phase 6a: delegates to {@link ProduceCodec} at the in-house pinned version (v0).
+     * The old inline layout unconditionally wrote a leading nullable TransactionalId
+     * (a v3+ field), which produced a v3-shaped body under a v0 frame that a real broker
+     * misparses; the v0 layout (Acks + TimeoutMs + TopicData) is spec-correct now.
+     *
+     * @param req the request
+     * @return the encoded bytes
+     */
     public static byte[] encodeProduceRequest(ProduceRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(65536);
-        writeNullableString(buf, req.transactionalId());
-        buf.putShort(req.acks());
-        buf.putInt(req.timeoutMs());
-        buf.putInt(req.topicData().size());
-        for (var td : req.topicData()) {
-            writeString(buf, td.name());
-            buf.putInt(td.partitionData().size());
-            for (var pd : td.partitionData()) {
-                buf.putInt(pd.index());
-                buf.putInt(pd.records() != null ? pd.records().length : -1);
-                if (pd.records() != null) buf.put(pd.records());
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return ProduceCodec.encodeRequest(ProduceCodec.PINNED_VERSION, req);
     }
 
+    /**
+     * Decodes a Produce request body (v0).
+     *
+     * @param buf the buffer
+     * @return the decoded request
+     */
     public static ProduceRequest decodeProduceRequest(ByteBuffer buf) {
-        String txnId = readNullableString(buf);
-        short acks = buf.getShort();
-        int timeout = buf.getInt();
-        int topicCount = buf.getInt();
-        List<ProduceRequest.TopicData> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String name = readString(buf);
-            int partCount = buf.getInt();
-            List<ProduceRequest.PartitionData> partitions = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                int idx = buf.getInt();
-                int recLen = buf.getInt();
-                byte[] records = null;
-                if (recLen >= 0) {
-                    records = new byte[recLen];
-                    buf.get(records);
-                }
-                partitions.add(new ProduceRequest.PartitionData(idx, records));
-            }
-            topics.add(new ProduceRequest.TopicData(name, partitions));
-        }
-        return new ProduceRequest(txnId, acks, timeout, topics);
+        return ProduceCodec.decodeRequest(ProduceCodec.PINNED_VERSION, buf);
     }
 
+    /**
+     * Encodes a Produce response body (v0: TopicData + PartitionResponse).
+     *
+     * <p>Phase 6a: delegates to {@link ProduceCodec} at v0. The old inline layout wrote
+     * a per-partition LogAppendTimeMs (v2+) and a trailing ThrottleTimeMs (v1+); v0 writes
+     * neither, so both carried values are discarded at this version.
+     *
+     * @param resp the response
+     * @return the encoded bytes
+     */
     public static byte[] encodeProduceResponse(ProduceResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(16384);
-        buf.putInt(resp.responses().size());
-        for (var tr : resp.responses()) {
-            writeString(buf, tr.name());
-            buf.putInt(tr.partitionResponses().size());
-            for (var pr : tr.partitionResponses()) {
-                buf.putInt(pr.partitionIndex());
-                buf.putShort(pr.errorCode());
-                buf.putLong(pr.baseOffset());
-                buf.putLong(pr.logAppendTimeMs());
-            }
-        }
-        buf.putInt(resp.throttleTimeMs());
-        buf.flip();
-        return toBytes(buf);
+        return ProduceCodec.encodeResponse(ProduceCodec.PINNED_VERSION, resp);
     }
 
+    /**
+     * Decodes a Produce response body (v0).
+     *
+     * @param buf the buffer
+     * @return the decoded response
+     */
     public static ProduceResponse decodeProduceResponse(ByteBuffer buf) {
-        int topicCount = buf.getInt();
-        List<ProduceResponse.TopicResponse> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String name = readString(buf);
-            int partCount = buf.getInt();
-            List<ProduceResponse.PartitionResponse> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                parts.add(new ProduceResponse.PartitionResponse(
-                        buf.getInt(), buf.getShort(), buf.getLong(), buf.getLong()));
-            }
-            topics.add(new ProduceResponse.TopicResponse(name, parts));
-        }
-        int throttle = buf.getInt();
-        return new ProduceResponse(topics, throttle);
+        return ProduceCodec.decodeResponse(ProduceCodec.PINNED_VERSION, buf);
     }
 
     // ===== Fetch (1) =====
@@ -1821,53 +1826,37 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeSaslHandshakeRequest(SaslHandshakeRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(256);
-        writeString(buf, req.mechanism());
-        buf.flip();
-        return toBytes(buf);
+        return SaslHandshakeCodec.encodeRequest((short) 0, req);
     }
 
     /**
-     * Decodes a SaslHandshake request body.
+     * Decodes a SaslHandshake request body (v0).
      *
      * @param buf the buffer
      * @return the decoded request
      */
     public static SaslHandshakeRequest decodeSaslHandshakeRequest(ByteBuffer buf) {
-        return new SaslHandshakeRequest(readString(buf));
+        return SaslHandshakeCodec.decodeRequest((short) 0, buf);
     }
 
     /**
-     * Encodes a SaslHandshake response body.
+     * Encodes a SaslHandshake response body (v0).
      *
      * @param resp the response
      * @return the encoded bytes
      */
     public static byte[] encodeSaslHandshakeResponse(SaslHandshakeResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putShort(resp.errorCode());
-        buf.putInt(resp.mechanisms().size());
-        for (String m : resp.mechanisms()) {
-            writeString(buf, m);
-        }
-        buf.flip();
-        return toBytes(buf);
+        return SaslHandshakeCodec.encodeResponse((short) 0, resp);
     }
 
     /**
-     * Decodes a SaslHandshake response body.
+     * Decodes a SaslHandshake response body (v0).
      *
      * @param buf the buffer
      * @return the decoded response
      */
     public static SaslHandshakeResponse decodeSaslHandshakeResponse(ByteBuffer buf) {
-        short errorCode = buf.getShort();
-        int count = buf.getInt();
-        List<String> mechanisms = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            mechanisms.add(readString(buf));
-        }
-        return new SaslHandshakeResponse(errorCode, mechanisms);
+        return SaslHandshakeCodec.decodeResponse((short) 0, buf);
     }
 
     // ===== SaslAuthenticate (36) =====
@@ -1879,57 +1868,37 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeSaslAuthenticateRequest(SaslAuthenticateRequest req) {
-        byte[] authBytes = req.authBytes() != null ? req.authBytes() : new byte[0];
-        ByteBuffer buf = BufferPool.getBuffer(4 + authBytes.length);
-        buf.putInt(authBytes.length);
-        buf.put(authBytes);
-        buf.flip();
-        return toBytes(buf);
+        return SaslAuthenticateCodec.encodeRequest((short) 0, req);
     }
 
     /**
-     * Decodes a SaslAuthenticate request body.
+     * Decodes a SaslAuthenticate request body (v0).
      *
      * @param buf the buffer
      * @return the decoded request
      */
     public static SaslAuthenticateRequest decodeSaslAuthenticateRequest(ByteBuffer buf) {
-        int len = buf.getInt();
-        byte[] authBytes = new byte[len];
-        if (len > 0) buf.get(authBytes);
-        return new SaslAuthenticateRequest(authBytes);
+        return SaslAuthenticateCodec.decodeRequest((short) 0, buf);
     }
 
     /**
-     * Encodes a SaslAuthenticate response body.
+     * Encodes a SaslAuthenticate response body (v0: errorCode + errorMessage + authBytes).
      *
      * @param resp the response
      * @return the encoded bytes
      */
     public static byte[] encodeSaslAuthenticateResponse(SaslAuthenticateResponse resp) {
-        byte[] authBytes = resp.authBytes() != null ? resp.authBytes() : new byte[0];
-        ByteBuffer buf = BufferPool.getBuffer(2 + 4 + authBytes.length + 8);
-        buf.putShort(resp.errorCode());
-        buf.putInt(authBytes.length);
-        buf.put(authBytes);
-        buf.putLong(resp.sessionLifetimeMs());
-        buf.flip();
-        return toBytes(buf);
+        return SaslAuthenticateCodec.encodeResponse((short) 0, resp);
     }
 
     /**
-     * Decodes a SaslAuthenticate response body.
+     * Decodes a SaslAuthenticate response body (v0).
      *
      * @param buf the buffer
      * @return the decoded response
      */
     public static SaslAuthenticateResponse decodeSaslAuthenticateResponse(ByteBuffer buf) {
-        short errorCode = buf.getShort();
-        int len = buf.getInt();
-        byte[] authBytes = new byte[len];
-        if (len > 0) buf.get(authBytes);
-        long sessionLifetimeMs = buf.getLong();
-        return new SaslAuthenticateResponse(errorCode, authBytes, sessionLifetimeMs);
+        return SaslAuthenticateCodec.decodeResponse((short) 0, buf);
     }
 
     // ===== LeaderAndIsr (4) =====
