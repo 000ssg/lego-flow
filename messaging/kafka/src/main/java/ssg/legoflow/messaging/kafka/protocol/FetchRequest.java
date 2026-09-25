@@ -63,7 +63,23 @@ public record FetchRequest(int replicaId, int maxWaitMs, int minBytes, int maxBy
      * @param partition        the partition index (v0+)
      * @param fetchOffset      the offset to start fetching from (v0+)
      * @param partitionMaxBytes the maximum bytes per partition (v0+)
+     * @param logStartOffset   the earliest available offset of the follower replica; the field is
+     *                         only used when the request is sent by the follower (v5+; absent from
+     *                         v0–v4 bodies, decoded as -1 there)
      */
-    public record PartitionFetch(int partition, long fetchOffset, int partitionMaxBytes) {
+    public record PartitionFetch(int partition, long fetchOffset, int partitionMaxBytes,
+                                 long logStartOffset) {
+
+        /**
+         * Compatibility constructor (pre-v5 call sites): {@code logStartOffset = -1}
+         * (the spec default; the value a consumer never sends).
+         *
+         * @param partition        the partition index
+         * @param fetchOffset      the offset to start fetching from
+         * @param partitionMaxBytes the maximum bytes per partition
+         */
+        public PartitionFetch(int partition, long fetchOffset, int partitionMaxBytes) {
+            this(partition, fetchOffset, partitionMaxBytes, -1L);
+        }
     }
 }
