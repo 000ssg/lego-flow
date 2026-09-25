@@ -50,8 +50,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *       dedicated methods (56-byte reference fixture).</li>
  *   <li>Response v5: v4 layout + per-partition LogStartOffset(int64) after LastStableOffset —
  *       dedicated methods (75-byte reference fixture).</li>
- *   <li>Request/response v6+ throw {@link CodecNotImplementedException} until
- *       their own sub-task rows land (v6/v7 add SessionId/SessionEpoch).</li>
+ *   <li>v6: unchanged version — request and response are wire-identical to v5
+ *       (no field change); both directions fall through to the v5 methods.</li>
+ *   <li>Request/response v7+ throw {@link CodecNotImplementedException} until
+ *       their own sub-task rows land (v7 adds SessionId/SessionEpoch and
+ *       ForgottenTopicsData).</li>
  * </ul>
  */
 class FetchCodecTest {
@@ -838,17 +841,111 @@ class FetchCodecTest {
     }
 
     @Nested
+    @DisplayName("Fetch request v6 (key 1) — unchanged vs v5")
+    class RequestV6 {
+
+        @Test
+        @DisplayName("v6 request is byte-identical to v5 (spec: no field change)")
+        void v6ByteIdenticalToV5() {
+            var req = new FetchRequest(-1, 500, 1, 1048576, 1,
+                    List.of(new FetchRequest.TopicFetch("topic", List.of(
+                            new FetchRequest.PartitionFetch(0, 10L, 65536, 42L))),
+                            new FetchRequest.TopicFetch("other", List.of())));
+
+            byte[] v5 = FetchCodec.encodeRequest((short) 5, req);
+            byte[] v6 = FetchCodec.encodeRequest((short) 6, req);
+
+            assertArrayEquals(v5, v6, "v6 request must be byte-identical to v5");
+        }
+
+        @Test
+        @DisplayName("v6 request round-trips through the v5 methods")
+        void v6RoundTripThroughV5Methods() {
+            var req = new FetchRequest(-1, 500, 1, 1048576, 0,
+                    List.of(new FetchRequest.TopicFetch("topic", List.of(
+                            new FetchRequest.PartitionFetch(0, 10L, 65536, -1L)))));
+
+            byte[] body = FetchCodec.encodeRequest((short) 6, req);
+            var decoded = FetchCodec.decodeRequest((short) 6, ByteBuffer.wrap(body));
+
+            assertEquals(-1, decoded.replicaId(), "ReplicaId round-trip");
+            assertEquals(500, decoded.maxWaitMs(), "MaxWaitMs round-trip");
+            assertEquals(1, decoded.minBytes(), "MinBytes round-trip");
+            assertEquals(1048576, decoded.maxBytes(), "MaxBytes round-trip");
+            assertEquals(0, decoded.isolationLevel(), "IsolationLevel round-trip");
+            var p0 = decoded.topics().get(0).partitions().get(0);
+            assertEquals(0, p0.partition(), "Partition round-trip");
+            assertEquals(10L, p0.fetchOffset(), "FetchOffset round-trip");
+            assertEquals(-1L, p0.logStartOffset(), "LogStartOffset round-trip");
+            assertEquals(65536, p0.partitionMaxBytes(), "PartitionMaxBytes round-trip");
+        }
+    }
+
+    @Nested
+    @DisplayName("Fetch response v6 (key 1) — unchanged vs v5")
+    class ResponseV6 {
+
+        @Test
+        @DisplayName("v6 response is byte-identical to v5 (spec: no field change)")
+        void v6ByteIdenticalToV5() {
+            var resp = new FetchResponse(42, List.of(
+                    new FetchResponse.TopicResponse("topic", List.of(
+                            new FetchResponse.PartitionResponse(0, (short) 0, 100L,
+                                    99L, 7L,
+                                    List.of(new FetchResponse.AbortedTransaction(7L, 12L)),
+                                    new byte[]{1, 2}))),
+                    new FetchResponse.TopicResponse("other", List.of(
+                            new FetchResponse.PartitionResponse(1, (short) -1, 42L, 99L, 7L,
+                                    null, null)))));
+
+            byte[] v5 = FetchCodec.encodeResponse((short) 5, resp);
+            byte[] v6 = FetchCodec.encodeResponse((short) 6, resp);
+
+            assertArrayEquals(v5, v6, "v6 response must be byte-identical to v5");
+        }
+
+        @Test
+        @DisplayName("v6 response round-trips through the v5 methods")
+        void v6RoundTripThroughV5Methods() {
+            var resp = new FetchResponse(7, List.of(
+                    new FetchResponse.TopicResponse("topic", List.of(
+                            new FetchResponse.PartitionResponse(3, (short) 5, 999L, 988L, 12L,
+                                    List.of(new FetchResponse.AbortedTransaction(1L, 2L)), null)))));
+
+            byte[] body = FetchCodec.encodeResponse((short) 6, resp);
+            var decoded = FetchCodec.decodeResponse((short) 6, ByteBuffer.wrap(body));
+
+            assertEquals(7, decoded.throttleTimeMs(), "ThrottleTimeMs round-trip");
+            var p0 = decoded.topics().get(0).partitions().get(0);
+            assertEquals(3, p0.partitionIndex(), "PartitionIndex round-trip");
+            assertEquals((short) 5, p0.errorCode(), "ErrorCode round-trip");
+            assertEquals(999L, p0.highWatermark(), "HighWatermark round-trip");
+            assertEquals(988L, p0.lastStableOffset(), "LastStableOffset round-trip");
+            assertEquals(12L, p0.logStartOffset(), "LogStartOffset round-trip");
+            assertEquals(1, p0.abortedTransactions().size(), "AbortedTransactions round-trip");
+            assertNull(p0.records(), "null Records round-trip");
+        }
+    }
+
+    @Nested
     @DisplayName("Version dispatch")
     class Dispatch {
 
         @Test
-        @DisplayName("request v6 encode throws CodecNotImplementedException (next unimplemented)")
-        void v6RequestEncodeNotImplemented() {
+        @DisplayName("request v7 encode throws CodecNotImplementedException (next unimplemented)")
+        void v7RequestEncodeNotImplemented() {
             var req = new FetchRequest(-1, 500, 1, 1048576, 0,
                     List.of(new FetchRequest.TopicFetch("topic", List.of(
                             new FetchRequest.PartitionFetch(0, 10L, 65536)))));
             assertThrows(CodecNotImplementedException.class,
-                    () -> FetchCodec.encodeRequest((short) 6, req));
+                    () -> FetchCodec.encodeRequest((short) 7, req));
+        }
+
+        @Test
+        @DisplayName("request v7 decode throws CodecNotImplementedException (next unimplemented)")
+        void v7RequestDecodeNotImplemented() {
+            assertThrows(CodecNotImplementedException.class,
+                    () -> FetchCodec.decodeRequest((short) 7, ByteBuffer.wrap(new byte[0])));
         }
 
         @Test
@@ -862,20 +959,20 @@ class FetchCodecTest {
         }
 
         @Test
-        @DisplayName("response v6 encode throws CodecNotImplementedException (next unimplemented)")
-        void v6ResponseEncodeNotImplemented() {
+        @DisplayName("response v7 encode throws CodecNotImplementedException (next unimplemented)")
+        void v7ResponseEncodeNotImplemented() {
             var resp = new FetchResponse(0, List.of(
                     new FetchResponse.TopicResponse("topic", List.of(
                             new FetchResponse.PartitionResponse(0, (short) 0, 0L, null)))));
             assertThrows(CodecNotImplementedException.class,
-                    () -> FetchCodec.encodeResponse((short) 6, resp));
+                    () -> FetchCodec.encodeResponse((short) 7, resp));
         }
 
         @Test
-        @DisplayName("response v6 decode throws CodecNotImplementedException (next unimplemented)")
-        void v6ResponseDecodeNotImplemented() {
+        @DisplayName("response v7 decode throws CodecNotImplementedException (next unimplemented)")
+        void v7ResponseDecodeNotImplemented() {
             assertThrows(CodecNotImplementedException.class,
-                    () -> FetchCodec.decodeResponse((short) 6, ByteBuffer.wrap(new byte[0])));
+                    () -> FetchCodec.decodeResponse((short) 7, ByteBuffer.wrap(new byte[0])));
         }
 
         @Test

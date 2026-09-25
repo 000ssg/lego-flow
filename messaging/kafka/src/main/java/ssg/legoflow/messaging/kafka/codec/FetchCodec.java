@@ -60,6 +60,10 @@ import java.util.List;
  *       LogStartOffset(int64) after LastStableOffset (spec: "The current log start
  *       offset."; default -1) — dedicated {@code encode/decodeResponseV5}.
  *       Compatibility constructors cover pre-v5 call sites ({@code logStartOffset = -1}).</li>
+ *   <li>v6 — unchanged version: wire-identical to v5 in both directions (spec: no field
+ *       change) — all four dispatches fall through to the v5 methods (request encodes/
+ *       decodes via {@code encode/decodeRequestV5}, response via
+ *       {@code encode/decodeResponseV5}).</li>
  * </ul>
  *
  * <p>The {@link FetchRequest} model keeps {@code maxBytes} for v3+; at v0–v2 it is never
@@ -98,9 +102,11 @@ public final class FetchCodec {
             case 4: // v4 adds IsolationLevel(int8) after MaxBytes
                 return encodeRequestV4(req);
             case 5: // v5 adds LogStartOffset(int64) to the per-partition layout (after FetchOffset)
+            case 6: // v6 request is wire-identical to v5 (spec: no field change; v7 adds
+                // SessionId/SessionEpoch/ForgottenTopicsData)
                 return encodeRequestV5(req);
             default:
-                // v6+ (SessionId/SessionEpoch, ForgottenTopicsData, ... per the spec)
+                // v7+ (SessionId/SessionEpoch, ForgottenTopicsData, ... per the spec)
                 // is not implemented yet — no code path.
                 throw new CodecNotImplementedException("Fetch request v" + version + " not implemented");
         }
@@ -125,9 +131,10 @@ public final class FetchCodec {
             case 4: // v4 adds IsolationLevel(int8) after MaxBytes
                 return decodeRequestV4(buf);
             case 5: // v5 adds LogStartOffset(int64) to the per-partition layout (after FetchOffset)
+            case 6: // v6 request wire-identical to v5
                 return decodeRequestV5(buf);
             default:
-                // v6+ is not implemented yet — no code path.
+                // v7+ (SessionId/SessionEpoch, ForgottenTopicsData, ...) is not implemented yet — no code path.
                 throw new CodecNotImplementedException("Fetch request v" + version + " not implemented");
         }
     }
@@ -152,9 +159,11 @@ public final class FetchCodec {
             case 4: // v4 response adds LastStableOffset + AbortedTransactions per partition
                 return encodeResponseV4(resp);
             case 5: // v5 response adds LogStartOffset(int64) per partition (after LastStableOffset)
+            case 6: // v6 response is wire-identical to v5 (spec: no field change; v7 adds
+                // top-level ErrorCode/SessionId)
                 return encodeResponseV5(resp);
             default:
-                // v6+ (DivergingEpoch/CurrentLeader at v12+, ...) is not implemented yet — no code path.
+                // v7+ (top-level ErrorCode/SessionId, ...) is not implemented yet — no code path.
                 throw new CodecNotImplementedException("Fetch response v" + version + " not implemented");
         }
     }
@@ -178,9 +187,10 @@ public final class FetchCodec {
             case 4: // v4 response adds LastStableOffset + AbortedTransactions per partition
                 return decodeResponseV4(buf);
             case 5: // v5 response adds LogStartOffset(int64) per partition (after LastStableOffset)
+            case 6: // v6 response wire-identical to v5
                 return decodeResponseV5(buf);
             default:
-                // v6+ is not implemented yet — no code path.
+                // v7+ is not implemented yet — no code path.
                 throw new CodecNotImplementedException("Fetch response v" + version + " not implemented");
         }
     }
