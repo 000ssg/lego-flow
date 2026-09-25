@@ -112,7 +112,7 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (9 fields): ReplicaId, MaxWaitMs, MinBytes, Topics, Topic, Partitions, Partition, FetchOffset, PartitionMaxBytes | ☐ | |
+| v0 | base (9 fields): ReplicaId, MaxWaitMs, MinBytes, Topics, Topic, Partitions, Partition, FetchOffset, PartitionMaxBytes | ✓ | eced7f9c |
 | v1 | + ThrottleTimeMs:int32[1+] | ☐ | |
 | v2 | unchanged | ☐ | |
 | v3 | + MaxBytes:int32[3+] | ☐ | |
