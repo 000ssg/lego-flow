@@ -40,11 +40,14 @@ import java.util.List;
  *   <li>v2 — unchanged version: wire-identical to v1 in both directions (v2 is the first
  *       version handling message format v1; no field change) — all four dispatches
  *       fall through (request to the v0 methods, response to the v1 methods).</li>
+ *   <li>v3 — the request adds MaxBytes(int32) after MinBytes — dedicated
+ *       {@code encode/decodeRequestV3} methods. The response is wire-identical to
+ *       v1/v2 (v3 changes the request only) and falls through to the v1 methods.</li>
  * </ul>
  *
  * <p>The {@link FetchRequest} model keeps {@code maxBytes} for v3+; at v0–v2 it is never
- * written or read. {@link FetchResponse} keeps {@code throttleTimeMs} for v1+; at v0 the
- * value is discarded on encode and defaulted to 0 on decode.
+ * written or read (decoded as 0). {@link FetchResponse} keeps {@code throttleTimeMs}
+ * for v1+; at v0 the value is discarded on encode and defaulted to 0 on decode.
  *
  * @since 0.1.0
  */
@@ -73,8 +76,10 @@ public final class FetchCodec {
             case 1: // v1 request is byte-identical to v0 (spec: "Version 1 is the same as version 0")
             case 2: // v2 request unchanged vs v1 (first to handle message format v1, no field change)
                 return encodeRequestV0(req);
+            case 3: // v3 adds MaxBytes(int32) after MinBytes
+                return encodeRequestV3(req);
             default:
-                // v3+ (MaxBytes int32, then IsolationLevel/SessionId/... per the spec)
+                // v4+ (IsolationLevel int8, then SessionId/... per the spec)
                 // is not implemented yet — no code path.
                 throw new CodecNotImplementedException("Fetch request v" + version + " not implemented");
         }
@@ -94,8 +99,10 @@ public final class FetchCodec {
             case 1: // v1 request byte-identical to v0
             case 2: // v2 request unchanged vs v1
                 return decodeRequestV0(buf);
+            case 3: // v3 adds MaxBytes(int32) after MinBytes
+                return decodeRequestV3(buf);
             default:
-                // v3+ is not implemented yet — no code path.
+                // v4+ is not implemented yet — no code path.
                 throw new CodecNotImplementedException("Fetch request v" + version + " not implemented");
         }
     }
@@ -115,9 +122,10 @@ public final class FetchCodec {
             case 1: // v1 adds a leading ThrottleTimeMs(int32)
             case 2: // v2 response is wire-identical to v1 (no field change; v2 is the
                 // first version handling message format v1)
+            case 3: // v3 response is wire-identical to v1/v2 (only the request changed at v3)
                 return encodeResponseV1(resp);
             default:
-                // v3+ (request adds MaxBytes; response unchanged until v4)
+                // v4+ (LastStableOffset, AbortedTransactions, then LogStartOffset/... per the spec)
                 // is not implemented yet — no code path.
                 throw new CodecNotImplementedException("Fetch response v" + version + " not implemented");
         }
@@ -137,9 +145,10 @@ public final class FetchCodec {
                 return decodeResponseV0(buf);
             case 1: // v1 adds a leading ThrottleTimeMs(int32)
             case 2: // v2 response wire-identical to v1
+            case 3: // v3 response wire-identical to v1/v2
                 return decodeResponseV1(buf);
             default:
-                // v3+ (request adds MaxBytes; response unchanged until v4)
+                // v4+ (LastStableOffset, AbortedTransactions, then LogStartOffset/... per the spec)
                 // is not implemented yet — no code path.
                 throw new CodecNotImplementedException("Fetch response v" + version + " not implemented");
         }
@@ -297,5 +306,60 @@ public final class FetchCodec {
             topics.add(new FetchResponse.TopicResponse(name, partitions));
         }
         return new FetchResponse(throttleTimeMs, topics);
+    }
+
+    // ===== v3 — request: ReplicaId, MaxWaitMs, MinBytes, MaxBytes, Topics{Topic, Partitions{Partition, FetchOffset, PartitionMaxBytes}} =====
+    // v3 response is wire-identical to v1/v2 (only the request changed at v3) — the v1
+    // response methods above already handle it.
+
+    private static byte[] encodeRequestV3(FetchRequest req) {
+        // Fixed overhead: ReplicaId(int32) + MaxWaitMs(int32) + MinBytes(int32)
+        // + MaxBytes(int32) + topic count(int32) = 20.
+        // Per topic: 4 (partition count) + 2 (name length) + name.
+        // Per partition: 4 (index) + 8 (fetch offset) + 4 (partition max bytes) = 16.
+        int size = 20;
+        for (var topic : req.topics()) {
+            size += 4 + 2 + topic.name().getBytes(StandardCharsets.UTF_8).length;
+            size += 16 * topic.partitions().size();
+        }
+        ByteBuffer buf = BufferPool.getBuffer(size);
+        buf.putInt(req.replicaId());
+        buf.putInt(req.maxWaitMs());
+        buf.putInt(req.minBytes());
+        buf.putInt(req.maxBytes()); // v3+: MaxBytes after MinBytes (spec field order)
+        buf.putInt(req.topics().size());
+        for (var topic : req.topics()) {
+            KafkaCodecPrimitives.writeString(buf, topic.name());
+            buf.putInt(topic.partitions().size());
+            for (var pf : topic.partitions()) {
+                buf.putInt(pf.partition());
+                buf.putLong(pf.fetchOffset());
+                buf.putInt(pf.partitionMaxBytes());
+            }
+        }
+        buf.flip();
+        return KafkaCodecPrimitives.toBytes(buf);
+    }
+
+    private static FetchRequest decodeRequestV3(ByteBuffer buf) {
+        int replicaId = buf.getInt();
+        int maxWait = buf.getInt();
+        int minBytes = buf.getInt();
+        int maxBytes = buf.getInt(); // v3+
+        int topicCount = buf.getInt();
+        List<FetchRequest.TopicFetch> topics = new ArrayList<>(topicCount);
+        for (int i = 0; i < topicCount; i++) {
+            String name = KafkaCodecPrimitives.readString(buf);
+            int partCount = buf.getInt();
+            List<FetchRequest.PartitionFetch> partitions = new ArrayList<>(partCount);
+            for (int j = 0; j < partCount; j++) {
+                int partition = buf.getInt();
+                long fetchOffset = buf.getLong();
+                int partitionMaxBytes = buf.getInt();
+                partitions.add(new FetchRequest.PartitionFetch(partition, fetchOffset, partitionMaxBytes));
+            }
+            topics.add(new FetchRequest.TopicFetch(name, partitions));
+        }
+        return new FetchRequest(replicaId, maxWait, minBytes, maxBytes, topics);
     }
 }
