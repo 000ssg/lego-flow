@@ -5,16 +5,35 @@ import java.util.List;
 /**
  * Fetch response (API key 1).
  *
+ * <p>Layout per the 3.6.1 spec ({@code doc/spec/message/FetchResponse.json}):
+ * ThrottleTimeMs(int32, 1+) + ErrorCode(int16, 7+) + SessionId(int32, 7+)
+ * + Topics[](Topic/TopicId + Partitions[](PartitionIndex, ErrorCode, HighWatermark,
+ * LastStableOffset 4+, LogStartOffset 5+, AbortedTransactions 4+, Records)).
+ *
  * @param throttleTimeMs the throttle time in milliseconds (v1+)
+ * @param errorCode      the top-level error code of the whole response (v7+; 0 when absent)
+ * @param sessionId      the fetch session ID, echoed back by the broker (v7+; 0 when absent)
  * @param topics         the per-topic responses
  * @since 0.1.0
  */
-public record FetchResponse(int throttleTimeMs, List<TopicResponse> topics) {
+public record FetchResponse(int throttleTimeMs, short errorCode, int sessionId,
+                            List<TopicResponse> topics) {
+
+    /**
+     * Compatibility constructor (pre-v7 call sites): the v7+ fields default to
+     * {@code errorCode = 0} (NO_ERROR) and {@code sessionId = 0}.
+     *
+     * @param throttleTimeMs the throttle time in milliseconds (v1+)
+     * @param topics         the per-topic responses
+     */
+    public FetchResponse(int throttleTimeMs, List<TopicResponse> topics) {
+        this(throttleTimeMs, (short) 0, 0, topics);
+    }
 
     /**
      * Per-topic fetch response.
      *
-     * @param name       the topic name
+     * @param name       the topic name (v0–v12; replaced by TopicId at v13+)
      * @param partitions the per-partition responses
      */
     public record TopicResponse(String name, List<PartitionResponse> partitions) {

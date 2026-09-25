@@ -52,9 +52,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *       dedicated methods (75-byte reference fixture).</li>
  *   <li>v6: unchanged version — request and response are wire-identical to v5
  *       (no field change); both directions fall through to the v5 methods.</li>
- *   <li>Request/response v7+ throw {@link CodecNotImplementedException} until
- *       their own sub-task rows land (v7 adds SessionId/SessionEpoch and
- *       ForgottenTopicsData).</li>
+ *   <li>Request v7: v5 layout + SessionId(int32) + SessionEpoch(int32) after
+ *       IsolationLevel + trailing ForgottenTopicsData[](Topic(string) + Partitions[]int32)
+ *       after Topics — dedicated methods.</li>
+ *   <li>Response v7: v5 layout + top-level ErrorCode(int16) + SessionId(int32) after
+ *       ThrottleTimeMs — dedicated methods (per-partition layout unchanged).</li>
+ *   <li>v8: unchanged version — request and response are wire-identical to v7
+ *       (no field change); both directions fall through to the v7 methods.</li>
+ *   <li>Request/response v9+ throw {@link CodecNotImplementedException} until
+ *       their own sub-task rows land (v9 adds CurrentLeaderEpoch per partition).</li>
  * </ul>
  */
 class FetchCodecTest {
@@ -928,24 +934,318 @@ class FetchCodecTest {
     }
 
     @Nested
+    @DisplayName("Fetch request v7 (key 1) — + SessionId/SessionEpoch + ForgottenTopicsData")
+    class RequestV7 {
+
+        @Test
+        @DisplayName("v7 request round-trips with SessionId/SessionEpoch + ForgottenTopicsData")
+        void v7RoundTrip() {
+            var req = new FetchRequest(-1, 500, 1, 1048576, 1, 11, 3,
+                    List.of(new FetchRequest.TopicFetch("topic", List.of(
+                            new FetchRequest.PartitionFetch(0, 10L, 65536, 42L)))),
+                    List.of(new FetchRequest.ForgottenTopic("topic", List.of(1, 2)),
+                            new FetchRequest.ForgottenTopic("other", List.of())));
+
+            byte[] body = FetchCodec.encodeRequest((short) 7, req);
+            var decoded = FetchCodec.decodeRequest((short) 7, ByteBuffer.wrap(body));
+
+            assertEquals(-1, decoded.replicaId());
+            assertEquals(500, decoded.maxWaitMs());
+            assertEquals(1, decoded.minBytes());
+            assertEquals(1048576, decoded.maxBytes());
+            assertEquals(1, decoded.isolationLevel());
+            assertEquals(11L, decoded.sessionId(), "SessionId (v7+) round-trip");
+            assertEquals(3L, decoded.sessionEpoch(), "SessionEpoch (v7+) round-trip");
+            assertEquals(42L, decoded.topics().get(0).partitions().get(0).logStartOffset());
+            assertEquals(2, decoded.forgottenTopics().size(), "ForgottenTopicsData count");
+            assertEquals("topic", decoded.forgottenTopics().get(0).name());
+            assertEquals(List.of(1, 2), decoded.forgottenTopics().get(0).partitions());
+            assertEquals("other", decoded.forgottenTopics().get(1).name());
+            assertTrue(decoded.forgottenTopics().get(1).partitions().isEmpty(),
+                    "empty partition list = whole topic forgotten");
+        }
+
+        @Test
+        @DisplayName("v7 request has the exact 87-byte spec wire layout (v5 + 8 session + 8 + 23 forgotten)")
+        void v7ExactBytes() {
+            var req = new FetchRequest(-1, 500, 1, 1048576, 0, 11, 3,
+                    List.of(new FetchRequest.TopicFetch("topic", List.of(
+                            new FetchRequest.PartitionFetch(0, 10L, 65536, 42L)))),
+                    List.of(new FetchRequest.ForgottenTopic("topic", List.of(1, 2))));
+
+            byte[] body = FetchCodec.encodeRequest((short) 7, req);
+            // v5 layout for this shape is 56 bytes (header 17 + topics count 4 + topic 7
+            // + partition count 4 + partition 24). v7 adds 8 (SessionId+SessionEpoch) after
+            // IsolationLevel and a trailing ForgottenTopicsData: 4 (array count) + 2 (name len)
+            // + 5 (name) + 4 (part count) + 8 (two part ints) = 23 after Topics. 56 + 8 + 23 = 87.
+            assertEquals(87, body.length, "exact v7 wire layout");
+
+            ByteBuffer buf = ByteBuffer.wrap(body);
+            assertEquals(-1, buf.getInt(), "ReplicaId int32");
+            assertEquals(500, buf.getInt(), "MaxWaitMs int32");
+            assertEquals(1, buf.getInt(), "MinBytes int32");
+            assertEquals(1048576, buf.getInt(), "MaxBytes int32");
+            assertEquals(0, buf.get() & 0xff, "IsolationLevel int8 (v4+)");
+            assertEquals(11L, buf.getInt(), "SessionId int32 (v7+, after IsolationLevel)");
+            assertEquals(3L, buf.getInt(), "SessionEpoch int32 (v7+)");
+            assertEquals(1, buf.getInt(), "Topics count int32");
+            assertEquals(5, buf.getShort(), "Topic string16 length");
+            byte[] name = new byte[5];
+            buf.get(name);
+            assertEquals("topic", new String(name, StandardCharsets.UTF_8), "Topic name");
+            assertEquals(1, buf.getInt(), "Partitions count int32");
+            assertEquals(0, buf.getInt(), "Partition int32");
+            assertEquals(10L, buf.getLong(), "FetchOffset int64");
+            assertEquals(42L, buf.getLong(), "LogStartOffset int64 (v5+)");
+            assertEquals(65536, buf.getInt(), "PartitionMaxBytes int32");
+            assertEquals(1, buf.getInt(), "ForgottenTopicsData count int32 (v7+)");
+            assertEquals(5, buf.getShort(), "Forgotten topic string16 length");
+            byte[] fname = new byte[5];
+            buf.get(fname);
+            assertEquals("topic", new String(fname, StandardCharsets.UTF_8), "Forgotten topic name");
+            assertEquals(2, buf.getInt(), "Forgotten partitions count int32");
+            assertEquals(1, buf.getInt(), "Forgotten partition[0] int32");
+            assertEquals(2, buf.getInt(), "Forgotten partition[1] int32");
+            assertEquals(0, buf.remaining(), "no trailing bytes");
+        }
+
+        @Test
+        @DisplayName("v7 request is the v5 layout with session fields after IsolationLevel + ForgottenTopicsData trailing")
+        void v7IsV5PlusSession() {
+            var req = new FetchRequest(-1, 500, 1, 1048576, 1, 11, 3,
+                    List.of(new FetchRequest.TopicFetch("topic", List.of(
+                            new FetchRequest.PartitionFetch(0, 10L, 65536, 42L)))),
+                    List.of(new FetchRequest.ForgottenTopic("topic", List.of(1, 2))));
+
+            byte[] v5 = FetchCodec.encodeRequest((short) 5, req);
+            byte[] v7 = FetchCodec.encodeRequest((short) 7, req);
+
+            // v5 is 56 bytes. v7 header prefix through IsolationLevel is 17 bytes
+            // (ReplicaId 4 + MaxWaitMs 4 + MinBytes 4 + MaxBytes 4 + IsolationLevel 1).
+            // v7 then inserts 8 (session) bytes, so session sits at [17..25) and Topics
+            // begins at 25 — in v5 Topics began at 17. The 17-byte header prefix is unchanged.
+            assertArrayEquals(Arrays.copyOfRange(v5, 0, 17), Arrays.copyOfRange(v7, 0, 17),
+                    "header through IsolationLevel unchanged");
+            // v5: Topics at offset 17 (length 56-17 = 39). v7: Topics at offset 25.
+            // v7 = header(17) + session(8) + topics(39) + forgotten(23) = 87.
+            assertEquals(v5.length + 8 + 23, v7.length, "v7 = v5 + 8 session + 23 forgotten");
+            assertArrayEquals(Arrays.copyOfRange(v5, 17, v5.length),
+                    Arrays.copyOfRange(v7, 25, 25 + (v5.length - 17)),
+                    "Topics array byte-identical between v5 and v7");
+        }
+
+        @Test
+        @DisplayName("v0-v6 decode defaults sessionId=0, sessionEpoch=-1, forgotten=empty (absent from the body)")
+        void preV7DefaultsSession() {
+            var req = new FetchRequest(-1, 500, 1, 1048576, 0,
+                    List.of(new FetchRequest.TopicFetch("topic", List.of(
+                            new FetchRequest.PartitionFetch(0, 10L, 65536)))));
+            for (short v = 0; v <= 6; v++) {
+                byte[] body = FetchCodec.encodeRequest(v, req);
+                var decoded = FetchCodec.decodeRequest(v, ByteBuffer.wrap(body));
+                assertEquals(0, decoded.sessionId(), "SessionId (v7+) must decode as 0 at v" + v);
+                assertEquals(-1, decoded.sessionEpoch(), "SessionEpoch (v7+) must decode as -1 at v" + v);
+                assertTrue(decoded.forgottenTopics().isEmpty(),
+                        "ForgottenTopicsData (v7+) must decode as empty at v" + v);
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("Fetch response v7 (key 1) — + top-level ErrorCode + SessionId")
+    class ResponseV7 {
+
+        @Test
+        @DisplayName("v7 response round-trips with top-level ErrorCode + SessionId")
+        void v7RoundTrip() {
+            var resp = new FetchResponse(7, (short) 3, 11, List.of(
+                    new FetchResponse.TopicResponse("topic", List.of(
+                            new FetchResponse.PartitionResponse(3, (short) 5, 999L, 988L, 12L,
+                                    List.of(new FetchResponse.AbortedTransaction(1L, 2L)), null)))));
+
+            byte[] body = FetchCodec.encodeResponse((short) 7, resp);
+            var decoded = FetchCodec.decodeResponse((short) 7, ByteBuffer.wrap(body));
+
+            assertEquals(7, decoded.throttleTimeMs(), "ThrottleTimeMs round-trip");
+            assertEquals((short) 3, decoded.errorCode(), "top-level ErrorCode (v7+) round-trip");
+            assertEquals(11L, decoded.sessionId(), "top-level SessionId (v7+) round-trip");
+            var p0 = decoded.topics().get(0).partitions().get(0);
+            assertEquals(3, p0.partitionIndex(), "PartitionIndex round-trip");
+            assertEquals((short) 5, p0.errorCode(), "partition ErrorCode round-trip");
+            assertEquals(999L, p0.highWatermark(), "HighWatermark round-trip");
+            assertEquals(988L, p0.lastStableOffset(), "LastStableOffset round-trip");
+            assertEquals(12L, p0.logStartOffset(), "LogStartOffset round-trip");
+        }
+
+        @Test
+        @DisplayName("v7 response has the exact 63-byte spec wire layout (v5 + 2 ErrorCode + 4 SessionId)")
+        void v7ExactBytes() {
+            var resp = new FetchResponse(7, (short) 3, 11, List.of(
+                    new FetchResponse.TopicResponse("topic", List.of(
+                            new FetchResponse.PartitionResponse(3, (short) 5, 999L, 988L, 12L,
+                                    null, null)))));
+
+            byte[] body = FetchCodec.encodeResponse((short) 7, resp);
+            // v5 response for this shape is 57 bytes (ThrottleTimeMs 4 + responses count 4
+            // + topic 7 + partition count 4 + partition 38). v7 adds 6 bytes (ErrorCode int16
+            // + SessionId int32) between ThrottleTimeMs and Responses. 57 + 6 = 63.
+            assertEquals(63, body.length, "exact v7 wire layout");
+
+            ByteBuffer buf = ByteBuffer.wrap(body);
+            assertEquals(7, buf.getInt(), "ThrottleTimeMs int32");
+            assertEquals((short) 3, buf.getShort(), "ErrorCode int16 (v7+, after ThrottleTimeMs)");
+            assertEquals(11L, buf.getInt(), "SessionId int32 (v7+)");
+            assertEquals(1, buf.getInt(), "Responses count int32");
+            assertEquals(5, buf.getShort(), "Topic string16 length");
+            byte[] name = new byte[5];
+            buf.get(name);
+            assertEquals("topic", new String(name, StandardCharsets.UTF_8), "Topic name");
+            assertEquals(1, buf.getInt(), "Partitions count int32");
+            assertEquals(3, buf.getInt(), "PartitionIndex int32");
+            assertEquals((short) 5, buf.getShort(), "Partition ErrorCode int16");
+            assertEquals(999L, buf.getLong(), "HighWatermark int64");
+            assertEquals(988L, buf.getLong(), "LastStableOffset int64 (v4+)");
+            assertEquals(12L, buf.getLong(), "LogStartOffset int64 (v5+)");
+            assertEquals(0, buf.getInt(), "AbortedTransactions count int32 (v4+, empty)");
+            assertEquals(-1, buf.getInt(), "Records length int32 (null)");
+            assertEquals(0, buf.remaining(), "no trailing bytes");
+        }
+
+        @Test
+        @DisplayName("v7 response is the v5 layout with top-level ErrorCode+SessionId inserted after ThrottleTimeMs")
+        void v7IsV5PlusTopLevel() {
+            var resp = new FetchResponse(7, (short) 3, 11, List.of(
+                    new FetchResponse.TopicResponse("topic", List.of(
+                            new FetchResponse.PartitionResponse(3, (short) 5, 999L, 988L, 12L,
+                                    null, null)))));
+
+            byte[] v5 = FetchCodec.encodeResponse((short) 5, resp);
+            byte[] v7 = FetchCodec.encodeResponse((short) 7, resp);
+
+            // v5 is 75 bytes; v7 = 75 + 6 (top-level ErrorCode+SessionId).
+            assertEquals(v5.length + 6, v7.length, "v7 is 6 bytes wider");
+            // ThrottleTimeMs (first 4 bytes) unchanged.
+            assertArrayEquals(Arrays.copyOfRange(v5, 0, 4), Arrays.copyOfRange(v7, 0, 4),
+                    "ThrottleTimeMs unchanged");
+            // The v5 Responses array (from offset 4) equals the v7 Responses array (from offset 10).
+            assertArrayEquals(Arrays.copyOfRange(v5, 4, v5.length),
+                    Arrays.copyOfRange(v7, 10, v7.length),
+                    "Responses array byte-identical between v5 and v7");
+        }
+
+        @Test
+        @DisplayName("v0-v6 decode defaults errorCode=0, sessionId=0 (absent from the body)")
+        void preV7DefaultsTopLevel() {
+            var resp = new FetchResponse(7, List.of(
+                    new FetchResponse.TopicResponse("topic", List.of(
+                            new FetchResponse.PartitionResponse(0, (short) 0, 100L, null)))));
+            for (short v = 0; v <= 6; v++) {
+                byte[] body = FetchCodec.encodeResponse(v, resp);
+                var decoded = FetchCodec.decodeResponse(v, ByteBuffer.wrap(body));
+                assertEquals(0, decoded.errorCode(), "ErrorCode (v7+) must decode as 0 at v" + v);
+                assertEquals(0, decoded.sessionId(), "SessionId (v7+) must decode as 0 at v" + v);
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("Fetch request v8 (key 1) — unchanged vs v7")
+    class RequestV8 {
+
+        @Test
+        @DisplayName("v8 request is byte-identical to v7 (spec: no field change)")
+        void v8ByteIdenticalToV7() {
+            var req = new FetchRequest(-1, 500, 1, 1048576, 1, 11, 3,
+                    List.of(new FetchRequest.TopicFetch("topic", List.of(
+                            new FetchRequest.PartitionFetch(0, 10L, 65536, 42L)))),
+                    List.of(new FetchRequest.ForgottenTopic("topic", List.of(1, 2))));
+
+            byte[] v7 = FetchCodec.encodeRequest((short) 7, req);
+            byte[] v8 = FetchCodec.encodeRequest((short) 8, req);
+
+            assertArrayEquals(v7, v8, "v8 request must be byte-identical to v7");
+        }
+
+        @Test
+        @DisplayName("v8 request round-trips through the v7 methods")
+        void v8RoundTripThroughV7Methods() {
+            var req = new FetchRequest(-1, 500, 1, 1048576, 0, 11, 3,
+                    List.of(new FetchRequest.TopicFetch("topic", List.of(
+                            new FetchRequest.PartitionFetch(0, 10L, 65536, -1L)))),
+                    List.of(new FetchRequest.ForgottenTopic("other", List.of())));
+
+            byte[] body = FetchCodec.encodeRequest((short) 8, req);
+            var decoded = FetchCodec.decodeRequest((short) 8, ByteBuffer.wrap(body));
+
+            assertEquals(11L, decoded.sessionId(), "SessionId round-trip");
+            assertEquals(3L, decoded.sessionEpoch(), "SessionEpoch round-trip");
+            assertEquals(1, decoded.forgottenTopics().size(), "ForgottenTopicsData round-trip");
+            assertEquals("other", decoded.forgottenTopics().get(0).name());
+        }
+    }
+
+    @Nested
+    @DisplayName("Fetch response v8 (key 1) — unchanged vs v7")
+    class ResponseV8 {
+
+        @Test
+        @DisplayName("v8 response is byte-identical to v7 (spec: no field change)")
+        void v8ByteIdenticalToV7() {
+            var resp = new FetchResponse(42, (short) 3, 11, List.of(
+                    new FetchResponse.TopicResponse("topic", List.of(
+                            new FetchResponse.PartitionResponse(0, (short) 0, 100L,
+                                    99L, 7L,
+                                    List.of(new FetchResponse.AbortedTransaction(7L, 12L)),
+                                    new byte[]{1, 2}))),
+                    new FetchResponse.TopicResponse("other", List.of(
+                            new FetchResponse.PartitionResponse(1, (short) -1, 42L, 99L, 7L,
+                                    null, null)))));
+
+            byte[] v7 = FetchCodec.encodeResponse((short) 7, resp);
+            byte[] v8 = FetchCodec.encodeResponse((short) 8, resp);
+
+            assertArrayEquals(v7, v8, "v8 response must be byte-identical to v7");
+        }
+
+        @Test
+        @DisplayName("v8 response round-trips through the v7 methods")
+        void v8RoundTripThroughV7Methods() {
+            var resp = new FetchResponse(7, (short) 5, 11, List.of(
+                    new FetchResponse.TopicResponse("topic", List.of(
+                            new FetchResponse.PartitionResponse(3, (short) 5, 999L, 988L, 12L,
+                                    List.of(new FetchResponse.AbortedTransaction(1L, 2L)), null)))));
+
+            byte[] body = FetchCodec.encodeResponse((short) 8, resp);
+            var decoded = FetchCodec.decodeResponse((short) 8, ByteBuffer.wrap(body));
+
+            assertEquals(7, decoded.throttleTimeMs(), "ThrottleTimeMs round-trip");
+            assertEquals((short) 5, decoded.errorCode(), "ErrorCode round-trip");
+            assertEquals(11L, decoded.sessionId(), "SessionId round-trip");
+            var p0 = decoded.topics().get(0).partitions().get(0);
+            assertEquals(3, p0.partitionIndex(), "PartitionIndex round-trip");
+            assertNull(p0.records(), "null Records round-trip");
+        }
+    }
+
+    @Nested
     @DisplayName("Version dispatch")
     class Dispatch {
 
         @Test
-        @DisplayName("request v7 encode throws CodecNotImplementedException (next unimplemented)")
-        void v7RequestEncodeNotImplemented() {
+        @DisplayName("request v9 encode throws CodecNotImplementedException (next unimplemented)")
+        void v9RequestEncodeNotImplemented() {
             var req = new FetchRequest(-1, 500, 1, 1048576, 0,
                     List.of(new FetchRequest.TopicFetch("topic", List.of(
                             new FetchRequest.PartitionFetch(0, 10L, 65536)))));
             assertThrows(CodecNotImplementedException.class,
-                    () -> FetchCodec.encodeRequest((short) 7, req));
+                    () -> FetchCodec.encodeRequest((short) 9, req));
         }
 
         @Test
-        @DisplayName("request v7 decode throws CodecNotImplementedException (next unimplemented)")
-        void v7RequestDecodeNotImplemented() {
+        @DisplayName("request v9 decode throws CodecNotImplementedException (next unimplemented)")
+        void v9RequestDecodeNotImplemented() {
             assertThrows(CodecNotImplementedException.class,
-                    () -> FetchCodec.decodeRequest((short) 7, ByteBuffer.wrap(new byte[0])));
+                    () -> FetchCodec.decodeRequest((short) 9, ByteBuffer.wrap(new byte[0])));
         }
 
         @Test
@@ -959,20 +1259,20 @@ class FetchCodecTest {
         }
 
         @Test
-        @DisplayName("response v7 encode throws CodecNotImplementedException (next unimplemented)")
-        void v7ResponseEncodeNotImplemented() {
+        @DisplayName("response v9 encode throws CodecNotImplementedException (next unimplemented)")
+        void v9ResponseEncodeNotImplemented() {
             var resp = new FetchResponse(0, List.of(
                     new FetchResponse.TopicResponse("topic", List.of(
                             new FetchResponse.PartitionResponse(0, (short) 0, 0L, null)))));
             assertThrows(CodecNotImplementedException.class,
-                    () -> FetchCodec.encodeResponse((short) 7, resp));
+                    () -> FetchCodec.encodeResponse((short) 9, resp));
         }
 
         @Test
-        @DisplayName("response v7 decode throws CodecNotImplementedException (next unimplemented)")
-        void v7ResponseDecodeNotImplemented() {
+        @DisplayName("response v9 decode throws CodecNotImplementedException (next unimplemented)")
+        void v9ResponseDecodeNotImplemented() {
             assertThrows(CodecNotImplementedException.class,
-                    () -> FetchCodec.decodeResponse((short) 7, ByteBuffer.wrap(new byte[0])));
+                    () -> FetchCodec.decodeResponse((short) 9, ByteBuffer.wrap(new byte[0])));
         }
 
         @Test
