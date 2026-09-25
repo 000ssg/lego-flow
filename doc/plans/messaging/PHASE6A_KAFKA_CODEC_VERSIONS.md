@@ -121,8 +121,8 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | v6 | unchanged | ✓ | 6cb09640 |
 | v7 | + SessionId:int32[7+], SessionEpoch:int32[7+], ForgottenTopicsData:[]ForgottenTopic[7+], Topic:string[7-12], Partitions:[]int32[7+], ErrorCode:int16[7+], SessionId:int32[7+] | ✓ | f650a002 |
 | v8 | unchanged | ✓ | f650a002 |
-| v9 | + CurrentLeaderEpoch:int32[9+] | ☐ | |
-| v10 | unchanged | ☐ | |
+| v9 | + CurrentLeaderEpoch:int32[9+] | ✓ | dbd46370 |
+| v10 | unchanged | ✓ | dbd46370 |
 | v11 | + RackId:string[11+], PreferredReadReplica:int32[11+] | ☐ | |
 | v12 | + ClusterId:string[12+](null:12+), LastFetchedEpoch:int32[12+], DivergingEpoch:EpochEndOffset[12+], Epoch:int32[12+], EndOffset:int64[12+], CurrentLeader:LeaderIdAndEpoch[12+], LeaderId:int32[12+], LeaderEpoch:int32[12+], SnapshotId:SnapshotId[12+], EndOffset:int64[0+], Epoch:int32[0+]<br>→ flexible encoding | ☐ | |
 | v13 | + TopicId:uuid[13+], TopicId:uuid[13+], TopicId:uuid[13+]<br>− Topic:string[0-12], Topic:string[7-12], Topic:string[0-12] | ☐ | |
