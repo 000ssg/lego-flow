@@ -200,12 +200,7 @@ class NegotiationAuthCodecTest {
         @Test
         @DisplayName("v3 response with all four feature tags — exact 54-byte vector")
         void v3ResponseAllFeatureTagsExactBytes() {
-            ApiVersionsResponse resp = new ApiVersionsResponse((short) 0,
-                    List.of(new ApiVersionsResponse.ApiVersion((short) 18, (short) 0, (short) 3)), 150L,
-                    List.of(new ApiVersionsResponse.SupportedFeatureKey("rack", (short) 0, (short) 1)),
-                    42L,
-                    List.of(new ApiVersionsResponse.FinalizedFeatureKey("rack", (short) 1, (short) 0)),
-                    true);
+            ApiVersionsResponse resp = ApiVersionsResponse.builder().errorCode((short) 0).apiKeys(List.of(new ApiVersionsResponse.ApiVersion((short) 18, (short) 0, (short) 3))).throttleTimeMs(150L).supportedFeatures(List.of(new ApiVersionsResponse.SupportedFeatureKey("rack", (short) 0, (short) 1))).finalizedFeaturesEpoch(42L).finalizedFeatures(List.of(new ApiVersionsResponse.FinalizedFeatureKey("rack", (short) 1, (short) 0))).zkMigrationReady(true).build();
             byte[] body = ApiVersionsCodec.encodeResponse((short) 3, resp);
             // errorCode(2) + array marker(1) + element[3*2 + trailer(1)] + throttle(4) + section count(1)
             // + tag0: tag(1) size(1) payload(11)  [list count(1) + "rack"(prefix1+4) + min(2) max(2) trailer(1)]
@@ -381,8 +376,7 @@ class NegotiationAuthCodecTest {
         @DisplayName("v0 response exact layout: errorCode(int16) + errorMessage(string16) + authBytes(bytes)")
         void v0ResponseExactLayout() {
             byte[] serverToken = {1, 2, 3, 4};
-            SaslAuthenticateResponse resp = new SaslAuthenticateResponse(
-                    (short) 0, "", serverToken, 0L);
+            SaslAuthenticateResponse resp = SaslAuthenticateResponse.builder().errorCode((short) 0).errorMessage("").authBytes(serverToken).sessionLifetimeMs(0L).build();
 
             byte[] body = SaslAuthenticateCodec.encodeResponse((short) 0, resp);
             // 2 (errorCode) + 2 (errorMessage len) + 4 (authBytes len) + 4 (authBytes) = 12
@@ -404,8 +398,7 @@ class NegotiationAuthCodecTest {
         @Test
         @DisplayName("v0 response carries errorMessage text verbatim")
         void v0ResponseErrorMessage() {
-            SaslAuthenticateResponse resp = new SaslAuthenticateResponse(
-                    (short) 33, "no SASL mechanism negotiated", new byte[0], 0L);
+            SaslAuthenticateResponse resp = SaslAuthenticateResponse.builder().errorCode((short) 33).errorMessage("no SASL mechanism negotiated").authBytes(new byte[0]).sessionLifetimeMs(0L).build();
 
             byte[] body = SaslAuthenticateCodec.encodeResponse((short) 0, resp);
 
@@ -433,8 +426,7 @@ class NegotiationAuthCodecTest {
         @DisplayName("v1 response round-trips with sessionLifetimeMs; exact layout 2+2+4+4+8")
         void v1ResponseRoundTrip() {
             byte[] serverToken = {1, 2};
-            SaslAuthenticateResponse resp = new SaslAuthenticateResponse(
-                    (short) 0, "ok", serverToken, 1000L);
+            SaslAuthenticateResponse resp = SaslAuthenticateResponse.builder().errorCode((short) 0).errorMessage("ok").authBytes(serverToken).sessionLifetimeMs(1000L).build();
 
             byte[] body = SaslAuthenticateCodec.encodeResponse((short) 1, resp);
             // 2 (errorCode) + 2 (errorMessage len) + 2 ("ok") + 4 (authBytes len) + 2 (authBytes) + 8 (sessionLifetime) = 20
@@ -461,8 +453,7 @@ class NegotiationAuthCodecTest {
         @Test
         @DisplayName("v1 response with empty message/authBytes: exact 16-byte layout")
         void v1ResponseEmptyFields() {
-            SaslAuthenticateResponse resp = new SaslAuthenticateResponse(
-                    (short) 0, "", new byte[0], 65536L);
+            SaslAuthenticateResponse resp = SaslAuthenticateResponse.builder().errorCode((short) 0).errorMessage("").authBytes(new byte[0]).sessionLifetimeMs(65536L).build();
 
             byte[] body = SaslAuthenticateCodec.encodeResponse((short) 1, resp);
             assertEquals(16, body.length, "2 (error) + 2 (msgLen) + 4 (bytesLen) + 8 (lifetime)");
@@ -499,7 +490,7 @@ class NegotiationAuthCodecTest {
         @Test
         @DisplayName("v2 response round-trips with exact compact layout: int16 + varint string + varint bytes + int64")
         void v2ResponseRoundTrip() {
-            var resp = new SaslAuthenticateResponse((short) 15, "fail", new byte[]{1, 2}, 123_456_789L);
+            var resp = SaslAuthenticateResponse.builder().errorCode((short) 15).errorMessage("fail").authBytes(new byte[]{1, 2}).sessionLifetimeMs(123_456_789L).build();
             byte[] enc = SaslAuthenticateCodec.encodeResponse((short) 2, resp);
             // errorCode(2) + errorMessage varint(5) + "fail"(4) + authBytes varint(3) + data(2) + sessionLifetimeMs(8)
             int expectedLen = 2 + 1 + 4 + 1 + 2 + 8;
@@ -514,7 +505,7 @@ class NegotiationAuthCodecTest {
         @Test
         @DisplayName("v2 response with empty errorMessage/authBytes: exact 12-byte layout")
         void v2ResponseEmptyExactLayout() {
-            var resp = new SaslAuthenticateResponse((short) 0, "", new byte[0], 0L);
+            var resp = SaslAuthenticateResponse.builder().errorCode((short) 0).errorMessage("").authBytes(new byte[0]).sessionLifetimeMs(0L).build();
             byte[] enc = SaslAuthenticateCodec.encodeResponse((short) 2, resp);
             // errorCode(2) + errorMessage varint(1)=0x01(empty) + authBytes varint(1)=0x01(empty) + sessionLifetimeMs(8)
             assertEquals(12, enc.length);
@@ -529,7 +520,7 @@ class NegotiationAuthCodecTest {
         @Test
         @DisplayName("v2 response with null errorMessage: varint 0 (null) — distinct from empty")
         void v2ResponseNullErrorMessage() {
-            var resp = new SaslAuthenticateResponse((short) 0, null, new byte[0], 42L);
+            var resp = SaslAuthenticateResponse.builder().errorCode((short) 0).errorMessage(null).authBytes(new byte[0]).sessionLifetimeMs(42L).build();
             byte[] enc = SaslAuthenticateCodec.encodeResponse((short) 2, resp);
             // errorCode(2) + errorMessage varint(0)=0x00(null) + authBytes varint(1)=0x01 + sessionLifetimeMs(8)
             assertEquals(12, enc.length); // 2 + 1 + 1 + 8 = 12
@@ -604,7 +595,7 @@ class NegotiationAuthCodecTest {
                 SaslHandshakeCodec.encodeResponse((short) 0, shr),
                 KafkaCodec.encodeSaslHandshakeResponse(shr));
 
-        SaslAuthenticateResponse sar = new SaslAuthenticateResponse((short) 0, "done", new byte[0], 0L);
+        SaslAuthenticateResponse sar = SaslAuthenticateResponse.builder().errorCode((short) 0).errorMessage("done").authBytes(new byte[0]).sessionLifetimeMs(0L).build();
         assertArrayEquals(
                 SaslAuthenticateCodec.encodeResponse((short) 0, sar),
                 KafkaCodec.encodeSaslAuthenticateResponse(sar));

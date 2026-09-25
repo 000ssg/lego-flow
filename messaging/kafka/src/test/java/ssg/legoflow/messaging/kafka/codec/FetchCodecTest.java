@@ -778,10 +778,7 @@ class FetchCodecTest {
         void v5RoundTrip() {
             var resp = new FetchResponse(42, List.of(
                     new FetchResponse.TopicResponse("topic", List.of(
-                            new FetchResponse.PartitionResponse(0, (short) 0, 100L,
-                                    99L, 7L,
-                                    List.of(new FetchResponse.AbortedTransaction(7L, 12L)),
-                                    new byte[]{1, 2})))));
+                            FetchResponse.PartitionResponse.builder().partitionIndex(0).errorCode((short) 0).highWatermark(100L).lastStableOffset(99L).logStartOffset(7L).abortedTransactions(List.of(new FetchResponse.AbortedTransaction(7L, 12L))).records(new byte[]{1, 2}).build()))));
 
             byte[] body = FetchCodec.encodeResponse((short) 5, resp);
             var decoded = FetchCodec.decodeResponse((short) 5, ByteBuffer.wrap(body));
@@ -800,10 +797,7 @@ class FetchCodecTest {
         void v5ExactBytes() {
             var resp = new FetchResponse(42, List.of(
                     new FetchResponse.TopicResponse("topic", List.of(
-                            new FetchResponse.PartitionResponse(0, (short) 0, 100L,
-                                    99L, 7L,
-                                    List.of(new FetchResponse.AbortedTransaction(7L, 12L)),
-                                    new byte[]{1, 2})))));
+                            FetchResponse.PartitionResponse.builder().partitionIndex(0).errorCode((short) 0).highWatermark(100L).lastStableOffset(99L).logStartOffset(7L).abortedTransactions(List.of(new FetchResponse.AbortedTransaction(7L, 12L))).records(new byte[]{1, 2}).build()))));
 
             byte[] body = FetchCodec.encodeResponse((short) 5, resp);
             // 4 (throttleTimeMs) + 4 (topic count) + 2 (name len) + 5 (name) + 4 (partition count)
@@ -841,8 +835,7 @@ class FetchCodecTest {
         void v5NullAbortedEncodesAsEmpty() {
             var resp = new FetchResponse(0, List.of(
                     new FetchResponse.TopicResponse("topic", List.of(
-                            new FetchResponse.PartitionResponse(0, (short) 0, 10L, 99L, 7L,
-                                    null, null)))));
+                            FetchResponse.PartitionResponse.builder().partitionIndex(0).errorCode((short) 0).highWatermark(10L).lastStableOffset(99L).logStartOffset(7L).abortedTransactions(null).records(null).build()))));
 
             byte[] body = FetchCodec.encodeResponse((short) 5, resp);
             // ThrottleTimeMs(4) + topic count(4) + 2 (name len) + 5 (name) + partition count(4)
@@ -907,13 +900,9 @@ class FetchCodecTest {
         void v6ByteIdenticalToV5() {
             var resp = new FetchResponse(42, List.of(
                     new FetchResponse.TopicResponse("topic", List.of(
-                            new FetchResponse.PartitionResponse(0, (short) 0, 100L,
-                                    99L, 7L,
-                                    List.of(new FetchResponse.AbortedTransaction(7L, 12L)),
-                                    new byte[]{1, 2}))),
+                            FetchResponse.PartitionResponse.builder().partitionIndex(0).errorCode((short) 0).highWatermark(100L).lastStableOffset(99L).logStartOffset(7L).abortedTransactions(List.of(new FetchResponse.AbortedTransaction(7L, 12L))).records(new byte[]{1, 2}).build())),
                     new FetchResponse.TopicResponse("other", List.of(
-                            new FetchResponse.PartitionResponse(1, (short) -1, 42L, 99L, 7L,
-                                    null, null)))));
+                            FetchResponse.PartitionResponse.builder().partitionIndex(1).errorCode((short) -1).highWatermark(42L).lastStableOffset(99L).logStartOffset(7L).abortedTransactions(null).records(null).build()))));
 
             byte[] v5 = FetchCodec.encodeResponse((short) 5, resp);
             byte[] v6 = FetchCodec.encodeResponse((short) 6, resp);
@@ -926,8 +915,7 @@ class FetchCodecTest {
         void v6RoundTripThroughV5Methods() {
             var resp = new FetchResponse(7, List.of(
                     new FetchResponse.TopicResponse("topic", List.of(
-                            new FetchResponse.PartitionResponse(3, (short) 5, 999L, 988L, 12L,
-                                    List.of(new FetchResponse.AbortedTransaction(1L, 2L)), null)))));
+                            FetchResponse.PartitionResponse.builder().partitionIndex(3).errorCode((short) 5).highWatermark(999L).lastStableOffset(988L).logStartOffset(12L).abortedTransactions(List.of(new FetchResponse.AbortedTransaction(1L, 2L))).records(null).build()))));
 
             byte[] body = FetchCodec.encodeResponse((short) 6, resp);
             var decoded = FetchCodec.decodeResponse((short) 6, ByteBuffer.wrap(body));
@@ -951,11 +939,9 @@ class FetchCodecTest {
         @Test
         @DisplayName("v7 request round-trips with SessionId/SessionEpoch + ForgottenTopicsData")
         void v7RoundTrip() {
-            var req = new FetchRequest(-1, 500, 1, 1048576, 1, 11, 3,
-                    List.of(new FetchRequest.TopicFetch("topic", List.of(
-                            new FetchRequest.PartitionFetch(0, 10L, 65536, 42L)))),
-                    List.of(new FetchRequest.ForgottenTopic("topic", List.of(1, 2)),
-                            new FetchRequest.ForgottenTopic("other", List.of())));
+            var req = FetchRequest.builder().replicaId(-1).maxWaitMs(500).minBytes(1).maxBytes(1048576).isolationLevel(1).sessionId(11).sessionEpoch(3).topics(List.of(new FetchRequest.TopicFetch("topic", List.of(
+                            new FetchRequest.PartitionFetch(0, 10L, 65536, 42L))))).forgottenTopics(List.of(new FetchRequest.ForgottenTopic("topic", List.of(1, 2)),
+                            new FetchRequest.ForgottenTopic("other", List.of()))).build();
 
             byte[] body = FetchCodec.encodeRequest((short) 7, req);
             var decoded = FetchCodec.decodeRequest((short) 7, ByteBuffer.wrap(body));
@@ -979,10 +965,8 @@ class FetchCodecTest {
         @Test
         @DisplayName("v7 request has the exact 87-byte spec wire layout (v5 + 8 session + 8 + 23 forgotten)")
         void v7ExactBytes() {
-            var req = new FetchRequest(-1, 500, 1, 1048576, 0, 11, 3,
-                    List.of(new FetchRequest.TopicFetch("topic", List.of(
-                            new FetchRequest.PartitionFetch(0, 10L, 65536, 42L)))),
-                    List.of(new FetchRequest.ForgottenTopic("topic", List.of(1, 2))));
+            var req = FetchRequest.builder().replicaId(-1).maxWaitMs(500).minBytes(1).maxBytes(1048576).isolationLevel(0).sessionId(11).sessionEpoch(3).topics(List.of(new FetchRequest.TopicFetch("topic", List.of(
+                            new FetchRequest.PartitionFetch(0, 10L, 65536, 42L))))).forgottenTopics(List.of(new FetchRequest.ForgottenTopic("topic", List.of(1, 2)))).build();
 
             byte[] body = FetchCodec.encodeRequest((short) 7, req);
             // v5 layout for this shape is 56 bytes (header 17 + topics count 4 + topic 7
@@ -1023,10 +1007,8 @@ class FetchCodecTest {
         @Test
         @DisplayName("v7 request is the v5 layout with session fields after IsolationLevel + ForgottenTopicsData trailing")
         void v7IsV5PlusSession() {
-            var req = new FetchRequest(-1, 500, 1, 1048576, 1, 11, 3,
-                    List.of(new FetchRequest.TopicFetch("topic", List.of(
-                            new FetchRequest.PartitionFetch(0, 10L, 65536, 42L)))),
-                    List.of(new FetchRequest.ForgottenTopic("topic", List.of(1, 2))));
+            var req = FetchRequest.builder().replicaId(-1).maxWaitMs(500).minBytes(1).maxBytes(1048576).isolationLevel(1).sessionId(11).sessionEpoch(3).topics(List.of(new FetchRequest.TopicFetch("topic", List.of(
+                            new FetchRequest.PartitionFetch(0, 10L, 65536, 42L))))).forgottenTopics(List.of(new FetchRequest.ForgottenTopic("topic", List.of(1, 2)))).build();
 
             byte[] v5 = FetchCodec.encodeRequest((short) 5, req);
             byte[] v7 = FetchCodec.encodeRequest((short) 7, req);
@@ -1069,10 +1051,9 @@ class FetchCodecTest {
         @Test
         @DisplayName("v7 response round-trips with top-level ErrorCode + SessionId")
         void v7RoundTrip() {
-            var resp = new FetchResponse(7, (short) 3, 11, List.of(
+            var resp = FetchResponse.builder().throttleTimeMs(7).errorCode((short) 3).sessionId(11).topics(List.of(
                     new FetchResponse.TopicResponse("topic", List.of(
-                            new FetchResponse.PartitionResponse(3, (short) 5, 999L, 988L, 12L,
-                                    List.of(new FetchResponse.AbortedTransaction(1L, 2L)), null)))));
+                            FetchResponse.PartitionResponse.builder().partitionIndex(3).errorCode((short) 5).highWatermark(999L).lastStableOffset(988L).logStartOffset(12L).abortedTransactions(List.of(new FetchResponse.AbortedTransaction(1L, 2L))).records(null).build())))).build();
 
             byte[] body = FetchCodec.encodeResponse((short) 7, resp);
             var decoded = FetchCodec.decodeResponse((short) 7, ByteBuffer.wrap(body));
@@ -1091,10 +1072,9 @@ class FetchCodecTest {
         @Test
         @DisplayName("v7 response has the exact 63-byte spec wire layout (v5 + 2 ErrorCode + 4 SessionId)")
         void v7ExactBytes() {
-            var resp = new FetchResponse(7, (short) 3, 11, List.of(
+            var resp = FetchResponse.builder().throttleTimeMs(7).errorCode((short) 3).sessionId(11).topics(List.of(
                     new FetchResponse.TopicResponse("topic", List.of(
-                            new FetchResponse.PartitionResponse(3, (short) 5, 999L, 988L, 12L,
-                                    null, null)))));
+                            FetchResponse.PartitionResponse.builder().partitionIndex(3).errorCode((short) 5).highWatermark(999L).lastStableOffset(988L).logStartOffset(12L).abortedTransactions(null).records(null).build())))).build();
 
             byte[] body = FetchCodec.encodeResponse((short) 7, resp);
             // v5 response for this shape is 57 bytes (ThrottleTimeMs 4 + responses count 4
@@ -1125,10 +1105,9 @@ class FetchCodecTest {
         @Test
         @DisplayName("v7 response is the v5 layout with top-level ErrorCode+SessionId inserted after ThrottleTimeMs")
         void v7IsV5PlusTopLevel() {
-            var resp = new FetchResponse(7, (short) 3, 11, List.of(
+            var resp = FetchResponse.builder().throttleTimeMs(7).errorCode((short) 3).sessionId(11).topics(List.of(
                     new FetchResponse.TopicResponse("topic", List.of(
-                            new FetchResponse.PartitionResponse(3, (short) 5, 999L, 988L, 12L,
-                                    null, null)))));
+                            FetchResponse.PartitionResponse.builder().partitionIndex(3).errorCode((short) 5).highWatermark(999L).lastStableOffset(988L).logStartOffset(12L).abortedTransactions(null).records(null).build())))).build();
 
             byte[] v5 = FetchCodec.encodeResponse((short) 5, resp);
             byte[] v7 = FetchCodec.encodeResponse((short) 7, resp);
@@ -1166,10 +1145,8 @@ class FetchCodecTest {
         @Test
         @DisplayName("v8 request is byte-identical to v7 (spec: no field change)")
         void v8ByteIdenticalToV7() {
-            var req = new FetchRequest(-1, 500, 1, 1048576, 1, 11, 3,
-                    List.of(new FetchRequest.TopicFetch("topic", List.of(
-                            new FetchRequest.PartitionFetch(0, 10L, 65536, 42L)))),
-                    List.of(new FetchRequest.ForgottenTopic("topic", List.of(1, 2))));
+            var req = FetchRequest.builder().replicaId(-1).maxWaitMs(500).minBytes(1).maxBytes(1048576).isolationLevel(1).sessionId(11).sessionEpoch(3).topics(List.of(new FetchRequest.TopicFetch("topic", List.of(
+                            new FetchRequest.PartitionFetch(0, 10L, 65536, 42L))))).forgottenTopics(List.of(new FetchRequest.ForgottenTopic("topic", List.of(1, 2)))).build();
 
             byte[] v7 = FetchCodec.encodeRequest((short) 7, req);
             byte[] v8 = FetchCodec.encodeRequest((short) 8, req);
@@ -1180,10 +1157,8 @@ class FetchCodecTest {
         @Test
         @DisplayName("v8 request round-trips through the v7 methods")
         void v8RoundTripThroughV7Methods() {
-            var req = new FetchRequest(-1, 500, 1, 1048576, 0, 11, 3,
-                    List.of(new FetchRequest.TopicFetch("topic", List.of(
-                            new FetchRequest.PartitionFetch(0, 10L, 65536, -1L)))),
-                    List.of(new FetchRequest.ForgottenTopic("other", List.of())));
+            var req = FetchRequest.builder().replicaId(-1).maxWaitMs(500).minBytes(1).maxBytes(1048576).isolationLevel(0).sessionId(11).sessionEpoch(3).topics(List.of(new FetchRequest.TopicFetch("topic", List.of(
+                            new FetchRequest.PartitionFetch(0, 10L, 65536, -1L))))).forgottenTopics(List.of(new FetchRequest.ForgottenTopic("other", List.of()))).build();
 
             byte[] body = FetchCodec.encodeRequest((short) 8, req);
             var decoded = FetchCodec.decodeRequest((short) 8, ByteBuffer.wrap(body));
@@ -1202,15 +1177,11 @@ class FetchCodecTest {
         @Test
         @DisplayName("v8 response is byte-identical to v7 (spec: no field change)")
         void v8ByteIdenticalToV7() {
-            var resp = new FetchResponse(42, (short) 3, 11, List.of(
+            var resp = FetchResponse.builder().throttleTimeMs(42).errorCode((short) 3).sessionId(11).topics(List.of(
                     new FetchResponse.TopicResponse("topic", List.of(
-                            new FetchResponse.PartitionResponse(0, (short) 0, 100L,
-                                    99L, 7L,
-                                    List.of(new FetchResponse.AbortedTransaction(7L, 12L)),
-                                    new byte[]{1, 2}))),
+                            FetchResponse.PartitionResponse.builder().partitionIndex(0).errorCode((short) 0).highWatermark(100L).lastStableOffset(99L).logStartOffset(7L).abortedTransactions(List.of(new FetchResponse.AbortedTransaction(7L, 12L))).records(new byte[]{1, 2}).build())),
                     new FetchResponse.TopicResponse("other", List.of(
-                            new FetchResponse.PartitionResponse(1, (short) -1, 42L, 99L, 7L,
-                                    null, null)))));
+                            FetchResponse.PartitionResponse.builder().partitionIndex(1).errorCode((short) -1).highWatermark(42L).lastStableOffset(99L).logStartOffset(7L).abortedTransactions(null).records(null).build())))).build();
 
             byte[] v7 = FetchCodec.encodeResponse((short) 7, resp);
             byte[] v8 = FetchCodec.encodeResponse((short) 8, resp);
@@ -1221,10 +1192,9 @@ class FetchCodecTest {
         @Test
         @DisplayName("v8 response round-trips through the v7 methods")
         void v8RoundTripThroughV7Methods() {
-            var resp = new FetchResponse(7, (short) 5, 11, List.of(
+            var resp = FetchResponse.builder().throttleTimeMs(7).errorCode((short) 5).sessionId(11).topics(List.of(
                     new FetchResponse.TopicResponse("topic", List.of(
-                            new FetchResponse.PartitionResponse(3, (short) 5, 999L, 988L, 12L,
-                                    List.of(new FetchResponse.AbortedTransaction(1L, 2L)), null)))));
+                            FetchResponse.PartitionResponse.builder().partitionIndex(3).errorCode((short) 5).highWatermark(999L).lastStableOffset(988L).logStartOffset(12L).abortedTransactions(List.of(new FetchResponse.AbortedTransaction(1L, 2L))).records(null).build())))).build();
 
             byte[] body = FetchCodec.encodeResponse((short) 8, resp);
             var decoded = FetchCodec.decodeResponse((short) 8, ByteBuffer.wrap(body));

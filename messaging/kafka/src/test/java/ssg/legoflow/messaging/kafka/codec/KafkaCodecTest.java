@@ -117,9 +117,8 @@ class KafkaCodecTest {
 
     @Test
     void testProduceRequest() {
-        var req = new ProduceRequest(null, (short) -1, 30000,
-                List.of(new ProduceRequest.TopicData("topic", List.of(
-                        new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3})))));
+        var req = ProduceRequest.builder().transactionalId(null).acks((short) -1).timeoutMs(30000).topicData(List.of(new ProduceRequest.TopicData("topic", List.of(
+                        new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3}))))).build();
         byte[] encoded = KafkaCodec.encodeProduceRequest(req);
         var decoded = KafkaCodec.decodeProduceRequest(ByteBuffer.wrap(encoded));
         assertThat(decoded.acks()).isEqualTo((short) -1);
@@ -131,9 +130,8 @@ class KafkaCodecTest {
 
     @Test
     void testProduceRequestV0NullRecords() {
-        var req = new ProduceRequest(null, (short) 1, 5000,
-                List.of(new ProduceRequest.TopicData("t", List.of(
-                        new ProduceRequest.PartitionData(0, null)))));
+        var req = ProduceRequest.builder().transactionalId(null).acks((short) 1).timeoutMs(5000).topicData(List.of(new ProduceRequest.TopicData("t", List.of(
+                        new ProduceRequest.PartitionData(0, null))))).build();
         byte[] encoded = KafkaCodec.encodeProduceRequest(req);
         var decoded = KafkaCodec.decodeProduceRequest(ByteBuffer.wrap(encoded));
         assertThat(decoded.topicData().getFirst().partitionData().getFirst().records()).isNull();
@@ -806,7 +804,7 @@ class KafkaCodecTest {
     void testSaslAuthenticateResponse() {
         byte[] authBytes = "v=serverSig".getBytes(java.nio.charset.StandardCharsets.UTF_8);
         // v0 layout (spec 3.6.1): errorCode, errorMessage, authBytes — NO sessionLifetimeMs
-        var resp = new SaslAuthenticateResponse((short) 0, "", authBytes, 0L);
+        var resp = SaslAuthenticateResponse.builder().errorCode((short) 0).errorMessage("").authBytes(authBytes).sessionLifetimeMs(0L).build();
         byte[] encoded = KafkaCodec.encodeSaslAuthenticateResponse(resp);
         var decoded = KafkaCodec.decodeSaslAuthenticateResponse(ByteBuffer.wrap(encoded));
         assertThat(decoded.errorCode()).isZero();
@@ -1046,13 +1044,12 @@ class KafkaCodecTest {
 
     @Test
     void testProduceRequestMultipleTopicsAndPartitions() {
-        var req = new ProduceRequest(null, (short) 1, 5000,
-                List.of(
+        var req = ProduceRequest.builder().transactionalId(null).acks((short) 1).timeoutMs(5000).topicData(List.of(
                         new ProduceRequest.TopicData("t1", List.of(
                                 new ProduceRequest.PartitionData(0, new byte[]{1}),
                                 new ProduceRequest.PartitionData(1, new byte[]{2}))),
                         new ProduceRequest.TopicData("t2", List.of(
-                                new ProduceRequest.PartitionData(0, new byte[]{3})))));
+                                new ProduceRequest.PartitionData(0, new byte[]{3}))))).build();
         byte[] encoded = KafkaCodec.encodeProduceRequest(req);
         var decoded = KafkaCodec.decodeProduceRequest(ByteBuffer.wrap(encoded));
         assertThat(decoded.topicData()).hasSize(2);

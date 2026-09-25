@@ -67,9 +67,8 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v1 request is byte-identical to v0 (spec: v1 same as v0)")
         void v1RequestByteIdenticalToV0() {
-            var req = new ProduceRequest(null, (short) -1, 30000,
-                    List.of(new ProduceRequest.TopicData("topic", List.of(
-                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3})))));
+            var req = ProduceRequest.builder().transactionalId(null).acks((short) -1).timeoutMs(30000).topicData(List.of(new ProduceRequest.TopicData("topic", List.of(
+                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3}))))).build();
 
             byte[] v0 = ProduceCodec.encodeRequest((short) 0, req);
             byte[] v1 = ProduceCodec.encodeRequest((short) 1, req);
@@ -85,9 +84,8 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v2 request is byte-identical to v0 (TransactionalId only arrives in v3)")
         void v2RequestByteIdenticalToV0() {
-            var req = new ProduceRequest(null, (short) -1, 30000,
-                    List.of(new ProduceRequest.TopicData("topic", List.of(
-                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3})))));
+            var req = ProduceRequest.builder().transactionalId(null).acks((short) -1).timeoutMs(30000).topicData(List.of(new ProduceRequest.TopicData("topic", List.of(
+                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3}))))).build();
 
             byte[] v0 = ProduceCodec.encodeRequest((short) 0, req);
             byte[] v2 = ProduceCodec.encodeRequest((short) 2, req);
@@ -103,9 +101,8 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v1 request round-trips with null records")
         void v1RequestNullRecords() {
-            var req = new ProduceRequest(null, (short) 1, 5000,
-                    List.of(new ProduceRequest.TopicData("t", List.of(
-                            new ProduceRequest.PartitionData(7, null)))));
+            var req = ProduceRequest.builder().transactionalId(null).acks((short) 1).timeoutMs(5000).topicData(List.of(new ProduceRequest.TopicData("t", List.of(
+                            new ProduceRequest.PartitionData(7, null))))).build();
 
             byte[] body = ProduceCodec.encodeRequest((short) 1, req);
             var decoded = ProduceCodec.decodeRequest((short) 1, ByteBuffer.wrap(body));
@@ -115,9 +112,8 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v3 request round-trips the leading nullable TransactionalId")
         void v3RoundTrip() {
-            var req = new ProduceRequest("producer-1", (short) -1, 30000,
-                    List.of(new ProduceRequest.TopicData("topic", List.of(
-                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3})))));
+            var req = ProduceRequest.builder().transactionalId("producer-1").acks((short) -1).timeoutMs(30000).topicData(List.of(new ProduceRequest.TopicData("topic", List.of(
+                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3}))))).build();
 
             byte[] body = ProduceCodec.encodeRequest((short) 3, req);
             var decoded = ProduceCodec.decodeRequest((short) 3, ByteBuffer.wrap(body));
@@ -133,9 +129,8 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v3 null TransactionalId round-trips (written as length -1)")
         void v3NullTransactionalId() {
-            var req = new ProduceRequest(null, (short) 1, 5000,
-                    List.of(new ProduceRequest.TopicData("t", List.of(
-                            new ProduceRequest.PartitionData(7, null)))));
+            var req = ProduceRequest.builder().transactionalId(null).acks((short) 1).timeoutMs(5000).topicData(List.of(new ProduceRequest.TopicData("t", List.of(
+                            new ProduceRequest.PartitionData(7, null))))).build();
 
             byte[] body = ProduceCodec.encodeRequest((short) 3, req);
             // v0 body was 25 bytes for this shape; v3 adds 2 (the -1 nullable-string length)
@@ -152,9 +147,8 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v3 exact byte layout — TransactionalId(string) leads, then the v0 body")
         void v3ExactBytes() {
-            var req = new ProduceRequest("txn", (short) -1, 30000,
-                    List.of(new ProduceRequest.TopicData("topic", List.of(
-                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3})))));
+            var req = ProduceRequest.builder().transactionalId("txn").acks((short) -1).timeoutMs(30000).topicData(List.of(new ProduceRequest.TopicData("topic", List.of(
+                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3}))))).build();
 
             byte[] body = ProduceCodec.encodeRequest((short) 3, req);
             byte[] v0Body = ProduceCodec.encodeRequest((short) 0, req);
@@ -192,9 +186,8 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v0 round-trips acks/timeout/topics with records")
         void v0RoundTrip() {
-            var req = new ProduceRequest(null, (short) -1, 30000,
-                    List.of(new ProduceRequest.TopicData("topic", List.of(
-                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3})))));
+            var req = ProduceRequest.builder().transactionalId(null).acks((short) -1).timeoutMs(30000).topicData(List.of(new ProduceRequest.TopicData("topic", List.of(
+                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3}))))).build();
 
             byte[] body = ProduceCodec.encodeRequest((short) 0, req);
             var decoded = ProduceCodec.decodeRequest((short) 0, ByteBuffer.wrap(body));
@@ -211,9 +204,8 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v0 exact byte layout — no leading TransactionalId (spec field order)")
         void v0ExactBytes() {
-            var req = new ProduceRequest(null, (short) -1, 30000,
-                    List.of(new ProduceRequest.TopicData("topic", List.of(
-                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3})))));
+            var req = ProduceRequest.builder().transactionalId(null).acks((short) -1).timeoutMs(30000).topicData(List.of(new ProduceRequest.TopicData("topic", List.of(
+                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3}))))).build();
 
             byte[] body = ProduceCodec.encodeRequest((short) 0, req);
 
@@ -240,9 +232,8 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v0 null records encode as length -1 (spec: Records is Nullable bytes)")
         void v0NullRecords() {
-            var req = new ProduceRequest(null, (short) 1, 5000,
-                    List.of(new ProduceRequest.TopicData("t", List.of(
-                            new ProduceRequest.PartitionData(7, null)))));
+            var req = ProduceRequest.builder().transactionalId(null).acks((short) 1).timeoutMs(5000).topicData(List.of(new ProduceRequest.TopicData("t", List.of(
+                            new ProduceRequest.PartitionData(7, null))))).build();
 
             byte[] body = ProduceCodec.encodeRequest((short) 0, req);
             // 2(acks)+4(timeout)+4(topicCount)+(2+1)name+4(partCount)+4(index)+4(recordsLen -1) = 25
@@ -265,13 +256,12 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v0 round-trips multiple topics and partitions with mixed records presence")
         void v0MultipleTopics() {
-            var req = new ProduceRequest(null, (short) -1, 1000,
-                    List.of(
+            var req = ProduceRequest.builder().transactionalId(null).acks((short) -1).timeoutMs(1000).topicData(List.of(
                             new ProduceRequest.TopicData("t1", List.of(
                                     new ProduceRequest.PartitionData(0, new byte[]{1}),
                                     new ProduceRequest.PartitionData(1, null))),
                             new ProduceRequest.TopicData("t2", List.of(
-                                    new ProduceRequest.PartitionData(0, new byte[]{3, 4})))));
+                                    new ProduceRequest.PartitionData(0, new byte[]{3, 4}))))).build();
 
             byte[] body = ProduceCodec.encodeRequest((short) 0, req);
             var decoded = ProduceCodec.decodeRequest((short) 0, ByteBuffer.wrap(body));
@@ -504,9 +494,8 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v4 request is byte-identical to v3 (unchanged version)")
         void v4RequestByteIdenticalToV3() {
-            var req = new ProduceRequest("producer-1", (short) -1, 30000,
-                    List.of(new ProduceRequest.TopicData("topic", List.of(
-                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3})))));
+            var req = ProduceRequest.builder().transactionalId("producer-1").acks((short) -1).timeoutMs(30000).topicData(List.of(new ProduceRequest.TopicData("topic", List.of(
+                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3}))))).build();
 
             byte[] bodyV4 = ProduceCodec.encodeRequest((short) 4, req);
             byte[] bodyV3 = ProduceCodec.encodeRequest((short) 3, req);
@@ -518,9 +507,8 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v4 request round-trips through the v3 methods (no dedicated path)")
         void v4RoundTrip() {
-            var req = new ProduceRequest("producer-1", (short) -1, 30000,
-                    List.of(new ProduceRequest.TopicData("topic", List.of(
-                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3})))));
+            var req = ProduceRequest.builder().transactionalId("producer-1").acks((short) -1).timeoutMs(30000).topicData(List.of(new ProduceRequest.TopicData("topic", List.of(
+                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3}))))).build();
 
             byte[] body = ProduceCodec.encodeRequest((short) 4, req);
             var decoded = ProduceCodec.decodeRequest((short) 4, ByteBuffer.wrap(body));
@@ -550,9 +538,8 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v5 request is byte-identical to v4 (request unchanged)")
         void v5RequestByteIdenticalToV4() {
-            var req = new ProduceRequest("producer-1", (short) -1, 30000,
-                    List.of(new ProduceRequest.TopicData("topic", List.of(
-                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3})))));
+            var req = ProduceRequest.builder().transactionalId("producer-1").acks((short) -1).timeoutMs(30000).topicData(List.of(new ProduceRequest.TopicData("topic", List.of(
+                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3}))))).build();
 
             byte[] bodyV5 = ProduceCodec.encodeRequest((short) 5, req);
             byte[] bodyV4 = ProduceCodec.encodeRequest((short) 4, req);
@@ -627,9 +614,8 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v6 request is byte-identical to v5 (unchanged version)")
         void v6RequestByteIdenticalToV5() {
-            var req = new ProduceRequest("producer-1", (short) -1, 30000,
-                    List.of(new ProduceRequest.TopicData("topic", List.of(
-                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3})))));
+            var req = ProduceRequest.builder().transactionalId("producer-1").acks((short) -1).timeoutMs(30000).topicData(List.of(new ProduceRequest.TopicData("topic", List.of(
+                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3}))))).build();
 
             byte[] bodyV6 = ProduceCodec.encodeRequest((short) 6, req);
             byte[] bodyV5 = ProduceCodec.encodeRequest((short) 5, req);
@@ -641,9 +627,8 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v6 request round-trips through the v3 methods (no dedicated path)")
         void v6RoundTrip() {
-            var req = new ProduceRequest("producer-6", (short) 1, 5000,
-                    List.of(new ProduceRequest.TopicData("t", List.of(
-                            new ProduceRequest.PartitionData(7, new byte[]{9})))));
+            var req = ProduceRequest.builder().transactionalId("producer-6").acks((short) 1).timeoutMs(5000).topicData(List.of(new ProduceRequest.TopicData("t", List.of(
+                            new ProduceRequest.PartitionData(7, new byte[]{9}))))).build();
 
             byte[] body = ProduceCodec.encodeRequest((short) 6, req);
             var decoded = ProduceCodec.decodeRequest((short) 6, ByteBuffer.wrap(body));
@@ -673,9 +658,8 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v7 request is byte-identical to v6 (unchanged version)")
         void v7RequestByteIdenticalToV6() {
-            var req = new ProduceRequest("producer-7", (short) -1, 30000,
-                    List.of(new ProduceRequest.TopicData("topic", List.of(
-                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3})))));
+            var req = ProduceRequest.builder().transactionalId("producer-7").acks((short) -1).timeoutMs(30000).topicData(List.of(new ProduceRequest.TopicData("topic", List.of(
+                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3}))))).build();
 
             byte[] bodyV7 = ProduceCodec.encodeRequest((short) 7, req);
             byte[] bodyV6 = ProduceCodec.encodeRequest((short) 6, req);
@@ -685,9 +669,8 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v7 request round-trips through the v3 methods (no dedicated path)")
         void v7RoundTrip() {
-            var req = new ProduceRequest("producer-7", (short) 1, 5000,
-                    List.of(new ProduceRequest.TopicData("t", List.of(
-                            new ProduceRequest.PartitionData(7, new byte[]{9})))));
+            var req = ProduceRequest.builder().transactionalId("producer-7").acks((short) 1).timeoutMs(5000).topicData(List.of(new ProduceRequest.TopicData("t", List.of(
+                            new ProduceRequest.PartitionData(7, new byte[]{9}))))).build();
 
             byte[] body = ProduceCodec.encodeRequest((short) 7, req);
             var decoded = ProduceCodec.decodeRequest((short) 7, ByteBuffer.wrap(body));
@@ -721,10 +704,9 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v8 request is byte-identical to v7 (no request field differs at v8+)")
         void v8RequestByteIdenticalToV7() {
-            var req = new ProduceRequest("txn-1", (short) -1, 5000,
-                    List.of(new ProduceRequest.TopicData("t8",
+            var req = ProduceRequest.builder().transactionalId("txn-1").acks((short) -1).timeoutMs(5000).topicData(List.of(new ProduceRequest.TopicData("t8",
                             List.of(new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3}),
-                                    new ProduceRequest.PartitionData(1, new byte[0])))));
+                                    new ProduceRequest.PartitionData(1, new byte[0]))))).build();
 
             byte[] bodyV8 = ProduceCodec.encodeRequest((short) 8, req);
             byte[] bodyV7 = ProduceCodec.encodeRequest((short) 7, req);
@@ -734,9 +716,8 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v8 request round-trips through the v3 methods (no dedicated path)")
         void v8RequestRoundTrip() {
-            var req = new ProduceRequest("txn-8", (short) -1, 60000,
-                    List.of(new ProduceRequest.TopicData("tx8",
-                            List.of(new ProduceRequest.PartitionData(2, new byte[]{9, 8, 7, 6})))));
+            var req = ProduceRequest.builder().transactionalId("txn-8").acks((short) -1).timeoutMs(60000).topicData(List.of(new ProduceRequest.TopicData("tx8",
+                            List.of(new ProduceRequest.PartitionData(2, new byte[]{9, 8, 7, 6}))))).build();
 
             byte[] body = ProduceCodec.encodeRequest((short) 8, req);
             var decoded = ProduceCodec.decodeRequest((short) 8, ByteBuffer.wrap(body));
@@ -760,12 +741,10 @@ class ProduceCodecTest {
         void v8RoundTrip() {
             var resp = new ProduceResponse(List.of(
                     new ProduceResponse.TopicResponse("topic", List.of(
-                            new ProduceResponse.PartitionResponse(0, (short) 0, 42L, 111L, 999L,
-                                    List.of(new ProduceResponse.PartitionResponse.BatchIndexAndErrorMessage(
+                            ProduceResponse.PartitionResponse.builder().partitionIndex(0).errorCode((short) 0).baseOffset(42L).logAppendTimeMs(111L).logStartOffset(999L).recordErrors(List.of(new ProduceResponse.PartitionResponse.BatchIndexAndErrorMessage(
                                             7, "corrupt batch"),
                                             new ProduceResponse.PartitionResponse.BatchIndexAndErrorMessage(
-                                                    9, null)),
-                                    "summary message")))), 30);
+                                                    9, null))).errorMessage("summary message").build()))), 30);
 
             byte[] body = ProduceCodec.encodeResponse((short) 8, resp);
             var decoded = ProduceCodec.decodeResponse((short) 8, ByteBuffer.wrap(body));
@@ -788,10 +767,8 @@ class ProduceCodecTest {
         void v8ExactBytes() {
             var resp = new ProduceResponse(List.of(
                     new ProduceResponse.TopicResponse("t", List.of(
-                            new ProduceResponse.PartitionResponse(0, (short) 0, 1L, 0L, -1L,
-                                    List.of(new ProduceResponse.PartitionResponse.BatchIndexAndErrorMessage(
-                                            3, "bad")),
-                                    "sum")))), 0);
+                            ProduceResponse.PartitionResponse.builder().partitionIndex(0).errorCode((short) 0).baseOffset(1L).logAppendTimeMs(0L).logStartOffset(-1L).recordErrors(List.of(new ProduceResponse.PartitionResponse.BatchIndexAndErrorMessage(
+                                            3, "bad"))).errorMessage("sum").build()))), 0);
 
             byte[] body = ProduceCodec.encodeResponse((short) 8, resp);
             // topicCount(4) + t(2+1) + partCount(4) + 30 + recordErrors count(4)
@@ -827,10 +804,9 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v9 request round-trips through the flex methods")
         void v9RoundTrip() {
-            var req = new ProduceRequest("txn-1", (short) -1, 30000,
-                    List.of(new ProduceRequest.TopicData("topic", List.of(
+            var req = ProduceRequest.builder().transactionalId("txn-1").acks((short) -1).timeoutMs(30000).topicData(List.of(new ProduceRequest.TopicData("topic", List.of(
                             new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3}),
-                            new ProduceRequest.PartitionData(1, new byte[]{9})))));
+                            new ProduceRequest.PartitionData(1, new byte[]{9}))))).build();
 
             byte[] body = ProduceCodec.encodeRequest((short) 9, req);
             var decoded = ProduceCodec.decodeRequest((short) 9, ByteBuffer.wrap(body));
@@ -849,9 +825,8 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v9 exact byte layout — varint length prefixes, fixed ints unchanged")
         void v9ExactBytes() {
-            var req = new ProduceRequest("txn", (short) -1, 30000,
-                    List.of(new ProduceRequest.TopicData("topic", List.of(
-                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3})))));
+            var req = ProduceRequest.builder().transactionalId("txn").acks((short) -1).timeoutMs(30000).topicData(List.of(new ProduceRequest.TopicData("topic", List.of(
+                            new ProduceRequest.PartitionData(0, new byte[]{1, 2, 3}))))).build();
 
             byte[] body = ProduceCodec.encodeRequest((short) 9, req);
             // txn: varint(4)+3=4; Acks 2; TimeoutMs 4; topicCount varint(2) 1;
@@ -882,9 +857,8 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v9 null TransactionalId and null Records round-trip (varint 0 / varint 1)")
         void v9NullsRoundTrip() {
-            var req = new ProduceRequest(null, (short) 1, 1000,
-                    List.of(new ProduceRequest.TopicData("t", List.of(
-                            new ProduceRequest.PartitionData(0, null)))));
+            var req = ProduceRequest.builder().transactionalId(null).acks((short) 1).timeoutMs(1000).topicData(List.of(new ProduceRequest.TopicData("t", List.of(
+                            new ProduceRequest.PartitionData(0, null))))).build();
 
             byte[] body = ProduceCodec.encodeRequest((short) 9, req);
             // 1 (null txn) + 2 + 4 + 1 (topicCount) + 2 (name) + 1 (partCount) + 4 + 1 (null records) = 16
@@ -905,12 +879,10 @@ class ProduceCodecTest {
         void v9RoundTrip() {
             var resp = new ProduceResponse(List.of(
                     new ProduceResponse.TopicResponse("topic", List.of(
-                            new ProduceResponse.PartitionResponse(0, (short) 0, 42L, 111L, 999L,
-                                    List.of(new ProduceResponse.PartitionResponse.BatchIndexAndErrorMessage(
+                            ProduceResponse.PartitionResponse.builder().partitionIndex(0).errorCode((short) 0).baseOffset(42L).logAppendTimeMs(111L).logStartOffset(999L).recordErrors(List.of(new ProduceResponse.PartitionResponse.BatchIndexAndErrorMessage(
                                             7, "corrupt batch"),
                                             new ProduceResponse.PartitionResponse.BatchIndexAndErrorMessage(
-                                                    9, null)),
-                                    "summary message")))), 30);
+                                                    9, null))).errorMessage("summary message").build()))), 30);
 
             byte[] body = ProduceCodec.encodeResponse((short) 9, resp);
             var decoded = ProduceCodec.decodeResponse((short) 9, ByteBuffer.wrap(body));
@@ -933,10 +905,8 @@ class ProduceCodecTest {
         void v9ExactBytes() {
             var resp = new ProduceResponse(List.of(
                     new ProduceResponse.TopicResponse("t", List.of(
-                            new ProduceResponse.PartitionResponse(0, (short) 0, 1L, 0L, -1L,
-                                    List.of(new ProduceResponse.PartitionResponse.BatchIndexAndErrorMessage(
-                                            3, "bad")),
-                                    "sum")))), 0);
+                            ProduceResponse.PartitionResponse.builder().partitionIndex(0).errorCode((short) 0).baseOffset(1L).logAppendTimeMs(0L).logStartOffset(-1L).recordErrors(List.of(new ProduceResponse.PartitionResponse.BatchIndexAndErrorMessage(
+                                            3, "bad"))).errorMessage("sum").build()))), 0);
 
             byte[] body = ProduceCodec.encodeResponse((short) 9, resp);
             // count(1) + name(1+1) + partCount(1) + 30 + errCount(1)
@@ -993,9 +963,8 @@ class ProduceCodecTest {
         @Test
         @DisplayName("v10 request encode throws CodecNotImplementedException (beyond spec max v9)")
         void v10RequestEncodeNotImplemented() {
-            var req = new ProduceRequest(null, (short) 1, 1000,
-                    List.of(new ProduceRequest.TopicData("t", List.of(
-                            new ProduceRequest.PartitionData(0, new byte[]{1})))));
+            var req = ProduceRequest.builder().transactionalId(null).acks((short) 1).timeoutMs(1000).topicData(List.of(new ProduceRequest.TopicData("t", List.of(
+                            new ProduceRequest.PartitionData(0, new byte[]{1}))))).build();
             assertThrows(CodecNotImplementedException.class,
                     () -> ProduceCodec.encodeRequest((short) 10, req));
         }
