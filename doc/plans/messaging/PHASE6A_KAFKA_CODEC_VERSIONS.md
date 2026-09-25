@@ -114,7 +114,7 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 |---------|----------------------------------------|--------|--------|
 | v0 | base (9 fields): ReplicaId, MaxWaitMs, MinBytes, Topics, Topic, Partitions, Partition, FetchOffset, PartitionMaxBytes | ✓ | eced7f9c |
 | v1 | + ThrottleTimeMs:int32[1+] | ✓ | abcf8979 |
-| v2 | unchanged | ☐ | |
+| v2 | unchanged | ✓ | 9b78b1ee |
 | v3 | + MaxBytes:int32[3+] | ☐ | |
 | v4 | + IsolationLevel:int8[4+], LastStableOffset:int64[4+], AbortedTransactions:[]AbortedTransaction[4+](null:4+), ProducerId:int64[4+], FirstOffset:int64[4+] | ☐ | |
 | v5 | + LogStartOffset:int64[5+], LogStartOffset:int64[5+] | ☐ | |
