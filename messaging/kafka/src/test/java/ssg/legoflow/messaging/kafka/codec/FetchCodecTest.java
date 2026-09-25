@@ -36,8 +36,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  *   <li>v1–v2 request: byte-identical to v0 (spec: "Version 1 is the same as version 0";
  *       v2 is the first version handling message format v1 — no field change).</li>
  *   <li>Response v1: the v0 layout + a leading ThrottleTimeMs(int32) — dedicated methods.</li>
- *   <li>Response v2+ and request v3+ throw {@link CodecNotImplementedException} until
- *       their own sub-task rows land.</li>
+ *   <li>Response v2: unchanged — wire-identical to v1, served by the v1 methods.</li>
+ *   <li>Request/response v3+ throw {@link CodecNotImplementedException} until
+ *       their own sub-task rows land (v3 adds MaxBytes to the request).</li>
  * </ul>
  */
 class FetchCodecTest {
@@ -293,6 +294,44 @@ class FetchCodecTest {
     }
 
     @Nested
+    @DisplayName("Fetch response v2 (key 1) — unchanged vs v1")
+    class ResponseV2 {
+
+        @Test
+        @DisplayName("v2 response is byte-identical to v1 (spec: no field change)")
+        void v2ByteIdenticalToV1() {
+            var resp = new FetchResponse(42, List.of(
+                    new FetchResponse.TopicResponse("topic", List.of(
+                            new FetchResponse.PartitionResponse(0, (short) 0, 100L, new byte[]{1, 2}))),
+                    new FetchResponse.TopicResponse("other", List.of(
+                            new FetchResponse.PartitionResponse(1, (short) -1, 42L, null)))));
+
+            byte[] v1 = FetchCodec.encodeResponse((short) 1, resp);
+            byte[] v2 = FetchCodec.encodeResponse((short) 2, resp);
+
+            assertArrayEquals(v1, v2, "v2 response must be byte-identical to v1");
+        }
+
+        @Test
+        @DisplayName("v2 response round-trips through the v1 methods")
+        void v2RoundTripThroughV1Methods() {
+            var resp = new FetchResponse(7, List.of(
+                    new FetchResponse.TopicResponse("topic", List.of(
+                            new FetchResponse.PartitionResponse(3, (short) 5, 999L, null)))));
+
+            byte[] body = FetchCodec.encodeResponse((short) 2, resp);
+            var decoded = FetchCodec.decodeResponse((short) 2, ByteBuffer.wrap(body));
+
+            assertEquals(7, decoded.throttleTimeMs(), "ThrottleTimeMs round-trip");
+            assertEquals(1, decoded.topics().size(), "topic count");
+            assertEquals(3, decoded.topics().get(0).partitions().get(0).partitionIndex());
+            assertEquals((short) 5, decoded.topics().get(0).partitions().get(0).errorCode());
+            assertEquals(999L, decoded.topics().get(0).partitions().get(0).highWatermark());
+            assertNull(decoded.topics().get(0).partitions().get(0).records(), "null Records round-trip");
+        }
+    }
+
+    @Nested
     @DisplayName("Version dispatch")
     class Dispatch {
 
@@ -317,20 +356,20 @@ class FetchCodecTest {
         }
 
         @Test
-        @DisplayName("response v2 encode throws CodecNotImplementedException (next unimplemented)")
-        void v2ResponseEncodeNotImplemented() {
+        @DisplayName("response v3 encode throws CodecNotImplementedException (next unimplemented)")
+        void v3ResponseEncodeNotImplemented() {
             var resp = new FetchResponse(0, List.of(
                     new FetchResponse.TopicResponse("topic", List.of(
                             new FetchResponse.PartitionResponse(0, (short) 0, 0L, null)))));
             assertThrows(CodecNotImplementedException.class,
-                    () -> FetchCodec.encodeResponse((short) 2, resp));
+                    () -> FetchCodec.encodeResponse((short) 3, resp));
         }
 
         @Test
-        @DisplayName("response v2 decode throws CodecNotImplementedException (next unimplemented)")
-        void v2ResponseDecodeNotImplemented() {
+        @DisplayName("response v3 decode throws CodecNotImplementedException (next unimplemented)")
+        void v3ResponseDecodeNotImplemented() {
             assertThrows(CodecNotImplementedException.class,
-                    () -> FetchCodec.decodeResponse((short) 2, ByteBuffer.wrap(new byte[0])));
+                    () -> FetchCodec.decodeResponse((short) 3, ByteBuffer.wrap(new byte[0])));
         }
 
         @Test

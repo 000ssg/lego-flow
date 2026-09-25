@@ -36,8 +36,10 @@ import java.util.List;
  *   <li>v1 — the request is byte-identical to v0 (spec: "Version 1 is the same as
  *       version 0"); the response adds a leading ThrottleTimeMs(int32) — dedicated
  *       {@code encode/decodeResponseV1} methods (partition layout unchanged, body width
- *       +4). v2 (first version handling message format v1) is wire-identical to v1 in
- *       both directions and lands in its own row.</li>
+ *       +4).</li>
+ *   <li>v2 — unchanged version: wire-identical to v1 in both directions (v2 is the first
+ *       version handling message format v1; no field change) — all four dispatches
+ *       fall through (request to the v0 methods, response to the v1 methods).</li>
  * </ul>
  *
  * <p>The {@link FetchRequest} model keeps {@code maxBytes} for v3+; at v0–v2 it is never
@@ -111,9 +113,11 @@ public final class FetchCodec {
             case 0:
                 return encodeResponseV0(resp);
             case 1: // v1 adds a leading ThrottleTimeMs(int32)
+            case 2: // v2 response is wire-identical to v1 (no field change; v2 is the
+                // first version handling message format v1)
                 return encodeResponseV1(resp);
             default:
-                // v2+ (unchanged wire at v2, then IsolationLevel/SessionId/... per the spec)
+                // v3+ (request adds MaxBytes; response unchanged until v4)
                 // is not implemented yet — no code path.
                 throw new CodecNotImplementedException("Fetch response v" + version + " not implemented");
         }
@@ -132,9 +136,10 @@ public final class FetchCodec {
             case 0:
                 return decodeResponseV0(buf);
             case 1: // v1 adds a leading ThrottleTimeMs(int32)
+            case 2: // v2 response wire-identical to v1
                 return decodeResponseV1(buf);
             default:
-                // v2+ (unchanged wire at v2, then IsolationLevel/SessionId/... per the spec)
+                // v3+ (request adds MaxBytes; response unchanged until v4)
                 // is not implemented yet — no code path.
                 throw new CodecNotImplementedException("Fetch response v" + version + " not implemented");
         }
