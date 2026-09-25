@@ -43,6 +43,15 @@ import java.util.List;
  *   <li>v3 — the request adds MaxBytes(int32) after MinBytes — dedicated
  *       {@code encode/decodeRequestV3} methods. The response is wire-identical to
  *       v1/v2 (v3 changes the request only) and falls through to the v1 methods.</li>
+ *   <li>v4 — both directions change (structural branch): the request adds
+ *       IsolationLevel(int8) after MaxBytes — dedicated {@code encode/decodeRequestV4};
+ *       the response adds LastStableOffset(int64) + AbortedTransactions
+ *       ([](ProducerId(int64), FirstOffset(int64))) after HighWatermark per partition —
+ *       dedicated {@code encode/decodeResponseV4}. The {@code FetchRequest} model gains
+ *       {@code isolationLevel} (v4+; 0=read_committed, 1=read_uncommitted) and the
+ *       {@code FetchResponse.PartitionResponse} model gains {@code lastStableOffset}
+ *       (v4+, -1 default) + {@code abortedTransactions} (v4+, null/empty default);
+ *       compatibility constructors cover pre-v4 call sites.</li>
  * </ul>
  *
  * <p>The {@link FetchRequest} model keeps {@code maxBytes} for v3+; at v0–v2 it is never
@@ -78,8 +87,10 @@ public final class FetchCodec {
                 return encodeRequestV0(req);
             case 3: // v3 adds MaxBytes(int32) after MinBytes
                 return encodeRequestV3(req);
+            case 4: // v4 adds IsolationLevel(int8) after MaxBytes
+                return encodeRequestV4(req);
             default:
-                // v4+ (IsolationLevel int8, then SessionId/... per the spec)
+                // v5+ (partition LogStartOffset, then SessionId/... per the spec)
                 // is not implemented yet — no code path.
                 throw new CodecNotImplementedException("Fetch request v" + version + " not implemented");
         }
@@ -101,8 +112,10 @@ public final class FetchCodec {
                 return decodeRequestV0(buf);
             case 3: // v3 adds MaxBytes(int32) after MinBytes
                 return decodeRequestV3(buf);
+            case 4: // v4 adds IsolationLevel(int8) after MaxBytes
+                return decodeRequestV4(buf);
             default:
-                // v4+ is not implemented yet — no code path.
+                // v5+ is not implemented yet — no code path.
                 throw new CodecNotImplementedException("Fetch request v" + version + " not implemented");
         }
     }
@@ -124,8 +137,10 @@ public final class FetchCodec {
                 // first version handling message format v1)
             case 3: // v3 response is wire-identical to v1/v2 (only the request changed at v3)
                 return encodeResponseV1(resp);
+            case 4: // v4 response adds LastStableOffset + AbortedTransactions per partition
+                return encodeResponseV4(resp);
             default:
-                // v4+ (LastStableOffset, AbortedTransactions, then LogStartOffset/... per the spec)
+                // v5+ (partition LogStartOffset, then SessionId/... per the spec)
                 // is not implemented yet — no code path.
                 throw new CodecNotImplementedException("Fetch response v" + version + " not implemented");
         }
@@ -147,8 +162,10 @@ public final class FetchCodec {
             case 2: // v2 response wire-identical to v1
             case 3: // v3 response wire-identical to v1/v2
                 return decodeResponseV1(buf);
+            case 4: // v4 response adds LastStableOffset + AbortedTransactions per partition
+                return decodeResponseV4(buf);
             default:
-                // v4+ (LastStableOffset, AbortedTransactions, then LogStartOffset/... per the spec)
+                // v5+ (partition LogStartOffset, then SessionId/... per the spec)
                 // is not implemented yet — no code path.
                 throw new CodecNotImplementedException("Fetch response v" + version + " not implemented");
         }
@@ -361,5 +378,129 @@ public final class FetchCodec {
             topics.add(new FetchRequest.TopicFetch(name, partitions));
         }
         return new FetchRequest(replicaId, maxWait, minBytes, maxBytes, topics);
+    }
+
+    // ===== v4 — request: ReplicaId, MaxWaitMs, MinBytes, MaxBytes, IsolationLevel, Topics{...} =====
+    // v4 response: ThrottleTimeMs, Responses{Topic, Partitions{PartitionIndex, ErrorCode,
+    // HighWatermark, LastStableOffset, AbortedTransactions[]{ProducerId, FirstOffset}, Records}}
+
+    private static byte[] encodeRequestV4(FetchRequest req) {
+        // Fixed overhead: ReplicaId(int32) + MaxWaitMs(int32) + MinBytes(int32)
+        // + MaxBytes(int32) + IsolationLevel(int8) + topic count(int32) = 21.
+        // Per topic: 4 (partition count) + 2 (name length) + name.
+        // Per partition: 4 (index) + 8 (fetch offset) + 4 (partition max bytes) = 16.
+        int size = 21;
+        for (var topic : req.topics()) {
+            size += 4 + 2 + topic.name().getBytes(StandardCharsets.UTF_8).length;
+            size += 16 * topic.partitions().size();
+        }
+        ByteBuffer buf = BufferPool.getBuffer(size);
+        buf.putInt(req.replicaId());
+        buf.putInt(req.maxWaitMs());
+        buf.putInt(req.minBytes());
+        buf.putInt(req.maxBytes());
+        buf.put((byte) req.isolationLevel()); // v4+: IsolationLevel int8 after MaxBytes (spec field order)
+        buf.putInt(req.topics().size());
+        for (var topic : req.topics()) {
+            KafkaCodecPrimitives.writeString(buf, topic.name());
+            buf.putInt(topic.partitions().size());
+            for (var pf : topic.partitions()) {
+                buf.putInt(pf.partition());
+                buf.putLong(pf.fetchOffset());
+                buf.putInt(pf.partitionMaxBytes());
+            }
+        }
+        buf.flip();
+        return KafkaCodecPrimitives.toBytes(buf);
+    }
+
+    private static FetchRequest decodeRequestV4(ByteBuffer buf) {
+        int replicaId = buf.getInt();
+        int maxWait = buf.getInt();
+        int minBytes = buf.getInt();
+        int maxBytes = buf.getInt();
+        int isolationLevel = buf.get() & 0xff; // v4+: IsolationLevel int8
+        int topicCount = buf.getInt();
+        List<FetchRequest.TopicFetch> topics = new ArrayList<>(topicCount);
+        for (int i = 0; i < topicCount; i++) {
+            String name = KafkaCodecPrimitives.readString(buf);
+            int partCount = buf.getInt();
+            List<FetchRequest.PartitionFetch> partitions = new ArrayList<>(partCount);
+            for (int j = 0; j < partCount; j++) {
+                int partition = buf.getInt();
+                long fetchOffset = buf.getLong();
+                int partitionMaxBytes = buf.getInt();
+                partitions.add(new FetchRequest.PartitionFetch(partition, fetchOffset, partitionMaxBytes));
+            }
+            topics.add(new FetchRequest.TopicFetch(name, partitions));
+        }
+        return new FetchRequest(replicaId, maxWait, minBytes, maxBytes, isolationLevel, topics);
+    }
+
+    private static byte[] encodeResponseV4(FetchResponse resp) {
+        // Fixed overhead: ThrottleTimeMs(int32) + topic count(int32) = 8.
+        // Per topic: 4 (partition count) + 2 (name length) + name.
+        // Per partition: 4 (index) + 2 (error code) + 8 (high watermark)
+        // + 8 (last stable offset, v4+) + 4 (aborted count, v4+)
+        // + 4 (records length) + record length = 30 + 16*aborted + records.
+        int size = 8;
+        for (var topic : resp.topics()) {
+            size += 4 + 2 + topic.name().getBytes(StandardCharsets.UTF_8).length;
+            for (var pr : topic.partitions()) {
+                size += 30 + (pr.abortedTransactions() != null ? 16 * pr.abortedTransactions().size() : 0);
+                size += (pr.records() != null ? pr.records().length : 0);
+            }
+        }
+        ByteBuffer buf = BufferPool.getBuffer(size);
+        buf.putInt(resp.throttleTimeMs());
+        buf.putInt(resp.topics().size());
+        for (var topic : resp.topics()) {
+            KafkaCodecPrimitives.writeString(buf, topic.name());
+            buf.putInt(topic.partitions().size());
+            for (var pr : topic.partitions()) {
+                buf.putInt(pr.partitionIndex());
+                buf.putShort(pr.errorCode());
+                buf.putLong(pr.highWatermark());
+                buf.putLong(pr.lastStableOffset()); // v4+
+                var aborted = pr.abortedTransactions() != null ? pr.abortedTransactions() : List.<FetchResponse.AbortedTransaction>of();
+                buf.putInt(aborted.size()); // v4+
+                for (var at : aborted) {
+                    buf.putLong(at.producerId());
+                    buf.putLong(at.firstOffset());
+                }
+                KafkaCodecPrimitives.writeBytesField(buf, pr.records());
+            }
+        }
+        buf.flip();
+        return KafkaCodecPrimitives.toBytes(buf);
+    }
+
+    private static FetchResponse decodeResponseV4(ByteBuffer buf) {
+        int throttleTimeMs = buf.getInt();
+        int topicCount = buf.getInt();
+        List<FetchResponse.TopicResponse> topics = new ArrayList<>(topicCount);
+        for (int i = 0; i < topicCount; i++) {
+            String name = KafkaCodecPrimitives.readString(buf);
+            int partCount = buf.getInt();
+            List<FetchResponse.PartitionResponse> partitions = new ArrayList<>(partCount);
+            for (int j = 0; j < partCount; j++) {
+                int partitionIndex = buf.getInt();
+                short errorCode = buf.getShort();
+                long highWatermark = buf.getLong();
+                long lastStableOffset = buf.getLong(); // v4+
+                int abortedCount = buf.getInt(); // v4+
+                List<FetchResponse.AbortedTransaction> aborted = new ArrayList<>(abortedCount);
+                for (int k = 0; k < abortedCount; k++) {
+                    long producerId = buf.getLong();
+                    long firstOffset = buf.getLong();
+                    aborted.add(new FetchResponse.AbortedTransaction(producerId, firstOffset));
+                }
+                byte[] records = KafkaCodecPrimitives.readBytesField(buf);
+                partitions.add(new FetchResponse.PartitionResponse(partitionIndex, errorCode, highWatermark,
+                        lastStableOffset, aborted, records));
+            }
+            topics.add(new FetchResponse.TopicResponse(name, partitions));
+        }
+        return new FetchResponse(throttleTimeMs, topics);
     }
 }

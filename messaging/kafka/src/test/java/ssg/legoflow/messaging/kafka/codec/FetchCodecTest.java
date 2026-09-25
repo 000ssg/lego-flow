@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Fetch (API key 1) v0 unit tests — Phase 6a, Record I/O, second API.
@@ -457,17 +458,210 @@ class FetchCodecTest {
     }
 
     @Nested
+    @DisplayName("Fetch request v4 (key 1) — + IsolationLevel after MaxBytes")
+    class RequestV4 {
+
+        @Test
+        @DisplayName("v4 request round-trips with IsolationLevel on the wire")
+        void v4RoundTrip() {
+            var req = new FetchRequest(-1, 500, 1, 1048576, 1,
+                    List.of(new FetchRequest.TopicFetch("topic", List.of(
+                            new FetchRequest.PartitionFetch(0, 10L, 65536))),
+                            new FetchRequest.TopicFetch("other", List.of())));
+
+            byte[] body = FetchCodec.encodeRequest((short) 4, req);
+            var decoded = FetchCodec.decodeRequest((short) 4, ByteBuffer.wrap(body));
+
+            assertEquals(-1, decoded.replicaId(), "ReplicaId round-trip");
+            assertEquals(500, decoded.maxWaitMs(), "MaxWaitMs round-trip");
+            assertEquals(1, decoded.minBytes(), "MinBytes round-trip");
+            assertEquals(1048576, decoded.maxBytes(), "MaxBytes round-trip");
+            assertEquals(1, decoded.isolationLevel(), "IsolationLevel (v4+) round-trip");
+            assertEquals(2, decoded.topics().size(), "topic count");
+            assertEquals("topic", decoded.topics().get(0).name());
+            assertEquals(0, decoded.topics().get(0).partitions().get(0).partition());
+            assertEquals(10L, decoded.topics().get(0).partitions().get(0).fetchOffset());
+            assertEquals(65536, decoded.topics().get(0).partitions().get(0).partitionMaxBytes());
+            assertEquals("other", decoded.topics().get(1).name());
+        }
+
+        @Test
+        @DisplayName("v4 request has the exact 48-byte spec wire layout (v3 + 1-byte IsolationLevel)")
+        void v4ExactBytes() {
+            var req = new FetchRequest(-1, 500, 1, 1048576, 0,
+                    List.of(new FetchRequest.TopicFetch("topic", List.of(
+                            new FetchRequest.PartitionFetch(0, 10L, 65536)))));
+
+            byte[] body = FetchCodec.encodeRequest((short) 4, req);
+            // 4 (replicaId) + 4 (maxWaitMs) + 4 (minBytes) + 4 (maxBytes)
+            // + 1 (isolationLevel, v4+) + 4 (topic count) + 2 (name len) + 5 (name)
+            // + 4 (partition count) + 4 (partition) + 8 (fetchOffset) + 4 (partitionMaxBytes) = 48
+            assertEquals(48, body.length, "exact v4 wire layout");
+
+            ByteBuffer buf = ByteBuffer.wrap(body);
+            assertEquals(-1, buf.getInt(), "ReplicaId int32");
+            assertEquals(500, buf.getInt(), "MaxWaitMs int32");
+            assertEquals(1, buf.getInt(), "MinBytes int32");
+            assertEquals(1048576, buf.getInt(), "MaxBytes int32");
+            assertEquals(0, buf.get() & 0xff, "IsolationLevel int8 (v4+)");
+            assertEquals(1, buf.getInt(), "Topics count int32");
+            assertEquals(5, buf.getShort(), "Topic string16 length");
+            byte[] name = new byte[5];
+            buf.get(name);
+            assertEquals("topic", new String(name, StandardCharsets.UTF_8), "Topic name");
+            assertEquals(1, buf.getInt(), "Partitions count int32");
+            assertEquals(0, buf.getInt(), "Partition int32");
+            assertEquals(10L, buf.getLong(), "FetchOffset int64");
+            assertEquals(65536, buf.getInt(), "PartitionMaxBytes int32");
+            assertEquals(0, buf.remaining(), "no trailing bytes");
+        }
+
+        @Test
+        @DisplayName("v4 request is the v3 layout with IsolationLevel inserted after MaxBytes")
+        void v4IsV3PlusIsolationLevel() {
+            var req = new FetchRequest(-1, 500, 1, 1048576, 1,
+                    List.of(new FetchRequest.TopicFetch("topic", List.of(
+                            new FetchRequest.PartitionFetch(0, 10L, 65536)))));
+
+            byte[] v3 = FetchCodec.encodeRequest((short) 3, req);
+            byte[] v4 = FetchCodec.encodeRequest((short) 4, req);
+
+            assertEquals(v3.length + 1, v4.length, "v4 is 1 byte wider than v3");
+            assertArrayEquals(Arrays.copyOfRange(v3, 0, 16), Arrays.copyOfRange(v4, 0, 16),
+                    "ReplicaId/MaxWaitMs/MinBytes/MaxBytes (16 bytes) unchanged");
+            assertEquals(1, v4[16], "IsolationLevel int8 sits between MaxBytes and the topic array");
+            assertArrayEquals(Arrays.copyOfRange(v3, 16, v3.length),
+                    Arrays.copyOfRange(v4, 17, v4.length),
+                    "topic array byte-identical to v3");
+        }
+
+        @Test
+        @DisplayName("v0-v3 decode defaults isolationLevel to 0 (absent from the body)")
+        void preV4DefaultsIsolationLevel() {
+            var req = new FetchRequest(-1, 500, 1, 1048576, 1,
+                    List.of(new FetchRequest.TopicFetch("topic", List.of(
+                            new FetchRequest.PartitionFetch(0, 10L, 65536)))));
+
+            for (short v = 0; v <= 3; v++) {
+                byte[] body = FetchCodec.encodeRequest(v, req);
+                var decoded = FetchCodec.decodeRequest(v, ByteBuffer.wrap(body));
+                assertEquals(0, decoded.isolationLevel(),
+                        "IsolationLevel (v4+) must decode as 0 at v" + v);
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("Fetch response v4 (key 1) — + LastStableOffset + AbortedTransactions")
+    class ResponseV4 {
+
+        @Test
+        @DisplayName("v4 response round-trips with LastStableOffset + AbortedTransactions")
+        void v4RoundTrip() {
+            var resp = new FetchResponse(42, List.of(
+                    new FetchResponse.TopicResponse("topic", List.of(
+                            new FetchResponse.PartitionResponse(0, (short) 0, 100L,
+                                    99L,
+                                    List.of(new FetchResponse.AbortedTransaction(7L, 12L),
+                                            new FetchResponse.AbortedTransaction(8L, 30L)),
+                                    new byte[]{1, 2}))),
+                    new FetchResponse.TopicResponse("other", List.of(
+                            new FetchResponse.PartitionResponse(1, (short) -1, 42L, -1L,
+                                    null, null)))));
+
+            byte[] body = FetchCodec.encodeResponse((short) 4, resp);
+            var decoded = FetchCodec.decodeResponse((short) 4, ByteBuffer.wrap(body));
+
+            assertEquals(42, decoded.throttleTimeMs(), "ThrottleTimeMs round-trip");
+            assertEquals(2, decoded.topics().size(), "topic count");
+            var p0 = decoded.topics().get(0).partitions().get(0);
+            assertEquals(0, p0.partitionIndex());
+            assertEquals((short) 0, p0.errorCode());
+            assertEquals(100L, p0.highWatermark());
+            assertEquals(99L, p0.lastStableOffset(), "LastStableOffset (v4+) round-trip");
+            assertEquals(2, p0.abortedTransactions().size(), "AbortedTransactions count (v4+)");
+            assertEquals(7L, p0.abortedTransactions().get(0).producerId());
+            assertEquals(12L, p0.abortedTransactions().get(0).firstOffset());
+            assertEquals(8L, p0.abortedTransactions().get(1).producerId());
+            assertEquals(30L, p0.abortedTransactions().get(1).firstOffset());
+            assertArrayEquals(new byte[]{1, 2}, p0.records(), "Records round-trip");
+            var p1 = decoded.topics().get(1).partitions().get(0);
+            assertEquals(-1L, p1.lastStableOffset(), "absent LastStableOffset defaults -1");
+            assertTrue(p1.abortedTransactions().isEmpty(), "null AbortedTransactions decodes as empty list");
+            assertNull(p1.records(), "null Records round-trip");
+        }
+
+        @Test
+        @DisplayName("v4 response has the exact per-field wire layout (v1 + 8 LastStableOffset + 4 aborted count per partition)")
+        void v4ExactBytes() {
+            var resp = new FetchResponse(42, List.of(
+                    new FetchResponse.TopicResponse("topic", List.of(
+                            new FetchResponse.PartitionResponse(0, (short) 0, 100L,
+                                    99L,
+                                    List.of(new FetchResponse.AbortedTransaction(7L, 12L)),
+                                    new byte[]{1, 2})))));
+
+            byte[] body = FetchCodec.encodeResponse((short) 4, resp);
+            // 4 (throttleTimeMs) + 4 (topic count) + 2 (name len) + 5 (name) + 4 (partition count)
+            // + 4 (partitionIndex) + 2 (errorCode) + 8 (highWatermark) + 8 (lastStableOffset, v4+)
+            // + 4 (aborted count, v4+) + 8 (producerId) + 8 (firstOffset)
+            // + 4 (records len) + 2 (records) = 67
+            assertEquals(67, body.length, "exact v4 wire layout");
+
+            ByteBuffer buf = ByteBuffer.wrap(body);
+            assertEquals(42, buf.getInt(), "ThrottleTimeMs int32");
+            assertEquals(1, buf.getInt(), "Responses count int32");
+            assertEquals(5, buf.getShort(), "Topic string16 length");
+            byte[] name = new byte[5];
+            buf.get(name);
+            assertEquals("topic", new String(name, StandardCharsets.UTF_8), "Topic name");
+            assertEquals(1, buf.getInt(), "Partitions count int32");
+            assertEquals(0, buf.getInt(), "PartitionIndex int32");
+            assertEquals(0, buf.getShort(), "ErrorCode int16");
+            assertEquals(100L, buf.getLong(), "HighWatermark int64");
+            assertEquals(99L, buf.getLong(), "LastStableOffset int64 (v4+)");
+            assertEquals(1, buf.getInt(), "AbortedTransactions count int32 (v4+)");
+            assertEquals(7L, buf.getLong(), "ProducerId int64");
+            assertEquals(12L, buf.getLong(), "FirstOffset int64");
+            assertEquals(2, buf.getInt(), "Records length int32");
+            byte[] recs = new byte[2];
+            buf.get(recs);
+            assertArrayEquals(new byte[]{1, 2}, recs, "Records bytes");
+            assertEquals(0, buf.remaining(), "no trailing bytes");
+        }
+
+        @Test
+        @DisplayName("v4 null AbortedTransactions encodes as an empty array (count 0)")
+        void v4NullAbortedEncodesAsEmpty() {
+            var resp = new FetchResponse(0, List.of(
+                    new FetchResponse.TopicResponse("topic", List.of(
+                            new FetchResponse.PartitionResponse(0, (short) 0, 10L, -1L, null, null)))));
+
+            byte[] body = FetchCodec.encodeResponse((short) 4, resp);
+            // ThrottleTimeMs(4) + topic count(4) + 2 (name len) + 5 (name) + partition count(4)
+            // + partitionIndex(4) + errorCode(2) + highWatermark(8) + lastStableOffset(8)
+            // + aborted count(4) + records len(4) = 49
+            assertEquals(49, body.length, "exact v4 wire layout with empty aborted array");
+            ByteBuffer buf = ByteBuffer.wrap(body);
+            buf.position(4 + 4 + 2 + 5 + 4 + 4 + 2 + 8 + 8);
+            assertEquals(0, buf.getInt(), "AbortedTransactions count is 0 for null");
+            var decoded = FetchCodec.decodeResponse((short) 4, ByteBuffer.wrap(body));
+            assertTrue(decoded.topics().get(0).partitions().get(0).abortedTransactions().isEmpty());
+        }
+    }
+
+    @Nested
     @DisplayName("Version dispatch")
     class Dispatch {
 
         @Test
-        @DisplayName("request v4 encode throws CodecNotImplementedException (next unimplemented)")
-        void v4RequestEncodeNotImplemented() {
-            var req = new FetchRequest(-1, 500, 1, 1048576,
+        @DisplayName("request v5 encode throws CodecNotImplementedException (next unimplemented)")
+        void v5RequestEncodeNotImplemented() {
+            var req = new FetchRequest(-1, 500, 1, 1048576, 0,
                     List.of(new FetchRequest.TopicFetch("topic", List.of(
                             new FetchRequest.PartitionFetch(0, 10L, 65536)))));
             assertThrows(CodecNotImplementedException.class,
-                    () -> FetchCodec.encodeRequest((short) 4, req));
+                    () -> FetchCodec.encodeRequest((short) 5, req));
         }
 
         @Test
@@ -481,20 +675,20 @@ class FetchCodecTest {
         }
 
         @Test
-        @DisplayName("response v4 encode throws CodecNotImplementedException (next unimplemented)")
-        void v4ResponseEncodeNotImplemented() {
+        @DisplayName("response v5 encode throws CodecNotImplementedException (next unimplemented)")
+        void v5ResponseEncodeNotImplemented() {
             var resp = new FetchResponse(0, List.of(
                     new FetchResponse.TopicResponse("topic", List.of(
                             new FetchResponse.PartitionResponse(0, (short) 0, 0L, null)))));
             assertThrows(CodecNotImplementedException.class,
-                    () -> FetchCodec.encodeResponse((short) 4, resp));
+                    () -> FetchCodec.encodeResponse((short) 5, resp));
         }
 
         @Test
-        @DisplayName("response v4 decode throws CodecNotImplementedException (next unimplemented)")
-        void v4ResponseDecodeNotImplemented() {
+        @DisplayName("response v5 decode throws CodecNotImplementedException (next unimplemented)")
+        void v5ResponseDecodeNotImplemented() {
             assertThrows(CodecNotImplementedException.class,
-                    () -> FetchCodec.decodeResponse((short) 4, ByteBuffer.wrap(new byte[0])));
+                    () -> FetchCodec.decodeResponse((short) 5, ByteBuffer.wrap(new byte[0])));
         }
 
         @Test

@@ -7,29 +7,45 @@ import java.util.List;
  *
  * <p>Layout per the 3.6.1 spec ({@code doc/spec/message/FetchRequest.json}):
  * ReplicaId(int32, 0-14) + MaxWaitMs(int32, 0+) + MinBytes(int32, 0+) + MaxBytes(int32, 3+)
- * + Topics[](Topic/TopicId + Partitions[](Partition, CurrentLeaderEpoch 9+, FetchOffset,
+ * + IsolationLevel(int8, 4+) + Topics[](Topic/TopicId + Partitions[](Partition, CurrentLeaderEpoch 9+, FetchOffset,
  * LastFetchedEpoch 12+, LogStartOffset 5+, PartitionMaxBytes)).
  *
  * @param replicaId  the broker ID of the follower, or -1 if the request is from a consumer (v0+)
  * @param maxWaitMs  the maximum time to wait for data in milliseconds (v0+)
  * @param minBytes   the minimum number of bytes to wait for (v0+)
  * @param maxBytes   the maximum number of bytes to return (v3+; absent from v0–v2 bodies)
+ * @param isolationLevel 0=read_committed, 1=read_uncommitted (v4+; absent from v0–v3 bodies)
  * @param topics     the topics and partitions to fetch from (v0+)
  * @since 0.1.0
  */
-public record FetchRequest(int replicaId, int maxWaitMs, int minBytes, int maxBytes, List<TopicFetch> topics) {
+public record FetchRequest(int replicaId, int maxWaitMs, int minBytes, int maxBytes,
+                           int isolationLevel, List<TopicFetch> topics) {
 
     /**
-     * Compatibility constructor (pre-Phase 6a call sites): consumer fetch with
-     * {@code replicaId = -1}.
+     * Compatibility constructor (pre-v4 call sites): consumer fetch with {@code replicaId = -1}
+     * and {@code isolationLevel = 0} (read_committed, the v4+ spec default).
      *
-     * @param maxWaitMs the maximum time to wait for data in milliseconds
-     * @param minBytes  the minimum number of bytes to wait for
-     * @param maxBytes  the maximum number of bytes to return (v3+; discarded at v0–v2)
-     * @param topics    the topics and partitions to fetch from
+     * @param maxWaitMs  the maximum time to wait for data in milliseconds
+     * @param minBytes   the minimum number of bytes to wait for
+     * @param maxBytes   the maximum number of bytes to return (v3+; discarded at v0–v2)
+     * @param topics     the topics and partitions to fetch from
      */
     public FetchRequest(int maxWaitMs, int minBytes, int maxBytes, List<TopicFetch> topics) {
-        this(-1, maxWaitMs, minBytes, maxBytes, topics);
+        this(-1, maxWaitMs, minBytes, maxBytes, 0, topics);
+    }
+
+    /**
+     * Compatibility constructor (pre-v4 call sites with an explicit replicaId):
+     * {@code isolationLevel = 0}.
+     *
+     * @param replicaId  the broker ID of the follower, or -1 if the request is from a consumer
+     * @param maxWaitMs  the maximum time to wait for data in milliseconds
+     * @param minBytes   the minimum number of bytes to wait for
+     * @param maxBytes   the maximum number of bytes to return (v3+; discarded at v0–v2)
+     * @param topics     the topics and partitions to fetch from
+     */
+    public FetchRequest(int replicaId, int maxWaitMs, int minBytes, int maxBytes, List<TopicFetch> topics) {
+        this(replicaId, maxWaitMs, minBytes, maxBytes, 0, topics);
     }
 
     /**
