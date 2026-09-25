@@ -269,6 +269,48 @@ Part of the messaging compliance series defined in `doc/plans/messaging/` — ap
 
 ---
 
+## Commit: `dbd46370` — Fetch v9/v10 (Record I/O rows 20–21) + hybrid builder approach
+
+Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified from the 3.6.1 `FetchRequest.json` / `FetchResponse.json` schemas.
+
+### What Changed
+- **Fetch v9/v10 codec**: v9 is a STRUCTURAL BRANCH on the REQUEST ONLY — the per-partition layout gains `CurrentLeaderEpoch(int32)` after `Partition` (default -1) — dedicated `encode/decodeRequestV9`. v10 request is wire-identical to v9 (no field change) and dispatch falls through to the v9 request methods. The v9/v10 RESPONSE is wire-identical to v7/v8 and falls through to the v7 response methods in both directions. `FetchRequest.PartitionFetch` gains `currentLeaderEpoch` (v9+, -1 default) with a compatibility constructor for pre-v9 call sites.
+- **Hybrid builder approach** (in-session decision, first application): records stay records — canonical + compat constructors untouched (free `equals`/`hashCode`/`toString`; every existing positional call site keeps compiling); a static nested `Builder` is added as the preferred entry point, one method per field defaulting to the spec absent-value, `build()` = pure delegation to the canonical constructor, no per-version validation (the codec enforces field presence on write and auto-fills absent fields on read). Scope rule: records with >=3 fields or version-growth get builders; 1–2-field records (SaslHandshake*, SaslAuthenticateRequest, ApiVersionsRequest, ApiVersion, AbortedTransaction, nested TopicResponse/TopicFetch/ForgottenTopic) stay plain. Applied to the 8 builder records: `FetchRequest`, `FetchRequest.PartitionFetch`, `FetchResponse`, `FetchResponse.PartitionResponse`, `ProduceRequest`, `ProduceResponse.PartitionResponse`, `ApiVersionsResponse`, `SaslAuthenticateResponse`.
+- **New tests** (all builder-based): FetchCodecTest 53 -> 63 (+10): RequestV9 x4 (round-trip incl. CurrentLeaderEpoch; exact 72-byte walk; v9 = v7 + 4-byte CurrentLeaderEpoch structural byte-identity at offset 44; default -1 round-trip) + RequestV10 x2 (byte-identical to v9; round-trip) + ResponseV9 x2 + ResponseV10 x2 (byte-identical to v7; round-trip through the v7 methods). Dispatch re-pinned: v11 is now the next unimplemented version (both directions).
+
+### Test Coverage
+- FetchCodecTest 63 tests; full module 570 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 8 (FetchCodec, 7 protocol records, FetchCodecTest) |
+| Lines added/removed | +735 / -35 |
+| Tests added | 10 (570 total) |
+
+---
+
+## Commit: `5205b7f1` — retrofit the 4 dedicated-codec test classes onto the hybrid builders
+
+Mechanically rewrite every canonical-arity positional constructor call in the Produce / Fetch / NegotiationAuth / KafkaCodec test classes onto the builder chains from `dbd46370`. Records stay records — no model changes.
+
+### What Changed
+- **62 canonical-arity call sites rewritten** onto fluent builder chains (one method per field, spec absent-value defaults, `build()` delegating to the canonical constructor): `ProduceCodecTest` 27, `FetchCodecTest` 22, `NegotiationAuthCodecTest` 9, `KafkaCodecTest` 4. Net −73 lines (positional argument lists replaced by named fluent calls — the builder makes each field's version semantics explicit at the call site).
+- **Compatibility-constructor sites left positional** (fewer args than the record arity): they carry per-version absent-value semantics the builder defaults provide, and auto-mapping them would silently change which overload resolves.
+- **Mechanical transform**: `messaging/kafka/.builder_transform.py` — one canonical `new X(...)` site rewritten per pass (re-scan after each, so a nested `new A.B(...)` inside a rewritten `new A(...)` becomes a nested builder chain on a later pass); a `new X(` match whose name is immediately followed by `.` is skipped (qualified type — its args belong to the nested record); arity gate = exact match of top-level arg count to the record's canonical component count (verified against each record's header); comments / string literals / `byte[]{...}` / generics handled by a single-pass state machine tracking `()[]{}` depth and literal state without mutating the text. Reusable verbatim for the next dedicated-codec rows (Admin / Transactions / Consumer Groups / Metadata) — extend the script's `RECORDS` table with the new record's qualified type + canonical component order first.
+
+### Test Coverage
+- Full module 570 green, 0 failures, 0 errors, 0 skipped (no test added or removed — pure call-site refactor)
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 4 (test classes) |
+| Lines added/removed | +98 / -171 |
+| Tests added | 0 |
+
+---
+
 ## Document Maintenance
 
 - This document is append-only for commit sections
