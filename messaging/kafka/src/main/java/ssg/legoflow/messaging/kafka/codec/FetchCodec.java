@@ -33,10 +33,11 @@ import java.util.List;
  *       The earlier inline façade layout wrote MaxBytes (a v3+ field) and a response
  *       ThrottleTimeMs (a v1+ field) while omitting ReplicaId (a v0+ field) — a v1/v3-
  *       shaped body under a v0 frame; v0 here is spec-correct.</li>
- *   <li>v1–v2 — the request is byte-identical to v0 (spec: "Version 1 is the same as
- *       version 0"; v2 is the first version handling message format v1, no field change);
- *       v1 adds a trailing ThrottleTimeMs(int32) to the response — dedicated methods
- *       land in their own rows.</li>
+ *   <li>v1 — the request is byte-identical to v0 (spec: "Version 1 is the same as
+ *       version 0"); the response adds a leading ThrottleTimeMs(int32) — dedicated
+ *       {@code encode/decodeResponseV1} methods (partition layout unchanged, body width
+ *       +4). v2 (first version handling message format v1) is wire-identical to v1 in
+ *       both directions and lands in its own row.</li>
  * </ul>
  *
  * <p>The {@link FetchRequest} model keeps {@code maxBytes} for v3+; at v0–v2 it is never
@@ -109,8 +110,11 @@ public final class FetchCodec {
         switch (version) {
             case 0:
                 return encodeResponseV0(resp);
+            case 1: // v1 adds a leading ThrottleTimeMs(int32)
+                return encodeResponseV1(resp);
             default:
-                // v1+ (trailing ThrottleTimeMs int32) is not implemented yet — no code path.
+                // v2+ (unchanged wire at v2, then IsolationLevel/SessionId/... per the spec)
+                // is not implemented yet — no code path.
                 throw new CodecNotImplementedException("Fetch response v" + version + " not implemented");
         }
     }
@@ -127,8 +131,11 @@ public final class FetchCodec {
         switch (version) {
             case 0:
                 return decodeResponseV0(buf);
+            case 1: // v1 adds a leading ThrottleTimeMs(int32)
+                return decodeResponseV1(buf);
             default:
-                // v1+ (trailing ThrottleTimeMs int32) is not implemented yet — no code path.
+                // v2+ (unchanged wire at v2, then IsolationLevel/SessionId/... per the spec)
+                // is not implemented yet — no code path.
                 throw new CodecNotImplementedException("Fetch response v" + version + " not implemented");
         }
     }
@@ -232,5 +239,58 @@ public final class FetchCodec {
         }
         // ThrottleTimeMs does not exist at v0 (added v1) — default 0 (carried value discarded).
         return new FetchResponse(0, topics);
+    }
+
+    // ===== v1 — response: ThrottleTimeMs, Responses{Topic, Partitions{PartitionIndex, ErrorCode, HighWatermark, Records}} =====
+    // v1 request is byte-identical to v0 (spec: "Version 1 is the same as version 0") — the request
+    // methods above already handle it.
+
+    private static byte[] encodeResponseV1(FetchResponse resp) {
+        // Fixed overhead: ThrottleTimeMs(int32) + topic count(int32) = 8.
+        // Per topic: 4 (partition count) + 2 (name length) + name.
+        // Per partition: 4 (index) + 2 (error code) + 8 (high watermark)
+        // + 4 (records length) + record length.
+        int size = 8;
+        for (var topic : resp.topics()) {
+            size += 4 + 2 + topic.name().getBytes(StandardCharsets.UTF_8).length;
+            for (var pr : topic.partitions()) {
+                size += 18 + (pr.records() != null ? pr.records().length : 0);
+            }
+        }
+        ByteBuffer buf = BufferPool.getBuffer(size);
+        buf.putInt(resp.throttleTimeMs());
+        buf.putInt(resp.topics().size());
+        for (var topic : resp.topics()) {
+            KafkaCodecPrimitives.writeString(buf, topic.name());
+            buf.putInt(topic.partitions().size());
+            for (var pr : topic.partitions()) {
+                buf.putInt(pr.partitionIndex());
+                buf.putShort(pr.errorCode());
+                buf.putLong(pr.highWatermark());
+                KafkaCodecPrimitives.writeBytesField(buf, pr.records());
+            }
+        }
+        buf.flip();
+        return KafkaCodecPrimitives.toBytes(buf);
+    }
+
+    private static FetchResponse decodeResponseV1(ByteBuffer buf) {
+        int throttleTimeMs = buf.getInt();
+        int topicCount = buf.getInt();
+        List<FetchResponse.TopicResponse> topics = new ArrayList<>(topicCount);
+        for (int i = 0; i < topicCount; i++) {
+            String name = KafkaCodecPrimitives.readString(buf);
+            int partCount = buf.getInt();
+            List<FetchResponse.PartitionResponse> partitions = new ArrayList<>(partCount);
+            for (int j = 0; j < partCount; j++) {
+                int partitionIndex = buf.getInt();
+                short errorCode = buf.getShort();
+                long highWatermark = buf.getLong();
+                byte[] records = KafkaCodecPrimitives.readBytesField(buf);
+                partitions.add(new FetchResponse.PartitionResponse(partitionIndex, errorCode, highWatermark, records));
+            }
+            topics.add(new FetchResponse.TopicResponse(name, partitions));
+        }
+        return new FetchResponse(throttleTimeMs, topics);
     }
 }

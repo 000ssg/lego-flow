@@ -35,7 +35,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  *       AbortedTransactions (v4+), LogStartOffset (v5+), PreferredReadReplica (v11+).</li>
  *   <li>v1–v2 request: byte-identical to v0 (spec: "Version 1 is the same as version 0";
  *       v2 is the first version handling message format v1 — no field change).</li>
- *   <li>Response v1+ and request v3+ throw {@link CodecNotImplementedException} until
+ *   <li>Response v1: the v0 layout + a leading ThrottleTimeMs(int32) — dedicated methods.</li>
+ *   <li>Response v2+ and request v3+ throw {@link CodecNotImplementedException} until
  *       their own sub-task rows land.</li>
  * </ul>
  */
@@ -220,6 +221,78 @@ class FetchCodecTest {
     }
 
     @Nested
+    @DisplayName("Fetch response v1 (key 1) — + leading ThrottleTimeMs")
+    class ResponseV1 {
+
+        @Test
+        @DisplayName("v1 response round-trips with ThrottleTimeMs")
+        void v1RoundTrip() {
+            var resp = new FetchResponse(42, List.of(
+                    new FetchResponse.TopicResponse("topic", List.of(
+                            new FetchResponse.PartitionResponse(0, (short) 0, 100L, new byte[]{1, 2}))),
+                    new FetchResponse.TopicResponse("other", List.of(
+                            new FetchResponse.PartitionResponse(1, (short) -1, 42L, null)))));
+
+            byte[] body = FetchCodec.encodeResponse((short) 1, resp);
+            var decoded = FetchCodec.decodeResponse((short) 1, ByteBuffer.wrap(body));
+
+            assertEquals(42, decoded.throttleTimeMs(), "ThrottleTimeMs round-trip");
+            assertEquals(2, decoded.topics().size(), "topic count");
+            assertEquals(100L, decoded.topics().get(0).partitions().get(0).highWatermark());
+            assertArrayEquals(new byte[]{1, 2}, decoded.topics().get(0).partitions().get(0).records());
+            assertEquals((short) -1, decoded.topics().get(1).partitions().get(0).errorCode());
+            assertNull(decoded.topics().get(1).partitions().get(0).records(), "null Records round-trip");
+        }
+
+        @Test
+        @DisplayName("v1 response has the exact 39-byte spec wire layout")
+        void v1ExactBytes() {
+            var resp = new FetchResponse(42, List.of(
+                    new FetchResponse.TopicResponse("topic", List.of(
+                            new FetchResponse.PartitionResponse(0, (short) 0, 100L, new byte[]{1, 2})))));
+
+            byte[] body = FetchCodec.encodeResponse((short) 1, resp);
+            // 4 (throttleTimeMs) + 4 (topic count) + 2 (name len) + 5 (name)
+            // + 4 (partition count) + 4 (partitionIndex) + 2 (errorCode)
+            // + 8 (highWatermark) + 4 (records len) + 2 (records) = 39
+            assertEquals(39, body.length, "exact v1 wire layout");
+
+            ByteBuffer buf = ByteBuffer.wrap(body);
+            assertEquals(42, buf.getInt(), "ThrottleTimeMs int32 (leading)");
+            assertEquals(1, buf.getInt(), "Responses count int32");
+            assertEquals(5, buf.getShort(), "Topic string16 length");
+            byte[] name = new byte[5];
+            buf.get(name);
+            assertEquals("topic", new String(name, StandardCharsets.UTF_8), "Topic name");
+            assertEquals(1, buf.getInt(), "Partitions count int32");
+            assertEquals(0, buf.getInt(), "PartitionIndex int32");
+            assertEquals((short) 0, buf.getShort(), "ErrorCode int16");
+            assertEquals(100L, buf.getLong(), "HighWatermark int64");
+            assertEquals(2, buf.getInt(), "Records nullable-bytes length");
+            byte[] records = new byte[2];
+            buf.get(records);
+            assertArrayEquals(new byte[]{1, 2}, records, "Records bytes");
+            assertEquals(0, buf.remaining(), "no trailing bytes");
+        }
+
+        @Test
+        @DisplayName("v1 response is the v0 layout + 4-byte leading ThrottleTimeMs")
+        void v1IsV0PlusThrottle() {
+            var resp = new FetchResponse(42, List.of(
+                    new FetchResponse.TopicResponse("topic", List.of(
+                            new FetchResponse.PartitionResponse(0, (short) 0, 100L, new byte[]{1, 2})))));
+
+            byte[] v0 = FetchCodec.encodeResponse((short) 0, resp);
+            byte[] v1 = FetchCodec.encodeResponse((short) 1, resp);
+
+            assertEquals(v0.length + 4, v1.length, "v1 is exactly 4 bytes wider than v0");
+            // The leading 4 bytes are ThrottleTimeMs; the tail must equal the v0 body.
+            assertArrayEquals(v0, java.util.Arrays.copyOfRange(v1, 4, v1.length),
+                    "tail of v1 equals the v0 body");
+        }
+    }
+
+    @Nested
     @DisplayName("Version dispatch")
     class Dispatch {
 
@@ -244,13 +317,20 @@ class FetchCodecTest {
         }
 
         @Test
-        @DisplayName("response v1 encode throws CodecNotImplementedException (next unimplemented)")
-        void v1ResponseEncodeNotImplemented() {
+        @DisplayName("response v2 encode throws CodecNotImplementedException (next unimplemented)")
+        void v2ResponseEncodeNotImplemented() {
             var resp = new FetchResponse(0, List.of(
                     new FetchResponse.TopicResponse("topic", List.of(
                             new FetchResponse.PartitionResponse(0, (short) 0, 0L, null)))));
             assertThrows(CodecNotImplementedException.class,
-                    () -> FetchCodec.encodeResponse((short) 1, resp));
+                    () -> FetchCodec.encodeResponse((short) 2, resp));
+        }
+
+        @Test
+        @DisplayName("response v2 decode throws CodecNotImplementedException (next unimplemented)")
+        void v2ResponseDecodeNotImplemented() {
+            assertThrows(CodecNotImplementedException.class,
+                    () -> FetchCodec.decodeResponse((short) 2, ByteBuffer.wrap(new byte[0])));
         }
 
         @Test
