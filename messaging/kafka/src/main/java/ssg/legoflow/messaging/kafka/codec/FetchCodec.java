@@ -104,9 +104,28 @@ import java.util.List;
  *       {@code FetchResponse.PartitionResponse} model gains
  *       {@code preferredReadReplica} (v11+; -1 default); compatibility constructors
  *       cover pre-v11 call sites.</li>
- *   <li>v12+ — structural changes (v12: flexible encoding, ClusterId, LastFetchedEpoch,
- *       DivergingEpoch/CurrentLeader/SnapshotId tagged fields; v13: TopicId instead of
- *       Topic name; v15: ReplicaState) — throws
+ *   <li>v12 — both directions switch to Kafka flexible encoding (array counts and
+ *       string/bytes lengths become unsigned varints; null string = varint 0, null
+ *       bytes = varint 1; fixed-width integers unchanged) and add new fields —
+ *       request: per-partition {@code LastFetchedEpoch(int32)} after
+ *       {@code FetchOffset} (spec: "The epoch of the last fetched record or -1 if
+ *       there is none") + trailing tagged section with {@code ClusterId(string|null)}
+ *       at tag 0 (written only when non-null); response: per-partition trailing
+ *       tagged section with {@code DivergingEpoch(EpochEndOffset)} tag 0,
+ *       {@code CurrentLeader(LeaderIdAndEpoch)} tag 1, {@code SnapshotId(SnapshotId)}
+ *       tag 2 (each written only when non-null). Wire order per the 3.6.1 schema
+ *       (verified against the 3.6.1 generated source): request partition = Partition,
+ *       CurrentLeaderEpoch, FetchOffset, LastFetchedEpoch, LogStartOffset,
+ *       PartitionMaxBytes + trailing section; response partition = PartitionIndex,
+ *       ErrorCode, HighWatermark, LastStableOffset, LogStartOffset, AbortedTransactions
+ *       (each element: ProducerId, FirstOffset + trailing section), PreferredReadReplica,
+ *       Records, then the per-partition trailing section. Nullable v12 bytes use the
+ *       real-Kafka convention: null = varint(0), data = varint(length + 1) + bytes.
+ *       The flexible header bit (apiKey | 0x8000) is frame-level — see
+ *       {@link KafkaCodec} and {@link ApiKey#isFlexible}.
+ *       Dedicated {@code encode/decodeRequestV12}/{@code encode/decodeResponseV12}.</li>
+ *   <li>v13+ — TopicId (uuid) replaces the topic name in all three topic fields, and
+ *       v15 adds the request's tagged {@code ReplicaState} — throws
  *       {@link CodecNotImplementedException}.</li>
  * </ul>
  *
@@ -157,9 +176,11 @@ public final class FetchCodec {
                 return encodeRequestV9(req);
             case 11: // v11 request appends RackId(string) after ForgottenTopicsData
                 return encodeRequestV11(req);
+            case 12: // v12 request: flexible encoding + LastFetchedEpoch + tagged ClusterId
+                return encodeRequestV12(req);
             default:
-                // v12+ (flexible encoding, ClusterId, TopicId at v13, ...) is not
-                // implemented yet — no code path.
+                // v13+ (TopicId uuid replaces the topic name; v15 tagged ReplicaState)
+                // is not implemented yet — no code path.
                 throw new CodecNotImplementedException("Fetch request v" + version + " not implemented");
         }
     }
@@ -193,9 +214,11 @@ public final class FetchCodec {
                 return decodeRequestV9(buf);
             case 11: // v11 request appends RackId(string) after ForgottenTopicsData
                 return decodeRequestV11(buf);
+            case 12: // v12 request: flexible encoding + LastFetchedEpoch + tagged ClusterId
+                return decodeRequestV12(buf);
             default:
-                // v12+ (flexible encoding, ClusterId, TopicId at v13, ...) is not
-                // implemented yet — no code path.
+                // v13+ (TopicId uuid replaces the topic name; v15 tagged ReplicaState)
+                // is not implemented yet — no code path.
                 throw new CodecNotImplementedException("Fetch request v" + version + " not implemented");
         }
     }
@@ -230,8 +253,10 @@ public final class FetchCodec {
                 return encodeResponseV7(resp);
             case 11: // v11 response adds per-partition PreferredReadReplica(int32) after AbortedTransactions
                 return encodeResponseV11(resp);
+            case 12: // v12 response: flexible encoding + per-partition tagged section
+                return encodeResponseV12(resp);
             default:
-                // v12+ (flexible encoding, TopicId at v13, ...) is not implemented yet
+                // v13+ (TopicId uuid replaces the topic name) is not implemented yet
                 // — no code path.
                 throw new CodecNotImplementedException("Fetch response v" + version + " not implemented");
         }
@@ -265,8 +290,10 @@ public final class FetchCodec {
                 return decodeResponseV7(buf);
             case 11: // v11 response adds per-partition PreferredReadReplica(int32) after AbortedTransactions
                 return decodeResponseV11(buf);
+            case 12: // v12 response: flexible encoding + per-partition tagged section
+                return decodeResponseV12(buf);
             default:
-                // v12+ (flexible encoding, TopicId at v13, ...) is not implemented yet
+                // v13+ (TopicId uuid replaces the topic name) is not implemented yet
                 // — no code path.
                 throw new CodecNotImplementedException("Fetch response v" + version + " not implemented");
         }
@@ -1189,6 +1216,336 @@ public final class FetchCodec {
             }
             topics.add(new FetchResponse.TopicResponse(name, partitions));
         }
+        return new FetchResponse(throttleTimeMs, errorCode, sessionId, topics);
+    }
+
+    // ===== v12 — flexible encoding: compact strings, varint array counts (count + 1), and a
+    // trailing tagged section on every struct. Request adds LastFetchedEpoch(int32) after
+    // FetchOffset and carries ClusterId as a compact string in the trailing tagged section
+    // (tag 0, written only when non-null). Response adds a per-partition trailing tagged
+    // section with DivergingEpoch (tag 0: Epoch int32 + EndOffset int64), CurrentLeader
+    // (tag 1: LeaderId int32 + LeaderEpoch int32) and SnapshotId (tag 2: EndOffset int64 +
+    // Epoch int32). Nullable Records use the real-Kafka flexible convention verified against
+    // the 3.6.1 generated source: null = varint(0), data = varint(length + 1) + bytes.
+    // (The shared writeCompactBytes helper uses null = varint(1); that known deviation is
+    // recorded for the interop phase and is deliberately NOT reused here.)
+
+    private static byte[] encodeRequestV12(FetchRequest req) {
+        // Fixed: replicaId 4 + maxWaitMs 4 + minBytes 4 + maxBytes 4 + isolationLevel 1
+        // + sessionId 4 + sessionEpoch 4 = 25; topics varint(count + 1); per topic:
+        // varint(name + 1) + name + varint(parts + 1) + per partition 33 (32 field bytes +
+        // trailing varint(0)); per forgotten: varint(name + 1) + name + varint(parts + 1)
+        // + 4 * parts + 1; rackId varint(len + 1) + len; trailing section 1 count + the
+        // optional ClusterId tag (tag 1 + size varint + compact string).
+        int size = 25 + KafkaCodecPrimitives.varintSize(req.topics().size() + 1);
+        for (var topic : req.topics()) {
+            byte[] name = topic.name().getBytes(StandardCharsets.UTF_8);
+            size += KafkaCodecPrimitives.varintSize(name.length + 1) + name.length
+                    + KafkaCodecPrimitives.varintSize(topic.partitions().size() + 1)
+                    + 33 * topic.partitions().size();
+        }
+        size += KafkaCodecPrimitives.varintSize(req.forgottenTopics().size() + 1);
+        for (var ft : req.forgottenTopics()) {
+            byte[] name = ft.name().getBytes(StandardCharsets.UTF_8);
+            size += KafkaCodecPrimitives.varintSize(name.length + 1) + name.length
+                    + KafkaCodecPrimitives.varintSize(ft.partitions().size() + 1)
+                    + 4 * ft.partitions().size() + 1;
+        }
+        byte[] rack = req.rackId().getBytes(StandardCharsets.UTF_8);
+        size += KafkaCodecPrimitives.varintSize(rack.length + 1) + rack.length;
+        size += 1; // trailing tagged section count
+        if (req.clusterId() != null) {
+            byte[] cid = req.clusterId().getBytes(StandardCharsets.UTF_8);
+            int valueLen = KafkaCodecPrimitives.varintSize(cid.length + 1) + cid.length;
+            size += 1 + KafkaCodecPrimitives.varintSize(valueLen) + valueLen; // tag + size + value
+        }
+        ByteBuffer buf = BufferPool.getBuffer(size);
+        buf.putInt(req.replicaId());
+        buf.putInt(req.maxWaitMs());
+        buf.putInt(req.minBytes());
+        buf.putInt(req.maxBytes());
+        buf.put((byte) req.isolationLevel());
+        buf.putInt(req.sessionId()); // v7+
+        buf.putInt(req.sessionEpoch()); // v7+
+        KafkaCodecPrimitives.writeVarint(buf, req.topics().size() + 1);
+        for (var topic : req.topics()) {
+            KafkaCodecPrimitives.writeCompactStringNonNullable(buf, topic.name());
+            KafkaCodecPrimitives.writeVarint(buf, topic.partitions().size() + 1);
+            for (var p : topic.partitions()) {
+                buf.putInt(p.partition());
+                buf.putInt(p.currentLeaderEpoch()); // v9+
+                buf.putLong(p.fetchOffset());
+                buf.putInt(p.lastFetchedEpoch()); // v12+: after FetchOffset
+                buf.putLong(p.logStartOffset()); // v5+
+                buf.putInt(p.partitionMaxBytes());
+                KafkaCodecPrimitives.writeVarint(buf, 0); // FetchPartition trailing section
+            }
+            KafkaCodecPrimitives.writeVarint(buf, 0); // FetchTopic trailing section
+        }
+        KafkaCodecPrimitives.writeVarint(buf, req.forgottenTopics().size() + 1);
+        for (var ft : req.forgottenTopics()) {
+            KafkaCodecPrimitives.writeCompactStringNonNullable(buf, ft.name());
+            KafkaCodecPrimitives.writeVarint(buf, ft.partitions().size() + 1);
+            for (int partition : ft.partitions()) {
+                buf.putInt(partition);
+            }
+            KafkaCodecPrimitives.writeVarint(buf, 0); // ForgottenTopic trailing section
+        }
+        KafkaCodecPrimitives.writeCompactStringNonNullable(buf, req.rackId()); // v11+
+        if (req.clusterId() != null) {
+            KafkaCodecPrimitives.writeVarint(buf, 1); // one tagged field
+            byte[] cid = req.clusterId().getBytes(StandardCharsets.UTF_8);
+            int valueLen = KafkaCodecPrimitives.varintSize(cid.length + 1) + cid.length;
+            KafkaCodecPrimitives.writeVarint(buf, 0); // tag 0: ClusterId
+            KafkaCodecPrimitives.writeVarint(buf, valueLen);
+            KafkaCodecPrimitives.writeVarint(buf, cid.length + 1);
+            buf.put(cid);
+        } else {
+            KafkaCodecPrimitives.writeVarint(buf, 0); // no tagged fields
+        }
+        buf.flip();
+        return KafkaCodecPrimitives.toBytes(buf);
+    }
+
+    private static FetchRequest decodeRequestV12(ByteBuffer buf) {
+        int replicaId = buf.getInt();
+        int maxWait = buf.getInt();
+        int minBytes = buf.getInt();
+        int maxBytes = buf.getInt(); // v3+
+        int isolationLevel = buf.get() & 0xff; // v4+
+        int sessionId = buf.getInt(); // v7+
+        int sessionEpoch = buf.getInt(); // v7+
+        int topicCount = KafkaCodecPrimitives.readVarint(buf) - 1;
+        List<FetchRequest.TopicFetch> topics = new ArrayList<>(topicCount);
+        for (int i = 0; i < topicCount; i++) {
+            String name = KafkaCodecPrimitives.readCompactStringNonNullable(buf);
+            int partCount = KafkaCodecPrimitives.readVarint(buf) - 1;
+            List<FetchRequest.PartitionFetch> partitions = new ArrayList<>(partCount);
+            for (int j = 0; j < partCount; j++) {
+                int partition = buf.getInt();
+                int currentLeaderEpoch = buf.getInt(); // v9+
+                long fetchOffset = buf.getLong();
+                int lastFetchedEpoch = buf.getInt(); // v12+
+                long logStartOffset = buf.getLong(); // v5+
+                int partitionMaxBytes = buf.getInt();
+                KafkaCodecPrimitives.skipTaggedFields(buf); // v12+ trailing section
+                partitions.add(new FetchRequest.PartitionFetch(partition, currentLeaderEpoch,
+                        fetchOffset, lastFetchedEpoch, partitionMaxBytes, logStartOffset));
+            }
+            KafkaCodecPrimitives.skipTaggedFields(buf); // v12+ trailing section
+            topics.add(new FetchRequest.TopicFetch(name, partitions));
+        }
+        int forgottenCount = KafkaCodecPrimitives.readVarint(buf) - 1; // v7+
+        List<FetchRequest.ForgottenTopic> forgotten = new ArrayList<>(forgottenCount);
+        for (int i = 0; i < forgottenCount; i++) {
+            String name = KafkaCodecPrimitives.readCompactStringNonNullable(buf);
+            int partCount = KafkaCodecPrimitives.readVarint(buf) - 1;
+            List<Integer> partitions = new ArrayList<>(partCount);
+            for (int j = 0; j < partCount; j++) {
+                partitions.add(buf.getInt());
+            }
+            KafkaCodecPrimitives.skipTaggedFields(buf); // v12+ trailing section
+            forgotten.add(new FetchRequest.ForgottenTopic(name, partitions));
+        }
+        String rackId = KafkaCodecPrimitives.readCompactStringNonNullable(buf); // v11+
+        String clusterId = null;
+        int tagCount = KafkaCodecPrimitives.readVarint(buf); // v12+ trailing section
+        for (int i = 0; i < tagCount; i++) {
+            int tag = KafkaCodecPrimitives.readVarint(buf);
+            int size = KafkaCodecPrimitives.readVarint(buf);
+            int contentStart = buf.position();
+            if (tag == 0) {
+                int len = KafkaCodecPrimitives.readVarint(buf) - 1; // compact string prefix
+                byte[] bytes = new byte[len];
+                if (len > 0) {
+                    buf.get(bytes);
+                }
+                clusterId = new String(bytes, StandardCharsets.UTF_8);
+            }
+            buf.position(contentStart + size);
+        }
+        return new FetchRequest(replicaId, maxWait, minBytes, maxBytes, isolationLevel,
+                sessionId, sessionEpoch, topics, forgotten, rackId, clusterId);
+    }
+
+    // ===== v12 — response: flexible encoding + a per-partition trailing tagged section
+    // (DivergingEpoch tag 0, CurrentLeader tag 1, SnapshotId tag 2; absent tags decode to
+    // null). PreferredReadReplica stays int32; Records become flexible nullable bytes.
+
+    private static byte[] encodeResponseV12(FetchResponse resp) {
+        // Fixed: throttleTimeMs 4 + errorCode 2 + sessionId 4 = 10; topics varint(count + 1);
+        // per topic: varint(name + 1) + name + varint(parts + 1); per partition: 34 field
+        // bytes (idx 4 + err 2 + hwm 8 + lso 8 + logStart 8 + preferredReadReplica 4) +
+        // aborted (varint + 17 per element) + records (varint) + trailing tagged section
+        // (1 count + per present tag: tag 1 + size varint + struct 13/9/13); topic and
+        // top-level trailing sections are varint(0).
+        int size = 10 + KafkaCodecPrimitives.varintSize(resp.topics().size() + 1);
+        for (var topic : resp.topics()) {
+            byte[] name = topic.name().getBytes(StandardCharsets.UTF_8);
+            size += KafkaCodecPrimitives.varintSize(name.length + 1) + name.length
+                    + KafkaCodecPrimitives.varintSize(topic.partitions().size() + 1);
+            for (var pr : topic.partitions()) {
+                size += 34;
+                var aborted = pr.abortedTransactions();
+                int n = aborted == null ? 0 : aborted.size();
+                size += aborted == null ? 1 : KafkaCodecPrimitives.varintSize(n + 1);
+                size += 17 * n;
+                size += pr.records() == null ? 1
+                        : KafkaCodecPrimitives.varintSize(pr.records().length + 1) + pr.records().length;
+                size += 1; // trailing section count
+                if (pr.divergingEpoch() != null) {
+                    size += 1 + 1 + 13; // tag 0: 4 + 8 + 1
+                }
+                if (pr.currentLeader() != null) {
+                    size += 1 + 1 + 9; // tag 1: 4 + 4 + 1
+                }
+                if (pr.snapshotId() != null) {
+                    size += 1 + 1 + 13; // tag 2: 8 + 4 + 1
+                }
+            }
+            size += 1; // FetchableTopicResponse trailing section
+        }
+        size += 1; // top-level trailing section
+        ByteBuffer buf = BufferPool.getBuffer(size);
+        buf.putInt(resp.throttleTimeMs());
+        buf.putShort(resp.errorCode()); // v7+
+        buf.putInt(resp.sessionId()); // v7+
+        KafkaCodecPrimitives.writeVarint(buf, resp.topics().size() + 1);
+        for (var topic : resp.topics()) {
+            KafkaCodecPrimitives.writeCompactStringNonNullable(buf, topic.name());
+            KafkaCodecPrimitives.writeVarint(buf, topic.partitions().size() + 1);
+            for (var pr : topic.partitions()) {
+                buf.putInt(pr.partitionIndex());
+                buf.putShort(pr.errorCode());
+                buf.putLong(pr.highWatermark());
+                buf.putLong(pr.lastStableOffset()); // v4+
+                buf.putLong(pr.logStartOffset()); // v5+
+                var aborted = pr.abortedTransactions();
+                if (aborted == null) {
+                    KafkaCodecPrimitives.writeVarint(buf, 0);
+                } else {
+                    KafkaCodecPrimitives.writeVarint(buf, aborted.size() + 1);
+                    for (var at : aborted) {
+                        buf.putLong(at.producerId());
+                        buf.putLong(at.firstOffset());
+                        KafkaCodecPrimitives.writeVarint(buf, 0); // v12: per-element trailing section
+                    }
+                }
+                buf.putInt(pr.preferredReadReplica()); // v11+
+                if (pr.records() == null) {
+                    KafkaCodecPrimitives.writeVarint(buf, 0); // flexible nullable bytes
+                } else {
+                    KafkaCodecPrimitives.writeVarint(buf, pr.records().length + 1);
+                    buf.put(pr.records());
+                }
+                int tagCount = (pr.divergingEpoch() != null ? 1 : 0)
+                        + (pr.currentLeader() != null ? 1 : 0)
+                        + (pr.snapshotId() != null ? 1 : 0);
+                KafkaCodecPrimitives.writeVarint(buf, tagCount);
+                if (pr.divergingEpoch() != null) {
+                    KafkaCodecPrimitives.writeVarint(buf, 0); // tag 0: DivergingEpoch
+                    KafkaCodecPrimitives.writeVarint(buf, 13); // 4 + 8 + 1
+                    buf.putInt(pr.divergingEpoch().epoch());
+                    buf.putLong(pr.divergingEpoch().endOffset());
+                    KafkaCodecPrimitives.writeVarint(buf, 0); // struct trailing section
+                }
+                if (pr.currentLeader() != null) {
+                    KafkaCodecPrimitives.writeVarint(buf, 1); // tag 1: CurrentLeader
+                    KafkaCodecPrimitives.writeVarint(buf, 9); // 4 + 4 + 1
+                    buf.putInt(pr.currentLeader().leaderId());
+                    buf.putInt(pr.currentLeader().leaderEpoch());
+                    KafkaCodecPrimitives.writeVarint(buf, 0); // struct trailing section
+                }
+                if (pr.snapshotId() != null) {
+                    KafkaCodecPrimitives.writeVarint(buf, 2); // tag 2: SnapshotId
+                    KafkaCodecPrimitives.writeVarint(buf, 13); // 8 + 4 + 1
+                    buf.putLong(pr.snapshotId().endOffset());
+                    buf.putInt(pr.snapshotId().epoch());
+                    KafkaCodecPrimitives.writeVarint(buf, 0); // struct trailing section
+                }
+            }
+            KafkaCodecPrimitives.writeVarint(buf, 0); // FetchableTopicResponse trailing section
+        }
+        KafkaCodecPrimitives.writeVarint(buf, 0); // top-level trailing section
+        buf.flip();
+        return KafkaCodecPrimitives.toBytes(buf);
+    }
+
+    private static FetchResponse decodeResponseV12(ByteBuffer buf) {
+        int throttleTimeMs = buf.getInt();
+        short errorCode = buf.getShort(); // v7+
+        int sessionId = buf.getInt(); // v7+
+        int topicCount = KafkaCodecPrimitives.readVarint(buf) - 1;
+        List<FetchResponse.TopicResponse> topics = new ArrayList<>(topicCount);
+        for (int i = 0; i < topicCount; i++) {
+            String name = KafkaCodecPrimitives.readCompactStringNonNullable(buf);
+            int partCount = KafkaCodecPrimitives.readVarint(buf) - 1;
+            List<FetchResponse.PartitionResponse> partitions = new ArrayList<>(partCount);
+            for (int j = 0; j < partCount; j++) {
+                int partitionIndex = buf.getInt();
+                short partError = buf.getShort();
+                long highWatermark = buf.getLong();
+                long lastStableOffset = buf.getLong(); // v4+
+                long logStartOffset = buf.getLong(); // v5+
+                int abortedVarint = KafkaCodecPrimitives.readVarint(buf); // v4+
+                List<FetchResponse.AbortedTransaction> aborted = null;
+                if (abortedVarint > 0) {
+                    int abortedCount = abortedVarint - 1;
+                    aborted = new ArrayList<>(abortedCount);
+                    for (int k = 0; k < abortedCount; k++) {
+                        long producerId = buf.getLong();
+                        long firstOffset = buf.getLong();
+                        KafkaCodecPrimitives.skipTaggedFields(buf); // v12: per-element section
+                        aborted.add(new FetchResponse.AbortedTransaction(producerId, firstOffset));
+                    }
+                }
+                int preferredReadReplica = buf.getInt(); // v11+
+                int recordsVarint = KafkaCodecPrimitives.readVarint(buf);
+                byte[] records = null;
+                if (recordsVarint > 0) {
+                    int len = recordsVarint - 1;
+                    records = new byte[len];
+                    if (len > 0) {
+                        buf.get(records);
+                    }
+                }
+                FetchResponse.DivergingEpoch divergingEpoch = null;
+                FetchResponse.LeaderIdAndEpoch currentLeader = null;
+                FetchResponse.SnapshotId snapshotId = null;
+                int tagCount = KafkaCodecPrimitives.readVarint(buf); // v12+ trailing section
+                for (int k = 0; k < tagCount; k++) {
+                    int tag = KafkaCodecPrimitives.readVarint(buf);
+                    int size = KafkaCodecPrimitives.readVarint(buf);
+                    int contentStart = buf.position();
+                    switch (tag) {
+                        case 0 -> { // DivergingEpoch
+                            int epoch = buf.getInt();
+                            long endOffset = buf.getLong();
+                            divergingEpoch = new FetchResponse.DivergingEpoch(epoch, endOffset);
+                        }
+                        case 1 -> { // CurrentLeader
+                            int leaderId = buf.getInt();
+                            int leaderEpoch = buf.getInt();
+                            currentLeader = new FetchResponse.LeaderIdAndEpoch(leaderId, leaderEpoch);
+                        }
+                        case 2 -> { // SnapshotId
+                            long endOffset = buf.getLong();
+                            int epoch = buf.getInt();
+                            snapshotId = new FetchResponse.SnapshotId(endOffset, epoch);
+                        }
+                        default -> { // unknown tag: skipped by the position restore below
+                        }
+                    }
+                    buf.position(contentStart + size); // past the struct trailing section
+                }
+                partitions.add(new FetchResponse.PartitionResponse(partitionIndex, partError,
+                        highWatermark, lastStableOffset, logStartOffset, aborted,
+                        preferredReadReplica, records, divergingEpoch, currentLeader, snapshotId));
+            }
+            KafkaCodecPrimitives.skipTaggedFields(buf); // FetchableTopicResponse trailing section
+            topics.add(new FetchResponse.TopicResponse(name, partitions));
+        }
+        KafkaCodecPrimitives.skipTaggedFields(buf); // top-level trailing section
         return new FetchResponse(throttleTimeMs, errorCode, sessionId, topics);
     }
 }

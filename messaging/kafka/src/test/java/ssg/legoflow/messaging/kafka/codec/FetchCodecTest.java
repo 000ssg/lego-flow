@@ -68,8 +68,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *   <li>Request v11: v9 layout + trailing RackId(string) after ForgottenTopicsData —
  *       dedicated methods. The response is v7 layout + per-partition
  *       PreferredReadReplica(int32) after AbortedTransactions — dedicated methods.</li>
- *   <li>Request/response v12+ throw {@link CodecNotImplementedException} until their own
- *       sub-task rows land (v12 switches to flexible encoding).</li>
+ *   <li>Request/response v12: both directions switch to Kafka flexible encoding
+ *       (compact strings, varint array counts, per-struct trailing tagged sections).
+ *       Request adds per-partition LastFetchedEpoch(int32) after FetchOffset + tagged
+ *       ClusterId (tag 0, written only when non-null); response adds the per-partition
+ *       trailing section DivergingEpoch (tag 0: Epoch int32 + EndOffset int64) /
+ *       CurrentLeader (tag 1: LeaderId int32 + LeaderEpoch int32) / SnapshotId
+ *       (tag 2: EndOffset int64 + Epoch int32). Wire order verified against the 3.6.1
+ *       generated source: nullable v12 bytes use null = varint(0), data =
+ *       varint(length + 1) + bytes; each AbortedTransaction element carries its own
+ *       trailing varint(0) section.</li>
+ *   <li>v13+ request/response throw {@link CodecNotImplementedException} until their
+ *       own sub-task rows land (v13 TopicId uuid replaces the topic name; v15 adds
+ *       tagged ReplicaState).</li>
  * </ul>
  *
  * <p>All requests/responses in the v9/v10 sections below are constructed with the hybrid
@@ -78,6 +89,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * constructor) — the approach adopted for the request/response records.
  */
 class FetchCodecTest {
+
+    /** Unsigned varint read (LEB128) — mirrors {@code KafkaCodecPrimitives.readVarint}. */
+    private static int readVarint(ByteBuffer buf) {
+        int result = 0;
+        int shift = 0;
+        int b;
+        do {
+            b = buf.get() & 0xff;
+            result |= (b & 0x7f) << shift;
+            shift += 7;
+        } while ((b & 0x80) != 0);
+        return result;
+    }
 
     @Nested
     @DisplayName("Fetch request (key 1)")
@@ -1749,24 +1773,285 @@ class FetchCodecTest {
     }
 
     @Nested
+    @DisplayName("Fetch request v12 (key 1) — flexible encoding + LastFetchedEpoch + tagged ClusterId")
+    class RequestV12 {
+
+        private static FetchRequest v12Request() {
+            return FetchRequest.builder()
+                    .replicaId(-1).maxWaitMs(500).minBytes(1).maxBytes(1048576).isolationLevel(1)
+                    .sessionId(11).sessionEpoch(3)
+                    .topics(List.of(new FetchRequest.TopicFetch("topic", List.of(
+                            FetchRequest.PartitionFetch.builder()
+                                    .partition(0).currentLeaderEpoch(5).fetchOffset(10L)
+                                    .lastFetchedEpoch(7).logStartOffset(42L)
+                                    .partitionMaxBytes(65536)
+                                    .build()))))
+                    .rackId("rack1")
+                    .clusterId("cluster-1")
+                    .build();
+        }
+
+        @Test
+        @DisplayName("v12 request round-trips with LastFetchedEpoch and tagged ClusterId")
+        void v12RoundTrip() {
+            var req = v12Request();
+
+            byte[] body = FetchCodec.encodeRequest((short) 12, req);
+            var decoded = FetchCodec.decodeRequest((short) 12, ByteBuffer.wrap(body));
+
+            assertEquals(-1, decoded.replicaId());
+            assertEquals(500, decoded.maxWaitMs());
+            assertEquals(1, decoded.minBytes());
+            assertEquals(1048576, decoded.maxBytes());
+            assertEquals(1, decoded.isolationLevel());
+            assertEquals(11L, decoded.sessionId(), "SessionId (v7+) round-trip");
+            assertEquals(3L, decoded.sessionEpoch(), "SessionEpoch (v7+) round-trip");
+            var p0 = decoded.topics().get(0).partitions().get(0);
+            assertEquals(0, p0.partition());
+            assertEquals(5, p0.currentLeaderEpoch(), "CurrentLeaderEpoch (v9+) round-trip");
+            assertEquals(10L, p0.fetchOffset());
+            assertEquals(7, p0.lastFetchedEpoch(), "LastFetchedEpoch (v12+) round-trip");
+            assertEquals(42L, p0.logStartOffset(), "LogStartOffset (v5+) round-trip");
+            assertEquals(65536, p0.partitionMaxBytes());
+            assertEquals("rack1", decoded.rackId(), "RackId (v11+) round-trip");
+            assertEquals("cluster-1", decoded.clusterId(), "ClusterId (v12+ tagged) round-trip");
+        }
+
+        @Test
+        @DisplayName("v12 request has the exact 87-byte spec wire layout (flexible encoding)")
+        void v12ExactBytes() {
+            var req = v12Request();
+
+            byte[] body = FetchCodec.encodeRequest((short) 12, req);
+            // Fixed 25: replicaId 4 + maxWaitMs 4 + minBytes 4 + maxBytes 4 + isolationLevel 1
+            // + sessionId 4 + sessionEpoch 4; topics count varint(2) 1; topic compact
+            // 1 + 5; partitions count varint(2) 1; partition 33 (32 field bytes + trailing
+            // varint(0)); FetchTopic trailing 1; forgotten count varint(1) 1; rackId
+            // compact 1 + 5; trailing section count 1; ClusterId tag 1 + size varint(10) 1
+            // + compact string 1 + 9. Total 87.
+            assertEquals(87, body.length, "exact v12 wire layout");
+
+            ByteBuffer buf = ByteBuffer.wrap(body);
+            assertEquals(-1, buf.getInt(), "ReplicaId int32");
+            assertEquals(500, buf.getInt(), "MaxWaitMs int32");
+            assertEquals(1, buf.getInt(), "MinBytes int32");
+            assertEquals(1048576, buf.getInt(), "MaxBytes int32");
+            assertEquals(1, buf.get() & 0xff, "IsolationLevel int8 (v4+)");
+            assertEquals(11L, buf.getInt(), "SessionId int32 (v7+)");
+            assertEquals(3L, buf.getInt(), "SessionEpoch int32 (v7+)");
+            assertEquals(2, readVarint(buf), "Topics count varint (count + 1, flexible)");
+            assertEquals(6, readVarint(buf), "Topic compact string prefix (5 + 1)");
+            byte[] name = new byte[5];
+            buf.get(name);
+            assertEquals("topic", new String(name, StandardCharsets.UTF_8), "Topic name");
+            assertEquals(2, readVarint(buf), "Partitions count varint (1 + 1)");
+            assertEquals(0, buf.getInt(), "Partition int32");
+            assertEquals(5, buf.getInt(), "CurrentLeaderEpoch int32 (v9+)");
+            assertEquals(10L, buf.getLong(), "FetchOffset int64");
+            assertEquals(7, buf.getInt(), "LastFetchedEpoch int32 (v12+, after FetchOffset)");
+            assertEquals(42L, buf.getLong(), "LogStartOffset int64 (v5+)");
+            assertEquals(65536, buf.getInt(), "PartitionMaxBytes int32");
+            assertEquals(0, readVarint(buf), "FetchPartition trailing section count");
+            assertEquals(0, readVarint(buf), "FetchTopic trailing section count");
+            assertEquals(1, readVarint(buf), "ForgottenTopicsData count varint (0 + 1)");
+            assertEquals(6, readVarint(buf), "RackId compact string prefix (5 + 1)");
+            byte[] rack = new byte[5];
+            buf.get(rack);
+            assertEquals("rack1", new String(rack, StandardCharsets.UTF_8), "RackId value");
+            assertEquals(1, readVarint(buf), "top-level trailing section count (ClusterId present)");
+            assertEquals(0, readVarint(buf), "ClusterId tag id");
+            assertEquals(10, readVarint(buf), "ClusterId value size (1 + 9)");
+            assertEquals(10, readVarint(buf), "ClusterId compact string prefix (9 + 1)");
+            byte[] cid = new byte[9];
+            buf.get(cid);
+            assertEquals("cluster-1", new String(cid, StandardCharsets.UTF_8), "ClusterId value");
+            assertEquals(0, buf.remaining(), "no trailing bytes");
+        }
+
+        @Test
+        @DisplayName("v12 request with null ClusterId omits the tag (trailing section count 0)")
+        void v12ClusterIdNullOmitsTag() {
+            var req = FetchRequest.builder()
+                    .replicaId(-1).maxWaitMs(500).minBytes(1).maxBytes(1048576).isolationLevel(1)
+                    .topics(List.of(new FetchRequest.TopicFetch("topic", List.of(
+                            FetchRequest.PartitionFetch.builder()
+                                    .partition(0).fetchOffset(10L).partitionMaxBytes(65536)
+                                    .build()))))
+                    .rackId("rack1")
+                    .build();
+
+            byte[] body = FetchCodec.encodeRequest((short) 12, req);
+            // 87 (full fixture) - 12 (ClusterId tag + size + compact string) = 75;
+            // lastFetchedEpoch defaults to -1 and still occupies its int32 slot.
+            assertEquals(75, body.length, "no ClusterId tag on the wire");
+            ByteBuffer buf = ByteBuffer.wrap(body);
+            buf.position(74);
+            assertEquals(0, readVarint(buf), "trailing section count is 0");
+            var decoded = FetchCodec.decodeRequest((short) 12, ByteBuffer.wrap(body));
+            assertEquals(-1, decoded.topics().get(0).partitions().get(0).lastFetchedEpoch(),
+                    "absent LastFetchedEpoch round-trips as -1");
+            assertNull(decoded.clusterId(), "absent ClusterId round-trips as null");
+        }
+    }
+
+    @Nested
+    @DisplayName("Fetch response v12 (key 1) — flexible encoding + per-partition tagged section")
+    class ResponseV12 {
+
+        private static FetchResponse v12Response() {
+            return FetchResponse.builder()
+                    .throttleTimeMs(7).errorCode((short) 3).sessionId(11)
+                    .topics(List.of(new FetchResponse.TopicResponse("topic", List.of(
+                            FetchResponse.PartitionResponse.builder()
+                                    .partitionIndex(3).errorCode((short) 5).highWatermark(999L)
+                                    .lastStableOffset(988L).logStartOffset(12L)
+                                    .abortedTransactions(List.of(new FetchResponse.AbortedTransaction(1L, 2L)))
+                                    .preferredReadReplica(2)
+                                    .records(new byte[] {0x01, 0x02, 0x03})
+                                    .divergingEpoch(new FetchResponse.DivergingEpoch(4, 500L))
+                                    .currentLeader(new FetchResponse.LeaderIdAndEpoch(9, 12))
+                                    .snapshotId(new FetchResponse.SnapshotId(600L, 8))
+                                    .build()))))
+                    .build();
+        }
+
+        @Test
+        @DisplayName("v12 response round-trips with records and all three tagged fields")
+        void v12RoundTrip() {
+            var resp = v12Response();
+
+            byte[] body = FetchCodec.encodeResponse((short) 12, resp);
+            var decoded = FetchCodec.decodeResponse((short) 12, ByteBuffer.wrap(body));
+
+            assertEquals(7, decoded.throttleTimeMs(), "ThrottleTimeMs round-trip");
+            assertEquals((short) 3, decoded.errorCode(), "top-level ErrorCode (v7+) round-trip");
+            assertEquals(11L, decoded.sessionId(), "top-level SessionId (v7+) round-trip");
+            var p0 = decoded.topics().get(0).partitions().get(0);
+            assertEquals(3, p0.partitionIndex(), "PartitionIndex round-trip");
+            assertEquals((short) 5, p0.errorCode(), "partition ErrorCode round-trip");
+            assertEquals(999L, p0.highWatermark(), "HighWatermark round-trip");
+            assertEquals(988L, p0.lastStableOffset(), "LastStableOffset (v4+) round-trip");
+            assertEquals(12L, p0.logStartOffset(), "LogStartOffset (v5+) round-trip");
+            assertEquals(1, p0.abortedTransactions().size(), "AbortedTransactions (v4+) round-trip");
+            assertEquals(1L, p0.abortedTransactions().get(0).producerId());
+            assertEquals(2L, p0.abortedTransactions().get(0).firstOffset());
+            assertEquals(2, p0.preferredReadReplica(), "PreferredReadReplica (v11+) round-trip");
+            assertArrayEquals(new byte[] {0x01, 0x02, 0x03}, p0.records(), "Records round-trip");
+            assertEquals(4, p0.divergingEpoch().epoch(), "DivergingEpoch.Epoch (v12+ tag 0)");
+            assertEquals(500L, p0.divergingEpoch().endOffset(), "DivergingEpoch.EndOffset (v12+ tag 0)");
+            assertEquals(9, p0.currentLeader().leaderId(), "CurrentLeader.LeaderId (v12+ tag 1)");
+            assertEquals(12, p0.currentLeader().leaderEpoch(), "CurrentLeader.LeaderEpoch (v12+ tag 1)");
+            assertEquals(600L, p0.snapshotId().endOffset(), "SnapshotId.EndOffset (v12+ tag 2)");
+            assertEquals(8, p0.snapshotId().epoch(), "SnapshotId.Epoch (v12+ tag 2)");
+        }
+
+        @Test
+        @DisplayName("v12 response has the exact 118-byte spec wire layout (flexible encoding)")
+        void v12ExactBytes() {
+            var resp = v12Response();
+
+            byte[] body = FetchCodec.encodeResponse((short) 12, resp);
+            // Fixed 10: throttleTimeMs 4 + errorCode 2 + sessionId 4; responses count
+            // varint(2) 1; topic compact 1 + 5; partitions count varint(2) 1; partition 30
+            // (idx 4 + err 2 + hwm 8 + lso 8 + logStart 8); aborted varint(2) 1 + 17 (8 + 8
+            // + trailing varint(0)); PreferredReadReplica 4; records varint(4) 1 + 3;
+            // trailing section 1 + (tag0 1 + 1 + 13) + (tag1 1 + 1 + 9) + (tag2 1 + 1 + 13)
+            // = 42; FetchableTopicResponse trailing 1; top-level trailing 1. Total 118.
+            assertEquals(118, body.length, "exact v12 wire layout");
+
+            ByteBuffer buf = ByteBuffer.wrap(body);
+            assertEquals(7, buf.getInt(), "ThrottleTimeMs int32");
+            assertEquals((short) 3, buf.getShort(), "ErrorCode int16 (v7+)");
+            assertEquals(11L, buf.getInt(), "SessionId int32 (v7+)");
+            assertEquals(2, readVarint(buf), "Responses count varint (1 + 1)");
+            assertEquals(6, readVarint(buf), "Topic compact string prefix (5 + 1)");
+            byte[] name = new byte[5];
+            buf.get(name);
+            assertEquals("topic", new String(name, StandardCharsets.UTF_8), "Topic name");
+            assertEquals(2, readVarint(buf), "Partitions count varint (1 + 1)");
+            assertEquals(3, buf.getInt(), "PartitionIndex int32");
+            assertEquals((short) 5, buf.getShort(), "Partition ErrorCode int16");
+            assertEquals(999L, buf.getLong(), "HighWatermark int64");
+            assertEquals(988L, buf.getLong(), "LastStableOffset int64 (v4+)");
+            assertEquals(12L, buf.getLong(), "LogStartOffset int64 (v5+)");
+            assertEquals(2, readVarint(buf), "AbortedTransactions count varint (1 + 1)");
+            assertEquals(1L, buf.getLong(), "AbortedTransaction ProducerId int64");
+            assertEquals(2L, buf.getLong(), "AbortedTransaction FirstOffset int64");
+            assertEquals(0, readVarint(buf), "AbortedTransaction trailing section count");
+            assertEquals(2, buf.getInt(), "PreferredReadReplica int32 (v11+)");
+            assertEquals(4, readVarint(buf), "Records length varint (3 + 1)");
+            byte[] records = new byte[3];
+            buf.get(records);
+            assertArrayEquals(new byte[] {0x01, 0x02, 0x03}, records, "Records bytes");
+            assertEquals(3, readVarint(buf), "partition trailing section count (3 tags)");
+            assertEquals(0, readVarint(buf), "DivergingEpoch tag id");
+            assertEquals(13, readVarint(buf), "DivergingEpoch size (4 + 8 + 1)");
+            assertEquals(4, buf.getInt(), "DivergingEpoch.Epoch int32");
+            assertEquals(500L, buf.getLong(), "DivergingEpoch.EndOffset int64");
+            assertEquals(0, readVarint(buf), "DivergingEpoch struct trailing section");
+            assertEquals(1, readVarint(buf), "CurrentLeader tag id");
+            assertEquals(9, readVarint(buf), "CurrentLeader size (4 + 4 + 1)");
+            assertEquals(9, buf.getInt(), "CurrentLeader.LeaderId int32");
+            assertEquals(12, buf.getInt(), "CurrentLeader.LeaderEpoch int32");
+            assertEquals(0, readVarint(buf), "CurrentLeader struct trailing section");
+            assertEquals(2, readVarint(buf), "SnapshotId tag id");
+            assertEquals(13, readVarint(buf), "SnapshotId size (8 + 4 + 1)");
+            assertEquals(600L, buf.getLong(), "SnapshotId.EndOffset int64");
+            assertEquals(8, buf.getInt(), "SnapshotId.Epoch int32");
+            assertEquals(0, readVarint(buf), "SnapshotId struct trailing section");
+            assertEquals(0, readVarint(buf), "FetchableTopicResponse trailing section count");
+            assertEquals(0, readVarint(buf), "top-level trailing section count");
+            assertEquals(0, buf.remaining(), "no trailing bytes");
+        }
+
+        @Test
+        @DisplayName("v12 response with null Records and absent tags: varint(0) records, section count 0")
+        void v12NullRecordsAndAbsentTags() {
+            var resp = FetchResponse.builder()
+                    .throttleTimeMs(7).errorCode((short) 3).sessionId(11)
+                    .topics(List.of(new FetchResponse.TopicResponse("topic", List.of(
+                            FetchResponse.PartitionResponse.builder()
+                                    .partitionIndex(3).errorCode((short) 5).highWatermark(999L)
+                                    .lastStableOffset(988L).logStartOffset(12L)
+                                    .build()))))
+                    .build();
+
+            byte[] body = FetchCodec.encodeResponse((short) 12, resp);
+            // 10 fixed + 1 (count) + 6 (topic) + 1 (count) + 30 (partition) + 1 (aborted
+            // varint(0)) + 4 (PreferredReadReplica) + 1 (records varint(0)) + 1 (partition
+            // section) + 1 (topic section) + 1 (top-level section) = 57.
+            assertEquals(57, body.length, "no records, no tags, no aborted");
+
+            var decoded = FetchCodec.decodeResponse((short) 12, ByteBuffer.wrap(body));
+            var p0 = decoded.topics().get(0).partitions().get(0);
+            assertNull(p0.records(), "absent Records round-trips as null");
+            assertNull(p0.divergingEpoch(), "absent DivergingEpoch round-trips as null");
+            assertNull(p0.currentLeader(), "absent CurrentLeader round-trips as null");
+            assertNull(p0.snapshotId(), "absent SnapshotId round-trips as null");
+            assertEquals(-1, p0.preferredReadReplica(), "absent PreferredReadReplica round-trips as -1");
+            assertTrue(p0.abortedTransactions() == null, "absent AbortedTransactions round-trips as null");
+        }
+    }
+
+    @Nested
     @DisplayName("Version dispatch")
     class Dispatch {
 
         @Test
-        @DisplayName("request v12 encode throws CodecNotImplementedException (next unimplemented)")
-        void v12RequestEncodeNotImplemented() {
+        @DisplayName("request v13 encode throws CodecNotImplementedException (next unimplemented)")
+        void v13RequestEncodeNotImplemented() {
             var req = new FetchRequest(-1, 500, 1, 1048576, 0,
                     List.of(new FetchRequest.TopicFetch("topic", List.of(
                             new FetchRequest.PartitionFetch(0, 10L, 65536)))));
             assertThrows(CodecNotImplementedException.class,
-                    () -> FetchCodec.encodeRequest((short) 12, req));
+                    () -> FetchCodec.encodeRequest((short) 13, req));
         }
 
         @Test
-        @DisplayName("request v12 decode throws CodecNotImplementedException (next unimplemented)")
-        void v12RequestDecodeNotImplemented() {
+        @DisplayName("request v13 decode throws CodecNotImplementedException (next unimplemented)")
+        void v13RequestDecodeNotImplemented() {
             assertThrows(CodecNotImplementedException.class,
-                    () -> FetchCodec.decodeRequest((short) 12, ByteBuffer.wrap(new byte[0])));
+                    () -> FetchCodec.decodeRequest((short) 13, ByteBuffer.wrap(new byte[0])));
         }
 
         @Test
@@ -1780,20 +2065,20 @@ class FetchCodecTest {
         }
 
         @Test
-        @DisplayName("response v12 encode throws CodecNotImplementedException (next unimplemented)")
-        void v12ResponseEncodeNotImplemented() {
+        @DisplayName("response v13 encode throws CodecNotImplementedException (next unimplemented)")
+        void v13ResponseEncodeNotImplemented() {
             var resp = new FetchResponse(0, List.of(
                     new FetchResponse.TopicResponse("topic", List.of(
                             new FetchResponse.PartitionResponse(0, (short) 0, 0L, null)))));
             assertThrows(CodecNotImplementedException.class,
-                    () -> FetchCodec.encodeResponse((short) 12, resp));
+                    () -> FetchCodec.encodeResponse((short) 13, resp));
         }
 
         @Test
-        @DisplayName("response v12 decode throws CodecNotImplementedException (next unimplemented)")
-        void v12ResponseDecodeNotImplemented() {
+        @DisplayName("response v13 decode throws CodecNotImplementedException (next unimplemented)")
+        void v13ResponseDecodeNotImplemented() {
             assertThrows(CodecNotImplementedException.class,
-                    () -> FetchCodec.decodeResponse((short) 12, ByteBuffer.wrap(new byte[0])));
+                    () -> FetchCodec.decodeResponse((short) 13, ByteBuffer.wrap(new byte[0])));
         }
 
         @Test
