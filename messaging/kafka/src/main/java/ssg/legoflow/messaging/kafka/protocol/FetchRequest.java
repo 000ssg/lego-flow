@@ -10,7 +10,7 @@ import java.util.List;
  * + IsolationLevel(int8, 4+) + SessionId(int32, 7+) + SessionEpoch(int32, 7+)
  * + Topics[](Topic/TopicId + Partitions[](Partition, CurrentLeaderEpoch 9+, FetchOffset,
  * LastFetchedEpoch 12+, LogStartOffset 5+, PartitionMaxBytes)) +
- * ForgottenTopicsData[](v7+, Topic/TopicId + Partitions[]int32).
+ * ForgottenTopicsData[](v7+, Topic/TopicId + Partitions[]int32) + RackId(string, v11+).
  *
  * @param replicaId        the broker ID of the follower, or -1 if the request is from a consumer (v0+)
  * @param maxWaitMs        the maximum time to wait for data in milliseconds (v0+)
@@ -21,11 +21,14 @@ import java.util.List;
  * @param sessionEpoch     the fetch session epoch; -1 when the session is being created (v7+; absent from v0–v6 bodies)
  * @param topics           the topics and partitions to fetch from (v0+)
  * @param forgottenTopics  the topics/partitions being forgotten for this session (v7+; empty when absent)
+ * @param rackId           the rack ID of the consumer making this request (v11+; empty string
+ *                         when absent — the spec default)
  * @since 0.1.0
  */
 public record FetchRequest(int replicaId, int maxWaitMs, int minBytes, int maxBytes,
                            int isolationLevel, int sessionId, int sessionEpoch,
-                           List<TopicFetch> topics, List<ForgottenTopic> forgottenTopics) {
+                           List<TopicFetch> topics, List<ForgottenTopic> forgottenTopics,
+                           String rackId) {
 
     /**
      * Compatibility constructor (pre-v4 call sites): consumer fetch with {@code replicaId = -1}
@@ -57,7 +60,8 @@ public record FetchRequest(int replicaId, int maxWaitMs, int minBytes, int maxBy
     /**
      * Compatibility constructor (pre-v7 call sites): {@code isolationLevel} carried, but the
      * v7+ session fields default to {@code sessionId = 0} (session creation),
-     * {@code sessionEpoch = -1}, and {@code forgottenTopics = empty}.
+     * {@code sessionEpoch = -1}, {@code forgottenTopics = empty}, and the v11+ field
+     * defaults to {@code rackId = ""} (the spec absent-value).
      *
      * @param replicaId      the broker ID of the follower, or -1 if the request is from a consumer
      * @param maxWaitMs      the maximum time to wait for data in milliseconds
@@ -68,7 +72,7 @@ public record FetchRequest(int replicaId, int maxWaitMs, int minBytes, int maxBy
      */
     public FetchRequest(int replicaId, int maxWaitMs, int minBytes, int maxBytes, int isolationLevel,
                         List<TopicFetch> topics) {
-        this(replicaId, maxWaitMs, minBytes, maxBytes, isolationLevel, 0, -1, topics, List.of());
+        this(replicaId, maxWaitMs, minBytes, maxBytes, isolationLevel, 0, -1, topics, List.of(), "");
     }
 
     /**
@@ -96,6 +100,7 @@ public record FetchRequest(int replicaId, int maxWaitMs, int minBytes, int maxBy
         private int sessionEpoch = -1; // v7+; -1 when creating
         private List<TopicFetch> topics = List.of();
         private List<ForgottenTopic> forgottenTopics = List.of(); // v7+
+        private String rackId = ""; // v11+; "" = absent (spec default)
 
         public Builder replicaId(int v) { this.replicaId = v; return this; }
         public Builder maxWaitMs(int v) { this.maxWaitMs = v; return this; }
@@ -106,10 +111,11 @@ public record FetchRequest(int replicaId, int maxWaitMs, int minBytes, int maxBy
         public Builder sessionEpoch(int v) { this.sessionEpoch = v; return this; }
         public Builder topics(List<TopicFetch> v) { this.topics = v; return this; }
         public Builder forgottenTopics(List<ForgottenTopic> v) { this.forgottenTopics = v; return this; }
+        public Builder rackId(String v) { this.rackId = v; return this; }
 
         public FetchRequest build() {
             return new FetchRequest(replicaId, maxWaitMs, minBytes, maxBytes, isolationLevel,
-                    sessionId, sessionEpoch, topics, forgottenTopics);
+                    sessionId, sessionEpoch, topics, forgottenTopics, rackId);
         }
     }
 

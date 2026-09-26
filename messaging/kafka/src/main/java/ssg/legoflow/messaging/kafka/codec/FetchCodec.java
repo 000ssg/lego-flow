@@ -93,9 +93,20 @@ import java.util.List;
  *   <li>v10 — unchanged version: wire-identical to v9 in both directions (no field
  *       change in either schema) — all four dispatches fall through (request to the
  *       v9 methods, response to the v7 methods).</li>
- *   <li>v11+ — structural changes (v11: RackId + PreferredReadReplica; v12: flexible
- *       encoding, ClusterId, LastFetchedEpoch, DivergingEpoch/CurrentLeader/SnapshotId
- *       tagged fields; v13: TopicId instead of Topic name; v15: ReplicaState) — throws
+ *   <li>v11 — both directions change (structural branch): the request gains
+ *       {@code RackId(string)} after {@code ForgottenTopicsData} (spec: "Rack ID of the
+ *       consumer making this request"; default "") — dedicated
+ *       {@code encode/decodeRequestV11}; the per-partition response layout gains
+ *       {@code PreferredReadReplica(int32)} after {@code AbortedTransactions} (spec:
+ *       "The preferred read replica for the consumer to use on its next fetch request";
+ *       default -1) — dedicated {@code encode/decodeResponseV11}. The
+ *       {@code FetchRequest} model gains {@code rackId} (v11+; "" default) and the
+ *       {@code FetchResponse.PartitionResponse} model gains
+ *       {@code preferredReadReplica} (v11+; -1 default); compatibility constructors
+ *       cover pre-v11 call sites.</li>
+ *   <li>v12+ — structural changes (v12: flexible encoding, ClusterId, LastFetchedEpoch,
+ *       DivergingEpoch/CurrentLeader/SnapshotId tagged fields; v13: TopicId instead of
+ *       Topic name; v15: ReplicaState) — throws
  *       {@link CodecNotImplementedException}.</li>
  * </ul>
  *
@@ -144,9 +155,11 @@ public final class FetchCodec {
             case 9: // v9 request per-partition layout adds CurrentLeaderEpoch(int32) after Partition
             case 10: // v10 request is wire-identical to v9 (no field change)
                 return encodeRequestV9(req);
+            case 11: // v11 request appends RackId(string) after ForgottenTopicsData
+                return encodeRequestV11(req);
             default:
-                // v11+ (RackId, PreferredReadReplica, flexible encoding at v12, TopicId
-                // at v13, ...) is not implemented yet — no code path.
+                // v12+ (flexible encoding, ClusterId, TopicId at v13, ...) is not
+                // implemented yet — no code path.
                 throw new CodecNotImplementedException("Fetch request v" + version + " not implemented");
         }
     }
@@ -176,11 +189,13 @@ public final class FetchCodec {
             case 8: // v8 request wire-identical to v7
                 return decodeRequestV7(buf);
             case 9: // v9 request per-partition layout adds CurrentLeaderEpoch(int32) after Partition
-            case 10: // v10 request wire-identical to v9
+            case 10: // v10 request is wire-identical to v9 (no field change)
                 return decodeRequestV9(buf);
+            case 11: // v11 request appends RackId(string) after ForgottenTopicsData
+                return decodeRequestV11(buf);
             default:
-                // v11+ (RackId, PreferredReadReplica, flexible encoding at v12, TopicId
-                // at v13, ...) is not implemented yet — no code path.
+                // v12+ (flexible encoding, ClusterId, TopicId at v13, ...) is not
+                // implemented yet — no code path.
                 throw new CodecNotImplementedException("Fetch request v" + version + " not implemented");
         }
     }
@@ -213,9 +228,11 @@ public final class FetchCodec {
             case 9: // v9 response is wire-identical to v7 (v9 changes the request only)
             case 10: // v10 response wire-identical to v9/v7
                 return encodeResponseV7(resp);
+            case 11: // v11 response adds per-partition PreferredReadReplica(int32) after AbortedTransactions
+                return encodeResponseV11(resp);
             default:
-                // v11+ (RackId/PreferredReadReplica at v11, flexible encoding at v12,
-                // TopicId at v13, ...) is not implemented yet — no code path.
+                // v12+ (flexible encoding, TopicId at v13, ...) is not implemented yet
+                // — no code path.
                 throw new CodecNotImplementedException("Fetch response v" + version + " not implemented");
         }
     }
@@ -246,9 +263,11 @@ public final class FetchCodec {
             case 9: // v9 response wire-identical to v7 (v9 changes the request only)
             case 10: // v10 response wire-identical to v9/v7
                 return decodeResponseV7(buf);
+            case 11: // v11 response adds per-partition PreferredReadReplica(int32) after AbortedTransactions
+                return decodeResponseV11(buf);
             default:
-                // v11+ (RackId/PreferredReadReplica at v11, flexible encoding at v12,
-                // TopicId at v13, ...) is not implemented yet — no code path.
+                // v12+ (flexible encoding, TopicId at v13, ...) is not implemented yet
+                // — no code path.
                 throw new CodecNotImplementedException("Fetch response v" + version + " not implemented");
         }
     }
@@ -713,7 +732,7 @@ public final class FetchCodec {
                 }
                 byte[] records = KafkaCodecPrimitives.readBytesField(buf);
                 partitions.add(new FetchResponse.PartitionResponse(partitionIndex, errorCode, highWatermark,
-                        lastStableOffset, logStartOffset, aborted, records));
+                        lastStableOffset, logStartOffset, aborted, -1, records));
             }
             topics.add(new FetchResponse.TopicResponse(name, partitions));
         }
@@ -812,7 +831,7 @@ public final class FetchCodec {
             forgotten.add(new FetchRequest.ForgottenTopic(name, partitions));
         }
         return new FetchRequest(replicaId, maxWait, minBytes, maxBytes, isolationLevel,
-                sessionId, sessionEpoch, topics, forgotten);
+                sessionId, sessionEpoch, topics, forgotten, "");
     }
 
     // ===== v7 — response: v5 body + top-level ErrorCode(int16) + SessionId(int32)
@@ -890,7 +909,7 @@ public final class FetchCodec {
                 }
                 byte[] records = KafkaCodecPrimitives.readBytesField(buf);
                 partitions.add(new FetchResponse.PartitionResponse(partitionIndex, partError, highWatermark,
-                        lastStableOffset, logStartOffset, aborted, records));
+                        lastStableOffset, logStartOffset, aborted, -1, records));
             }
             topics.add(new FetchResponse.TopicResponse(name, partitions));
         }
@@ -990,6 +1009,186 @@ public final class FetchCodec {
             forgotten.add(new FetchRequest.ForgottenTopic(name, partitions));
         }
         return new FetchRequest(replicaId, maxWait, minBytes, maxBytes, isolationLevel,
-                sessionId, sessionEpoch, topics, forgotten);
+                sessionId, sessionEpoch, topics, forgotten, "");
+    }
+
+    // ===== v11 — request: v9 body + RackId(string) after ForgottenTopicsData (v11+ field) =====
+    // v11 adds the consumer rack ID to the request (spec: "Rack ID of the consumer making
+    // this request"; default "", written as a non-nullable int16-length string). It is the
+    // last field of the v11 request — after ForgottenTopicsData. The v11 response per-
+    // partition layout adds PreferredReadReplica(int32) after AbortedTransactions (spec:
+    // "The preferred read replica for the consumer to use on its next fetch request";
+    // default -1) and before Records.
+
+    private static byte[] encodeRequestV11(FetchRequest req) {
+        // v9 request fixed overhead (ReplicaId+MaxWaitMs+MinBytes+MaxBytes+IsolationLevel
+        // +topic count = 21) + 8 (SessionId int32 + SessionEpoch int32, v7+)
+        // + 4 (ForgottenTopicsData array count, v7+)
+        // + 2 (RackId string length, v11+).
+        // Per topic: 4 (partition count) + 2 (name length) + name.
+        // Per partition: 28 (v9 per-partition).
+        // Per forgotten topic: 4 (partition count) + 2 (name length) + name + 4*partitions.
+        String rack = req.rackId() != null ? req.rackId() : "";
+        int rackLen = rack.getBytes(StandardCharsets.UTF_8).length;
+        int size = 21 + 8 + 4 + 2 + rackLen;
+        for (var topic : req.topics()) {
+            size += 4 + 2 + topic.name().getBytes(StandardCharsets.UTF_8).length;
+            size += 28 * topic.partitions().size();
+        }
+        for (var ft : req.forgottenTopics()) {
+            size += 4 + 2 + ft.name().getBytes(StandardCharsets.UTF_8).length;
+            size += 4 * ft.partitions().size();
+        }
+        ByteBuffer buf = BufferPool.getBuffer(size);
+        buf.putInt(req.replicaId());
+        buf.putInt(req.maxWaitMs());
+        buf.putInt(req.minBytes());
+        buf.putInt(req.maxBytes()); // v3+
+        buf.put((byte) req.isolationLevel()); // v4+
+        buf.putInt(req.sessionId()); // v7+
+        buf.putInt(req.sessionEpoch()); // v7+
+        buf.putInt(req.topics().size());
+        for (var topic : req.topics()) {
+            KafkaCodecPrimitives.writeString(buf, topic.name());
+            buf.putInt(topic.partitions().size());
+            for (var pf : topic.partitions()) {
+                buf.putInt(pf.partition());
+                buf.putInt(pf.currentLeaderEpoch()); // v9+
+                buf.putLong(pf.fetchOffset());
+                buf.putLong(pf.logStartOffset()); // v5+
+                buf.putInt(pf.partitionMaxBytes());
+            }
+        }
+        var forgotten = req.forgottenTopics() != null ? req.forgottenTopics() : List.<FetchRequest.ForgottenTopic>of();
+        buf.putInt(forgotten.size()); // v7+
+        for (var ft : forgotten) {
+            KafkaCodecPrimitives.writeString(buf, ft.name()); // v7-12+
+            buf.putInt(ft.partitions().size()); // v7+
+            for (int partition : ft.partitions()) {
+                buf.putInt(partition); // v7+
+            }
+        }
+        KafkaCodecPrimitives.writeString(buf, rack); // v11+: RackId after ForgottenTopicsData
+        buf.flip();
+        return KafkaCodecPrimitives.toBytes(buf);
+    }
+
+    private static FetchRequest decodeRequestV11(ByteBuffer buf) {
+        int replicaId = buf.getInt();
+        int maxWait = buf.getInt();
+        int minBytes = buf.getInt();
+        int maxBytes = buf.getInt(); // v3+
+        int isolationLevel = buf.get() & 0xff; // v4+
+        int sessionId = buf.getInt(); // v7+
+        int sessionEpoch = buf.getInt(); // v7+
+        int topicCount = buf.getInt();
+        List<FetchRequest.TopicFetch> topics = new ArrayList<>(topicCount);
+        for (int i = 0; i < topicCount; i++) {
+            String name = KafkaCodecPrimitives.readString(buf);
+            int partCount = buf.getInt();
+            List<FetchRequest.PartitionFetch> partitions = new ArrayList<>(partCount);
+            for (int j = 0; j < partCount; j++) {
+                int partition = buf.getInt();
+                int currentLeaderEpoch = buf.getInt(); // v9+
+                long fetchOffset = buf.getLong();
+                long logStartOffset = buf.getLong(); // v5+
+                int partitionMaxBytes = buf.getInt();
+                partitions.add(new FetchRequest.PartitionFetch(partition, currentLeaderEpoch, fetchOffset,
+                        partitionMaxBytes, logStartOffset));
+            }
+            topics.add(new FetchRequest.TopicFetch(name, partitions));
+        }
+        int forgottenCount = buf.getInt(); // v7+
+        List<FetchRequest.ForgottenTopic> forgotten = new ArrayList<>(forgottenCount);
+        for (int i = 0; i < forgottenCount; i++) {
+            String name = KafkaCodecPrimitives.readString(buf); // v7-12+
+            int partCount = buf.getInt(); // v7+
+            List<Integer> partitions = new ArrayList<>(partCount);
+            for (int j = 0; j < partCount; j++) {
+                partitions.add(buf.getInt()); // v7+
+            }
+            forgotten.add(new FetchRequest.ForgottenTopic(name, partitions));
+        }
+        String rackId = KafkaCodecPrimitives.readString(buf); // v11+
+        return new FetchRequest(replicaId, maxWait, minBytes, maxBytes, isolationLevel,
+                sessionId, sessionEpoch, topics, forgotten, rackId);
+    }
+
+    // ===== v11 — response: v7 body + per-partition PreferredReadReplica(int32) =====
+    // after AbortedTransactions and before Records (v11+ field, spec default -1).
+
+    private static byte[] encodeResponseV11(FetchResponse resp) {
+        // v7 response fixed overhead (ThrottleTimeMs+ErrorCode+SessionId+topic count = 14)
+        // + per topic: 4 (partition count) + 2 (name length) + name.
+        // Per partition: 38 (v7 per-partition) + 4 (PreferredReadReplica int32, v11+)
+        // + 16*aborted + records.
+        int size = 8 + 6;
+        for (var topic : resp.topics()) {
+            size += 4 + 2 + topic.name().getBytes(StandardCharsets.UTF_8).length;
+            for (var pr : topic.partitions()) {
+                size += 42 + (pr.abortedTransactions() != null ? 16 * pr.abortedTransactions().size() : 0);
+                size += (pr.records() != null ? pr.records().length : 0);
+            }
+        }
+        ByteBuffer buf = BufferPool.getBuffer(size);
+        buf.putInt(resp.throttleTimeMs());
+        buf.putShort(resp.errorCode()); // v7+
+        buf.putInt(resp.sessionId()); // v7+
+        buf.putInt(resp.topics().size());
+        for (var topic : resp.topics()) {
+            KafkaCodecPrimitives.writeString(buf, topic.name());
+            buf.putInt(topic.partitions().size());
+            for (var pr : topic.partitions()) {
+                buf.putInt(pr.partitionIndex());
+                buf.putShort(pr.errorCode());
+                buf.putLong(pr.highWatermark());
+                buf.putLong(pr.lastStableOffset()); // v4+
+                buf.putLong(pr.logStartOffset()); // v5+
+                var aborted = pr.abortedTransactions() != null ? pr.abortedTransactions()
+                        : List.<FetchResponse.AbortedTransaction>of();
+                buf.putInt(aborted.size()); // v4+
+                for (var at : aborted) {
+                    buf.putLong(at.producerId());
+                    buf.putLong(at.firstOffset());
+                }
+                buf.putInt(pr.preferredReadReplica()); // v11+: PreferredReadReplica after AbortedTransactions
+                KafkaCodecPrimitives.writeBytesField(buf, pr.records());
+            }
+        }
+        buf.flip();
+        return KafkaCodecPrimitives.toBytes(buf);
+    }
+
+    private static FetchResponse decodeResponseV11(ByteBuffer buf) {
+        int throttleTimeMs = buf.getInt();
+        short errorCode = buf.getShort(); // v7+
+        int sessionId = buf.getInt(); // v7+
+        int topicCount = buf.getInt();
+        List<FetchResponse.TopicResponse> topics = new ArrayList<>(topicCount);
+        for (int i = 0; i < topicCount; i++) {
+            String name = KafkaCodecPrimitives.readString(buf);
+            int partCount = buf.getInt();
+            List<FetchResponse.PartitionResponse> partitions = new ArrayList<>(partCount);
+            for (int j = 0; j < partCount; j++) {
+                int partitionIndex = buf.getInt();
+                short partError = buf.getShort();
+                long highWatermark = buf.getLong();
+                long lastStableOffset = buf.getLong(); // v4+
+                long logStartOffset = buf.getLong(); // v5+
+                int abortedCount = buf.getInt(); // v4+
+                List<FetchResponse.AbortedTransaction> aborted = new ArrayList<>(abortedCount);
+                for (int k = 0; k < abortedCount; k++) {
+                    long producerId = buf.getLong();
+                    long firstOffset = buf.getLong();
+                    aborted.add(new FetchResponse.AbortedTransaction(producerId, firstOffset));
+                }
+                int preferredReadReplica = buf.getInt(); // v11+
+                byte[] records = KafkaCodecPrimitives.readBytesField(buf);
+                partitions.add(new FetchResponse.PartitionResponse(partitionIndex, partError, highWatermark,
+                        lastStableOffset, logStartOffset, aborted, preferredReadReplica, records));
+            }
+            topics.add(new FetchResponse.TopicResponse(name, partitions));
+        }
+        return new FetchResponse(throttleTimeMs, errorCode, sessionId, topics);
     }
 }
