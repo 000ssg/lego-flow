@@ -311,6 +311,27 @@ Mechanically rewrite every canonical-arity positional constructor call in the Pr
 
 ---
 
+## Commit: `794a9417` — Fetch v11 (Record I/O row 22)
+
+Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified from the 3.6.1 `FetchRequest.json` / `FetchResponse.json` schemas.
+
+### What Changed
+- **Fetch v11 codec**: v11 is a STRUCTURAL BRANCH in BOTH directions. REQUEST: appends `RackId(string)` as the last field after the `ForgottenTopicsData` array (spec: "Rack ID of the consumer making this request"; default "") — dedicated `encode/decodeRequestV11`. RESPONSE: the per-partition layout inserts `PreferredReadReplica(int32)` after the `AbortedTransactions` array and before `Records` (spec: "The preferred read replica for the consumer to use on its next fetch request"; default -1) — dedicated `encode/decodeResponseV11`.
+- **Models**: `FetchRequest` gains `rackId` (v11+, "" default); `FetchResponse.PartitionResponse` gains `preferredReadReplica` (v11+, -1 default). The pre-v11 legacy methods that build the models (v7/v9 request decodes, v5/v7 response decodes) now pass the spec absent-values ("", -1) on the canonical-constructor calls, keeping their output byte-identical to the pre-v11 wire layout.
+- **New tests** (all builder-based): FetchCodecTest 63 -> 71 (+8): RequestV11 x4 (round-trip incl. RackId + forgotten topics; exact 79-byte walk; v11 = v9 + 7-byte trailing RackId structural byte-identity; "" default round-trip) + ResponseV11 x4 (round-trip incl. PreferredReadReplica + aborted transactions; exact 83-byte walk; v11 = v7 + 4-byte per-partition PreferredReadReplica structural byte-identity at offset 75; -1 default round-trip). Dispatch re-pinned: v12 is now the next unimplemented version (both directions).
+
+### Test Coverage
+- FetchCodecTest 71 tests; full module 578 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 4 (FetchCodec, 2 protocol records, FetchCodecTest) |
+| Lines added/removed | +510 / -45 |
+| Tests added | 8 (578 total) |
+
+---
+
 ## Document Maintenance
 
 - This document is append-only for commit sections
