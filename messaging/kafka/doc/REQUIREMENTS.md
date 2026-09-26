@@ -332,6 +332,27 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 ---
 
+## Commit: `97c82bb3` — Fetch v12 (Record I/O row 23)
+
+Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified from the 3.6.1 `FetchRequest.json` / `FetchResponse.json` generated sources.
+
+### What Changed
+- **Fetch v12 codec**: v12 is a STRUCTURAL BRANCH in BOTH directions and the first FLEXIBLE-ENCODING version of the Fetch API. REQUEST: compact strings + varint array counts + per-element tagged sections throughout; the per-partition layout gains `LastFetchedEpoch(int32, default -1)` after `FetchOffset`; `ClusterId(string, null:12+)` rides in the trailing top-level tagged section as tag 0 (implicit compact nullable string, written only when non-null). RESPONSE: flexible encoding; the per-partition tagged section gains tag 0 `DivergingEpoch(EpochEndOffset)`, tag 1 `CurrentLeader(LeaderIdAndEpoch)` and tag 2 `SnapshotId(SnapshotId)` — each written only when non-null. Verified wire-layout traps: the partition tagged section sits AFTER `Records` (flexible nullable bytes), not before `AbortedTransactions`; each `AbortedTransaction` element carries its own trailing `varint(0)` section; `PreferredReadReplica(int32)` stays the fixed-width field between `AbortedTransactions` and `Records`. Mechanism per plan section 3: dedicated `encode/decodeRequestV12` + `encode/decodeResponseV12` in `FetchCodec` (reusing the `KafkaCodecPrimitives` varint / compact-string / tagged helpers); legacy v11-and-earlier paths untouched.
+- **Models**: `FetchRequest` gains `clusterId` (v12+, null default) with a 10-arg pre-v12 compat constructor; `PartitionFetch` gains `lastFetchedEpoch` (v12+, -1 default) with a 5-arg compat constructor; `FetchResponse.PartitionResponse` gains `divergingEpoch` / `currentLeader` / `snapshotId` (v12+, null defaults) with a 5-arg pre-v12 compat constructor; new nested `DivergingEpoch` / `LeaderIdAndEpoch` / `SnapshotId` records; builders gain the v12 setters.
+- **New tests** (all builder-based): FetchCodecTest 71 -> 77 (+6): RequestV12 x3 (round-trip incl. ClusterId + LastFetchedEpoch + forgotten topics; exact 87-byte walk; ClusterId null round-trip -> tag 0 absent, trailing section count 0) + ResponseV12 x3 (round-trip incl. all three partition tags; exact 118-byte walk; no-records/no-tags 57-byte walk). Dispatch re-pinned: v13 is now the next unimplemented version (both directions).
+
+### Test Coverage
+- FetchCodecTest 77 tests; full module 584 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 4 (FetchCodec, 2 protocol records, FetchCodecTest) |
+| Lines added/removed | +830 / -58 |
+| Tests added | 6 (584 total) |
+
+---
+
 ## Document Maintenance
 
 - This document is append-only for commit sections
