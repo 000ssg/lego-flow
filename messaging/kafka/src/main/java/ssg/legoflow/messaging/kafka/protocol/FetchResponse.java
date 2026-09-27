@@ -69,10 +69,30 @@ public record FetchResponse(int throttleTimeMs, short errorCode, int sessionId,
     /**
      * Per-topic fetch response.
      *
-     * @param name       the topic name (v0–v12; replaced by TopicId at v13+)
+     * @param name       the topic name (v0–v12; not encoded at v13+)
+     * @param topicId    the 16-byte topic UUID (v13+; all zeros when absent — the spec default)
      * @param partitions the per-partition responses
      */
-    public record TopicResponse(String name, List<PartitionResponse> partitions) {
+    public record TopicResponse(String name, byte[] topicId, List<PartitionResponse> partitions) {
+
+        /**
+         * Compatibility constructor (pre-v13 call sites): {@code topicId} is all
+         * zeros (the v13+ spec default).
+         *
+         * @param name       the topic name
+         * @param partitions the per-partition responses
+         */
+        public TopicResponse(String name, List<PartitionResponse> partitions) {
+            this(name, new byte[16], partitions);
+        }
+
+        /**
+         * Converts the 16-byte topic ID to its canonical {@code java.util.UUID} form
+         * (for diagnostics / logging); the codec works with the raw 16 bytes.
+         */
+        public java.util.UUID topicUuid() {
+            return Uuid.fromBytes(topicId);
+        }
     }
 
     /**

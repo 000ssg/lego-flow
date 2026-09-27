@@ -296,4 +296,32 @@ final class KafkaCodecPrimitives {
         buf.position(pos + size);
         return next;
     }
+
+    /**
+     * Writes a 16-byte UUID (Kafka {@code uuid} field type) as its raw little-endian-free
+     * byte form: 8 bytes of the most-significant bits (big-endian) then 8 bytes of the
+     * least-significant bits (big-endian) — the standard {@code java.util.UUID} byte
+     * layout that Kafka's {@code KafkaChannel.writeUUID} uses.
+     *
+     * @param buf the write position
+     * @param id  the 16-byte topic UUID (must be exactly 16 bytes)
+     */
+    static void writeUuid(ByteBuffer buf, byte[] id) {
+        if (id.length != 16) {
+            throw new IllegalArgumentException("uuid must be 16 bytes, got " + id.length);
+        }
+        buf.put(id);
+    }
+
+    /**
+     * Reads a 16-byte UUID field (see {@link #writeUuid}).
+     *
+     * @param buf the read position
+     * @return a fresh 16-byte array with the UUID bytes
+     */
+    static byte[] readUuid(ByteBuffer buf) {
+        byte[] id = new byte[16];
+        buf.get(id);
+        return id;
+    }
 }

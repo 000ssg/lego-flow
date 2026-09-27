@@ -153,22 +153,67 @@ public record FetchRequest(int replicaId, int maxWaitMs, int minBytes, int maxBy
     /**
      * Per-topic fetch request.
      *
-     * @param name       the topic name (v0–v12; replaced by TopicId at v13+)
+     * <p>v0–v12 carry the topic {@code name}; v13+ replaces it with the 16-byte
+     * {@code topicId} (spec: Topic:string is {@code 0-12}, TopicId:uuid is {@code 13+}).
+     * A v13+ request encodes only the topic ID; the name is not on the wire.
+     *
+     * @param name       the topic name (v0–v12; not encoded at v13+)
+     * @param topicId    the 16-byte topic UUID (v13+; all zeros when absent — the spec default)
      * @param partitions the partitions to fetch
      */
-    public record TopicFetch(String name, List<PartitionFetch> partitions) {
+    public record TopicFetch(String name, byte[] topicId, List<PartitionFetch> partitions) {
+
+        /**
+         * Compatibility constructor (pre-v13 call sites): {@code topicId} is all
+         * zeros (the v13+ spec default; the value a v0–v12 request carries implicitly).
+         *
+         * @param name       the topic name
+         * @param partitions the partitions to fetch
+         */
+        public TopicFetch(String name, List<PartitionFetch> partitions) {
+            this(name, new byte[16], partitions);
+        }
+
+        /**
+         * Converts the 16-byte topic ID to its canonical {@code java.util.UUID} form
+         * (for diagnostics / logging); the codec works with the raw 16 bytes.
+         */
+        public java.util.UUID topicUuid() {
+            return Uuid.fromBytes(topicId);
+        }
     }
 
     /**
      * A topic/partition being forgotten for a fetch session (v7+).
      *
      * <p>Wire layout (v7–v12): Topic:string + Partitions:[]int32 — an empty partitions list
-     * means the whole topic is forgotten.
+     * means the whole topic is forgotten. v13+ replaces Topic:string with
+     * TopicId:uuid (16 bytes); the name is not on the wire.
      *
-     * @param name       the topic name (v7–v12; replaced by TopicId at v13+)
+     * @param name       the topic name (v7–v12; not encoded at v13+)
+     * @param topicId    the 16-byte topic UUID (v13+; all zeros when absent — the spec default)
      * @param partitions the partition indexes to forget (an empty list means the whole topic)
      */
-    public record ForgottenTopic(String name, List<Integer> partitions) {
+    public record ForgottenTopic(String name, byte[] topicId, List<Integer> partitions) {
+
+        /**
+         * Compatibility constructor (pre-v13 call sites): {@code topicId} is all
+         * zeros (the v13+ spec default).
+         *
+         * @param name       the topic name
+         * @param partitions the partition indexes to forget
+         */
+        public ForgottenTopic(String name, List<Integer> partitions) {
+            this(name, new byte[16], partitions);
+        }
+
+        /**
+         * Converts the 16-byte topic ID to its canonical {@code java.util.UUID} form
+         * (for diagnostics / logging); the codec works with the raw 16 bytes.
+         */
+        public java.util.UUID topicUuid() {
+            return Uuid.fromBytes(topicId);
+        }
     }
 
     /**
