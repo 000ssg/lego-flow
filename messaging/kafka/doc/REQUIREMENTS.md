@@ -353,6 +353,27 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 ---
 
+## Commit: `abb533be` — Fetch v13 (Record I/O row 24)
+
+Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified from the vendored `FetchRequest.json` / `FetchResponse.json` (cross-checked against the Apache trunk schemas and the 3.7.0 `kafka-clients` generated source).
+
+### What Changed
+- **Fetch v13 codec**: v13 is a STRUCTURAL BRANCH in BOTH directions: the `Topic(string)` name is replaced by a non-nullable fixed 16-byte `TopicId(uuid)` in all three topic-carrying structs — request `Topics`, request `ForgottenTopicsData`, response `Responses` (delta per plan row 128: `+ TopicId:uuid[13+]` x3, `- Topic:string` x3). The topic name is absent from the v13+ wire, so decoded models carry `name == null`. The uuid is non-nullable (spec: `TopicId:uuid`, versions 13+, no nullableVersions) — no varint prefix, just the raw UUID bytes; absent = all-zeros (spec default). Everything else (flexible encoding, `LastFetchedEpoch`, the per-partition tagged section, the tagged `ClusterId`) is wire-identical to v12. Dispatch (verified from the vendored spec): request v13 + v14 are wire-identical (v14 adds no field) and both map to the dedicated `encode/decodeRequestV13` methods; request v15 introduces the tagged `ReplicaState` and stays unimplemented. Response v13/v14/v15 are wire-identical and all map to the dedicated `encode/decodeResponseV13` methods. Mechanism per plan section 3: dedicated `encode/decodeRequestV13` + `encode/decodeResponseV13` in `FetchCodec` (+ `writeFetchPartitionV13` shared partition writer; hand-sized buffers; `KafkaCodecPrimitives` compact-string / varint / tagged helpers; new `readUuid`/`writeUuid` fixed 16-byte uuid primitives); legacy v12-and-earlier paths untouched.
+- **Models** (overloaded compatibility constructors only — all 114 existing call sites use the 2-arg canonical constructors): `FetchRequest.TopicFetch` + `topicId` (`byte[16]`, all-zeros default) + `topicUuid()`; `FetchRequest.ForgottenTopicData` + `topicId` + `topicUuid()`; `FetchResponse.TopicResponse` + `topicId` + `topicUuid()`; new `protocol/Uuid` helper for the raw 16-byte wire form (8-byte MSB + 8-byte LSB, big-endian) to/from `java.util.UUID` — JDK-portable, no preview APIs.
+- **New tests** (all builder-based): FetchCodecTest 77 -> 83 (+6): RequestV13 x3 (round-trip incl. TopicId + LastFetchedEpoch + forgotten topics; exact 97-byte walk vs the v12 87-byte reference; forgotten-topic TopicId round-trip with exact 106-byte walk) + ResponseV13 x3 (round-trip incl. TopicId + all three partition tags; exact 128-byte walk vs the v12 118-byte reference; null-records / absent-tags round-trip). Dispatch re-pinned: v13/v14 now implemented (both directions fall through to the V13 methods), next unimplemented = request v15 (tagged ReplicaState) and response v16.
+
+### Test Coverage
+- FetchCodecTest 83 tests; full module 590 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 5 (FetchCodec, KafkaCodecPrimitives, 2 protocol records, FetchCodecTest) + 1 new (protocol/Uuid) |
+| Lines added/removed | +846 / -30 |
+| Tests added | 6 (590 total) |
+
+---
+
 ## Document Maintenance
 
 - This document is append-only for commit sections

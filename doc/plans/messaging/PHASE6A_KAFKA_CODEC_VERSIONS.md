@@ -78,7 +78,12 @@ throws `CodecNotImplementedException` (explicit, never a silent fall-through to 
 ## 3. Per-sub-task contract (repeat for every row below)
 
 - **Input:** `doc/spec/message/<Api>{Request,Response}.json` field list at the target version
-  (the Δ table in §4 is the generated checklist).
+  (the Δ table in §4 is the generated checklist). The Δ can be produced / cross-checked
+  mechanically with `messaging/kafka/gen_kafka.py` (`python3 messaging/kafka/gen_kafka.py
+  delta <Api> <version>` → the §4 Δ notation; `skeleton` → a paste-ready field-list comment
+  block; `matrix` → the §4 rows). It is a cross-check, not a replacement: the §4 table also
+  records commit refs and the wire-identity fall-through decisions the spec alone cannot
+  express.
 - **Mechanism choice:** as part of implementing version vN, pick how vN's code path is written —
   (a) new dedicated methods if the layout diverges, (b) parameterize the previous version's methods
   if only nullability/optional fields changed. Record the choice in the commit message.
@@ -125,8 +130,8 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | v10 | unchanged | ✓ | dbd46370 |
 | v11 | + RackId:string[11+], PreferredReadReplica:int32[11+] | ✓ | 794a9417 |
 | v12 | + ClusterId:string[12+](null:12+), LastFetchedEpoch:int32[12+], DivergingEpoch:EpochEndOffset[12+], Epoch:int32[12+], EndOffset:int64[12+], CurrentLeader:LeaderIdAndEpoch[12+], LeaderId:int32[12+], LeaderEpoch:int32[12+], SnapshotId:SnapshotId[12+], EndOffset:int64[0+], Epoch:int32[0+]<br>→ flexible encoding | ✓ | 97c82bb3 |
-| v13 | + TopicId:uuid[13+], TopicId:uuid[13+], TopicId:uuid[13+]<br>− Topic:string[0-12], Topic:string[7-12], Topic:string[0-12] | ☐ | |
-| v14 | unchanged | ☐ | |
+| v13 | + TopicId:uuid[13+], TopicId:uuid[13+], TopicId:uuid[13+]<br>− Topic:string[0-12], Topic:string[7-12], Topic:string[0-12] | ✓ | abb533be |
+| v14 | unchanged | ✓ | abb533be |
 | v15 | + ReplicaState:ReplicaState[15+], ReplicaId:int32[15+], ReplicaEpoch:int64[15+]<br>− ReplicaId:int32[0-14] | ☐ | |
 
 ### ListOffsets (API 2) — v0..v8
