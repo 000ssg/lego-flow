@@ -132,7 +132,7 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 | v12 | + ClusterId:string[12+](null:12+), LastFetchedEpoch:int32[12+], DivergingEpoch:EpochEndOffset[12+], Epoch:int32[12+], EndOffset:int64[12+], CurrentLeader:LeaderIdAndEpoch[12+], LeaderId:int32[12+], LeaderEpoch:int32[12+], SnapshotId:SnapshotId[12+], EndOffset:int64[0+], Epoch:int32[0+]<br>→ flexible encoding | ✓ | 97c82bb3 |
 | v13 | + TopicId:uuid[13+], TopicId:uuid[13+], TopicId:uuid[13+]<br>− Topic:string[0-12], Topic:string[7-12], Topic:string[0-12] | ✓ | abb533be |
 | v14 | unchanged | ✓ | abb533be |
-| v15 | + ReplicaState:ReplicaState[15+], ReplicaId:int32[15+], ReplicaEpoch:int64[15+]<br>− ReplicaId:int32[0-14] | ☐ | |
+| v15 | + ReplicaState:ReplicaState[15+], ReplicaId:int32[15+], ReplicaEpoch:int64[15+]<br>− ReplicaId:int32[0-14] | ✓ | 051f61f0 |
 
 ### ListOffsets (API 2) — v0..v8
 
