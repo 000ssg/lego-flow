@@ -16,7 +16,9 @@ import java.util.List;
  * tagged section carrying ClusterId:string[12+]) and adds LastFetchedEpoch:int32 to the
  * per-partition layout (after FetchOffset).
  *
- * @param replicaId        the broker ID of the follower, or -1 if the request is from a consumer (v0+)
+ * @param replicaId        the broker ID of the follower, or -1 if the request is from a consumer
+ *                         (v0–v14 top-level field; at v15+ it moves inside the tagged
+ *                         {@code ReplicaState})
  * @param maxWaitMs        the maximum time to wait for data in milliseconds (v0+)
  * @param minBytes         the minimum number of bytes to wait for (v0+)
  * @param maxBytes         the maximum number of bytes to return (v3+; absent from v0–v2 bodies)
@@ -28,12 +30,15 @@ import java.util.List;
  * @param rackId           the rack ID of the consumer making this request (v11+; empty string
  *                         when absent — the spec default)
  * @param clusterId        the cluster ID (v12+ tagged field; null when absent — the spec default)
+ * @param replicaEpoch     the epoch of the follower inside the v15+ tagged
+ *                         {@code ReplicaState}; -1 when not available (the spec default; the
+ *                         value a consumer never sends)
  * @since 0.1.0
  */
 public record FetchRequest(int replicaId, int maxWaitMs, int minBytes, int maxBytes,
                            int isolationLevel, int sessionId, int sessionEpoch,
                            List<TopicFetch> topics, List<ForgottenTopic> forgottenTopics,
-                           String rackId, String clusterId) {
+                           String rackId, String clusterId, long replicaEpoch) {
 
     /**
      * Compatibility constructor (pre-v4 call sites): consumer fetch with {@code replicaId = -1}
@@ -79,12 +84,14 @@ public record FetchRequest(int replicaId, int maxWaitMs, int minBytes, int maxBy
     public FetchRequest(int replicaId, int maxWaitMs, int minBytes, int maxBytes, int isolationLevel,
                         List<TopicFetch> topics) {
         this(replicaId, maxWaitMs, minBytes, maxBytes, isolationLevel, 0, -1, topics,
-                List.of(), "", null);
+                List.of(), "");
     }
 
     /**
      * Compatibility constructor (pre-v12 call sites): every field carried through v11 with
-     * the v12+ tagged field defaulting to {@code clusterId = null} (the spec absent-value).
+     * the v12+ tagged field defaulting to {@code clusterId = null} (the spec absent-value)
+     * and the v15+ tagged field defaulting to {@code replicaEpoch = -1} (the spec
+     * absent-value; the value a consumer never sends).
      *
      * @param replicaId       the broker ID of the follower, or -1 if the request is from a consumer
      * @param maxWaitMs       the maximum time to wait for data in milliseconds
@@ -101,7 +108,7 @@ public record FetchRequest(int replicaId, int maxWaitMs, int minBytes, int maxBy
                         int sessionId, int sessionEpoch, List<TopicFetch> topics,
                         List<ForgottenTopic> forgottenTopics, String rackId) {
         this(replicaId, maxWaitMs, minBytes, maxBytes, isolationLevel, sessionId, sessionEpoch,
-                topics, forgottenTopics, rackId, null);
+                topics, forgottenTopics, rackId, null, -1L);
     }
 
     /**
@@ -131,6 +138,7 @@ public record FetchRequest(int replicaId, int maxWaitMs, int minBytes, int maxBy
         private List<ForgottenTopic> forgottenTopics = List.of(); // v7+
         private String rackId = ""; // v11+; "" = absent (spec default)
         private String clusterId; // v12+ tagged field; null = absent (spec default)
+        private long replicaEpoch = -1L; // v15+ tagged ReplicaState; -1 = not available
 
         public Builder replicaId(int v) { this.replicaId = v; return this; }
         public Builder maxWaitMs(int v) { this.maxWaitMs = v; return this; }
@@ -143,10 +151,12 @@ public record FetchRequest(int replicaId, int maxWaitMs, int minBytes, int maxBy
         public Builder forgottenTopics(List<ForgottenTopic> v) { this.forgottenTopics = v; return this; }
         public Builder rackId(String v) { this.rackId = v; return this; }
         public Builder clusterId(String v) { this.clusterId = v; return this; }
+        public Builder replicaEpoch(long v) { this.replicaEpoch = v; return this; }
 
         public FetchRequest build() {
             return new FetchRequest(replicaId, maxWaitMs, minBytes, maxBytes, isolationLevel,
-                    sessionId, sessionEpoch, topics, forgottenTopics, rackId, clusterId);
+                    sessionId, sessionEpoch, topics, forgottenTopics, rackId, clusterId,
+                    replicaEpoch);
         }
     }
 

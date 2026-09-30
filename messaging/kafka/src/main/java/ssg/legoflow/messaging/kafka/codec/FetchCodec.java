@@ -136,9 +136,16 @@ import java.util.List;
  *       constructors covering pre-v13 call sites.</li>
  *   <li>v14 — unchanged version: wire-identical to v13 in both directions (no field
  *       change) — all four dispatches fall through to the v13 methods.</li>
- *   <li>v15 — the request adds a tagged {@code ReplicaState(ReplicaId int32,
- *       ReplicaEpoch int64)} (the top-level {@code ReplicaId} becomes the state's id) —
- *       request dispatch throws {@link CodecNotImplementedException}; the response is
+ *   <li>v15 — the request is a structural branch (KIP-903): the top-level
+ *       {@code ReplicaId(int32)} (spec versions 0-14) is removed and replaced by a
+ *       trailing tagged {@code ReplicaState} struct at tag 1 (spec versions 15+;
+ *       ignorable), whose fields use standard fixed-width encoding —
+ *       {@code ReplicaId(int32)} at tag 0 + {@code ReplicaEpoch(int64)} at tag 1
+ *       (both default -1). The body therefore starts at {@code MaxWaitMs}; the
+ *       replica state is written only when {@code replicaId != -1 || replicaEpoch != -1}
+ *       (the consumer case — the in-house client's case — omits the tag entirely).
+ *       The {@code FetchRequest} model gains {@code replicaEpoch} (v15+; -1 default)
+ *       via compatibility constructors covering pre-v15 call sites. Response is
  *       wire-identical to v13/v14 and falls through to {@code encode/decodeResponseV13}.</li>
  * </ul>
  *
@@ -193,12 +200,13 @@ public final class FetchCodec {
                 return encodeRequestV12(req);
             case 13: // v13 request: TopicId (uuid) replaces the topic name in Topics and
                 // ForgottenTopicsData; the rest is wire-identical to v12
-            case 14: // v14 request is wire-identical to v13 (no field change; v15 adds
-                // the tagged ReplicaState)
+            case 14: // v14 request is wire-identical to v13 (no field change; v15 removes
+                // the top-level ReplicaId and adds the tagged ReplicaState)
                 return encodeRequestV13(req);
+            case 15: // v15 request: no top-level ReplicaId; trailing tagged ReplicaState
+                return encodeRequestV15(req);
             default:
-                // v15+ (tagged ReplicaState: ReplicaId int32 + ReplicaEpoch int64)
-                // is not implemented yet — no code path.
+                // v16+ is not implemented yet — no code path.
                 throw new CodecNotImplementedException("Fetch request v" + version + " not implemented");
         }
     }
@@ -237,9 +245,10 @@ public final class FetchCodec {
             case 13: // v13 request: TopicId (uuid) replaces the topic name; rest wire-identical to v12
             case 14: // v14 request wire-identical to v13
                 return decodeRequestV13(buf);
+            case 15: // v15 request: no top-level ReplicaId; trailing tagged ReplicaState
+                return decodeRequestV15(buf);
             default:
-                // v15+ (tagged ReplicaState: ReplicaId int32 + ReplicaEpoch int64)
-                // is not implemented yet — no code path.
+                // v16+ is not implemented yet — no code path.
                 throw new CodecNotImplementedException("Fetch request v" + version + " not implemented");
         }
     }
@@ -1392,7 +1401,7 @@ public final class FetchCodec {
             buf.position(contentStart + size);
         }
         return new FetchRequest(replicaId, maxWait, minBytes, maxBytes, isolationLevel,
-                sessionId, sessionEpoch, topics, forgotten, rackId, clusterId);
+                sessionId, sessionEpoch, topics, forgotten, rackId, clusterId, -1L);
     }
 
     // ===== v12 — response: flexible encoding + a per-partition trailing tagged section
@@ -1717,9 +1726,188 @@ public final class FetchCodec {
             buf.position(contentStart + size);
         }
         return new FetchRequest(replicaId, maxWait, minBytes, maxBytes, isolationLevel,
-                sessionId, sessionEpoch, topics, forgotten, rackId, clusterId);
+                sessionId, sessionEpoch, topics, forgotten, rackId, clusterId, -1L);
     }
 
+    /**
+     * Decodes the v15 Fetch request body — the KIP-903 structural branch of v13/v14. The only
+     * wire difference from {@link #decodeRequestV13(ByteBuffer)} is the trailing tagged
+     * section: the top-level {@code ReplicaId}(int32) is gone (the body now starts at
+     * {@code MaxWaitMs}), and the replica state arrives as a tagged {@code ReplicaState}
+     * struct at tag 1 (absent for a consumer request — replicaId and replicaEpoch stay at
+     * their -1 defaults). The struct content is 13 standard bytes (int32 ReplicaId +
+     * int64 ReplicaEpoch + a trailing tagged section, count 0).
+     */
+    private static FetchRequest decodeRequestV15(ByteBuffer buf) {
+        int maxWait = buf.getInt(); // v15: no top-level ReplicaId — the body starts at MaxWaitMs
+        int minBytes = buf.getInt();
+        int maxBytes = buf.getInt(); // v3+
+        int isolationLevel = buf.get() & 0xff; // v4+
+        int sessionId = buf.getInt(); // v7+
+        int sessionEpoch = buf.getInt(); // v7+
+        int topicCount = KafkaCodecPrimitives.readVarint(buf) - 1;
+        List<FetchRequest.TopicFetch> topics = new ArrayList<>(topicCount);
+        for (int i = 0; i < topicCount; i++) {
+            byte[] topicId = KafkaCodecPrimitives.readUuid(buf); // v13+ TopicId (name absent)
+            int partCount = KafkaCodecPrimitives.readVarint(buf) - 1;
+            List<FetchRequest.PartitionFetch> partitions = new ArrayList<>(partCount);
+            for (int j = 0; j < partCount; j++) {
+                int partition = buf.getInt();
+                int currentLeaderEpoch = buf.getInt(); // v9+
+                long fetchOffset = buf.getLong();
+                int lastFetchedEpoch = buf.getInt(); // v12+
+                long logStartOffset = buf.getLong(); // v5+
+                int partitionMaxBytes = buf.getInt();
+                KafkaCodecPrimitives.skipTaggedFields(buf); // v12+ trailing section
+                partitions.add(new FetchRequest.PartitionFetch(partition, currentLeaderEpoch,
+                        fetchOffset, lastFetchedEpoch, partitionMaxBytes, logStartOffset));
+            }
+            KafkaCodecPrimitives.skipTaggedFields(buf); // v12+ trailing section
+            topics.add(new FetchRequest.TopicFetch(null, topicId, partitions)); // name absent at v13+
+        }
+        int forgottenCount = KafkaCodecPrimitives.readVarint(buf) - 1; // v7+
+        List<FetchRequest.ForgottenTopic> forgotten = new ArrayList<>(forgottenCount);
+        for (int i = 0; i < forgottenCount; i++) {
+            byte[] topicId = KafkaCodecPrimitives.readUuid(buf); // v13+ TopicId (name absent)
+            int partCount = KafkaCodecPrimitives.readVarint(buf) - 1;
+            List<Integer> partitions = new ArrayList<>(partCount);
+            for (int j = 0; j < partCount; j++) {
+                partitions.add(buf.getInt());
+            }
+            KafkaCodecPrimitives.skipTaggedFields(buf); // v12+ trailing section
+            forgotten.add(new FetchRequest.ForgottenTopic(null, topicId, partitions));
+        }
+        String rackId = KafkaCodecPrimitives.readCompactStringNonNullable(buf); // v11+
+        String clusterId = null;
+        int replicaId = -1;
+        long replicaEpoch = -1L;
+        int tagCount = KafkaCodecPrimitives.readVarint(buf); // v12+ trailing section
+        for (int i = 0; i < tagCount; i++) {
+            int tag = KafkaCodecPrimitives.readVarint(buf);
+            int size = KafkaCodecPrimitives.readVarint(buf);
+            int contentStart = buf.position();
+            switch (tag) {
+                case 0: // ClusterId (v12+)
+                    int len = KafkaCodecPrimitives.readVarint(buf) - 1; // compact string prefix
+                    byte[] bytes = new byte[len];
+                    if (len > 0) {
+                        buf.get(bytes);
+                    }
+                    clusterId = new String(bytes, StandardCharsets.UTF_8);
+                    break;
+                case 1: // ReplicaState (KIP-903, v15+): int32 ReplicaId + int64 ReplicaEpoch
+                    replicaId = buf.getInt();
+                    replicaEpoch = buf.getLong();
+                    KafkaCodecPrimitives.skipTaggedFields(buf); // ReplicaState trailing section
+                    break;
+                default: // unknown/ignorable tag — skip
+                    break;
+            }
+            buf.position(contentStart + size);
+        }
+        return new FetchRequest(replicaId, maxWait, minBytes, maxBytes, isolationLevel,
+                sessionId, sessionEpoch, topics, forgotten, rackId, clusterId, replicaEpoch);
+    }
+
+    // ===== v15 — KIP-903 structural branch: the top-level ReplicaId(int32) (spec versions
+    // 0-14) is removed and the replica state moves into the trailing tagged section as a
+    // tagged ReplicaState struct at tag 1 (spec versions 15+; ignorable). The struct is a
+    // 13-byte flexible section — ReplicaId(int32) + ReplicaEpoch(int64), both STANDARD
+    // fixed-width (not tagged inside the struct), followed by its own trailing tagged
+    // section (varint count 0). Wire order of the two top-level tagged fields is ascending
+    // by tag: ClusterId (tag 0, v12+) then ReplicaState (tag 1, v15+); the tagged section
+    // count varint precedes both. The tag is written only when the replica state is present
+    // (replicaId != -1 || replicaEpoch != -1) — the consumer case (replicaId = -1,
+    // replicaEpoch = -1, the in-house client's case) omits it entirely. Everything else is
+    // wire-identical to the v13/v14 request (flexible encoding, TopicId uuid,
+    // LastFetchedEpoch, tagged ClusterId). Response v15 is wire-identical to v13/v14 and
+    // stays on the V13 response methods.
+
+    private static byte[] encodeRequestV15(FetchRequest req) {
+        boolean replicaState = req.replicaId() != -1 || req.replicaEpoch() != -1;
+        byte[] cid = req.clusterId() == null ? null : req.clusterId().getBytes(StandardCharsets.UTF_8);
+        // Fixed 21 (v15 removes the v13/v14 top-level ReplicaId int32): maxWaitMs 4 + minBytes 4
+        // + maxBytes 4 + isolationLevel 1 + sessionId 4 + sessionEpoch 4; topics varint
+        // (count + 1); per topic 16 (TopicId) + varint(parts + 1) + 33 per partition + 1
+        // (per-topic trailing section); per forgotten 16 + varint(parts + 1) + 4 * parts
+        // + 1; rackId compact varint(len + 1) + len; trailing section 1 (count) + ClusterId
+        // tag 0 (tag varint + size varint + compact string) + ReplicaState tag 1 (tag
+        // varint + size varint 1 + struct: int32 + int64 + trailing varint = 13).
+        int size = 21 + KafkaCodecPrimitives.varintSize(req.topics().size() + 1);
+        for (var topic : req.topics()) {
+            size += 16 // v13+ TopicId (replaces the v12 compact topic name)
+                    + KafkaCodecPrimitives.varintSize(topic.partitions().size() + 1)
+                    + 33 * topic.partitions().size()
+                    + 1; // FetchTopic trailing section
+        }
+        size += KafkaCodecPrimitives.varintSize(req.forgottenTopics().size() + 1);
+        for (var ft : req.forgottenTopics()) {
+            size += 16 // v13+ TopicId
+                    + KafkaCodecPrimitives.varintSize(ft.partitions().size() + 1)
+                    + 4 * ft.partitions().size()
+                    + 1; // ForgottenTopic trailing section
+        }
+        byte[] rack = req.rackId().getBytes(StandardCharsets.UTF_8);
+        size += KafkaCodecPrimitives.varintSize(rack.length + 1) + rack.length;
+        size += 1; // trailing tagged section count
+        if (cid != null) {
+            int valueLen = KafkaCodecPrimitives.varintSize(cid.length + 1) + cid.length;
+            size += 1 + KafkaCodecPrimitives.varintSize(valueLen) + valueLen; // tag + size + value
+        }
+        if (replicaState) {
+            size += 1 + 1 + 13; // tag 1 + size varint + struct (int32 + int64 + trailing varint)
+        }
+        ByteBuffer buf = BufferPool.getBuffer(size);
+        buf.putInt(req.maxWaitMs());
+        buf.putInt(req.minBytes());
+        buf.putInt(req.maxBytes());
+        buf.put((byte) req.isolationLevel());
+        buf.putInt(req.sessionId()); // v7+
+        buf.putInt(req.sessionEpoch()); // v7+
+        KafkaCodecPrimitives.writeVarint(buf, req.topics().size() + 1);
+        for (var topic : req.topics()) {
+            KafkaCodecPrimitives.writeUuid(buf, topic.topicId()); // v13+ TopicId
+            KafkaCodecPrimitives.writeVarint(buf, topic.partitions().size() + 1);
+            for (var p : topic.partitions()) {
+                buf.putInt(p.partition());
+                buf.putInt(p.currentLeaderEpoch()); // v9+
+                buf.putLong(p.fetchOffset());
+                buf.putInt(p.lastFetchedEpoch()); // v12+: after FetchOffset
+                buf.putLong(p.logStartOffset()); // v5+
+                buf.putInt(p.partitionMaxBytes());
+                KafkaCodecPrimitives.writeVarint(buf, 0); // FetchPartition trailing section
+            }
+            KafkaCodecPrimitives.writeVarint(buf, 0); // FetchTopic trailing section
+        }
+        KafkaCodecPrimitives.writeVarint(buf, req.forgottenTopics().size() + 1);
+        for (var ft : req.forgottenTopics()) {
+            KafkaCodecPrimitives.writeUuid(buf, ft.topicId()); // v13+ TopicId
+            KafkaCodecPrimitives.writeVarint(buf, ft.partitions().size() + 1);
+            for (int partition : ft.partitions()) {
+                buf.putInt(partition);
+            }
+            KafkaCodecPrimitives.writeVarint(buf, 0); // ForgottenTopic trailing section
+        }
+        KafkaCodecPrimitives.writeCompactStringNonNullable(buf, req.rackId()); // v11+
+        int tagCount = (req.clusterId() != null ? 1 : 0) + (replicaState ? 1 : 0);
+        KafkaCodecPrimitives.writeVarint(buf, tagCount); // v12+ trailing section count
+        if (req.clusterId() != null) {
+            int valueLen = KafkaCodecPrimitives.varintSize(cid.length + 1) + cid.length;
+            KafkaCodecPrimitives.writeVarint(buf, 0); // tag 0: ClusterId
+            KafkaCodecPrimitives.writeVarint(buf, valueLen);
+            KafkaCodecPrimitives.writeVarint(buf, cid.length + 1);
+            buf.put(cid);
+        }
+        if (replicaState) {
+            KafkaCodecPrimitives.writeVarint(buf, 1); // tag 1: ReplicaState (KIP-903)
+            KafkaCodecPrimitives.writeVarint(buf, 13); // struct: 4 + 8 + 1
+            buf.putInt(req.replicaId()); // ReplicaState.ReplicaId (standard int32)
+            buf.putLong(req.replicaEpoch()); // ReplicaState.ReplicaEpoch (standard int64)
+            KafkaCodecPrimitives.writeVarint(buf, 0); // ReplicaState trailing section
+        }
+        buf.flip();
+        return KafkaCodecPrimitives.toBytes(buf);
+    }
     private static byte[] encodeResponseV13(FetchResponse resp) {
         // Fixed 10 (throttleTimeMs 4 + errorCode 2 + sessionId 4); responses varint(count
         // + 1); per topic: 16 (topicId, replaces the v12 compact name) + varint(parts + 1);

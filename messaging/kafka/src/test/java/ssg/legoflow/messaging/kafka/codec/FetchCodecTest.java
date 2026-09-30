@@ -2182,6 +2182,190 @@ class FetchCodecTest {
     }
 
     @Nested
+    @DisplayName("Fetch request v15 (key 1) — KIP-903: top-level ReplicaId removed; replica state in the tagged section")
+    class RequestV15 {
+
+        private static final UUID TOPIC_ID = UUID.fromString("11111111-2222-3333-4444-555555555555");
+
+        /** The 16-byte wire form of {@link #TOPIC_ID}. */
+        private static byte[] topicIdBytes() {
+            return Uuid.bytes(TOPIC_ID);
+        }
+
+        /** The in-house client's request shape: consumer (replicaId = -1, no replica state). */
+        private static FetchRequest v15ConsumerRequest() {
+            return FetchRequest.builder()
+                    .replicaId(-1).maxWaitMs(500).minBytes(1).maxBytes(1048576).isolationLevel(1)
+                    .sessionId(11).sessionEpoch(3)
+                    .topics(List.of(new FetchRequest.TopicFetch("topic", topicIdBytes(),
+                            List.of(FetchRequest.PartitionFetch.builder()
+                                    .partition(0).currentLeaderEpoch(5).fetchOffset(10L)
+                                    .lastFetchedEpoch(7).logStartOffset(42L)
+                                    .partitionMaxBytes(65536)
+                                    .build()))))
+                    .rackId("rack1")
+                    .clusterId("cluster-1")
+                    .build();
+        }
+
+        @Test
+        @DisplayName("v15 consumer request round-trips; the absent ReplicaState stays at the -1 defaults")
+        void v15ConsumerRoundTrip() {
+            var req = v15ConsumerRequest();
+            byte[] body = FetchCodec.encodeRequest((short) 15, req);
+            var decoded = FetchCodec.decodeRequest((short) 15, ByteBuffer.wrap(body));
+
+            assertEquals(-1, decoded.replicaId(), "consumer ReplicaId stays at the -1 default");
+            assertEquals(-1L, decoded.replicaEpoch(), "consumer ReplicaEpoch stays at the -1 default");
+            assertEquals(500, decoded.maxWaitMs());
+            assertEquals(1, decoded.minBytes());
+            assertEquals(1048576, decoded.maxBytes());
+            assertEquals(1, decoded.isolationLevel());
+            assertEquals(11L, decoded.sessionId(), "SessionId (v7+) round-trip");
+            assertEquals(3L, decoded.sessionEpoch(), "SessionEpoch (v7+) round-trip");
+            var t0 = decoded.topics().get(0);
+            assertNull(t0.name(), "topic name is absent from the v13+ wire");
+            assertNotNull(t0.topicId(), "topicId (v13+) present");
+            var p0 = t0.partitions().get(0);
+            assertEquals(5, p0.currentLeaderEpoch(), "CurrentLeaderEpoch (v9+) round-trip");
+            assertEquals(10L, p0.fetchOffset());
+            assertEquals(7, p0.lastFetchedEpoch(), "LastFetchedEpoch (v12+) round-trip");
+            assertEquals(42L, p0.logStartOffset(), "LogStartOffset (v5+) round-trip");
+            assertEquals(65536, p0.partitionMaxBytes());
+            assertEquals("rack1", decoded.rackId(), "RackId (v11+) round-trip");
+            assertEquals("cluster-1", decoded.clusterId(), "ClusterId (v12+ tagged) round-trip");
+        }
+
+        @Test
+        @DisplayName("v15 follower request round-trips ReplicaId/ReplicaEpoch via the tagged ReplicaState")
+        void v15FollowerRoundTrip() {
+            var req = FetchRequest.builder()
+                    .replicaId(2).maxWaitMs(500).minBytes(1).maxBytes(1048576).isolationLevel(1)
+                    .sessionId(11).sessionEpoch(3)
+                    .topics(List.of(new FetchRequest.TopicFetch("topic", topicIdBytes(),
+                            List.of(FetchRequest.PartitionFetch.builder()
+                                    .partition(0).fetchOffset(10L).partitionMaxBytes(65536)
+                                    .build()))))
+                    .rackId("rack1")
+                    .clusterId("cluster-1")
+                    .replicaEpoch(9)
+                    .build();
+
+            byte[] body = FetchCodec.encodeRequest((short) 15, req);
+            var decoded = FetchCodec.decodeRequest((short) 15, ByteBuffer.wrap(body));
+
+            assertEquals(2, decoded.replicaId(), "ReplicaId round-trips via tagged ReplicaState");
+            assertEquals(9L, decoded.replicaEpoch(), "ReplicaEpoch round-trips via tagged ReplicaState");
+            assertEquals("cluster-1", decoded.clusterId());
+        }
+
+        @Test
+        @DisplayName("v15 consumer body is the v13 body minus the 4-byte top-level ReplicaId (rest byte-identical)")
+        void v15IsV13MinusTopLevelReplicaId() {
+            var req = v15ConsumerRequest(); // replicaId = -1 (the consumer case)
+
+            byte[] v13 = FetchCodec.encodeRequest((short) 13, req);
+            byte[] v15 = FetchCodec.encodeRequest((short) 15, req);
+
+            assertEquals(v13.length - 4, v15.length, "v15 drops the 4-byte top-level ReplicaId");
+            assertEquals(-1, ByteBuffer.wrap(v13).getInt(0), "v13 carries the consumer ReplicaId up front");
+            assertArrayEquals(Arrays.copyOfRange(v13, 4, v13.length), v15,
+                    "v15 body is byte-identical to the v13 body after the ReplicaId");
+        }
+
+        @Test
+        @DisplayName("v15 consumer request has the exact 93-byte spec wire layout (no ReplicaState tag)")
+        void v15ConsumerExactBytes() {
+            byte[] body = FetchCodec.encodeRequest((short) 15, v15ConsumerRequest());
+            // Fixed 21 (v15 removes the top-level ReplicaId int32): maxWaitMs 4 + minBytes 4
+            // + maxBytes 4 + isolationLevel 1 + sessionId 4 + sessionEpoch 4; topics count
+            // varint(2) 1; TopicId 16; partitions count varint(2) 1; partition 33 (32 field
+            // bytes + trailing varint(0)); FetchTopic trailing 1; forgotten count varint(1)
+            // 1; rackId compact 1 + 5; trailing section count 1; ClusterId tag 1 + size
+            // varint(10) 1 + compact string 1 + 9. Total 93 (= v13 97 - 4).
+            assertEquals(93, body.length, "exact v15 consumer wire layout");
+
+            ByteBuffer buf = ByteBuffer.wrap(body);
+            assertEquals(500, buf.getInt(), "MaxWaitMs int32 (v15: body starts here, no ReplicaId)");
+            assertEquals(1, buf.getInt(), "MinBytes int32");
+            assertEquals(1048576, buf.getInt(), "MaxBytes int32");
+            assertEquals(1, buf.get() & 0xff, "IsolationLevel int8 (v4+)");
+            assertEquals(11L, buf.getInt(), "SessionId int32 (v7+)");
+            assertEquals(3L, buf.getInt(), "SessionEpoch int32 (v7+)");
+            assertEquals(2, readVarint(buf), "Topics count varint (count + 1, flexible)");
+            byte[] topicId = new byte[16];
+            buf.get(topicId);
+            assertEquals(TOPIC_ID, Uuid.fromBytes(topicId), "TopicId uuid (16 bytes, v13+)");
+            assertEquals(2, readVarint(buf), "Partitions count varint (1 + 1)");
+            assertEquals(0, buf.getInt(), "Partition int32");
+            assertEquals(5, buf.getInt(), "CurrentLeaderEpoch int32 (v9+)");
+            assertEquals(10L, buf.getLong(), "FetchOffset int64");
+            assertEquals(7, buf.getInt(), "LastFetchedEpoch int32 (v12+)");
+            assertEquals(42L, buf.getLong(), "LogStartOffset int64 (v5+)");
+            assertEquals(65536, buf.getInt(), "PartitionMaxBytes int32");
+            assertEquals(0, readVarint(buf), "FetchPartition trailing section count");
+            assertEquals(0, readVarint(buf), "FetchTopic trailing section count");
+            assertEquals(1, readVarint(buf), "ForgottenTopicsData count varint (0 + 1)");
+            assertEquals(6, readVarint(buf), "RackId compact string prefix (5 + 1)");
+            byte[] rack = new byte[5];
+            buf.get(rack);
+            assertEquals("rack1", new String(rack, StandardCharsets.UTF_8), "RackId value");
+            assertEquals(1, readVarint(buf), "top-level trailing section count (ClusterId only; no ReplicaState)");
+            assertEquals(0, readVarint(buf), "ClusterId tag id");
+            assertEquals(10, readVarint(buf), "ClusterId value size (1 + 9)");
+            assertEquals(10, readVarint(buf), "ClusterId compact string prefix (9 + 1)");
+            byte[] cid = new byte[9];
+            buf.get(cid);
+            assertEquals("cluster-1", new String(cid, StandardCharsets.UTF_8), "ClusterId value");
+            assertEquals(0, buf.remaining(), "no trailing bytes");
+        }
+
+        @Test
+        @DisplayName("v15 follower request: tagged section is ClusterId (tag 0) then ReplicaState (tag 1), ascending")
+        void v15FollowerExactBytes() {
+            var req = FetchRequest.builder()
+                    .replicaId(2).maxWaitMs(500).minBytes(1).maxBytes(1048576).isolationLevel(1)
+                    .sessionId(11).sessionEpoch(3)
+                    .topics(List.of(new FetchRequest.TopicFetch("topic", topicIdBytes(),
+                            List.of(FetchRequest.PartitionFetch.builder()
+                                    .partition(0).fetchOffset(10L).partitionMaxBytes(65536)
+                                    .build()))))
+                    .rackId("rack1")
+                    .clusterId("cluster-1")
+                    .replicaEpoch(9)
+                    .build();
+
+            byte[] body = FetchCodec.encodeRequest((short) 15, req);
+            // 21 fixed + 1 (topics count) + 16 (topicId) + 1 (parts count) + 33 (partition)
+            // + 1 (FetchTopic trailing) + 1 (forgotten count) + 6 (rack) + 1 (section count
+            // 2) + 11 (ClusterId) + 15 (ReplicaState: tag 1 + size 1 + 4 + 8 + 1) = 108
+            // (= v13 97 - 4 top-level ReplicaId + 15 ReplicaState).
+            assertEquals(108, body.length, "exact v15 follower wire layout");
+
+            ByteBuffer buf = ByteBuffer.wrap(body);
+            buf.position(21); // fixed section verified in v15ConsumerExactBytes
+            assertEquals(2, readVarint(buf), "Topics count varint");
+            buf.position(buf.position() + 16); // TopicId
+            assertEquals(2, readVarint(buf), "Partitions count varint");
+            buf.position(buf.position() + 33); // partition + its trailing section
+            assertEquals(0, readVarint(buf), "FetchTopic trailing section count");
+            assertEquals(1, readVarint(buf), "ForgottenTopicsData count varint (0 + 1)");
+            assertEquals(6, readVarint(buf), "RackId compact string prefix");
+            buf.position(buf.position() + 5); // RackId value
+            assertEquals(2, readVarint(buf), "top-level trailing section count (ClusterId + ReplicaState)");
+            assertEquals(0, readVarint(buf), "ClusterId tag id (ascending order)");
+            assertEquals(10, readVarint(buf), "ClusterId value size");
+            buf.position(buf.position() + 10); // compact string 1 + 9
+            assertEquals(1, readVarint(buf), "ReplicaState tag id (KIP-903, v15+)");
+            assertEquals(13, readVarint(buf), "ReplicaState struct size (int32 4 + int64 8 + trailing 1)");
+            assertEquals(2, buf.getInt(), "ReplicaState.ReplicaId int32 (standard, not tagged)");
+            assertEquals(9L, buf.getLong(), "ReplicaState.ReplicaEpoch int64 (standard, not tagged)");
+            assertEquals(0, readVarint(buf), "ReplicaState trailing section count");
+            assertEquals(0, buf.remaining(), "no trailing bytes");
+        }
+    }
+
+    @Nested
     @DisplayName("Fetch response v13 (key 1) — TopicId (uuid) replaces the topic name")
     class ResponseV13 {
 
@@ -2338,20 +2522,23 @@ class FetchCodecTest {
     class Dispatch {
 
         @Test
-        @DisplayName("request v15 encode throws CodecNotImplementedException (tagged ReplicaState; next unimplemented)")
-        void v15RequestEncodeNotImplemented() {
-            var req = new FetchRequest(-1, 500, 1, 1048576, 0,
-                    List.of(new FetchRequest.TopicFetch("topic", List.of(
-                            new FetchRequest.PartitionFetch(0, 10L, 65536)))));
-            assertThrows(CodecNotImplementedException.class,
-                    () -> FetchCodec.encodeRequest((short) 15, req));
-        }
-
-        @Test
-        @DisplayName("request v15 decode throws CodecNotImplementedException (tagged ReplicaState; next unimplemented)")
-        void v15RequestDecodeNotImplemented() {
-            assertThrows(CodecNotImplementedException.class,
-                    () -> FetchCodec.decodeRequest((short) 15, ByteBuffer.wrap(new byte[0])));
+        @DisplayName("request v15 round-trips via the v15 dispatch path (KIP-903 tagged ReplicaState)")
+        void v15RequestDispatchRoundTrip() {
+            var req = FetchRequest.builder()
+                    .replicaId(2).maxWaitMs(500).minBytes(1).maxBytes(1048576).isolationLevel(1)
+                    .sessionId(11).sessionEpoch(3)
+                    .topics(List.of(new FetchRequest.TopicFetch(null,
+                            Uuid.bytes(UUID.fromString("11111111-2222-3333-4444-555555555555")),
+                            List.of(FetchRequest.PartitionFetch.builder()
+                                    .partition(0).fetchOffset(10L).partitionMaxBytes(65536)
+                                    .build()))))
+                    .rackId("rack1").clusterId("cluster-1").replicaEpoch(9)
+                    .build();
+            byte[] body = FetchCodec.encodeRequest((short) 15, req);
+            var decoded = FetchCodec.decodeRequest((short) 15, ByteBuffer.wrap(body));
+            assertEquals(2, decoded.replicaId(), "ReplicaId round-trips via tagged ReplicaState");
+            assertEquals(9L, decoded.replicaEpoch(), "ReplicaEpoch round-trips via tagged ReplicaState");
+            assertEquals("cluster-1", decoded.clusterId());
         }
 
         @Test
