@@ -17,6 +17,15 @@ emits, deterministically:
             full field list at vN (name, type, version range, null/tagged),
             + Δ (added/removed/changed) per top-level AND nested struct field,
             + flexible-encoding cutover marker, in plan-doc Δ-table format.
+  order     BINDING wire processing order for vLo..vHi (default: full spec
+            range): layout groups (identical layout = fall-through candidates,
+            derived mechanically — never hand-derived) + field lines per group
+            (fixed section first, trailing tagged section last, ascending tag).
+            This is the field-order source of truth for codecs; it is a pure
+            function of the spec JSON (see CODEC_GENERATION_SPEC.md).
+  freeze    materialize the binding order table to doc/spec/order/<Api>.<Kind>.txt;
+            refuses to overwrite a differing table (order change = spec
+            amendment requiring review).
   matrix    regenerate the whole per-API Δ column (verifies plan-doc rows).
   skeleton  Java encode/decode stubs for version vN mirroring the existing
             FetchCodec style (fixed section, array loops, tagged sections):
@@ -34,10 +43,12 @@ lines which are stripped before json.parse):
   the commit message per the sub-task contract.
 
 Usage:
-  gen_kafka.py delta <Api> <vN> [Request|Response]   # default: both kinds
-  gen_kafka.py matrix [Api ...]                       # Δ tables for APIs
-  gen_kafka.py skeleton <Api> <vN>                    # Java stubs (both kinds)
-  gen_kafka.py apis                                   # list APIs + version ranges
+  gen_kafka.py delta <Api> <vN> [Request|Response]     # default: both kinds
+  gen_kafka.py order <Api> <Request|Response> [vLo] [vHi]
+  gen_kafka.py freeze <Api> <Request|Response>
+  gen_kafka.py matrix [Api ...]                        # Δ tables for APIs
+  gen_kafka.py skeleton <Api> <vN>                     # Java stubs (both kinds)
+  gen_kafka.py apis                                    # list APIs + version ranges
 """
 from __future__ import annotations
 
@@ -82,7 +93,11 @@ def load_spec(path: Path) -> dict:
     raw = path.read_text()
     # spec files carry '//' annotation lines that break json.load
     cleaned = "\n".join(l for l in raw.splitlines() if not l.lstrip().startswith("//"))
-    return json.loads(cleaned)
+    # object_pairs_hook preserves the JSON *array* field order through every
+    # dict level — the binding wire order (doc/CODEC_GENERATION_SPEC.md
+    # "Field processing order"). Never replace this with json.load on
+    # unordered structures: field order is data, not presentation.
+    return json.loads(cleaned, object_pairs_hook=dict)
 
 
 def parse_range(rng: str | None) -> tuple[int, int] | None:
@@ -263,6 +278,133 @@ def snake(name: str) -> str:
     return re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower()
 
 
+# ===== Field processing order (binding; see doc/CODEC_GENERATION_SPEC.md) =====
+#
+# The order is a pure function of the spec JSON: fields[] array order, plus
+# tagged fields (taggedVersions set) appended at the trailing tagged section
+# in ascending tag order, per struct level. No inference, no human re-derivation.
+
+def layout_sig(spec: dict, v: int) -> str:
+    """Colon-joined wire order at v, RECURSIVE over nested struct fields.
+
+    Identical sig for a version run == byte-identical field layout (fall-through
+    candidate); a sig change marks a version group boundary. The flex state is
+    part of the sig: a flexible-encoding cutover changes every string/bytes/array
+    prefix, so a flex-only change must break the run too.
+    """
+    parts = [p for p, _f in _order_recurse(spec.get("fields", []), v)]
+    sig = ":".join(parts)
+    return sig + ("|flex" if flex_at(spec, v) else "")
+
+
+def _order_recurse(fs: list[dict], v: int, path: str = "") -> list[tuple[str, dict]]:
+    """(qualified-name, field) pairs in wire-processing order (fixed first per
+    level, trailing tagged last in ascending tag), recursing into nested structs
+    at their position. Nested struct contents are appended right after the
+    struct field, so the sig reflects the full per-element layout."""
+    out: list[tuple[str, dict]] = []
+    fixed = [f for f in fs if present_at(f, v) and not f.get("taggedVersions")]
+    tagged = sorted(
+        (f for f in fs if present_at(f, v) and f.get("taggedVersions")),
+        key=lambda f: int(f["tag"]),
+    )
+    for f in fixed + tagged:
+        tag = f"({path})" if path else ""
+        if f.get("taggedVersions"):
+            sig_name = f"{tag}{f['name']}[tag{f['tag']}]"
+        elif f.get("versions") and f["versions"] != "0+":
+            sig_name = f"{tag}{f['name']}?"
+        else:
+            sig_name = f"{tag}{f['name']}"
+        out.append((sig_name, f))
+        if f.get("fields"):
+            out.extend(_order_recurse(f["fields"], v, f["name"]))
+    return out
+
+
+def _group_runs(pairs: list[tuple[int, str]]) -> list[str]:
+    """[(v, sig), ...] -> ['v0-v2 -> sig...', 'v3 -> sig...'] compact runs."""
+    runs: list[str] = []
+    i = 0
+    while i < len(pairs):
+        v, sig = pairs[i]
+        j = i
+        while j + 1 < len(pairs) and pairs[j + 1][1] == sig:
+            j += 1
+        span = f"v{v}" if j == i else f"v{v}-v{pairs[j][0]}"
+        runs.append(f"{span} -> {sig}")
+        i = j + 1
+    return runs
+
+
+def order(api: str, v_lo: int | None, v_hi: int | None, kind: str, show_lines: bool) -> str:
+    path = SPEC_DIR / f"{api}{kind}.json"
+    if not path.exists():
+        sys.exit(f"no spec file {path}")
+    spec = load_spec(path)
+    max_v = spec_max(spec)
+    lo = 0 if v_lo is None else v_lo
+    hi = max_v if v_hi is None else min(v_hi, max_v)
+    if lo > hi:
+        sys.exit(f"empty version range v{lo}..v{hi}")
+    flo = flex_lo(spec)
+    L = [f"{api} {kind} — field processing order (binding; spec 3.6.1)"
+         + (f" — flexible encoding from v{flo}" if flo else "")]
+    pairs = [(v, layout_sig(spec, v)) for v in range(lo, hi + 1)]
+    L.append("wire order by layout (equal run = byte-identical field layout):")
+    L.extend("  " + r for r in _group_runs(pairs))
+    if show_lines:
+        L.append("field lines (fixed section first, trailing tagged section last, ascending tag):")
+        for run in _runs(pairs):
+            L.append("  " + _fmt_field_lines(spec, *run))
+    return "\n".join(L)
+
+
+def _runs(pairs: list[tuple[int, str]]) -> list[tuple[int, int]]:
+    """[(v, sig), ...] -> [(v_start, v_end)] of contiguous equal-sig runs."""
+    runs: list[tuple[int, int]] = []
+    i = 0
+    while i < len(pairs):
+        j = i
+        while j + 1 < len(pairs) and pairs[j + 1][1] == pairs[i][1]:
+            j += 1
+        runs.append((pairs[i][0], pairs[j][0]))
+        i = j + 1
+    return runs
+
+
+def _fmt_field_lines(spec: dict, v_lo: int, v_hi: int) -> str:
+    flo = flex_lo(spec)
+    lines = [f"v{v_lo}" + (f"-v{v_hi}" if v_hi > v_lo else "") + ":"]
+    for v in range(v_lo, v_hi + 1):
+        fs = [f for f in spec.get("fields", []) if present_at(f, v)]
+        fixed = [f for f in fs if not f.get("taggedVersions")]
+        tagged = sorted((f for f in fs if f.get("taggedVersions")), key=lambda f: int(f["tag"]))
+        f1 = ", ".join(f"{f['name']}({type_of(f)})"
+                       + (" [flex]" if flo is not None and v >= flo else "")
+                       for f in fixed) or "∅"
+        f2 = ", ".join(f"tag{f['tag']} {f['name']}({type_of(f)})" for f in tagged) or "∅"
+        lines.append(f"  v{v}: fixed: {f1} || tagged: {f2}")
+    return "\n".join(lines)
+
+
+def freeze(api: str, kind: str) -> None:
+    """Write the binding order table to doc/spec/order/<Api>.<kind>.txt.
+
+    Refuses to overwrite a differing file: any order change is a spec
+    amendment requiring review, never a silent generator rewrite.
+    """
+    text = order(api, None, None, kind, show_lines=True)
+    out = Path(__file__).resolve().parent / "doc" / "spec" / "order" / f"{api}.{kind}.txt"
+    if out.exists() and out.read_text() != text:
+        sys.exit(f"{out} differs — field order changed vs the frozen table; "
+                 "review the spec delta before re-freezing (CODEC_GENERATION_SPEC.md, "
+                 "section 'Field processing order')")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(text)
+    print(f"frozen: {out}")
+
+
 def skeleton(api: str, v: int) -> str:
     out = []
     for kind, var in (("Request", "req"), ("Response", "resp")):
@@ -365,6 +507,19 @@ def main() -> None:
         return
     if cmd == "matrix":
         print(matrix(sys.argv[2:]))
+        return
+    if cmd == "order":
+        if len(sys.argv) < 4:
+            sys.exit("usage: gen_kafka.py order <Api> <Request|Response> [vLo] [vHi]")
+        api, kind = sys.argv[2], sys.argv[3]
+        v_lo = int(sys.argv[4]) if len(sys.argv) > 4 else None
+        v_hi = int(sys.argv[5]) if len(sys.argv) > 5 else None
+        print(order(api, v_lo, v_hi, kind, show_lines=True))
+        return
+    if cmd == "freeze":
+        if len(sys.argv) < 4:
+            sys.exit("usage: gen_kafka.py freeze <Api> <Request|Response>")
+        freeze(sys.argv[2], sys.argv[3])
         return
     if cmd == "skeleton":
         if len(sys.argv) < 4:
