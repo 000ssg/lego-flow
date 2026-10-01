@@ -1,0 +1,22 @@
+ListOffsets Request — field processing order (binding; spec 3.6.1) — flexible encoding from v6
+wire order by layout (equal run = byte-identical field layout):
+  v0 -> ReplicaId:Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)Timestamp:(Partitions)MaxNumOffsets?
+  v1 -> ReplicaId:Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)Timestamp
+  v2-v3 -> ReplicaId:IsolationLevel?:Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)Timestamp
+  v4-v5 -> ReplicaId:IsolationLevel?:Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)CurrentLeaderEpoch?:(Partitions)Timestamp
+  v6-v8 -> ReplicaId:IsolationLevel?:Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)CurrentLeaderEpoch?:(Partitions)Timestamp|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0:
+  v0: fixed: ReplicaId(int32), Topics([]ListOffsetsTopic) || tagged: ∅
+  v1:
+  v1: fixed: ReplicaId(int32), Topics([]ListOffsetsTopic) || tagged: ∅
+  v2-v3:
+  v2: fixed: ReplicaId(int32), IsolationLevel(int8), Topics([]ListOffsetsTopic) || tagged: ∅
+  v3: fixed: ReplicaId(int32), IsolationLevel(int8), Topics([]ListOffsetsTopic) || tagged: ∅
+  v4-v5:
+  v4: fixed: ReplicaId(int32), IsolationLevel(int8), Topics([]ListOffsetsTopic) || tagged: ∅
+  v5: fixed: ReplicaId(int32), IsolationLevel(int8), Topics([]ListOffsetsTopic) || tagged: ∅
+  v6-v8:
+  v6: fixed: ReplicaId(int32) [flex], IsolationLevel(int8) [flex], Topics([]ListOffsetsTopic) [flex] || tagged: ∅
+  v7: fixed: ReplicaId(int32) [flex], IsolationLevel(int8) [flex], Topics([]ListOffsetsTopic) [flex] || tagged: ∅
+  v8: fixed: ReplicaId(int32) [flex], IsolationLevel(int8) [flex], Topics([]ListOffsetsTopic) [flex] || tagged: ∅
