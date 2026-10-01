@@ -396,67 +396,46 @@ public final class KafkaCodec {
 
     // ===== ListOffsets (2) =====
 
+    /**
+     * Encodes a ListOffsets request body (v1: ReplicaId + Topics[Name +
+     * Partitions[PartitionIndex + Timestamp]]).
+     *
+     * @param req the request
+     * @return the encoded bytes
+     */
     public static byte[] encodeListOffsetsRequest(ListOffsetsRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putInt(req.topics().size());
-        for (var t : req.topics()) {
-            writeString(buf, t.name());
-            buf.putInt(t.partitions().size());
-            for (var p : t.partitions()) {
-                buf.putInt(p.partitionIndex());
-                buf.putLong(p.timestamp());
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return ListOffsetsCodec.encodeRequest(ListOffsetsCodec.PINNED_VERSION, req);
     }
 
+    /**
+     * Decodes a ListOffsets request body (v1).
+     *
+     * @param buf the buffer
+     * @return the decoded request
+     */
     public static ListOffsetsRequest decodeListOffsetsRequest(ByteBuffer buf) {
-        int topicCount = buf.getInt();
-        List<ListOffsetsRequest.TopicOffsets> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String name = readString(buf);
-            int partCount = buf.getInt();
-            List<ListOffsetsRequest.PartitionOffsets> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                parts.add(new ListOffsetsRequest.PartitionOffsets(buf.getInt(), buf.getLong()));
-            }
-            topics.add(new ListOffsetsRequest.TopicOffsets(name, parts));
-        }
-        return new ListOffsetsRequest(topics);
+        return ListOffsetsCodec.decodeRequest(ListOffsetsCodec.PINNED_VERSION, buf);
     }
 
+    /**
+     * Encodes a ListOffsets response body (v1: Topics[Name +
+     * Partitions[PartitionIndex + ErrorCode + Timestamp + Offset]]).
+     *
+     * @param resp the response
+     * @return the encoded bytes
+     */
     public static byte[] encodeListOffsetsResponse(ListOffsetsResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putInt(resp.topics().size());
-        for (var t : resp.topics()) {
-            writeString(buf, t.name());
-            buf.putInt(t.partitions().size());
-            for (var p : t.partitions()) {
-                buf.putInt(p.partitionIndex());
-                buf.putShort(p.errorCode());
-                buf.putLong(p.timestamp());
-                buf.putLong(p.offset());
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return ListOffsetsCodec.encodeResponse(ListOffsetsCodec.PINNED_VERSION, resp);
     }
 
+    /**
+     * Decodes a ListOffsets response body (v1).
+     *
+     * @param buf the buffer
+     * @return the decoded response
+     */
     public static ListOffsetsResponse decodeListOffsetsResponse(ByteBuffer buf) {
-        int topicCount = buf.getInt();
-        List<ListOffsetsResponse.TopicResponse> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String name = readString(buf);
-            int partCount = buf.getInt();
-            List<ListOffsetsResponse.PartitionResponse> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                parts.add(new ListOffsetsResponse.PartitionResponse(
-                        buf.getInt(), buf.getShort(), buf.getLong(), buf.getLong()));
-            }
-            topics.add(new ListOffsetsResponse.TopicResponse(name, parts));
-        }
-        return new ListOffsetsResponse(topics);
+        return ListOffsetsCodec.decodeResponse(ListOffsetsCodec.PINNED_VERSION, buf);
     }
 
     // ===== FindCoordinator (10) =====
