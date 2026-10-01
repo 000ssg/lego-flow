@@ -138,15 +138,15 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (7 fields): ReplicaId, Topics, Name, Partitions, PartitionIndex, Timestamp, MaxNumOffsets | ☐ | |
-| v1 | + Timestamp:int64[1+], Offset:int64[1+]<br>− MaxNumOffsets:int32[0], OldStyleOffsets:[]int64[0] | ☐ | |
-| v2 | + IsolationLevel:int8[2+], ThrottleTimeMs:int32[2+] | ☐ | |
-| v3 | unchanged | ☐ | |
-| v4 | + CurrentLeaderEpoch:int32[4+], LeaderEpoch:int32[4+] | ☐ | |
-| v5 | unchanged | ☐ | |
-| v6 | → flexible encoding | ☐ | |
-| v7 | unchanged | ☐ | |
-| v8 | unchanged | ☐ | |
+| v0 | base (7 fields): ReplicaId, Topics, Name, Partitions, PartitionIndex, Timestamp, MaxNumOffsets | ✓ | ec1a6ea3 |
+| v1 | + Timestamp:int64[1+], Offset:int64[1+]<br>− MaxNumOffsets:int32[0], OldStyleOffsets:[]int64[0] | ✓ | ec1a6ea3 |
+| v2 | + IsolationLevel:int8[2+], ThrottleTimeMs:int32[2+] | ✓ | ec1a6ea3 |
+| v3 | unchanged | ✓ | ec1a6ea3 |
+| v4 | + CurrentLeaderEpoch:int32[4+], LeaderEpoch:int32[4+] | ✓ | ec1a6ea3 |
+| v5 | unchanged | ✓ | ec1a6ea3 |
+| v6 | → flexible encoding | ✓ | ec1a6ea3 |
+| v7 | unchanged | ✓ | ec1a6ea3 |
+| v8 | unchanged | ✓ | ec1a6ea3 |
 
 ## Metadata/Cluster
 

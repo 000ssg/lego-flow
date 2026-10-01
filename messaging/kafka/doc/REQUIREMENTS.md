@@ -388,6 +388,27 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 | Lines added/removed | +416 / -31 |
 | Tests added | 6 net +4 (594 total) |
 
+---
+
+## Commit: `ec1a6ea3` — ListOffsets v0–v8 (Record I/O rows 137–145, sub-category completion)
+
+- **ListOffsets v0–v8 codec**: new dedicated `ListOffsetsCodec` — the first spec-correct ListOffsets implementation (all 9 rows at once, per the vendored ListOffsetsRequest.json / ListOffsetsResponse.json, spec-validated in `doc/spec/SPEC_VALIDATION_ListOffsets.md`). The old inline `KafkaCodec.encodeListOffsetsRequest` omitted the mandatory leading `ReplicaId` int32 (it started at `numTopics`), so every admin ListOffsets call was malformed on the wire; the new codec writes `ReplicaId` first. Client/broker interaction is pinned at v1 (the earliest version returning the per-partition `Timestamp` + `Offset` pair); the full range v0–v8 is encoded/decoded in both directions: v0 request `MaxNumOffsets` int32, v0 response `OldStyleOffsets` int64[1+], v2+ request `IsolationLevel` int8 / response `ThrottleTimeMs` int32, v4+ `CurrentLeaderEpoch` / `LeaderEpoch` int32, v6+ flexible encoding with compact arrays/strings + tagged fields.
+- **Models** (constructor arities preserved — all call sites unchanged): `ListOffsetsRequest` / `ListOffsetsResponse` are kept at the compact v1 shape (`PartitionIndex` / `Timestamp` / `Offset`); version-gated fields are handled in the codec — written with their spec defaults and read + discarded on decode — so `PartitionOffsets(partitionIndex, timestamp)` and `PartitionResponse(partitionIndex, errorCode, timestamp, offset)` keep their arities and `KafkaBroker` / `KafkaAdminClient` callers are untouched.
+- **KafkaCodec facade**: `encode/decodeListOffsetsRequest` and `encode/decodeListOffsetsResponse` now delegate to `ListOffsetsCodec`; the malformed inline `encodeListOffsetsRequest` is removed.
+- **New tests**: `ListOffsetsCodecTest` (23 tests — byte-for-byte layout assertions vs the canonical spec JSONs, exact 13-byte v1 request + 18-byte v1 response walks, pin validation, full v0–v8 range both directions, version guards).
+
+### Test Coverage
+- ListOffsetsCodecTest 23 tests; full module 594 → 617 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 1 (KafkaCodec) + 2 new (ListOffsetsCodec, ListOffsetsCodecTest) |
+| Lines added/removed | +863 / -51 |
+| Tests added | 23 (617 total) |
+
+- **Sub-category**: Record I/O is now complete (35 rows = Produce v0–9 + Fetch v0–15 + ListOffsets v0–8); remaining Admin (35), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
+
 ## Document Maintenance
 
 - This document is append-only for commit sections
