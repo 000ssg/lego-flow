@@ -401,14 +401,14 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (11 fields): Topics, Name, NumPartitions, ReplicationFactor, Assignments, PartitionIndex, BrokerIds, Configs, Name, Value, timeoutMs | ☐ | |
-| v1 | + validateOnly:bool[1+], ErrorMessage:string[1+](null:0+) | ☐ | |
-| v2 | + ThrottleTimeMs:int32[2+] | ☐ | |
-| v3 | unchanged | ☐ | |
-| v4 | unchanged | ☐ | |
-| v5 | + TopicConfigErrorCode:int16[5+], NumPartitions:int32[5+], ReplicationFactor:int16[5+], Configs:[]CreatableTopicConfigs[5+](null:5+), Name:string[5+], Value:string[5+](null:5+), ReadOnly:bool[5+], ConfigSource:int8[5+], IsSensitive:bool[5+]<br>→ flexible encoding | ☐ | |
-| v6 | unchanged | ☐ | |
-| v7 | + TopicId:uuid[7+] | ☐ | |
+| v0 | base (11 fields): Topics, Name, NumPartitions, ReplicationFactor, Assignments, PartitionIndex, BrokerIds, Configs, Name, Value, timeoutMs | ✓ | 6a9bd355 |
+| v1 | + validateOnly:bool[1+](request), ErrorMessage:string[1+](null:0+)(response) | ✓ | 6a9bd355 |
+| v2 | + ThrottleTimeMs:int32[2+](response) | ✓ | 6a9bd355 |
+| v3 | unchanged | ✓ | 6a9bd355 |
+| v4 | unchanged | ✓ | 6a9bd355 |
+| v5 | + TopicConfigErrorCode:int16[5+](tag 0), NumPartitions:int32[5+](dflt -1), ReplicationFactor:int16[5+](dflt -1), Configs:[]CreatableTopicConfigs[5+](null:5+)<Name:string[5+], Value:string[5+](null:5+), ReadOnly:bool[5+], ConfigSource:int8[5+](dflt -1), IsSensitive:bool[5+]> (response)<br>→ flexible encoding | ✓ | 6a9bd355 |
+| v6 | unchanged | ✓ | 6a9bd355 |
+| v7 | + TopicId:uuid[7+](response) | ✓ | 6a9bd355 |
 
 ### DeleteTopics (API 20) — v0..v6
 

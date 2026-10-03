@@ -409,6 +409,25 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 - **Sub-category**: Record I/O is now complete (35 rows = Produce v0–9 + Fetch v0–15 + ListOffsets v0–8); remaining Admin (35), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
 
+## Commit: `6a9bd355` — CreateTopics v0–v7 (Admin rows 167–174, sub-category start)
+
+- **CreateTopics v0–v7 codec**: new dedicated `CreateTopicsCodec` — the first spec-correct CreateTopics implementation (all 8 rows at once, per the vendored CreateTopicsRequest.json / CreateTopicsResponse.json, frozen order tables in `doc/spec/order/CreateTopics.{Request,Response}.txt`). The old inline `KafkaCodec.encodeCreateTopicsRequest` omitted the mandatory Assignments array in each CreatableTopic (v0+), so every admin CreateTopics frame was desynced against spec-compliant peers; the new codec writes the full spec layout (Topics[] with the Assignments array). Client/broker interaction is pinned at v0; the full range v0–v7 is encoded/decoded in both directions (v0 request base: Topics[] with Name/NumPartitions/ReplicationFactor/Assignments/PartitionIndex/BrokerIds/Configs + timeoutMs; v1+ request validateOnly; v5+ flexible encoding with compact arrays/strings + tagged fields; response v0 Name/ErrorCode, v1+ ErrorMessage (nullable, read+discarded), v2+ ThrottleTimeMs, v5+ TopicConfigErrorCode (tag 0)/NumPartitions/ReplicationFactor/Configs (nullable, spec defaults -1), v7+ TopicId (non-nullable uuid, fixed 16 bytes on the wire)).
+- **Models** (constructor arities preserved — all call sites unchanged): `CreateTopicsRequest` gains the nested `TopicCreate` + `Assignment` records + the `assignments` field (the Assignments array is mandatory on the wire v0+); version-gated response fields are handled in the codec — written with their spec defaults and read + discarded on decode.
+- **KafkaCodec facade**: `encode/decodeCreateTopicsRequest` and `encode/decodeCreateTopicsResponse` now delegate to `CreateTopicsCodec`; the malformed inline bodies are removed.
+- **New tests**: `CreateTopicsCodecTest` (25 tests — byte-for-byte layout assertions vs the canonical spec JSONs, exact pinned v0 request/response walks, full v0–v7 range both directions, flexible layout, version guards).
+
+### Test Coverage
+- CreateTopicsCodecTest 25 tests; full module 617 → 642 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 2 (KafkaCodec, CreateTopicsRequest) + 2 new (CreateTopicsCodec, CreateTopicsCodecTest) |
+| Lines added/removed | +989 / -48 |
+| Tests added | 25 (642 total) |
+
+- **Sub-category**: Admin started (CreateTopics 8/35 rows); remaining Admin (27), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
+
 ## Document Maintenance
 
 - This document is append-only for commit sections
