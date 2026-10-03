@@ -782,63 +782,46 @@ public final class KafkaCodec {
 
     // ===== CreateTopics (19) =====
 
+    /**
+     * Encodes a CreateTopics request body (pinned version; Assignments array v0+,
+     * validateOnly v1+; see {@link CreateTopicsCodec} for version-gated layout).
+     *
+     * @param req the request
+     * @return the encoded bytes
+     */
     public static byte[] encodeCreateTopicsRequest(CreateTopicsRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putInt(req.topics().size());
-        for (var t : req.topics()) {
-            writeString(buf, t.name());
-            buf.putInt(t.numPartitions());
-            buf.putShort(t.replicationFactor());
-            // Configs
-            buf.putInt(t.configs() != null ? t.configs().size() : 0);
-            if (t.configs() != null) {
-                for (var e : t.configs().entrySet()) {
-                    writeString(buf, e.getKey());
-                    writeNullableString(buf, e.getValue());
-                }
-            }
-        }
-        buf.putInt(req.timeoutMs());
-        buf.flip();
-        return toBytes(buf);
+        return CreateTopicsCodec.encodeRequest(CreateTopicsCodec.PINNED_VERSION, req);
     }
 
+    /**
+     * Decodes a CreateTopics request body (pinned version).
+     *
+     * @param buf the buffer
+     * @return the decoded request
+     */
     public static CreateTopicsRequest decodeCreateTopicsRequest(ByteBuffer buf) {
-        int topicCount = buf.getInt();
-        List<CreateTopicsRequest.TopicCreate> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String name = readString(buf);
-            int numParts = buf.getInt();
-            short repFactor = buf.getShort();
-            int configCount = buf.getInt();
-            Map<String, String> configs = new LinkedHashMap<>();
-            for (int j = 0; j < configCount; j++) {
-                configs.put(readString(buf), readNullableString(buf));
-            }
-            topics.add(new CreateTopicsRequest.TopicCreate(name, numParts, repFactor, configs));
-        }
-        int timeout = buf.getInt();
-        return new CreateTopicsRequest(topics, timeout);
+        return CreateTopicsCodec.decodeRequest(CreateTopicsCodec.PINNED_VERSION, buf);
     }
 
+    /**
+     * Encodes a CreateTopics response body (pinned version; ThrottleTimeMs v2+,
+     * ErrorMessage v1+; see {@link CreateTopicsCodec} for version-gated layout).
+     *
+     * @param resp the response
+     * @return the encoded bytes
+     */
     public static byte[] encodeCreateTopicsResponse(CreateTopicsResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putInt(resp.topics().size());
-        for (var t : resp.topics()) {
-            writeString(buf, t.name());
-            buf.putShort(t.errorCode());
-        }
-        buf.flip();
-        return toBytes(buf);
+        return CreateTopicsCodec.encodeResponse(CreateTopicsCodec.PINNED_VERSION, resp);
     }
 
+    /**
+     * Decodes a CreateTopics response body (pinned version).
+     *
+     * @param buf the buffer
+     * @return the decoded response
+     */
     public static CreateTopicsResponse decodeCreateTopicsResponse(ByteBuffer buf) {
-        int count = buf.getInt();
-        List<CreateTopicsResponse.TopicResult> topics = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            topics.add(new CreateTopicsResponse.TopicResult(readString(buf), buf.getShort()));
-        }
-        return new CreateTopicsResponse(topics);
+        return CreateTopicsCodec.decodeResponse(CreateTopicsCodec.PINNED_VERSION, buf);
     }
 
     // ===== DeleteTopics (20) =====
