@@ -826,43 +826,46 @@ public final class KafkaCodec {
 
     // ===== DeleteTopics (20) =====
 
+    /**
+     * Encodes a DeleteTopics request body (pinned version; TopicNames v0–v5,
+     * Topics[]DeleteTopicState v6; see {@link DeleteTopicsCodec} for version-gated layout).
+     *
+     * @param req the request
+     * @return the encoded bytes
+     */
     public static byte[] encodeDeleteTopicsRequest(DeleteTopicsRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putInt(req.topicNames().size());
-        for (String name : req.topicNames()) {
-            writeString(buf, name);
-        }
-        buf.putInt(req.timeoutMs());
-        buf.flip();
-        return toBytes(buf);
+        return DeleteTopicsCodec.encodeRequest(DeleteTopicsCodec.PINNED_VERSION, req);
     }
 
+    /**
+     * Decodes a DeleteTopics request body (pinned version).
+     *
+     * @param buf the buffer
+     * @return the decoded request
+     */
     public static DeleteTopicsRequest decodeDeleteTopicsRequest(ByteBuffer buf) {
-        int count = buf.getInt();
-        List<String> names = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) names.add(readString(buf));
-        int timeout = buf.getInt();
-        return new DeleteTopicsRequest(names, timeout);
+        return DeleteTopicsCodec.decodeRequest(DeleteTopicsCodec.PINNED_VERSION, buf);
     }
 
+    /**
+     * Encodes a DeleteTopics response body (pinned version; ThrottleTimeMs v1+,
+     * ErrorMessage v5+, TopicId v6+; see {@link DeleteTopicsCodec} for version-gated layout).
+     *
+     * @param resp the response
+     * @return the encoded bytes
+     */
     public static byte[] encodeDeleteTopicsResponse(DeleteTopicsResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putInt(resp.responses().size());
-        for (var t : resp.responses()) {
-            writeString(buf, t.name());
-            buf.putShort(t.errorCode());
-        }
-        buf.flip();
-        return toBytes(buf);
+        return DeleteTopicsCodec.encodeResponse(DeleteTopicsCodec.PINNED_VERSION, resp);
     }
 
+    /**
+     * Decodes a DeleteTopics response body (pinned version).
+     *
+     * @param buf the buffer
+     * @return the decoded response
+     */
     public static DeleteTopicsResponse decodeDeleteTopicsResponse(ByteBuffer buf) {
-        int count = buf.getInt();
-        List<DeleteTopicsResponse.TopicResult> results = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            results.add(new DeleteTopicsResponse.TopicResult(readString(buf), buf.getShort()));
-        }
-        return new DeleteTopicsResponse(results);
+        return DeleteTopicsCodec.decodeResponse(DeleteTopicsCodec.PINNED_VERSION, buf);
     }
 
     // ===== DescribeGroups (15) =====

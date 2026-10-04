@@ -414,13 +414,13 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (2 fields): TopicNames, TimeoutMs | ☐ | |
-| v1 | + ThrottleTimeMs:int32[1+] | ☐ | |
-| v2 | unchanged | ☐ | |
-| v3 | unchanged | ☐ | |
-| v4 | → flexible encoding | ☐ | |
-| v5 | + ErrorMessage:string[5+](null:5+) | ☐ | |
-| v6 | + Topics:[]DeleteTopicState[6+], Name:string[6+](null:6+), TopicId:uuid[6+], TopicId:uuid[6+]<br>− TopicNames:[]string[0-5] | ☐ | |
+| v0 | base (2 fields): TopicNames, TimeoutMs | ✓ | `PENDING` |
+| v1 | + ThrottleTimeMs:int32[1+](response) | ✓ | `PENDING` |
+| v2 | unchanged | ✓ | `PENDING` |
+| v3 | unchanged | ✓ | `PENDING` |
+| v4 | → flexible encoding | ✓ | `PENDING` |
+| v5 | + ErrorMessage:string[5+](null:5+)(response) | ✓ | `PENDING` |
+| v6 | + Topics:[]DeleteTopicState[6+], Name:string[6+](null:6+), TopicId:uuid[6+], TopicId:uuid[6+](response)<br>− TopicNames:[]string[0-5] | ✓ | `PENDING` |
 
 ### DeleteRecords (API 21) — v0..v2
 

@@ -1,0 +1,16 @@
+DeleteTopics Request — field processing order (binding; spec 3.6.1) — flexible encoding from v4
+wire order by layout (equal run = byte-identical field layout):
+  v0-v3 -> TopicNames?:TimeoutMs
+  v4-v5 -> TopicNames?:TimeoutMs|flex
+  v6 -> Topics?:(Topics)Name?:(Topics)TopicId?:TimeoutMs|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0-v3:
+  v0: fixed: TopicNames([]string), TimeoutMs(int32) || tagged: ∅
+  v1: fixed: TopicNames([]string), TimeoutMs(int32) || tagged: ∅
+  v2: fixed: TopicNames([]string), TimeoutMs(int32) || tagged: ∅
+  v3: fixed: TopicNames([]string), TimeoutMs(int32) || tagged: ∅
+  v4-v5:
+  v4: fixed: TopicNames([]string) [flex], TimeoutMs(int32) [flex] || tagged: ∅
+  v5: fixed: TopicNames([]string) [flex], TimeoutMs(int32) [flex] || tagged: ∅
+  v6:
+  v6: fixed: Topics([]DeleteTopicState) [flex], TimeoutMs(int32) [flex] || tagged: ∅

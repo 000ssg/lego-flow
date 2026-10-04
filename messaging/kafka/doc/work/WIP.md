@@ -37,19 +37,14 @@ without re-deriving where/what is in flight.
 - Commit: `git add <files>`, heredoc message + `Co-Authored-By: AI assistant`, update
   plan matrix + PROGRESS.md + module doc/REQUIREMENTS.md; NEVER push.
 
-## Activity: DeleteTopics (API 20) v0–v6 — dedicated codec (NEXT, not started)
+## Activity: (none — idle)
 
-## Last completed (2026-10-03): CreateTopics (API 19) v0–v7 — dedicated codec ✓
+## Last completed (2026-10-04): DeleteTopics (API 20) v0–v6 — dedicated codec ✓
 
-Committed in 3 commits: specs `c0c82322` (frozen order tables
-`doc/spec/order/CreateTopics.{Request,Response}.txt`), code `6a9bd355`
-(new `CreateTopicsCodec` v0–v7 both directions, pinned v0; facade delegation;
-model `CreateTopicsRequest` + TopicCreate/Assignment + assignments; the old
-inline request omitted the mandatory Assignments array — fixed), docs/matrix
-(next commit): all 8 rows checked (matrix rows 167–174), `CODEC_VALIDATION_CreateTopics.md`,
-PROGRESS.md (Admin checklist row + Log), REQUIREMENTS.md commit section.
-Note: 3 ListOffsets docs (`RULES.md`, `CODEC_VALIDATION_ListOffsets.md`,
-`doc/spec/SPEC_VALIDATION_ListOffsets.md`) were NEVER committed — still untracked
-as of this session; `doc/work/` (WIP.md + LISTOFFSETS_SETTLED.md) also untracked.
-Tests: CreateTopicsCodecTest 25; full module 617 → 642 green, 0F/0E/0S.
-Next: DeleteTopics v0–v6 (matrix rows 175–181) — freeze order tables first, then codec + test per the same pattern.
+Committed: frozen order tables + new `DeleteTopicsCodec` v0–v6 both directions
+(pinned v0; request v0–v3 byte-identical, v4+ flexible, v6 reorganized into
+Topics[]DeleteTopicState[Name?, TopicId] — names + all-zero TopicId; response v1+
+ThrottleTimeMs, v5+ ErrorMessage, v6+ TopicId — spec defaults written, read + discarded;
+models unchanged) + `DeleteTopicsCodecTest` (22 tests) + facade delegation + docs/matrix
+(rows 175–181 checked). Full module 642 → 664 green, 0F/0E/0S.
+Next: DeleteRecords (API 21) v0–v2 (matrix rows 182–184) or next Admin API per plan.
