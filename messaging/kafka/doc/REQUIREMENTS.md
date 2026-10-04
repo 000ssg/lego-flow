@@ -447,7 +447,7 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 | Files added | 5 (doc-only) |
 | Tests added | 0 |
 
-## Commit: `PENDING` — DeleteTopics v0–v6 (Admin rows 175–181)
+## Commit: `a32bd1a4` — DeleteTopics v0–v6 (Admin rows 175–181)
 
 - **DeleteTopics v0–v6 codec**: new dedicated `DeleteTopicsCodec` — spec-correct DeleteTopics implementation (all 7 rows at once, per the vendored DeleteTopicsRequest.json / DeleteTopicsResponse.json, frozen order tables in `doc/spec/order/DeleteTopics.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v6 is encoded/decoded in both directions. Request: v0–v3 byte-identical (`int32 count + [int16 name] + int32 timeoutMs`); v4+ flexible (KIP-482: varint N+1 count, compact strings); v6 structural branch — the flat TopicNames[] is reorganized into `Topics[]DeleteTopicState[Name? (nullable compact), TopicId (uuid)]` + timeoutMs, with names written as Name and the all-zero uuid as TopicId (the in-house model carries only names; an ID-addressed v6 request cannot round-trip to it — documented in the codec javadoc). Response: v0 (`int32 count + [int16 name, int16 errorCode]`), v1+ leading ThrottleTimeMs (spec default 0, written + discarded), v4+ flexible, v5+ per-result ErrorMessage (nullable compact, spec default null, read + discarded), v6+ per-result TopicId (fixed 16 bytes, all-zero absent default, read + discarded).
 - **Models** (unchanged — constructor arities preserved, all call sites untouched): `DeleteTopicsRequest(topicNames, timeoutMs)` and `DeleteTopicsResponse(responses[])` keep their shape; every version-gated field is handled in the codec (written with the spec default, read + discarded on decode), documented in the codec class javadoc.
