@@ -428,6 +428,25 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 - **Sub-category**: Admin started (CreateTopics 8/35 rows); remaining Admin (27), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
 
+## Commit: doc-only — ListOffsets validation docs + settled rules + work ledger (retroactive)
+
+- **Docs committed** (no code change — these were written during the ListOffsets sub-task but left untracked):
+  - `doc/RULES.md` — module-level settled rules (spec JSONs authoritative/frozen, `//` comments legal, field order = spec `fields` order, no re-litigating settled decisions).
+  - `doc/CODEC_VALIDATION_ListOffsets.md` — ListOffsets v0–v8 field/byte-order validation notes (LOCKED): the v1 pin rationale, request/response field tables, the old inline facade bug (omitted leading `ReplicaId`), codec design, flexible size-calc notes.
+  - `doc/spec/SPEC_VALIDATION_ListOffsets.md` — grounded spec validation: vendored `ListOffsetsRequest/Response.json` are byte-identical to Apache Kafka 3.6.1; all ListOffsets faults were in the Java models + old inline facade, not the spec; hallucinated fields removed, missing fields added; decoded-default semantics table.
+  - `doc/work/LISTOFFSETS_SETTLED.md` — reusable evaluation ledger (settled per-version Δ for all APIs used downstream).
+  - `doc/work/WIP.md` — fast-recovery ledger (environment, conventions, next activity = DeleteTopics v0–v6, matrix rows 175–181).
+- **Effect**: single source of truth for the ListOffsets/CODEC_VALIDATION validation results is now under version control; the WIP ledger documents where the codec work is in flight for sub-2-minute recovery.
+
+### Test Coverage
+- No code changes; full module stays 642 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files added | 5 (doc-only) |
+| Tests added | 0 |
+
 ## Document Maintenance
 
 - This document is append-only for commit sections
