@@ -426,9 +426,9 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (6 fields): Topics, Name, Partitions, PartitionIndex, Offset, TimeoutMs | ☐ | |
-| v1 | unchanged | ☐ | |
-| v2 | → flexible encoding | ☐ | |
+| v0 | base (6 fields): Topics, Name, Partitions, PartitionIndex, Offset, TimeoutMs | ✓ | `PENDING` |
+| v1 | unchanged | ✓ | `PENDING` |
+| v2 | → flexible encoding | ✓ | `PENDING` |
 
 ### CreatePartitions (API 37) — v0..v3
 

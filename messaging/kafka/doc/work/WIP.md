@@ -37,14 +37,16 @@ without re-deriving where/what is in flight.
 - Commit: `git add <files>`, heredoc message + `Co-Authored-By: AI assistant`, update
   plan matrix + PROGRESS.md + module doc/REQUIREMENTS.md; NEVER push.
 
-## Activity: (none — idle)
+## Activity: (none — DeleteRecords committed; idle)
 
-## Last completed (2026-10-04): DeleteTopics (API 20) v0–v6 — dedicated codec ✓
+## Last completed (2026-10-05): DeleteRecords (API 21) v0–v2 — dedicated codec ✓
 
-Committed: frozen order tables + new `DeleteTopicsCodec` v0–v6 both directions
-(pinned v0; request v0–v3 byte-identical, v4+ flexible, v6 reorganized into
-Topics[]DeleteTopicState[Name?, TopicId] — names + all-zero TopicId; response v1+
-ThrottleTimeMs, v5+ ErrorMessage, v6+ TopicId — spec defaults written, read + discarded;
-models unchanged) + `DeleteTopicsCodecTest` (22 tests) + facade delegation + docs/matrix
-(rows 175–181 checked). Full module 642 → 664 green, 0F/0E/0S.
-Next: DeleteRecords (API 21) v0–v2 (matrix rows 182–184) or next Admin API per plan.
+Committed: frozen order tables (`doc/spec/order/DeleteRecords.{Request,Response}.txt`) + new
+`DeleteRecordsCodec` v0–v2 both directions (pinned v0; request v0/v1 byte-identical —
+int32 count + [int16 name, int32 partCount + [int32 partitionIndex, int64 offset]] +
+int32 timeoutMs; v2 flexible; response v0/v1 wire-identical — leading ThrottleTimeMs
+int32 present from v0, spec default 0, written + discarded; v2 flexible; models unchanged)
++ `DeleteRecordsCodecTest` (27 tests) + facade delegation (old inline bodies removed —
+the inline response omitted the leading ThrottleTimeMs, malformed on the wire) +
+matrix rows 182–184 checked, PROGRESS.md + module doc/REQUIREMENTS.md updated.
+Next: CreatePartitions (API 37) v0–v3 (matrix rows 185–188) or next Admin API per plan.

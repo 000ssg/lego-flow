@@ -1088,90 +1088,45 @@ public final class KafkaCodec {
     // ===== DeleteRecords (21) =====
 
     /**
-     * Encodes a DeleteRecords request body.
+     * Encodes a DeleteRecords request body (pinned version; v1 wire-identical to v0,
+     * v2 flexible; see {@link DeleteRecordsCodec} for version-gated layout).
      *
      * @param req the request
      * @return the encoded bytes
      */
     public static byte[] encodeDeleteRecordsRequest(DeleteRecordsRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putInt(req.topics().size());
-        for (var t : req.topics()) {
-            writeString(buf, t.name());
-            buf.putInt(t.partitions().size());
-            for (var p : t.partitions()) {
-                buf.putInt(p.partitionIndex());
-                buf.putLong(p.offset());
-            }
-        }
-        buf.putInt(req.timeoutMs());
-        buf.flip();
-        return toBytes(buf);
+        return DeleteRecordsCodec.encodeRequest(DeleteRecordsCodec.PINNED_VERSION, req);
     }
 
     /**
-     * Decodes a DeleteRecords request body.
+     * Decodes a DeleteRecords request body (pinned version).
      *
      * @param buf the buffer
      * @return the decoded request
      */
     public static DeleteRecordsRequest decodeDeleteRecordsRequest(ByteBuffer buf) {
-        int topicCount = buf.getInt();
-        List<DeleteRecordsRequest.TopicData> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String name = readString(buf);
-            int partCount = buf.getInt();
-            List<DeleteRecordsRequest.PartitionData> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                parts.add(new DeleteRecordsRequest.PartitionData(buf.getInt(), buf.getLong()));
-            }
-            topics.add(new DeleteRecordsRequest.TopicData(name, parts));
-        }
-        int timeout = buf.getInt();
-        return new DeleteRecordsRequest(topics, timeout);
+        return DeleteRecordsCodec.decodeRequest(DeleteRecordsCodec.PINNED_VERSION, buf);
     }
 
     /**
-     * Encodes a DeleteRecords response body.
+     * Encodes a DeleteRecords response body (pinned version; leading ThrottleTimeMs,
+     * v2 flexible; see {@link DeleteRecordsCodec} for version-gated layout).
      *
      * @param resp the response
      * @return the encoded bytes
      */
     public static byte[] encodeDeleteRecordsResponse(DeleteRecordsResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putInt(resp.topics().size());
-        for (var t : resp.topics()) {
-            writeString(buf, t.name());
-            buf.putInt(t.partitions().size());
-            for (var p : t.partitions()) {
-                buf.putInt(p.partitionIndex());
-                buf.putLong(p.lowWatermark());
-                buf.putShort(p.errorCode());
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return DeleteRecordsCodec.encodeResponse(DeleteRecordsCodec.PINNED_VERSION, resp);
     }
 
     /**
-     * Decodes a DeleteRecords response body.
+     * Decodes a DeleteRecords response body (pinned version).
      *
      * @param buf the buffer
      * @return the decoded response
      */
     public static DeleteRecordsResponse decodeDeleteRecordsResponse(ByteBuffer buf) {
-        int topicCount = buf.getInt();
-        List<DeleteRecordsResponse.TopicData> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String name = readString(buf);
-            int partCount = buf.getInt();
-            List<DeleteRecordsResponse.PartitionData> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                parts.add(new DeleteRecordsResponse.PartitionData(buf.getInt(), buf.getLong(), buf.getShort()));
-            }
-            topics.add(new DeleteRecordsResponse.TopicData(name, parts));
-        }
-        return new DeleteRecordsResponse(topics);
+        return DeleteRecordsCodec.decodeResponse(DeleteRecordsCodec.PINNED_VERSION, buf);
     }
 
     // ===== CreatePartitions (37) =====

@@ -465,6 +465,24 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 - **Sub-category**: Admin continues (CreateTopics 8/35 + DeleteTopics 7/35 = 15/35 rows); remaining Admin (20), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
 
+## Commit: `PENDING` — DeleteRecords v0–v2 (Admin rows 182–184)
+
+- **DeleteRecords v0–v2 codec**: new dedicated `DeleteRecordsCodec` — spec-correct DeleteRecords implementation (all 3 rows, per the vendored DeleteRecordsRequest.json / DeleteRecordsResponse.json, frozen order tables in `doc/spec/order/DeleteRecords.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v2 is encoded/decoded in both directions. Request: v0 and v1 byte-identical (`int32 count + [int16 name, int32 partCount + [int32 partitionIndex, int64 offset]] + int32 timeoutMs`); v2 flexible (KIP-482: varint N+1 counts, compact strings). Response: v0 and v1 wire-identical (leading ThrottleTimeMs int32 present from v0 — spec default 0, written + discarded; `int32 count + [int16 name, int32 partCount + [int32 partitionIndex, int64 lowWatermark, int16 errorCode]]`); v2 flexible.
+- **Models** (unchanged — constructor arities preserved, all call sites untouched): `DeleteRecordsRequest(topics, timeoutMs)` and `DeleteRecordsResponse(topics)` keep their shape; every version-gated field is handled in the codec (written with the spec default, read + discarded on decode), documented in the codec class javadoc.
+- **KafkaCodec facade**: `encode/decodeDeleteRecordsRequest` and `encode/decodeDeleteRecordsResponse` now delegate to `DeleteRecordsCodec` (ListOffsets/CreateTopics/DeleteTopics pattern); the old inline bodies are removed (the inline response omitted the leading ThrottleTimeMs — malformed on the wire v0+).
+- **New tests**: `DeleteRecordsCodecTest` (27 tests — pinned-version assertions, byte-for-byte v0/v1/v2 request + response walks, v1-vs-v2 request shape difference, v1-vs-v2 response shape difference, full v0–v2 range round-trips both directions, flexible empty-strings-array edge, version guards).
+
+### Test Coverage
+- DeleteRecordsCodecTest 27 tests; full module 664 → 691 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 1 (KafkaCodec) + 2 new (DeleteRecordsCodec, DeleteRecordsCodecTest) + 2 new frozen order tables |
+| Tests added | 27 |
+
+- **Sub-category**: Admin continues (CreateTopics 8/35 + DeleteTopics 7/35 + DeleteRecords 3/35 = 18/35 rows); remaining Admin (17), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
+
 ## Document Maintenance
 
 - This document is append-only for commit sections
