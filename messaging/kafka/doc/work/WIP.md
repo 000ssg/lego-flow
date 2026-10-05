@@ -37,16 +37,19 @@ without re-deriving where/what is in flight.
 - Commit: `git add <files>`, heredoc message + `Co-Authored-By: AI assistant`, update
   plan matrix + PROGRESS.md + module doc/REQUIREMENTS.md; NEVER push.
 
-## Activity: (none — DeleteRecords committed; idle)
+## Activity: (none — CreatePartitions committed; idle)
 
-## Last completed (2026-10-05): DeleteRecords (API 21) v0–v2 — dedicated codec ✓
+## Last completed (2026-10-05): CreatePartitions (API 37) v0–v3 — dedicated codec ✓
 
-Committed: frozen order tables (`doc/spec/order/DeleteRecords.{Request,Response}.txt`) + new
-`DeleteRecordsCodec` v0–v2 both directions (pinned v0; request v0/v1 byte-identical —
-int32 count + [int16 name, int32 partCount + [int32 partitionIndex, int64 offset]] +
-int32 timeoutMs; v2 flexible; response v0/v1 wire-identical — leading ThrottleTimeMs
-int32 present from v0, spec default 0, written + discarded; v2 flexible; models unchanged)
-+ `DeleteRecordsCodecTest` (27 tests) + facade delegation (old inline bodies removed —
-the inline response omitted the leading ThrottleTimeMs, malformed on the wire) +
-matrix rows 182–184 checked, PROGRESS.md + module doc/REQUIREMENTS.md updated.
-Next: CreatePartitions (API 37) v0–v3 (matrix rows 185–188) or next Admin API per plan.
+Committed: frozen order tables (`doc/spec/order/CreatePartitions.{Request,Response}.txt`) + new
+`CreatePartitionsCodec` v0–v3 both directions (pinned v0; request v0/v1 byte-identical —
+int32 count + [int16 name, int32 count, int32 assignmentsCount + [int32 brokerIds]] +
+int32 timeoutMs + bool validateOnly; v2–v3 flexible; response — leading ThrottleTimeMs
+int32 present from v0, spec default 0, written + discarded; int16 errorCode +
+nullable ErrorMessage per result; v2–v3 flexible; models unchanged) +
+`CreatePartitionsCodecTest` (29 tests) + facade delegation (old inline v0-only bodies
+removed — the inline request omitted Assignments + ValidateOnly, the inline response
+omitted the leading ThrottleTimeMs + nullable ErrorMessage, malformed on the wire) +
+matrix rows 437–440 checked, PROGRESS.md + module doc/REQUIREMENTS.md updated.
+Next: next Admin API per plan (remaining Admin 13/35; Transactions 24, Consumer Groups 63,
+Metadata/Cluster 44).

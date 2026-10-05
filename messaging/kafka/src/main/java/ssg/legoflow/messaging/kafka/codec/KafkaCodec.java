@@ -1132,69 +1132,45 @@ public final class KafkaCodec {
     // ===== CreatePartitions (37) =====
 
     /**
-     * Encodes a CreatePartitions request body.
+     * Encodes a CreatePartitions request body (pinned version; v1 wire-identical to v0,
+     * v2–v3 flexible; see {@link CreatePartitionsCodec} for version-gated layout).
      *
      * @param req the request
      * @return the encoded bytes
      */
     public static byte[] encodeCreatePartitionsRequest(CreatePartitionsRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putInt(req.topics().size());
-        for (var t : req.topics()) {
-            writeString(buf, t.name());
-            buf.putInt(t.newCount());
-        }
-        buf.putInt(req.timeoutMs());
-        buf.flip();
-        return toBytes(buf);
+        return CreatePartitionsCodec.encodeRequest(CreatePartitionsCodec.PINNED_VERSION, req);
     }
 
     /**
-     * Decodes a CreatePartitions request body.
+     * Decodes a CreatePartitions request body (pinned version).
      *
      * @param buf the buffer
      * @return the decoded request
      */
     public static CreatePartitionsRequest decodeCreatePartitionsRequest(ByteBuffer buf) {
-        int topicCount = buf.getInt();
-        List<CreatePartitionsRequest.TopicNewPartitions> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            topics.add(new CreatePartitionsRequest.TopicNewPartitions(readString(buf), buf.getInt()));
-        }
-        int timeout = buf.getInt();
-        return new CreatePartitionsRequest(topics, timeout);
+        return CreatePartitionsCodec.decodeRequest(CreatePartitionsCodec.PINNED_VERSION, buf);
     }
 
     /**
-     * Encodes a CreatePartitions response body.
+     * Encodes a CreatePartitions response body (pinned version; leading ThrottleTimeMs,
+     * v2–v3 flexible; see {@link CreatePartitionsCodec} for version-gated layout).
      *
      * @param resp the response
      * @return the encoded bytes
      */
     public static byte[] encodeCreatePartitionsResponse(CreatePartitionsResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putInt(resp.results().size());
-        for (var t : resp.results()) {
-            writeString(buf, t.name());
-            buf.putShort(t.errorCode());
-        }
-        buf.flip();
-        return toBytes(buf);
+        return CreatePartitionsCodec.encodeResponse(CreatePartitionsCodec.PINNED_VERSION, resp);
     }
 
     /**
-     * Decodes a CreatePartitions response body.
+     * Decodes a CreatePartitions response body (pinned version).
      *
      * @param buf the buffer
      * @return the decoded response
      */
     public static CreatePartitionsResponse decodeCreatePartitionsResponse(ByteBuffer buf) {
-        int count = buf.getInt();
-        List<CreatePartitionsResponse.TopicResult> results = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            results.add(new CreatePartitionsResponse.TopicResult(readString(buf), buf.getShort()));
-        }
-        return new CreatePartitionsResponse(results);
+        return CreatePartitionsCodec.decodeResponse(CreatePartitionsCodec.PINNED_VERSION, buf);
     }
 
     // ===== DeleteGroups (42) =====

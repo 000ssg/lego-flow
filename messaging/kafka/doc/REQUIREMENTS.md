@@ -483,6 +483,24 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 - **Sub-category**: Admin continues (CreateTopics 8/35 + DeleteTopics 7/35 + DeleteRecords 3/35 = 18/35 rows); remaining Admin (17), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
 
+## Commit: `pending` — CreatePartitions v0–v3 (Admin rows 437–440)
+
+- **CreatePartitions v0–v3 codec**: new dedicated `CreatePartitionsCodec` — spec-correct CreatePartitions implementation (all 4 rows, per the vendored CreatePartitionsRequest.json / CreatePartitionsResponse.json, frozen order tables in `doc/spec/order/CreatePartitions.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v3 is encoded/decoded in both directions. Request: v0 and v1 byte-identical (`int32 count + [int16 name, int32 count, int32 assignmentsCount + [int32 brokerIds]] + int32 timeoutMs + bool validateOnly`; per-topic Assignments written as empty array — spec default — and ValidateOnly as false, both read + discarded); v2–v3 flexible (KIP-482: varint N+1 counts, compact strings, per-struct tagged sections; nullable Assignments absent = varint 0). Response: leading ThrottleTimeMs int32 (present from v0, spec default 0, written + discarded) + `int32 count + [int16 name, int16 errorCode, nullable errorMessage]` with ErrorMessage written as null (spec default) and read + discarded; v2–v3 flexible.
+- **Models** (unchanged — constructor arities preserved, all call sites untouched): `CreatePartitionsRequest(topics, timeoutMs)` and `CreatePartitionsResponse(results)` keep their shape; every version-gated field is handled in the codec (written with the spec default, read + discarded on decode), documented in the codec class javadoc.
+- **KafkaCodec facade**: `encode/decodeCreatePartitionsRequest` and `encode/decodeCreatePartitionsResponse` now delegate to `CreatePartitionsCodec` (ListOffsets/CreateTopics/DeleteTopics pattern); the old inline v0-only bodies are removed (they omitted the per-topic Assignments array + ValidateOnly from the request and the leading ThrottleTimeMs + nullable ErrorMessage from the response — malformed on the wire).
+- **New tests**: `CreatePartitionsCodecTest` (29 tests — pinned-version assertions, byte-for-byte v0/v1/v2 request + response walks, v1-vs-v2 request and response shape differences, full v0–v3 range round-trips both directions, empty-results edge, version guards).
+
+### Test Coverage
+- CreatePartitionsCodecTest 29 tests; full module 691 → 720 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 1 (KafkaCodec) + 2 new (CreatePartitionsCodec, CreatePartitionsCodecTest) + 2 new frozen order tables |
+| Tests added | 29 |
+
+- **Sub-category**: Admin continues (CreateTopics 8/35 + DeleteTopics 7/35 + DeleteRecords 3/35 + CreatePartitions 4/35 = 22/35 rows); remaining Admin (13), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
+
 ## Document Maintenance
 
 - This document is append-only for commit sections
