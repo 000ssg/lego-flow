@@ -434,10 +434,10 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (7 fields): Topics, Name, Count, Assignments, BrokerIds, TimeoutMs, ValidateOnly | ✓ | `PENDING` |
-| v1 | unchanged | ✓ | `PENDING` |
-| v2 | → flexible encoding | ✓ | `PENDING` |
-| v3 | unchanged | ✓ | `PENDING` |
+| v0 | base (7 fields): Topics, Name, Count, Assignments, BrokerIds, TimeoutMs, ValidateOnly | ✓ | `5ae7bc87` |
+| v1 | unchanged | ✓ | `5ae7bc87` |
+| v2 | → flexible encoding | ✓ | `5ae7bc87` |
+| v3 | unchanged | ✓ | `5ae7bc87` |
 
 ### DeleteGroups (API 42) — v0..v2
 
