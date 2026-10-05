@@ -501,7 +501,7 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 - **Sub-category**: Admin continues (CreateTopics 8/35 + DeleteTopics 7/35 + DeleteRecords 3/35 + CreatePartitions 4/35 = 22/35 rows); remaining Admin (13), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
 
-## Commit: `PENDING` — DeleteGroups v0–v2 (Admin rows 446–448)
+## Commit: `c6d7b3b4` — DeleteGroups v0–v2 (Admin rows 446–448)
 
 - **DeleteGroups v0–v2 codec**: new dedicated `DeleteGroupsCodec` — spec-correct DeleteGroups implementation (all 3 rows, per the vendored DeleteGroupsRequest.json / DeleteGroupsResponse.json, frozen order tables in `doc/spec/order/DeleteGroups.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v2 is encoded/decoded in both directions. Request: single `GroupsNames []string` field present from v0 (v1 byte-identical); v2 flexible (KIP-482: varint N+1 count + compact strings). Response: leading `ThrottleTimeMs int32` (present from v0, spec default 0, written + discarded) + `int32 count + [groupId:compact/string, errorCode:int16]` per result; v2 flexible.
 - **Models** (unchanged — constructor arities preserved, all call sites untouched): `DeleteGroupsRequest(groups)` and `DeleteGroupsResponse(results)` keep their shape; every version-gated field is handled in the codec (written with the spec default, read + discarded on decode), documented in the codec class javadoc.
