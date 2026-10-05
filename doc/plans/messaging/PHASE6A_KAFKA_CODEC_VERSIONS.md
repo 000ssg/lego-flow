@@ -451,11 +451,11 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (4 fields): Resources, ResourceType, ResourceName, ConfigurationKeys | ☐ | |
-| v1 | + IncludeSynonyms:bool[1+], ConfigSource:int8[1+], Synonyms:[]DescribeConfigsSynonym[1+], Name:string[1+], Value:string[1+](null:0+), Source:int8[1+]<br>− IsDefault:bool[0] | ☐ | |
-| v2 | unchanged | ☐ | |
-| v3 | + IncludeDocumentation:bool[3+], ConfigType:int8[3+], Documentation:string[3+](null:0+) | ☐ | |
-| v4 | → flexible encoding | ☐ | |
+| v0 | base (4 fields): Resources, ResourceType, ResourceName, ConfigurationKeys | ✓ | `PENDING` |
+| v1 | + IncludeSynonyms:bool[1+], ConfigSource:int8[1+], Synonyms:[]DescribeConfigsSynonym[1+], Name:string[1+], Value:string[1+](null:0+), Source:int8[1+]<br>− IsDefault:bool[0] | ✓ | `PENDING` |
+| v2 | unchanged | ✓ | `PENDING` |
+| v3 | + IncludeDocumentation:bool[3+], ConfigType:int8[3+], Documentation:string[3+](null:0+) | ✓ | `PENDING` |
+| v4 | → flexible encoding | ✓ | `PENDING` |
 
 ### AlterConfigs (API 33) — v0..v2
 

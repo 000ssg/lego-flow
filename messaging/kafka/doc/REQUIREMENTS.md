@@ -519,6 +519,24 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 - **Sub-category**: Admin continues (CreateTopics 8/35 + DeleteTopics 7/35 + DeleteRecords 3/35 + CreatePartitions 4/35 + DeleteGroups 3/35 = 25/35 rows); remaining Admin (10), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
 
+## Commit: `PENDING` — DescribeConfigs v0–v4 (Admin rows 454–458)
+
+- **DescribeConfigs v0–v4 codec**: new dedicated `DescribeConfigsCodec` — spec-correct DescribeConfigs implementation (all 5 rows, per the vendored DescribeConfigsRequest.json / DescribeConfigsResponse.json, frozen order tables in `doc/spec/order/DescribeConfigs.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v4 is encoded/decoded in both directions. Request: v0 base (`int32 count + [int8 resourceType, string resourceName, nullable int32-count + []string configNames]`); v1+ `IncludeSynonyms` (bool, spec default false); v3+ `IncludeDocumentation` (bool, spec default false); v4 flexible (KIP-482: varint N+1 counts, compact strings, per-resource tagged section; nullable configNames = varint 0). Response: leading `ThrottleTimeMs int32` (present from v0, spec default 0, written + discarded) + `int32 count + [int16 errorCode, nullable errorMessage, int8 resourceType, string resourceName, int32-count configs]` where each config is `[name, nullable value, bool readOnly, int8 configSource, bool isSensitive]`; v1+ per-config `Synonyms` (int32 count, null = -1; each `[name?, value?, source]`); v3+ per-config `ConfigType` (int8) + `Documentation` (nullable string); v4 flexible. The old inline response omitted the leading ThrottleTimeMs, per-result ErrorMessage, per-result ResourceType and per-config ConfigSource — malformed on the wire.
+- **Models** (unchanged — constructor arities preserved, all call sites untouched): `DescribeConfigsRequest(resources)` / `DescribeConfigsResponse(resources)` keep their shape; every version-gated field is handled in the codec (written with the spec default, read + discarded on decode), documented in the codec class javadoc.
+- **KafkaCodec facade**: `encode/decodeDescribeConfigsRequest` and `encode/decodeDescribeConfigsResponse` now delegate to `DescribeConfigsCodec` (ListOffsets/CreateTopics pattern); the old inline v0-only bodies are removed (the inline request was wire-correct; the inline response was missing the fields above — malformed on the wire).
+- **New tests**: `DescribeConfigsCodecTest` (34 tests across 6 nested classes — pinned-version assertions, byte-for-byte v0 request/response walks, v1/v3 trailing-field deltas, v4 flexible request + response byte walks, full v0–v4 range round-trips both directions, null configNames / null value edges, version guards).
+
+### Test Coverage
+- DescribeConfigsCodecTest 34 tests; full module 748 → 782 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 1 (KafkaCodec) + 2 new (DescribeConfigsCodec, DescribeConfigsCodecTest) + 2 new frozen order tables |
+| Tests added | 34 |
+
+- **Sub-category**: Admin continues (CreateTopics 8/35 + DeleteTopics 7/35 + DeleteRecords 3/35 + CreatePartitions 4/35 + DeleteGroups 3/35 + DescribeConfigs 5/35 = 30/35 rows); remaining Admin (5), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
+
 ## Document Maintenance
 
 - This document is append-only for commit sections

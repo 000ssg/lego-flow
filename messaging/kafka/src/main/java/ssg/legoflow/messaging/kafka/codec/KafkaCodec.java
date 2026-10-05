@@ -1309,103 +1309,47 @@ public final class KafkaCodec {
     // ===== DescribeConfigs (32) =====
 
     /**
-     * Encodes a DescribeConfigs request body.
+     * Encodes a DescribeConfigs request body (pinned version; v1 adds IncludeSynonyms, v3
+     * adds IncludeDocumentation, v4 flexible; see {@link DescribeConfigsCodec} for the
+     * version-gated layout).
      *
      * @param req the request
      * @return the encoded bytes
      */
     public static byte[] encodeDescribeConfigsRequest(DescribeConfigsRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(8192);
-        buf.putInt(req.resources().size());
-        for (var r : req.resources()) {
-            buf.put(r.resourceType());
-            writeString(buf, r.resourceName());
-            if (r.configNames() == null) {
-                buf.putInt(-1);
-            } else {
-                buf.putInt(r.configNames().size());
-                for (String name : r.configNames()) {
-                    writeString(buf, name);
-                }
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return DescribeConfigsCodec.encodeRequest(req);
     }
 
     /**
-     * Decodes a DescribeConfigs request body.
+     * Decodes a DescribeConfigs request body at the pinned version.
      *
      * @param buf the buffer
      * @return the decoded request
      */
     public static DescribeConfigsRequest decodeDescribeConfigsRequest(ByteBuffer buf) {
-        int count = buf.getInt();
-        List<DescribeConfigsRequest.ResourceRequest> resources = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            byte resourceType = buf.get();
-            String resourceName = readString(buf);
-            int nameCount = buf.getInt();
-            List<String> configNames = null;
-            if (nameCount >= 0) {
-                configNames = new ArrayList<>(nameCount);
-                for (int j = 0; j < nameCount; j++) {
-                    configNames.add(readString(buf));
-                }
-            }
-            resources.add(new DescribeConfigsRequest.ResourceRequest(resourceType, resourceName, configNames));
-        }
-        return new DescribeConfigsRequest(resources);
+        return DescribeConfigsCodec.decodeRequest(DescribeConfigsCodec.PINNED_VERSION, buf);
     }
 
     /**
-     * Encodes a DescribeConfigs response body.
+     * Encodes a DescribeConfigs response body (pinned version; v1 adds Synonyms, v3 adds
+     * ConfigType + Documentation, v4 flexible; leading ThrottleTimeMs written with the
+     * spec default per {@link DescribeConfigsCodec}).
      *
      * @param resp the response
      * @return the encoded bytes
      */
     public static byte[] encodeDescribeConfigsResponse(DescribeConfigsResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(16384);
-        buf.putInt(resp.resources().size());
-        for (var r : resp.resources()) {
-            buf.putShort(r.errorCode());
-            writeString(buf, r.resourceName());
-            buf.putInt(r.configs().size());
-            for (var c : r.configs()) {
-                writeString(buf, c.name());
-                writeNullableString(buf, c.value());
-                buf.put((byte) (c.readOnly() ? 1 : 0));
-                buf.put((byte) (c.isSensitive() ? 1 : 0));
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return DescribeConfigsCodec.encodeResponse(resp);
     }
 
     /**
-     * Decodes a DescribeConfigs response body.
+     * Decodes a DescribeConfigs response body at the pinned version.
      *
      * @param buf the buffer
      * @return the decoded response
      */
     public static DescribeConfigsResponse decodeDescribeConfigsResponse(ByteBuffer buf) {
-        int count = buf.getInt();
-        List<DescribeConfigsResponse.ResourceResponse> resources = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            short errorCode = buf.getShort();
-            String resourceName = readString(buf);
-            int configCount = buf.getInt();
-            List<DescribeConfigsResponse.ConfigEntry> configs = new ArrayList<>(configCount);
-            for (int j = 0; j < configCount; j++) {
-                String name = readString(buf);
-                String value = readNullableString(buf);
-                boolean readOnly = buf.get() == 1;
-                boolean isSensitive = buf.get() == 1;
-                configs.add(new DescribeConfigsResponse.ConfigEntry(name, value, readOnly, isSensitive));
-            }
-            resources.add(new DescribeConfigsResponse.ResourceResponse(errorCode, resourceName, configs));
-        }
-        return new DescribeConfigsResponse(resources);
+        return DescribeConfigsCodec.decodeResponse(DescribeConfigsCodec.PINNED_VERSION, buf);
     }
 
     // ===== AlterConfigs (33) =====

@@ -1,0 +1,16 @@
+DescribeConfigs Request — field processing order (binding; spec 3.6.1) — flexible encoding from v4
+wire order by layout (equal run = byte-identical field layout):
+  v0 -> Resources:(Resources)ResourceType:(Resources)ResourceName:(Resources)ConfigurationKeys
+  v1-v2 -> Resources:(Resources)ResourceType:(Resources)ResourceName:(Resources)ConfigurationKeys:IncludeSynonyms?
+  v3 -> Resources:(Resources)ResourceType:(Resources)ResourceName:(Resources)ConfigurationKeys:IncludeSynonyms?:IncludeDocumentation?
+  v4 -> Resources:(Resources)ResourceType:(Resources)ResourceName:(Resources)ConfigurationKeys:IncludeSynonyms?:IncludeDocumentation?|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0:
+  v0: fixed: Resources([]DescribeConfigsResource) || tagged: ∅
+  v1-v2:
+  v1: fixed: Resources([]DescribeConfigsResource), IncludeSynonyms(bool) || tagged: ∅
+  v2: fixed: Resources([]DescribeConfigsResource), IncludeSynonyms(bool) || tagged: ∅
+  v3:
+  v3: fixed: Resources([]DescribeConfigsResource), IncludeSynonyms(bool), IncludeDocumentation(bool) || tagged: ∅
+  v4:
+  v4: fixed: Resources([]DescribeConfigsResource) [flex], IncludeSynonyms(bool) [flex], IncludeDocumentation(bool) [flex] || tagged: ∅
