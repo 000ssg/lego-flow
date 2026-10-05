@@ -465,7 +465,7 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 - **Sub-category**: Admin continues (CreateTopics 8/35 + DeleteTopics 7/35 = 15/35 rows); remaining Admin (20), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
 
-## Commit: `PENDING` — DeleteRecords v0–v2 (Admin rows 182–184)
+## Commit: `204cafff` — DeleteRecords v0–v2 (Admin rows 182–184)
 
 - **DeleteRecords v0–v2 codec**: new dedicated `DeleteRecordsCodec` — spec-correct DeleteRecords implementation (all 3 rows, per the vendored DeleteRecordsRequest.json / DeleteRecordsResponse.json, frozen order tables in `doc/spec/order/DeleteRecords.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v2 is encoded/decoded in both directions. Request: v0 and v1 byte-identical (`int32 count + [int16 name, int32 partCount + [int32 partitionIndex, int64 offset]] + int32 timeoutMs`); v2 flexible (KIP-482: varint N+1 counts, compact strings). Response: v0 and v1 wire-identical (leading ThrottleTimeMs int32 present from v0 — spec default 0, written + discarded; `int32 count + [int16 name, int32 partCount + [int32 partitionIndex, int64 lowWatermark, int16 errorCode]]`); v2 flexible.
 - **Models** (unchanged — constructor arities preserved, all call sites untouched): `DeleteRecordsRequest(topics, timeoutMs)` and `DeleteRecordsResponse(topics)` keep their shape; every version-gated field is handled in the codec (written with the spec default, read + discarded on decode), documented in the codec class javadoc.
