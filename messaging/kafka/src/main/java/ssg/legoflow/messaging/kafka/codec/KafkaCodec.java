@@ -1176,62 +1176,45 @@ public final class KafkaCodec {
     // ===== DeleteGroups (42) =====
 
     /**
-     * Encodes a DeleteGroups request body.
+     * Encodes a DeleteGroups request body (pinned version; v1 wire-identical to v0,
+     * v2 flexible; see {@link DeleteGroupsCodec} for version-gated layout).
      *
      * @param req the request
      * @return the encoded bytes
      */
     public static byte[] encodeDeleteGroupsRequest(DeleteGroupsRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putInt(req.groups().size());
-        for (String g : req.groups()) writeString(buf, g);
-        buf.flip();
-        return toBytes(buf);
+        return DeleteGroupsCodec.encodeRequest(DeleteGroupsCodec.PINNED_VERSION, req);
     }
 
     /**
-     * Decodes a DeleteGroups request body.
+     * Decodes a DeleteGroups request body (pinned version).
      *
      * @param buf the buffer
      * @return the decoded request
      */
     public static DeleteGroupsRequest decodeDeleteGroupsRequest(ByteBuffer buf) {
-        int count = buf.getInt();
-        List<String> groups = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) groups.add(readString(buf));
-        return new DeleteGroupsRequest(groups);
+        return DeleteGroupsCodec.decodeRequest(DeleteGroupsCodec.PINNED_VERSION, buf);
     }
 
     /**
-     * Encodes a DeleteGroups response body.
+     * Encodes a DeleteGroups response body (pinned version; leading ThrottleTimeMs,
+     * v2 flexible; see {@link DeleteGroupsCodec} for version-gated layout).
      *
      * @param resp the response
      * @return the encoded bytes
      */
     public static byte[] encodeDeleteGroupsResponse(DeleteGroupsResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putInt(resp.results().size());
-        for (var r : resp.results()) {
-            writeString(buf, r.groupId());
-            buf.putShort(r.errorCode());
-        }
-        buf.flip();
-        return toBytes(buf);
+        return DeleteGroupsCodec.encodeResponse(DeleteGroupsCodec.PINNED_VERSION, resp);
     }
 
     /**
-     * Decodes a DeleteGroups response body.
+     * Decodes a DeleteGroups response body (pinned version).
      *
      * @param buf the buffer
      * @return the decoded response
      */
     public static DeleteGroupsResponse decodeDeleteGroupsResponse(ByteBuffer buf) {
-        int count = buf.getInt();
-        List<DeleteGroupsResponse.GroupResult> results = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            results.add(new DeleteGroupsResponse.GroupResult(readString(buf), buf.getShort()));
-        }
-        return new DeleteGroupsResponse(results);
+        return DeleteGroupsCodec.decodeResponse(DeleteGroupsCodec.PINNED_VERSION, buf);
     }
 
     // ===== OffsetDelete (47) =====

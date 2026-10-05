@@ -37,7 +37,16 @@ without re-deriving where/what is in flight.
 - Commit: `git add <files>`, heredoc message + `Co-Authored-By: AI assistant`, update
   plan matrix + PROGRESS.md + module doc/REQUIREMENTS.md; NEVER push.
 
-## Activity: (none — CreatePartitions committed; idle)
+## Activity: DeleteGroups (API 42) v0–v2 — IN PROGRESS
+
+In-flight (not committed): new `DeleteGroupsCodec` v0–v2 both directions (pinned v0; request
+single `GroupsNames []string` v1 byte-identical, v2 flexible; response leading ThrottleTimeMs
+int32 spec default 0 written+discarded, results [groupId, int16 errorCode], v2 flexible;
+models unchanged) + `DeleteGroupsCodecTest` (28 tests) + facade delegation in `KafkaCodec`
+(inline v0-only bodies removed — inline response omitted the leading ThrottleTimeMs,
+malformed on the wire) + frozen order tables `doc/spec/order/DeleteGroups.{Request,Response}.txt`
++ matrix rows 446–448 ✓ (Admin 25/35) + PROGRESS.md + module doc/REQUIREMENTS.md updated.
+Full module `:lego-flow-kafka` 720 → 748 green, 0 failures/errors/skipped. Awaiting commit.
 
 ## Last completed (2026-10-05): CreatePartitions (API 37) v0–v3 — dedicated codec ✓
 

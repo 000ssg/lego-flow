@@ -443,9 +443,9 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (1 fields): GroupsNames | ☐ | |
-| v1 | unchanged | ☐ | |
-| v2 | → flexible encoding | ☐ | |
+| v0 | base (1 fields): GroupsNames | ✓ | `PENDING` |
+| v1 | unchanged | ✓ | `PENDING` |
+| v2 | → flexible encoding | ✓ | `PENDING` |
 
 ### DescribeConfigs (API 32) — v0..v4
 

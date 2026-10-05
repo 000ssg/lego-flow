@@ -501,6 +501,24 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 - **Sub-category**: Admin continues (CreateTopics 8/35 + DeleteTopics 7/35 + DeleteRecords 3/35 + CreatePartitions 4/35 = 22/35 rows); remaining Admin (13), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
 
+## Commit: `PENDING` — DeleteGroups v0–v2 (Admin rows 446–448)
+
+- **DeleteGroups v0–v2 codec**: new dedicated `DeleteGroupsCodec` — spec-correct DeleteGroups implementation (all 3 rows, per the vendored DeleteGroupsRequest.json / DeleteGroupsResponse.json, frozen order tables in `doc/spec/order/DeleteGroups.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v2 is encoded/decoded in both directions. Request: single `GroupsNames []string` field present from v0 (v1 byte-identical); v2 flexible (KIP-482: varint N+1 count + compact strings). Response: leading `ThrottleTimeMs int32` (present from v0, spec default 0, written + discarded) + `int32 count + [groupId:compact/string, errorCode:int16]` per result; v2 flexible.
+- **Models** (unchanged — constructor arities preserved, all call sites untouched): `DeleteGroupsRequest(groups)` and `DeleteGroupsResponse(results)` keep their shape; every version-gated field is handled in the codec (written with the spec default, read + discarded on decode), documented in the codec class javadoc.
+- **KafkaCodec facade**: `encode/decodeDeleteGroupsRequest` and `encode/decodeDeleteGroupsResponse` now delegate to `DeleteGroupsCodec` (CreateTopics/DeleteTopics pattern); the old inline v0-only bodies are removed (the inline request was wire-correct but the inline response omitted the leading ThrottleTimeMs — malformed on the wire).
+- **New tests**: `DeleteGroupsCodecTest` (28 tests — pinned-version assertions, byte-for-byte v0/v1/v2 request + response walks, v1-vs-v2 shape differences, full v0–v2 range round-trips both directions, empty-groups/results edge, version guards).
+
+### Test Coverage
+- DeleteGroupsCodecTest 28 tests; full module 720 → 748 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 1 (KafkaCodec) + 2 new (DeleteGroupsCodec, DeleteGroupsCodecTest) + 2 new frozen order tables |
+| Tests added | 28 |
+
+- **Sub-category**: Admin continues (CreateTopics 8/35 + DeleteTopics 7/35 + DeleteRecords 3/35 + CreatePartitions 4/35 + DeleteGroups 3/35 = 25/35 rows); remaining Admin (10), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
+
 ## Document Maintenance
 
 - This document is append-only for commit sections
