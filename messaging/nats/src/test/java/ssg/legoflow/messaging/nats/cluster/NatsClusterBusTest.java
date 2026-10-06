@@ -1,7 +1,7 @@
 package ssg.legoflow.messaging.nats.cluster;
 
 import org.junit.jupiter.api.Test;
-import ssg.legoflow.messaging.nats.client.NatsClient;
+import ssg.legoflow.messaging.nats.server.InMemoryNats;
 import ssg.legoflow.messaging.nats.server.NatsServer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
@@ -13,9 +13,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class NatsClusterBusTest {
 
-    private NatsClusterConfig config(int port, String nodeId) {
+    private NatsClusterConfig config(String nodeId) {
         return NatsClusterConfig.builder()
-                .serverUrl("nats://localhost:" + port)
+                .serverUrl("nats://localhost:4222")
                 .clusterId("test-cluster")
                 .nodeId(nodeId)
                 .build();
@@ -24,14 +24,12 @@ class NatsClusterBusTest {
     @Test
     void publish_and_subscribe() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
-            NatsClusterConfig cfg = config(port, "node-1");
+            NatsClusterConfig cfg = config("node-1");
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
 
                 AtomicReference<byte[]> received = new AtomicReference<>();
@@ -60,14 +58,12 @@ class NatsClusterBusTest {
     @Test
     void publish_string_message() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
-            NatsClusterConfig cfg = config(port, "node-1");
+            NatsClusterConfig cfg = config("node-1");
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
 
                 AtomicReference<String> received = new AtomicReference<>();
@@ -93,14 +89,12 @@ class NatsClusterBusTest {
     @Test
     void request_and_reply() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
-            NatsClusterConfig cfg = config(port, "node-1");
+            NatsClusterConfig cfg = config("node-1");
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
 
                 // Register a handler
@@ -123,14 +117,12 @@ class NatsClusterBusTest {
     @Test
     void request_string_reply() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
-            NatsClusterConfig cfg = config(port, "node-1");
+            NatsClusterConfig cfg = config("node-1");
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
 
                 bus.handleRequests("rpc.echo", payload ->
@@ -150,14 +142,12 @@ class NatsClusterBusTest {
     @Test
     void broadcast_alias() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
-            NatsClusterConfig cfg = config(port, "node-1");
+            NatsClusterConfig cfg = config("node-1");
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
 
                 AtomicReference<byte[]> received = new AtomicReference<>();
@@ -184,18 +174,16 @@ class NatsClusterBusTest {
     @Test
     void cluster_scoping() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
             NatsClusterConfig cfg = NatsClusterConfig.builder()
-                    .serverUrl("nats://localhost:" + port)
+                    .serverUrl("nats://localhost:4222")
                     .clusterId("my-cluster")
                     .nodeId("my-node")
                     .build();
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
 
                 assertThat(bus.nodeId()).isEqualTo("my-node");
@@ -211,18 +199,16 @@ class NatsClusterBusTest {
     @Test
     void cluster_subject_prefix() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
             NatsClusterConfig cfg = NatsClusterConfig.builder()
-                    .serverUrl("nats://localhost:" + port)
+                    .serverUrl("nats://localhost:4222")
                     .clusterId("prod-cluster")
                     .nodeId("node-A")
                     .build();
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
 
                 AtomicReference<String> receivedSubject = new AtomicReference<>();
@@ -249,14 +235,12 @@ class NatsClusterBusTest {
     @Test
     void multiple_subscriptions() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
-            NatsClusterConfig cfg = config(port, "node-1");
+            NatsClusterConfig cfg = config("node-1");
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
 
                 AtomicInteger countA = new AtomicInteger(0);
@@ -284,14 +268,12 @@ class NatsClusterBusTest {
     @Test
     void unsubscribe() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
-            NatsClusterConfig cfg = config(port, "node-1");
+            NatsClusterConfig cfg = config("node-1");
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
 
                 AtomicInteger count = new AtomicInteger(0);
@@ -315,14 +297,12 @@ class NatsClusterBusTest {
     @Test
     void close_clears_subscriptions() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
-            NatsClusterConfig cfg = config(port, "node-1");
+            NatsClusterConfig cfg = config("node-1");
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
 
                 bus.subscribe("a", msg -> {});
@@ -340,14 +320,12 @@ class NatsClusterBusTest {
     @Test
     void publish_with_null_subject_throws() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
-            NatsClusterConfig cfg = config(port, "node-1");
+            NatsClusterConfig cfg = config("node-1");
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
 
                 assertThatThrownBy(() -> bus.publish(null, "data".getBytes(StandardCharsets.UTF_8)))
@@ -361,14 +339,12 @@ class NatsClusterBusTest {
     @Test
     void publish_with_null_payload_throws() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
-            NatsClusterConfig cfg = config(port, "node-1");
+            NatsClusterConfig cfg = config("node-1");
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
 
                 assertThatThrownBy(() -> bus.publish("subject", (byte[]) null))
@@ -382,12 +358,10 @@ class NatsClusterBusTest {
     @Test
     void null_config_throws() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 assertThatThrownBy(() -> new NatsClusterBus(null, client))
                         .isInstanceOf(NullPointerException.class);
             }
@@ -398,7 +372,7 @@ class NatsClusterBusTest {
 
     @Test
     void null_client_throws() {
-        NatsClusterConfig cfg = config(4222, "node-1");
+        NatsClusterConfig cfg = config("node-1");
         assertThatThrownBy(() -> new NatsClusterBus(cfg, null))
                 .isInstanceOf(NullPointerException.class);
     }

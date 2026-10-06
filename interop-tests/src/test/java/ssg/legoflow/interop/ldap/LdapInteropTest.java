@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *       -e LDAP_BASE_DN=dc=example,dc=com osixia/openldap:latest
  *   mvn verify -Dinterop.ldap.host=localhost -DskipInteropTests=false
  */
-    @Tag("database-protocols")
+    @Tag("interop-rest")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class LdapInteropTest {
 

@@ -511,25 +511,28 @@ See [benchmarks/README.md](benchmarks/README.md) for details.
 ## Interoperability Testing
 
 The `interop-tests/` module validates protocol implementations against real reference servers.
+Each interop group has its **own** Docker Compose file — start only the group you are running
+(see [interop-tests/doc/ci-groups.md](interop-tests/doc/ci-groups.md)):
+
+| Group | Compose file |
+|-------|--------------|
+| `interop-messaging-core` | `interop-tests/docker-compose.core.yml` |
+| `interop-kafka` | `interop-tests/docker-compose.kafka.yml` |
+| `interop-wamp` | `interop-tests/docker-compose.wamp.yml` |
 
 ### Maven
 ```bash
-# Start reference servers (nginx, mosquitto, redis, postgresql)
-docker compose -f interop-tests/docker-compose.yml up -d
+# Start one group's reference servers (e.g. core = artemis, rabbitmq, mosquitto)
+docker compose -f interop-tests/docker-compose.core.yml up -d
 
-# Verify all services are healthy
-docker compose -f interop-tests/docker-compose.yml ps
-# Expected: all 4 services show "healthy" status
+# Verify that group's services are healthy
+docker compose -f interop-tests/docker-compose.core.yml ps
 
-# Run interoperability tests (Docker services must be running)
-mvn verify -pl interop-tests -am -P all -DskipInteropTests=false
+# Run that group's interop tests (tests are skipped by default)
+mvn verify -pl interop-tests -am -DskipInteropTests=false -Dinterop.group=interop-messaging-core
 
-# Verify results: check surefire reports
-cat interop-tests/target/surefire-reports/*.txt
-# Expected: 21 tests, 0 failures
-
-# Stop reference servers when done
-docker compose -f interop-tests/docker-compose.yml down
+# Stop that group's reference servers when done
+docker compose -f interop-tests/docker-compose.core.yml down
 ```
 
 ### Gradle

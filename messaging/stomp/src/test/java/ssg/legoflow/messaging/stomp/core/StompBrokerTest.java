@@ -30,8 +30,8 @@ class StompBrokerTest {
 
     private StompClient connectClient() throws InterruptedException {
         var pair = InMemoryStompTransport.createPair();
-        broker.accept(pair[1]);
-        var client = new StompClient(pair[0]);
+        Thread.startVirtualThread(() -> broker.accept(pair[0]));
+        var client = new StompClient(pair[1]);
         client.connect("localhost");
         Thread.sleep(20);
         return client;
@@ -42,7 +42,7 @@ class StompBrokerTest {
     @Test
     void testClientConnect() throws Exception {
         var pair = InMemoryStompTransport.createPair();
-        broker.accept(pair[1]);
+        Thread.startVirtualThread(() -> broker.accept(pair[1]));
 
         var client = new StompClient(pair[0]);
         var connected = client.connect("localhost");
@@ -58,7 +58,7 @@ class StompBrokerTest {
     @Test
     void testVersionNegotiation12() throws Exception {
         var pair = InMemoryStompTransport.createPair();
-        broker.accept(pair[1]);
+        Thread.startVirtualThread(() -> broker.accept(pair[1]));
 
         var client = new StompClient(pair[0]);
         var connected = client.connect("localhost");
@@ -408,7 +408,7 @@ class StompBrokerTest {
     @Test
     void testHeartbeatNegotiation() throws Exception {
         var pair = InMemoryStompTransport.createPair();
-        broker.accept(pair[1]);
+        Thread.startVirtualThread(() -> broker.accept(pair[1]));
 
         var client = new StompClient(pair[0]);
         var connected = client.connect("localhost", null, null, 10000, 10000);
@@ -473,7 +473,7 @@ class StompBrokerTest {
     @Test
     void testServerIdentification() throws Exception {
         var pair = InMemoryStompTransport.createPair();
-        broker.accept(pair[1]);
+        Thread.startVirtualThread(() -> broker.accept(pair[1]));
 
         var client = new StompClient(pair[0]);
         var connected = client.connect("localhost");

@@ -1,0 +1,10 @@
+DeleteGroups Response — field processing order (binding; spec 3.6.1) — flexible encoding from v2
+wire order by layout (equal run = byte-identical field layout):
+  v0-v1 -> ThrottleTimeMs:Results:(Results)GroupId:(Results)ErrorCode
+  v2 -> ThrottleTimeMs:Results:(Results)GroupId:(Results)ErrorCode|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0-v1:
+  v0: fixed: ThrottleTimeMs(int32), Results([]DeletableGroupResult) || tagged: ∅
+  v1: fixed: ThrottleTimeMs(int32), Results([]DeletableGroupResult) || tagged: ∅
+  v2:
+  v2: fixed: ThrottleTimeMs(int32) [flex], Results([]DeletableGroupResult) [flex] || tagged: ∅

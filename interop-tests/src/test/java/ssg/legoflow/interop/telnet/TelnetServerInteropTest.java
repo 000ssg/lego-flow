@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @since 0.2.0
  */
-    @Tag("terminal-protocols")
+    @Tag("interop-rest")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TelnetServerInteropTest {
 

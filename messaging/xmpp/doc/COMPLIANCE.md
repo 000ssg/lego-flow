@@ -140,7 +140,7 @@
 | §3 | Namespace: urn:xmpp:sm:3 | ✅ Implemented | `StreamManagement.NAMESPACE`; `StreamManagementTest` |
 
 ## Known Limitations
-- **No server implementation** — only client-side XMPP; no XMPP server/component
+- **Headless server** — the XMPP server (`XmppServer`) is socket-free and transport-injected (connections via `handleConnection(XmppTransport)`); real TCP is owned by `XmppServerService`. It is not a full standalone XMPP server: TLS/STARTTLS and multi-user stream endpoints are not implemented server-side
 - **No service discovery (XEP-0030)** — no disco#info or disco#items support
 - **No message archiving (XEP-0313 MAM)** — no message history retrieval
 - **No file transfer** — no XEP-0234 (Jingle File Transfer) or XEP-0363 (HTTP Upload)
@@ -148,9 +148,22 @@
 - **SASL mechanisms are modeled** — PLAIN, SCRAM-SHA-1, SCRAM-SHA-256 logic is implemented but tested in isolation without a real XMPP server
 - **IoT extensions are educational implementations** — they follow the XEP structure but have not been tested against real XMPP IoT devices
 
+## Transport SPI & Service Layer (framework convention)
+
+| Requirement | Status | Verification |
+|-------------|--------|-------------|
+| Protocol core is socket-free (no `SocketChannel`/`Selector` in `XmppClient`/`XmppServer`/`XmppCodec`/`XmppStream`) | ✅ Implemented | `grep` audit in CI plan; `XmppTransportTest` |
+| Byte-level transport SPI | ✅ Implemented | `XmppTransport`; `XmppTransportTest` |
+| In-memory transport for tests/demos | ✅ Implemented | `InMemoryXmppTransport`; `XmppTransportTest` |
+| Pipeline transport (selector-thread driven, production) | ✅ Implemented | `PipelineXmppTransport`; `XmppTransportTest` |
+| Service layer owns real channels only | ✅ Implemented | `XmppClientService`/`XmppServerService` + `SelectableChannelManager`; `XmppServiceIntegrationTest` |
+| Client reader loop on virtual thread via injected transport | ✅ Implemented | `XmppClient(XmppTransport)` read loop; `XmppServiceIntegrationTest` |
+| Server accepts per-connection transport, drives non-blocking read loop | ✅ Implemented | `XmppServer.handleConnection(XmppTransport)`; `XmppServerTest`, `XmppServiceIntegrationTest` |
+
 ## Test Coverage Summary
-- Total compliance tests: 267 (per CLAUDE.md)
+- Total module tests: 283 (suite green, JaCoCo instruction coverage 81.7%)
 - Key unit test classes: `XmppStreamTest`, `XmppCodecTest`, `SaslAuthenticatorTest`, `TlsHandlerTest`, `JIDTest`, `MessageStanzaTest`, `PresenceStanzaTest`, `IqStanzaTest`, `RosterTest`, `PresenceManagerTest`, `SensorDataTest`, `SensorDataExtensionTest`, `SensorManagerTest`, `ControlExtensionTest`, `ControllableNodeTest`, `ControlManagerTest`, `DiscoveryExtensionTest`, `DiscoveryManagerTest`, `IoTRegistryTest`, `XmppClientTest`, `XmppClientConfigTest`, `MucOccupantTest`, `MucMessageTest`, `MucRoomTest`, `MucRoomManagerTest`, `PubSubNodeTest`, `PubSubItemTest`, `PubSubSubscriptionTest`, `PubSubManagerTest`, `StreamManagementTest`
+- New transport/service test classes: `XmppTransportTest` (SPI round-trip, close semantics, pipeline transport), `XmppServerTest` (headless server, `handleConnection`, connection lifecycle), `XmppServiceIntegrationTest` (real TCP round-trip via `SelectableChannelManager`), `XmppClientServiceTest`, `XmppServerServiceTest` (DP/DF compliance, consume routing, builder)
 - Key demo test classes: `SimpleChatDemoTest`, `PresenceDemoTest`, `IoTSensorDemoTest`, `IoTControlDemoTest`, `IoTDiscoveryDemoTest`, `SmartHomeDemoTest`
-- Sections fully covered: XML stream lifecycle (RFC 6120 §4), TLS/STARTTLS (§5), SASL authentication (§6), Stanzas (§8), JID format with PRECIS normalization (RFC 6122/7622), Roster (RFC 6121 §2), Presence (§4), Messaging (§5), IoT extensions (XEP-0323/0325/0347), MUC (XEP-0045), PubSub (XEP-0060), Stream Management (XEP-0198)
-- Key areas needing improvement: service discovery (XEP-0030), message archiving (XEP-0313), server implementation
+- Sections fully covered: XML stream lifecycle (RFC 6120 §4), TLS/STARTTLS (§5), SASL authentication (§6), Stanzas (§8), JID format with PRECIS normalization (RFC 6122/7622), Roster (RFC 6121 §2), Presence (§4), Messaging (§5), IoT extensions (XEP-0323/0325/0347), MUC (XEP-0045), PubSub (XEP-0060), Stream Management (XEP-0198), transport SPI + service layer (framework convention)
+- Key areas needing improvement: service discovery (XEP-0030), message archiving (XEP-0313), full standalone XMPP server

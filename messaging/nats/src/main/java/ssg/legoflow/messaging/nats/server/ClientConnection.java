@@ -2,19 +2,24 @@ package ssg.legoflow.messaging.nats.server;
 
 import ssg.legoflow.messaging.nats.protocol.*;
 import ssg.legoflow.messaging.nats.server.auth.Authenticator;
+import ssg.legoflow.messaging.nats.transport.NatsTransport;
+import ssg.legoflow.messaging.nats.transport.TransportStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.io.*;
-import java.net.Socket;
+import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Per-client connection handler on the server side.
  *
  * <p>Manages the client lifecycle: INFO/CONNECT handshake, authentication,
  * PUB/SUB/UNSUB processing, PING/PONG keep-alive, and graceful shutdown.
+ *
+ * <p><b>Transport-agnostic:</b> reads/writes over a {@link NatsTransport} — never a raw socket.
  *
  * @since 0.1.0
  */
@@ -23,12 +28,10 @@ public final class ClientConnection implements AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(ClientConnection.class);
 
     private final long id;
-    private final Socket socket;
+    private final NatsTransport transport;
     private final NatsServer server;
     private final BufferedReader reader;
-    private final BufferedWriter writer;
     private final Map<String, SubscriptionEntry> subscriptions = new ConcurrentHashMap<>();
-    private final AtomicInteger unsubCounts = new AtomicInteger(0);
 
     private volatile ConnectOptions connectOptions;
     private volatile boolean authenticated;
@@ -39,17 +42,16 @@ public final class ClientConnection implements AutoCloseable {
     /**
      * Creates a new client connection.
      *
-     * @param id     the client ID
-     * @param socket the client socket
-     * @param server the owning server
-     * @throws IOException if stream creation fails
+     * @param id        the client ID
+     * @param transport the client's byte-level transport (no raw socket)
+     * @param server    the owning server
      */
-    public ClientConnection(long id, Socket socket, NatsServer server) throws IOException {
+    public ClientConnection(long id, NatsTransport transport, NatsServer server) {
         this.id = id;
-        this.socket = socket;
+        this.transport = transport;
         this.server = server;
-        this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
-        this.writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
+        var streams = new TransportStreams(transport);
+        this.reader = new BufferedReader(new InputStreamReader(streams.inputStream(), StandardCharsets.UTF_8));
     }
 
     /**
@@ -59,6 +61,15 @@ public final class ClientConnection implements AutoCloseable {
      */
     public long id() {
         return id;
+    }
+
+    /**
+     * Returns the client's transport.
+     *
+     * @return the transport
+     */
+    public NatsTransport transport() {
+        return transport;
     }
 
     /**
@@ -220,10 +231,7 @@ public final class ClientConnection implements AutoCloseable {
      * @throws IOException if write fails
      */
     public void send(String data) throws IOException {
-        synchronized (writer) {
-            writer.write(data);
-            writer.flush();
-        }
+        transport.send(TransportStreams.bytes(data));
     }
 
     /**
@@ -244,9 +252,9 @@ public final class ClientConnection implements AutoCloseable {
         subscriptions.clear();
         server.removeClient(this);
         try {
-            socket.close();
-        } catch (IOException e) {
-            LOG.debug("Error closing client {} socket", id, e);
+            transport.close();
+        } catch (Exception e) {
+            LOG.debug("Error closing client {} transport", id, e);
         }
     }
 
@@ -254,9 +262,9 @@ public final class ClientConnection implements AutoCloseable {
     public void close() {
         running = false;
         try {
-            socket.close();
-        } catch (IOException e) {
-            LOG.debug("Error closing client {} socket", id, e);
+            transport.close();
+        } catch (Exception e) {
+            LOG.debug("Error closing client {} transport", id, e);
         }
     }
 }

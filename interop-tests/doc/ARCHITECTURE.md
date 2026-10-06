@@ -119,14 +119,14 @@ tasks.withType<Test> {
 ## Extension Points
 
 ### Adding New Protocol Interop Tests
-1. Add Docker service to `docker-compose.yml` with health check
+1. Add a Docker service to the protocol's group compose file (`interop-tests/docker-compose.<group>.yml`) with a health check — or add a new group with its own compose file (D13)
 2. Create new test class under `ssg/legoflow/interop/<protocol>/`
 3. Include the protocol module as test dependency in both Maven and Gradle configs
 4. Add system properties for configurable host/port
 5. Document the test in interop-tests/README.md
 
 ### Configuring Docker Services
-- Ports: Modify port mappings in `docker-compose.yml`
+- Ports: Modify port mappings in the group's `docker-compose.<group>.yml`
 - Credentials: Update environment variables (POSTGRES_USER, POSTGRES_PASSWORD)
 - Health checks: Adjust interval/retries per service
 

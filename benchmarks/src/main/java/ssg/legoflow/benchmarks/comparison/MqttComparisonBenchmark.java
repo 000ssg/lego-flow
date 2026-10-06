@@ -4,8 +4,8 @@ import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import ssg.legoflow.blocks.Context;
 import ssg.legoflow.blocks.DefaultContext;
-import ssg.legoflow.mqtt.codec.MqttCodec;
-import ssg.legoflow.mqtt.protocol.*;
+import ssg.legoflow.messaging.mqtt.codec.MqttCodec;
+import ssg.legoflow.messaging.mqtt.protocol.*;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 /**
@@ -43,18 +43,18 @@ public class MqttComparisonBenchmark {
         qos0Publish = new PublishPacket(
                 "telemetry/sensor/temperature",
                 makePayload(SMALL_PAYLOAD),
-                QoS.AT_MOST_ONCE, false, false, 0, new ssg.legoflow.mqtt.protocol.MqttProperties());
+                QoS.AT_MOST_ONCE, false, false, 0, new ssg.legoflow.messaging.mqtt.protocol.MqttProperties());
 
         // QoS 1 PUBLISH (command with ack)
         qos1Publish = new PublishPacket(
                 "commands/device/actuator/set",
                 makePayload(SMALL_PAYLOAD),
-                QoS.AT_LEAST_ONCE, false, false, 42, new ssg.legoflow.mqtt.protocol.MqttProperties());
+                QoS.AT_LEAST_ONCE, false, false, 42, new ssg.legoflow.messaging.mqtt.protocol.MqttProperties());
 
         // CONNECT packet
         connectPacket = new ConnectPacket(
                 MqttVersion.V5_0, "bench-client-01", true, 60,
-                null, null, null, new ssg.legoflow.mqtt.protocol.MqttProperties());
+                null, null, null, new ssg.legoflow.messaging.mqtt.protocol.MqttProperties());
 
         // Pre-encode for decode benchmarks
         this.encodedQos0 = codecV5.encode(qos0Publish);

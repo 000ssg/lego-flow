@@ -3,6 +3,7 @@ package ssg.legoflow.messaging.kafka.client;
 import ssg.legoflow.messaging.kafka.codec.KafkaCodec;
 import ssg.legoflow.messaging.kafka.common.*;
 import ssg.legoflow.messaging.kafka.protocol.*;
+import ssg.legoflow.messaging.kafka.transport.KafkaTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -20,23 +21,30 @@ public final class KafkaAdminClient implements AutoCloseable {
     private final KafkaConnection connection;
 
     /**
-     * Creates a new admin client.
+     * Creates a new admin client over an injected transport.
      *
-     * @param host     the broker host
-     * @param port     the broker port
-     * @param clientId the client ID
+     * @param transport  the connection transport (service layer or in-memory pair)
+     * @param clientId   the client ID
      */
-    public KafkaAdminClient(String host, int port, String clientId) {
-        this.connection = new KafkaConnection(host, port, clientId);
+    public KafkaAdminClient(KafkaTransport transport, String clientId) {
+        this.connection = new KafkaConnection(transport, clientId);
     }
 
     /**
-     * Connects to the broker.
+     * Verifies the connection is open (no-op when already connected; the transport is
+     * injected at construction).
      *
-     * @throws IOException if connection fails
+     * @throws IOException if the transport is not open
      */
     public void connect() throws IOException {
-        connection.connect();
+        if (!connection.isConnected()) {
+            throw new IOException("Connection not open");
+        }
+    }
+
+    /** Exposes the underlying connection (for tests). */
+    KafkaConnection connection() {
+        return connection;
     }
 
     /**

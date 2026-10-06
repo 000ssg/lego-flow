@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Interoperability test: Lego Flow HTTP client ↔ real nginx server.
  */
-@Tag("web-protocols")
+@Tag("interop-rest")
 class HttpNginxInteropTest {
 
     private final String nginxHost = System.getProperty("interop.nginx.host", "localhost");

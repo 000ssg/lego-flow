@@ -22,10 +22,11 @@ graph TD
     L4a["Replica Manager<br/>(leader/ISR/epoch state per partition)"]
     L5["Record Batch Codec<br/>(v2 format magic=2, CRC32C, varint,<br/>GZIP compression, record headers)"]
     L6["Wire Protocol Codec<br/>(37 API types, frame encoding,<br/>request/response header, string/array primitives)"]
-    L7["service module (TCP)<br/>(ServerSocketChannel, virtual threads)"]
-    L8["blocks module<br/>(DP&lt;I,O&gt;, DF&lt;T&gt;, Context, State, Statistics)"]
+    L7["Transport SPI<br/>(KafkaTransport: in-memory for tests,<br/>PipelineKafkaTransport for TCP)"]
+    L8["service module (TCP)<br/>(SelectableChannelManager,<br/>DataChannel, virtual threads)"]
+    L9["blocks module<br/>(DP&lt;I,O&gt;, DF&lt;T&gt;, Context, State, Statistics)"]
 
-    L0 --> L1 --> L2 --> L3 --> L4 --> L5 --> L6 --> L7 --> L8
+    L0 --> L1 --> L2 --> L3 --> L4 --> L5 --> L6 --> L7 --> L8 --> L9
     L1 --> L3a
     L1 --> L3b
     L0 --> L4a
@@ -211,10 +212,18 @@ Each record uses varint encoding:
 
 ## Broker Architecture
 
+The broker core is **headless** — it opens no sockets. It exposes
+`KafkaBroker.handleConnection(KafkaTransport)` and reads/writes exclusively through the
+transport SPI. A `KafkaBrokerService` (in the service layer) owns the TCP listener and
+hands each inbound connection a `PipelineKafkaTransport` to the broker core.
+
 ```mermaid
 graph TD
-    TCP["TCP Listener<br/>(ServerSocketChannel)"] --> VT["Virtual Thread<br/>per Connection"]
-    VT --> AUTH["SASL Auth<br/>(optional handshake)"]
+    SVC["KafkaBrokerService<br/>(SelectableChannelManager, ServerDataChannel)"]
+    SVC --> VT["Virtual Thread<br/>per Connection"]
+    VT --> PT["PipelineKafkaTransport<br/>(DataChannel ring buffer)"]
+    PT --> BC["KafkaBroker.handleConnection(transport)<br/>(headless core — no sockets)"]
+    BC --> AUTH["SASL Auth<br/>(optional handshake)"]
     AUTH --> FR["Frame Reader<br/>(4-byte length prefix)"]
     FR --> HD["Header Decode<br/>(apiKey, apiVersion, correlationId, clientId)"]
     HD --> RD["Request Dispatcher<br/>(switch on 37 ApiKeys)"]
@@ -239,6 +248,30 @@ graph TD
     CF --> CM["ConfigManager"]
     MB --> RM["ReplicaManager"]
 ```
+
+### Transport SPI
+
+`KafkaTransport` is the seam between the headless broker core and the byte stream. The
+core reads length-prefixed frames and writes responses through this interface only.
+
+```mermaid
+graph LR
+    IF["KafkaTransport<br/>(interface)"]
+    IM["InMemoryKafkaTransport<br/>(LinkedBlockingQueue byte stream,<br/>tests + in-memory pairs)"]
+    PL2["PipelineKafkaTransport<br/>(DataChannel ring buffer,<br/>selector-driven, no sockets)"]
+    IF --> IM
+    IF --> PL2
+```
+
+| Implementation | Backing | Used by |
+|---|---|---|
+| `InMemoryKafkaTransport` | `LinkedBlockingQueue<ByteBuffer>` + head-buffer partial-read semantics | Unit tests, `InMemoryKafka` test seam |
+| `PipelineKafkaTransport` | 64 KB ring buffer over a `DataChannel` | `KafkaClientService` / real TCP |
+
+The in-memory transport keeps a partially-read buffer at the **head** of the stream so a
+frame split across reads reassembles in order (a partial read must not be re-queued behind
+a later send). `receiveWithTimeout` reports `-1` only after `close()`; a timeout while
+open keeps the broker loop alive.
 
 ### Partition Log and Pluggable Storage
 
@@ -273,7 +306,7 @@ graph TD
 - Initial segment mapping: 16 MB, auto-grows up to configurable max (default 1 GB)
 - Sparse offset index (one entry per 4 KB) for binary-search seek on fetch
 - Recovery on construction: scans existing segment files, rebuilds index
-- Usage: `new KafkaBroker(host, port, id, partitions, LogStorageFactory.mappedFile(logDir))`
+- Usage: `new KafkaBrokerService.Builder(port).host(host).brokerId(id).defaultPartitions(n).storageFactory(LogStorageFactory.mappedFile(logDir)).build()`
 
 ### Dynamic Configuration
 - `ConfigManager` stores per-topic and broker-level configs
@@ -347,9 +380,12 @@ graph LR
 | Lego Flow Module | Usage in Kafka |
 |------------------|----------------|
 | `blocks` | DP<I,O> for data processing pipeline building blocks, DF<T> for filtering, Statistics for metrics |
-| `service` | TCP server/client channels, virtual thread pools, lifecycle management |
+| `service` | `SelectableChannelManager` for TCP, `DataChannel`/`TcpDataChannel` for client I/O, virtual thread pools, lifecycle management |
 
-The Kafka module follows the framework's conventions: virtual threads for concurrency, ConcurrentHashMap for thread-safe state, AutoCloseable for resource management, and record types for immutable data carriers.
+The Kafka module follows the framework's conventions: the broker and client cores are
+headless (no sockets), all TCP I/O is owned by the service layer through the `KafkaTransport`
+SPI, virtual threads provide concurrency, ConcurrentHashMap is used for thread-safe state,
+AutoCloseable for resource management, and record types for immutable data carriers.
 
 ---
 
@@ -360,4 +396,4 @@ The Kafka module follows the framework's conventions: virtual threads for concur
 
 ---
 
-**Last Updated**: 2026-07-06
+**Last Updated**: 2026-09-21

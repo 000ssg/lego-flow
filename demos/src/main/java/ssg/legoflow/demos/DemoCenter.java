@@ -86,7 +86,7 @@ public final class DemoCenter {
 
         // MQTT
         register("mqtt", "MQTT Overview",
-                () -> () -> { try { ssg.legoflow.mqtt.demo.DemoMqttAll.runAll(); } catch (Exception e) { throw new RuntimeException(e); } });
+                () -> () -> { try { ssg.legoflow.messaging.mqtt.demo.DemoMqttAll.runAll(); } catch (Exception e) { throw new RuntimeException(e); } });
 
         // AMQP
         register("amqp", "AMQP Overview",

@@ -3,7 +3,7 @@
 ## Timeline Overview
 
 - **Module Added**: June 2026
-- **Tests**: 157
+- **Tests**: 233
 - **Dependencies**: blocks (DP/DF), service (lifecycle), http (WebSocket adapter, optional)
 - **Standards**: STOMP 1.2 (stomp.github.io), backward compatible with 1.0 and 1.1
 

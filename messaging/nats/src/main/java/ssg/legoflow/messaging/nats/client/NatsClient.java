@@ -1,11 +1,11 @@
 package ssg.legoflow.messaging.nats.client;
 
 import ssg.legoflow.messaging.nats.protocol.*;
+import ssg.legoflow.messaging.nats.transport.NatsTransport;
+import ssg.legoflow.messaging.nats.transport.TransportStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.io.*;
-import java.net.InetSocketAddress;
-import java.net.Socket;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
@@ -14,12 +14,19 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+
 /**
  * NATS client supporting connection, pub/sub, and request/reply.
  *
  * <p>Connects to a NATS server, handles protocol negotiation (INFO/CONNECT),
  * manages subscriptions, publishes messages, and supports the request/reply
  * pattern with automatic inbox management.
+ *
+ * <p><b>Transport-agnostic:</b> this client talks only to the {@link NatsTransport} SPI —
+ * it never touches sockets or the wire. A transport is injected at construction:
+ * {@code InMemoryNatsTransport} in unit tests, {@code PipelineNatsTransport} (driven by the
+ * {@code SelectableChannelManager} in the service layer) in production. See
+ * {@code NatsClientService} for the production socket path.
  *
  * <p>Uses virtual threads for the reader loop and request timeouts.
  *
@@ -29,8 +36,7 @@ public final class NatsClient implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(NatsClient.class);
 
-    private final String host;
-    private final int port;
+    private final NatsTransport transport;
     private final ConnectOptions connectOptions;
     private final InboxManager inboxManager = new InboxManager();
     private final Map<String, Subscription> subscriptions = new ConcurrentHashMap<>();
@@ -38,47 +44,41 @@ public final class NatsClient implements AutoCloseable {
     private final AtomicBoolean connected = new AtomicBoolean(false);
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 
-    private volatile Socket socket;
-    private volatile BufferedReader reader;
-    private volatile BufferedWriter writer;
+    private volatile TransportStreams streams;
     private volatile ServerInfo serverInfo;
     private volatile Future<?> readerFuture;
 
     /**
-     * Creates a new NATS client.
+     * Creates a new NATS client over an injected transport.
      *
-     * @param host    the server host
-     * @param port    the server port
-     * @param options the connect options
+     * @param transport   the byte-level transport (no socket)
+     * @param options     the connect options
      */
-    public NatsClient(String host, int port, ConnectOptions options) {
-        this.host = Objects.requireNonNull(host);
-        this.port = port;
+    public NatsClient(NatsTransport transport, ConnectOptions options) {
+        this.transport = Objects.requireNonNull(transport);
         this.connectOptions = Objects.requireNonNull(options);
     }
 
     /**
-     * Creates a new NATS client with default options.
+     * Creates a new NATS client over an injected transport with default options.
      *
-     * @param host the server host
-     * @param port the server port
+     * @param transport the byte-level transport (no socket)
      */
-    public NatsClient(String host, int port) {
-        this(host, port, ConnectOptions.withDefaults("lego-flow-client"));
+    public NatsClient(NatsTransport transport) {
+        this(transport, ConnectOptions.withDefaults("lego-flow-client"));
     }
 
     /**
-     * Connects to the NATS server.
+     * Connects to the NATS server over the injected transport.
      *
-     * @throws IOException if connection fails
+     * <p>Runs the INFO/CONNECT/PING handshake (the transport must already be established by
+     * the caller — e.g. the service layer once the manager fires the connect event).
+     *
+     * @throws IOException if the handshake fails
      */
     public void connect() throws IOException {
-        socket = new Socket();
-        socket.connect(new InetSocketAddress(host, port), 5000);
-        socket.setTcpNoDelay(true);
-
-        reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
-        writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
+        this.streams = new TransportStreams(transport);
+        var reader = new java.io.BufferedReader(new java.io.InputStreamReader(streams.inputStream(), StandardCharsets.UTF_8));
 
         // Read INFO from server
         var op = NatsCodec.readOp(reader);
@@ -99,10 +99,10 @@ public final class NatsClient implements AutoCloseable {
         }
 
         connected.set(true);
-        LOG.info("Connected to NATS server at {}:{}", host, port);
+        LOG.info("Connected to NATS server");
 
         // Start reader loop
-        readerFuture = executor.submit(this::readLoop);
+        readerFuture = executor.submit(() -> readLoop(reader));
     }
 
     /**
@@ -276,6 +276,15 @@ public final class NatsClient implements AutoCloseable {
     }
 
     /**
+     * Returns the transport this client is attached to.
+     *
+     * @return the transport
+     */
+    public NatsTransport transport() {
+        return transport;
+    }
+
+    /**
      * Returns the inbox manager.
      *
      * @return the inbox manager
@@ -291,17 +300,17 @@ public final class NatsClient implements AutoCloseable {
             readerFuture.cancel(true);
         }
         try {
-            if (socket != null && !socket.isClosed()) {
-                socket.close();
+            if (streams != null) {
+                streams.close();
             }
-        } catch (IOException e) {
-            LOG.debug("Error closing socket", e);
+        } catch (Exception e) {
+            LOG.debug("Error closing transport", e);
         }
         executor.shutdown();
         LOG.info("NATS client disconnected");
     }
 
-    private void readLoop() {
+    private void readLoop(java.io.BufferedReader reader) {
         try {
             while (connected.get()) {
                 var op = NatsCodec.readOp(reader);
@@ -347,10 +356,10 @@ public final class NatsClient implements AutoCloseable {
     }
 
     private void send(String data) throws IOException {
-        synchronized (writer) {
-            writer.write(data);
-            writer.flush();
+        if (streams == null) {
+            throw new IOException("Not connected to NATS server");
         }
+        transport.send(TransportStreams.bytes(data));
     }
 
     private void checkConnected() throws IOException {

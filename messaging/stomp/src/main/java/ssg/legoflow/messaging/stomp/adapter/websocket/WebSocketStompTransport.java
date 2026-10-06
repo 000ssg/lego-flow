@@ -4,25 +4,32 @@ import ssg.legoflow.http.websocket.WebSocketFrame;
 import ssg.legoflow.http.websocket.WebSocketSession;
 import ssg.legoflow.messaging.stomp.core.StompCodec;
 import ssg.legoflow.messaging.stomp.core.StompFrame;
-import ssg.legoflow.messaging.stomp.core.transport.StompTransport;
+import ssg.legoflow.messaging.stomp.transport.StompTransport;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * STOMP transport over WebSocket text frames.
  *
- * <p>Each WebSocket text frame carries exactly one STOMP frame (the NULL terminator
- * may be omitted as WebSocket provides its own message boundaries). This adapter
- * serializes outgoing STOMP frames to text and deserializes incoming text frames.
+ * <p>Implements byte-level {@link StompTransport} backed by WebSocket text frames.
+ * Each WebSocket text frame carries raw STOMP frame bytes. The caller (broker/client)
+ * uses {@link ssg.legoflow.messaging.stomp.transport.StompFrameCodec} on top for
+ * frame-level operations.
  *
- * @since 0.1.0
+ * <p>WebSocket provides message boundaries, so the NULL terminator is optional.
+ * Use {@link StompFrameCodec} with {@code strictNull=false} when using this transport.
  */
 public class WebSocketStompTransport implements StompTransport {
 
     private final WebSocketSession session;
-    private final BlockingQueue<StompFrame> incomingQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<ByteBuffer> incomingQueue = new LinkedBlockingQueue<>();
+    private final AtomicBoolean open = new AtomicBoolean(true);
     private volatile Consumer<WebSocketFrame> frameSink;
-    private volatile boolean open = true;
 
     /**
      * Creates a new STOMP transport adapter for the given WebSocket session.
@@ -32,12 +39,13 @@ public class WebSocketStompTransport implements StompTransport {
     public WebSocketStompTransport(WebSocketSession session) {
         this.session = session;
         session.onMessage(frame -> {
-            if (open) {
-                var stompFrame = StompCodec.decodeFromString(frame.getPayloadText());
-                incomingQueue.offer(stompFrame);
+            if (open.get()) {
+                String text = frame.getPayloadText();
+                ByteBuffer buf = ByteBuffer.wrap(text.getBytes(StandardCharsets.UTF_8));
+                incomingQueue.offer(buf);
             }
         });
-        session.onClose(frame -> open = false);
+        session.onClose(frame -> open.set(false));
     }
 
     /**
@@ -49,10 +57,16 @@ public class WebSocketStompTransport implements StompTransport {
         this.frameSink = sink;
     }
 
+    /**
+     * Sends raw bytes through this transport. The bytes are sent as a single
+     * WebSocket text frame.
+     */
     @Override
-    public void send(StompFrame frame) {
-        if (!open) throw new IllegalStateException("Transport is closed");
-        var text = StompCodec.encodeToString(frame);
+    public void send(ByteBuffer data) {
+        if (!open.get()) throw new IllegalStateException("Transport is closed");
+        byte[] bytes = new byte[data.remaining()];
+        data.get(bytes);
+        String text = new String(bytes, StandardCharsets.UTF_8);
         var wsFrame = WebSocketFrame.text(text);
         var sink = this.frameSink;
         if (sink != null) {
@@ -70,33 +84,36 @@ public class WebSocketStompTransport implements StompTransport {
     }
 
     @Override
-    public StompFrame receive() {
-        try {
-            return incomingQueue.take();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Interrupted while waiting for STOMP frame", e);
-        }
+    public int receive(ByteBuffer buffer) {
+        return receiveWithTimeout(buffer, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
     }
 
-    /**
-     * Non-blocking receive: returns {@code null} if no frame is available.
-     *
-     * @return the next frame, or null
-     */
-    public StompFrame tryReceive() {
-        return incomingQueue.poll();
+    @Override
+    public int receiveWithTimeout(ByteBuffer buffer, long timeout, TimeUnit unit) {
+        if (!open.get()) return -1;
+        try {
+            ByteBuffer data = incomingQueue.poll(timeout, unit);
+            if (data == null || !open.get()) return -1;
+            if (!data.hasRemaining()) return -1;
+            data.flip();
+            int count = Math.min(buffer.remaining(), data.remaining());
+            buffer.put(data);
+            return count;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return -1;
+        }
     }
 
     @Override
     public void close() {
-        open = false;
+        open.set(false);
         session.close();
     }
 
     @Override
     public boolean isOpen() {
-        return open && session.isOpen();
+        return open.get() && session.isOpen();
     }
 
     /**

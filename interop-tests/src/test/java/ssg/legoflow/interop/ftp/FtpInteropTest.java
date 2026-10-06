@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   interop.ftp.username (default: anonymous)
  *   interop.ftp.password (default: guest)
  */
-    @Tag("email-protocols")
+    @Tag("interop-rest")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class FtpInteropTest {
 

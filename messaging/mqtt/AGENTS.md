@@ -11,26 +11,25 @@ The `mqtt` module implements MQTT v3.1.1 and v5.0 protocols for publish/subscrib
 
 ## Key Interfaces
 
-- `MqttBroker` — broker with client registry, topic tree, session store, message routing
+- `MqttBroker` — broker with client registry, topic tree, session store, message routing, TLS, keep-alive, session expiry
 - `MqttClient` — client with connect, subscribe, publish, auto-reconnect, keep-alive
-- `MqttPacketCodec` — binary codec for all 15 MQTT control packet types
+- `MqttCodec` — binary codec for all 15 MQTT control packet types with stream-oriented accumulator
+- `MqttBrokerService` / `MqttClientService` — service-layer wrappers for integration with `service` module
 - `TopicTree` — topic-based routing with wildcard matching (+, #)
-- `QosFlow` — state machines for QoS 0/1/2 delivery guarantee flows
-- `SessionStore` — persistent and clean session management
-- `WillManager` — last will and testament storage and delivery
+- `MqttSession` — session state: subscriptions, inflight messages, offline queue, expiry
+- `MqttEventListener` — protocol flow listener for testing and debugging
 
 ## Package Breakdown
 
 | Package | Purpose |
 |---------|---------|
-| `broker` | Broker implementation: client registry, connection handling, message routing, session persistence |
-| `client` | Client implementation: CONNECT/DISCONNECT lifecycle, subscribe/unsubscribe, publish, auto-reconnect, keep-alive (PINGREQ/PINGRESP) |
-| `codec` | Packet codec: fixed header, variable header, payload encode/decode for all 15 control packet types |
-| `qos` | QoS delivery flows: QoS 0 fire-and-forget, QoS 1 PUBLISH/PUBACK, QoS 2 PUBLISH/PUBREC/PUBREL/PUBCOMP |
-| `session` | Session management: clean vs persistent sessions, offline message queue, subscription restore |
-| `topic` | Topic engine: topic tree data structure, wildcard matching (+ single-level, # multi-level), retained message store |
-| `will` | Last Will and Testament: will message configuration, storage, triggered delivery on ungraceful disconnect |
-| `demo` | Demo applications: broker, pub/sub, retained messages, sessions, multi-client |
+| `broker` | Broker: client registry, connection handling, message routing, session store, will delivery, session expiry sweep, keep-alive monitoring |
+| `broker.service` | `MqttBrokerService` + `MqttBrokerChannelHandler` — service-layer integration |
+| `client` | Client: CONNECT/DISCONNECT lifecycle, subscribe/unsubscribe, publish, auto-reconnect, keep-alive (PINGREQ/PINGRESP) |
+| `client.service` | `MqttClientService` + `MqttClientChannelHandler` — service-layer integration |
+| `codec` | Stream-oriented packet codec: fixed header, variable header, payload encode/decode, internal accumulator for TCP stream reassembly |
+| `protocol` | Packet types (15), QoS enum, ReasonCode, MqttProperties, MqttVersion, TopicSubscription, WillMessage |
+| `topic` | Topic tree data structure, wildcard matching (+ single-level, # multi-level), retained message store (`RetainStore`) |
 
 ## MQTT-Specific Coding Conventions
 
@@ -83,3 +82,10 @@ This pattern is common across Lego Flow protocol codecs that operate over TCP by
 - Keep-alive timeout tests: broker disconnects silent clients after 1.5x interval
 - All tests use loopback transport (no external broker required)
 - Test count: 193
+
+### MQTT-Specific Testing
+
+**`MqttEventListener`** — fires at `CLIENT_CONNECTED`, `CLIENT_DISCONNECTED`, `SESSION_CREATED`, `SESSION_RESUMED`, `SUBSCRIPTION_ADDED`, `WILL_DELIVERED`. Use `MqttEventListener.latchOnFirst(EventType)` to synchronize tests with broker-side protocol progress without `Thread.sleep`. (This is the generic protocol flow listener pattern — see [doc/AGENTS_protocol_accuracy.md](../../../doc/AGENTS_protocol_accuracy.md) §11.)
+
+> **General test patterns**: See [../../../doc/AGENTS_test_patterns.md](../../../doc/AGENTS_test_patterns.md)
+> **Protocol accuracy rules**: See [../../../doc/AGENTS_protocol_accuracy.md](../../../doc/AGENTS_protocol_accuracy.md)

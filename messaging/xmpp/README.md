@@ -4,14 +4,14 @@
 [![Java](https://img.shields.io/badge/Java-25+-orange.svg)](https://www.oracle.com/java/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](../LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-268-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-283-brightgreen.svg)]()
 [![Version](https://img.shields.io/badge/Version-0.1.0-blue.svg)]()
 
 XMPP protocol module for the Lego Flow framework, providing presence, messaging, roster management, and IoT extensions.
 
 ## Overview
 
-This module implements XMPP core (RFC 6120) and XMPP Instant Messaging (RFC 6121) with IoT extensions, enabling Java applications to build real-time communication and machine-to-machine systems. The architecture layers application protocols on top of XML stream handling:
+This module implements XMPP core (RFC 6120) and XMPP Instant Messaging (RFC 6121) with IoT extensions, enabling Java applications to build real-time communication and machine-to-machine systems. The core is **headless and socket-free** — the protocol is wired to a byte-level `XmppTransport` SPI, and real TCP is owned exclusively by the service layer:
 
 ```
 IoT Extensions (XEP-0323/0325/0347: sensor data, control, discovery)
@@ -20,8 +20,11 @@ IoT Extensions (XEP-0323/0325/0347: sensor data, control, discovery)
       → Stream Management (XEP-0198: acks, resumption)
         → SASL Authentication + TLS Negotiation
           → XML Stream (open/close, feature negotiation)
-            → TCP Transport (service module channels)
+            → XmppTransport SPI (InMemory for tests/demos, Pipeline for real TCP)
+              → Service Layer (XmppClientService / XmppServerService + SelectableChannelManager)
 ```
+
+The protocol core (`XmppClient`, `XmppServer`, `XmppCodec`, `XmppStream`) never touches a `SocketChannel`/`Selector` directly — it reads and writes through the injected transport. `InMemoryXmppTransport` backs unit tests and demos; `PipelineXmppTransport` (driven by the `SelectableChannelManager` selector thread) backs production. The service layer is the only layer that owns real channels.
 
 ## Features
 
@@ -33,21 +36,45 @@ IoT Extensions (XEP-0323/0325/0347: sensor data, control, discovery)
 - **Multi-User Chat (XEP-0045)** — room creation, join/leave, occupant management, room messages
 - **Publish-Subscribe (XEP-0060)** — node creation, item publish, subscription management
 - **Stream Management (XEP-0198)** — stanza acknowledgement, session resumption after disconnect
+- **Headless server** — socket-free core; connections are fed through `XmppServer.handleConnection(XmppTransport)`, real TCP owned by the service layer
+- **Transport-injected client** — `new XmppClient(transport)` wires the protocol to any byte-level transport; the legacy no-arg client remains for in-memory use
+- **Transport SPI** — `XmppTransport` byte-level SPI: `InMemoryXmppTransport` (tests/demos), `PipelineXmppTransport` (production, selector-thread driven)
+- **Service layer** — `XmppClientService` / `XmppServerService` drive real TCP through `SelectableChannelManager`; zero raw sockets in the protocol core
 - **Stanza types** — message (chat, groupchat, headline), presence, iq (get, set, result, error)
 - **Dual API** — sync + async (CompletableFuture), procedural + functional styles
 
 ## Quick Start
 
-### Connect and send a message
+### Connect and send a message (service layer, real TCP)
 
 ```java
-var client = XmppClient.builder()
-    .host("localhost").port(5222)
-    .jid("alice@example.com")
-    .password("secret")
-    .build();
-client.connect();
-client.sendMessage("bob@example.com", "Hello from Lego Flow!");
+var ctx = new DefaultServiceContext(ServiceUser.anonymous());
+var manager = new SelectableChannelManager(ctx);
+manager.startEventLoop();
+
+var serverService = XmppServerService.builder().port(5222).build();
+serverService.connect(ctx);   // non-blocking listener owned by the manager
+
+var clientService = XmppClientService.builder("localhost", 5222).build();
+clientService.connect(ctx);
+var client = clientService.getClient();
+
+var config = XmppClientConfig.defaults("localhost", "example.com");
+client.connect(config);
+client.login("alice", "secret");
+client.sendMessage(new JID("bob", "example.com", null), "Hello from Lego Flow!");
+```
+
+### In-memory (no TCP, for tests and demos)
+
+```java
+var pair = InMemoryXmppTransport.createPair();
+var client = new XmppClient(pair[0]);
+var config = XmppClientConfig.defaults("localhost", "example.com");
+client.connect(config);
+client.login("alice", "secret");
+client.sendMessage(new JID("bob", "example.com", null), "Hello");
+client.flushOutbound();   // bytes land in the peer's in-memory queue
 ```
 
 ### Manage presence
@@ -86,6 +113,11 @@ ssg.legoflow.xmpp/
 ├── pubsub/            — Publish-Subscribe (XEP-0060): nodes, items, subscriptions
 ├── iot/               — IoT extensions: sensor data (XEP-0323), control (XEP-0325), discovery (XEP-0347)
 ├── sm/                — Stream Management (XEP-0198): acks, resumption, unacknowledged stanza queue
+├── transport/         — XmppTransport SPI: InMemoryXmppTransport (tests/demos), PipelineXmppTransport (production)
+├── client/            — XmppClient (transport-injected), XmppClientConfig, listeners
+│   └── service/       — XmppClientService / XmppClientChannelHandler (DP/DF, real TCP)
+├── server/            — XmppServer (headless, handleConnection(XmppTransport))
+│   └── service/       — XmppServerService / XmppServerChannelHandler (DP/DF, real TCP)
 └── demo/              — Demo applications and examples
 ```
 

@@ -7,12 +7,11 @@ import ssg.legoflow.messaging.amqp.transport.PipelineTransport;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.channel.ChannelHandler;
 import ssg.legoflow.service.channel.DataChannel;
-import ssg.legoflow.service.channel.TcpDataChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Pipeline handler for AMQP client connections.
@@ -31,41 +30,30 @@ public final class AmqpClientChannelHandler implements ChannelHandler {
     private PipelineTransport transport;
     private volatile CountDownLatch connectLatch;
 
-    public AmqpClientChannelHandler(AmqpClientService service, ServiceContext ctx) {
+    public AmqpClientChannelHandler(AmqpClientService service, ServiceContext ctx, PipelineTransport transport) {
         this.service = service;
         this.ctx = ctx;
+        this.transport = transport;
     }
 
     void setConnectLatch(CountDownLatch latch) {
         this.connectLatch = latch;
     }
 
+    private final AtomicBoolean connectHandled = new AtomicBoolean(false);
+
     /**
-     * Called by the manager when TCP connect completes.
-     * Finishes TCP, enables READ|WRITE, and signals the latch.
-     * Protocol handshake is handled by the calling thread (doConnect).
+     * Called when TCP connect completes. TCP lifecycle (finishConnect, interestOps)
+     * is handled entirely by SelectableChannelManager in the selector thread.
+     * This handler only signals readiness for protocol processing.
      */
     @Override
     public void onConnect(DataChannel channel) {
-        try {
-            // Finish the TCP connect (required for non-blocking connect)
-            var socketChannel = ((TcpDataChannel) channel).getSocketChannel();
-            socketChannel.finishConnect();
-
-            // Enable data flow — switch from OP_CONNECT to OP_READ|OP_WRITE
-            var mgr = ctx.getChannelManager();
-            if (mgr != null) {
-                mgr.updateChannelOps(service, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-            }
-
-            // Signal TCP connected — caller will do protocol handshake
-            if (connectLatch != null) connectLatch.countDown();
-            LOG.debug("TCP connected for {}", service.getDescriptor().name());
-        } catch (Exception e) {
-            LOG.error("TCP connect failed for {}: {}", service.getDescriptor().name(), e.getMessage(), e);
-            if (connectLatch != null) connectLatch.countDown();
-            throw new RuntimeException(e);
+        if (!connectHandled.compareAndSet(false, true)) {
+            return; // Already handled
         }
+        if (connectLatch != null) connectLatch.countDown();
+        LOG.debug("TCP connected for {}", service.getDescriptor().name());
     }
 
     /**
@@ -86,7 +74,6 @@ public final class AmqpClientChannelHandler implements ChannelHandler {
             if (service.getBrokerModeName() != null) configBuilder.brokerMode(BrokerMode.valueOf(service.getBrokerModeName()));
 
             this.client = new AmqpClient(configBuilder.build());
-            this.transport = service.getTransport();
             client.connect(transport);
             service.setClient(client);
             LOG.debug("AMQP protocol handshake completed for {}", service.getDescriptor().name());
@@ -98,7 +85,6 @@ public final class AmqpClientChannelHandler implements ChannelHandler {
 
     @Override
     public void onRead(DataChannel channel, ByteBuffer data) {
-        System.out.println("[handler.onRead] transport=" + (transport != null) + " data=" + data.remaining());
         if (transport != null) transport.onRead(channel, data);
     }
 

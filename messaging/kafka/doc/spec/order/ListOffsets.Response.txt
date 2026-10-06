@@ -1,0 +1,22 @@
+ListOffsets Response — field processing order (binding; spec 3.6.1) — flexible encoding from v6
+wire order by layout (equal run = byte-identical field layout):
+  v0 -> Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)ErrorCode:(Partitions)OldStyleOffsets?
+  v1 -> Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)ErrorCode:(Partitions)Timestamp?:(Partitions)Offset?
+  v2-v3 -> ThrottleTimeMs?:Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)ErrorCode:(Partitions)Timestamp?:(Partitions)Offset?
+  v4-v5 -> ThrottleTimeMs?:Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)ErrorCode:(Partitions)Timestamp?:(Partitions)Offset?:(Partitions)LeaderEpoch?
+  v6-v8 -> ThrottleTimeMs?:Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)ErrorCode:(Partitions)Timestamp?:(Partitions)Offset?:(Partitions)LeaderEpoch?|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0:
+  v0: fixed: Topics([]ListOffsetsTopicResponse) || tagged: ∅
+  v1:
+  v1: fixed: Topics([]ListOffsetsTopicResponse) || tagged: ∅
+  v2-v3:
+  v2: fixed: ThrottleTimeMs(int32), Topics([]ListOffsetsTopicResponse) || tagged: ∅
+  v3: fixed: ThrottleTimeMs(int32), Topics([]ListOffsetsTopicResponse) || tagged: ∅
+  v4-v5:
+  v4: fixed: ThrottleTimeMs(int32), Topics([]ListOffsetsTopicResponse) || tagged: ∅
+  v5: fixed: ThrottleTimeMs(int32), Topics([]ListOffsetsTopicResponse) || tagged: ∅
+  v6-v8:
+  v6: fixed: ThrottleTimeMs(int32) [flex], Topics([]ListOffsetsTopicResponse) [flex] || tagged: ∅
+  v7: fixed: ThrottleTimeMs(int32) [flex], Topics([]ListOffsetsTopicResponse) [flex] || tagged: ∅
+  v8: fixed: ThrottleTimeMs(int32) [flex], Topics([]ListOffsetsTopicResponse) [flex] || tagged: ∅

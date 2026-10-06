@@ -136,8 +136,9 @@ client.subscribe("/topic/individual", "client-individual", msg -> {
 
 ## Test Coverage
 
-**157 tests** covering:
+**233 tests** covering:
 - Frame codec (43 tests): parse/serialize all commands, header escaping, binary body, round-trips
+- StompFrameCodec (16 tests): frame send/receive over transport, stream reassembly (batched/split frames, heartbeat, timeout, close)
 - StompHeaders (14 tests): put/get, case sensitivity, standard constants
 - StompFrame (10 tests): construction, text body, heartbeat
 - StompCommand (5 tests): client vs server, parsing
@@ -148,9 +149,10 @@ client.subscribe("/topic/individual", "client-individual", msg -> {
 - StompClient (12 tests): connect, subscribe, transactions, disconnect
 - TCP adapter (8 tests): full round-trip over real TCP sockets
 - Demo tests (9 tests): pub/sub, request-reply, transactional messaging
+- Service-layer and transport (rest): pipeline ring buffer, client/server channel handlers, persistence, event listener
 
 ## Documentation
 
-- [COMPLIANCE.md](COMPLIANCE.md) -- STOMP 1.2 protocol compliance matrix
-- [doc/REQUIREMENTS.md](doc/REQUIREMENTS.md) -- requirements and design decisions
-- [doc/ARCHITECTURE.md](doc/ARCHITECTURE.md) -- architectural decisions
+- [COMPLIANCE.md](doc/COMPLIANCE.md) -- STOMP 1.2 protocol compliance matrix
+- [REQUIREMENTS.md](doc/REQUIREMENTS.md) -- requirements and design decisions
+- [ARCHITECTURE.md](doc/ARCHITECTURE.md) -- architectural decisions

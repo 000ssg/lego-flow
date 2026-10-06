@@ -5,6 +5,8 @@ include("lego-flow-blocks")
 project(":lego-flow-blocks").projectDir = file("blocks")
 include("lego-flow-service")
 project(":lego-flow-service").projectDir = file("service")
+include("lego-flow-acl")
+project(":lego-flow-acl").projectDir = file("acl")
 
 // Cluster coordination — service-level module (not nested under a category)
 include("lego-flow-cluster-coordination")

@@ -1,40 +1,42 @@
 package ssg.legoflow.messaging.stomp.demo;
 
-import ssg.legoflow.messaging.stomp.core.StompFrame;
-import ssg.legoflow.messaging.stomp.core.transport.StompTransport;
+import ssg.legoflow.messaging.stomp.transport.StompTransport;
+import java.nio.ByteBuffer;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
- * In-memory STOMP transport for testing and demos.
+ * In-memory byte-level STOMP transport for testing and demos.
  *
- * <p>Uses a pair of blocking queues to connect two endpoints. Messages sent
- * by one side are received by the other, enabling transport-agnostic testing
- * of the STOMP protocol without any network I/O.
+ * <p>Uses a pair of blocking queues to connect two endpoints. Bytes sent by one
+ * side are received by the other, enabling transport-agnostic testing of the
+ * STOMP protocol without any network I/O. Mirrors the module's
+ * {@code ssg.legoflow.messaging.stomp.transport.InMemoryTransport}.
  *
  * @since 0.1.0
  */
-public class InMemoryStompTransport implements StompTransport {
+public final class InMemoryStompTransport implements StompTransport {
 
-    private final BlockingQueue<StompFrame> sendQueue;
-    private final BlockingQueue<StompFrame> receiveQueue;
-    private volatile boolean open = true;
+    private final BlockingQueue<ByteBuffer> inbound;
+    private final BlockingQueue<ByteBuffer> outbound;
+    private final AtomicBoolean open = new AtomicBoolean(true);
 
-    private InMemoryStompTransport(BlockingQueue<StompFrame> sendQueue,
-                                    BlockingQueue<StompFrame> receiveQueue) {
-        this.sendQueue = sendQueue;
-        this.receiveQueue = receiveQueue;
+    private InMemoryStompTransport(BlockingQueue<ByteBuffer> inbound, BlockingQueue<ByteBuffer> outbound) {
+        this.inbound = inbound;
+        this.outbound = outbound;
     }
 
     /**
      * Creates a connected pair of in-memory transports.
-     * Messages sent on the first are received on the second, and vice versa.
+     * Data sent on {@code pair[0]} arrives on {@code pair[1]} and vice versa.
      *
      * @return an array of two connected transports: [client-side, server-side]
      */
     public static InMemoryStompTransport[] createPair() {
-        var q1 = new LinkedBlockingQueue<StompFrame>();
-        var q2 = new LinkedBlockingQueue<StompFrame>();
+        var q1 = new LinkedBlockingQueue<ByteBuffer>();
+        var q2 = new LinkedBlockingQueue<ByteBuffer>();
         return new InMemoryStompTransport[]{
                 new InMemoryStompTransport(q1, q2),
                 new InMemoryStompTransport(q2, q1)
@@ -42,53 +44,49 @@ public class InMemoryStompTransport implements StompTransport {
     }
 
     @Override
-    public void send(StompFrame frame) {
-        if (!open) throw new IllegalStateException("Transport is closed");
-        sendQueue.offer(frame);
+    public void send(ByteBuffer data) {
+        if (!open.get()) return;
+        var copy = ByteBuffer.allocate(data.remaining());
+        copy.put(data);
+        copy.flip();
+        outbound.offer(copy);
     }
 
     @Override
-    public StompFrame receive() {
-        try {
-            return receiveQueue.take();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Interrupted while waiting for frame", e);
-        }
+    public int receive(ByteBuffer buffer) {
+        return receiveWithTimeout(buffer, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
     }
 
-    /**
-     * Non-blocking receive: returns {@code null} if no frame is available.
-     *
-     * @return the next frame, or null
-     */
-    public StompFrame tryReceive() {
-        return receiveQueue.poll();
-    }
-
-    /**
-     * Receive with a timeout.
-     *
-     * @param timeout the maximum time to wait
-     * @param unit    the time unit
-     * @return the next frame, or null if timeout elapsed
-     */
-    public StompFrame tryReceive(long timeout, TimeUnit unit) {
+    @Override
+    public int receiveWithTimeout(ByteBuffer buffer, long timeout, TimeUnit unit) {
+        if (!open.get()) return -1;
         try {
-            return receiveQueue.poll(timeout, unit);
+            ByteBuffer data = inbound.poll(timeout, unit);
+            if (data == null || !open.get()) return -1;
+            if (!data.hasRemaining()) return -1; // Close signal
+            int count = Math.min(buffer.remaining(), data.remaining());
+            int limit = data.limit();
+            data.limit(data.position() + count);
+            buffer.put(data);
+            data.limit(limit);
+            if (data.hasRemaining()) {
+                inbound.offer(data);
+            }
+            return count;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return null;
+            return -1;
         }
     }
 
     @Override
     public void close() {
-        open = false;
+        open.set(false);
+        inbound.offer(ByteBuffer.allocate(0));
     }
 
     @Override
     public boolean isOpen() {
-        return open;
+        return open.get();
     }
 }

@@ -592,3 +592,442 @@ Implemented 8-phase cluster protocol suite enabling multi-node deployment of Leg
 | Files created/modified | 0 created / 55 modified-deleted |
 | Lines added/removed | +10 / -4609 |
 | Tests added | 0 (removed 21 AMQP 0-9-1 interop tests + module unit tests) |
+
+---
+
+## Commit: (cleanup-messaging) — MQTT & STOMP Module Alignment (2026-09-02)
+
+### Original Request
+> "align MQTT and STOMP messaging modules with AGENTS.md standards: audit docs, implement protocol flow listeners, close implementation/testing gaps, update interop/docker infrastructure, add wire capture tests if needed, verify build/test pipelines"
+
+### Reformulated Requirements
+1. Audit documentation structure (AGENTS.md, COMPLIANCE.md, README.md) against project standards
+2. Implement protocol flow listeners following AmqpEventListener pattern
+3. Close implementation gaps: transport abstraction for MQTT
+4. Update interop test infrastructure: Docker compose with Mosquitto + RabbitMQ STOMP
+5. Verify build pipelines (Maven compile, Maven test, Gradle test)
+6. Run interop tests against real reference brokers
+
+### Final Design Decisions
+- **MqttEventListener**: 8 event types (connect, disconnect, session create/resume, subscription, will delivery, session expiry, keep-alive timeout) with NO_OP default and latchOnFirst() factory
+- **StompEventListener**: 5 event types (session connect, session disconnect, message delivered, transaction committed, transaction aborted) with same pattern
+- **InMemoryMqttTransport**: ByteBuffer-based blocking queue pair for transport-agnostic testing (matches AMQP pattern)
+- **Docker compose**: Mosquitto (eclipse-mosquitto:latest) + RabbitMQ with rabbitmq_stomp + rabbitmq_amqp1_0 plugins
+- **COMPLIANCE.md**: Fixed 13 stale test references in MQTT, 3 in STOMP (removed non-existent demo tests)
+- **Wire capture**: Cancelled — interop tests against real brokers passed cleanly (MQTT 4/4, STOMP 6/6)
+
+### Implementation Details
+- `MqttEventListener.java` — 77 lines, 8 event types, latch factory, wired into MqttBroker at 6 points
+- `StompEventListener.java` — 68 lines, 5 event types, latch factory, wired into StompBroker at 5 points
+- `InMemoryMqttTransport.java` — 107 lines, blocking queue pair for ByteBuffer transport
+- `MqttBroker.java` — Added listener field + 6 fire points (connect, subscribe, disconnect, will, keep-alive, session expiry)
+- `StompBroker.java` — Added listener field + 5 fire points (connect, disconnect, message, commit, abort)
+- `docker-compose.yml` — Added Mosquitto service, fixed RabbitMQ entrypoint → command for plugin enable
+- `StompInteropTest.java` — Updated docs to reference RabbitMQ STOMP plugin
+- `MqttMosquittoInteropTest.java` — Updated docs for docker-compose usage
+- `messaging/mqtt/AGENTS.md` — Fixed package breakdown, interface descriptions
+- `messaging/stomp/AGENTS.md` — Updated Testing Practices section
+- `messaging/mqtt/doc/COMPLIANCE.md` — Fixed 13 stale test references
+- `messaging/stomp/doc/COMPLIANCE.md` — Fixed 3 stale demo test references
+- Root `AGENTS.md` — Added MQTT/STOMP to Quick Reference table
+- Deleted `messaging/stomp/COMPLIANCE.md` (duplicate at root level)
+
+### Test Results
+| Suite | Result |
+|-------|--------|
+| Maven compile | SUCCESS |
+| Maven test (mqtt + stomp) | 188 tests, 0 failures |
+| Gradle test (mqtt + stomp) | SUCCESS |
+| MQTT interop (Mosquitto) | 4/4 passed |
+| STOMP interop (RabbitMQ) | 6/6 passed |
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files created | 3 (MqttEventListener, StompEventListener, InMemoryMqttTransport) |
+| Files modified | 10 |
+| Files deleted | 1 |
+| Lines added/removed | +410 / -131 |
+| Tests added | 0 (infrastructure only) |
+
+## 2026-09-02: ACL module
+- Created acl module with domain model (AclDomain, User, Group, Role, AclRule)
+- Certificate generation via BouncyCastle (JDK 25+ sealed sun.security internals)
+- SSH key generation (RSA/Ed25519), SASL utilities (PLAIN, SCRAM-SHA-256, Postgres SCRAM)
+- Config loaders: properties, YAML, JSON, XML
+- SSL context helpers for Java SSL engine testing
+- TestDomain factory with 10-year self-signed certs for all protocol tests
+- 105 tests, 0 failures (Maven), 98 tests, 0 failures (Gradle)
+
+## 2026-09-18: STOMP TCP message-loss fix (frame reassembly) + messaging interop verification
+
+- Root cause: `StompFrameCodec.receive()` drained the whole read buffer but decoded only the FIRST frame; on real TCP a single read carries all batched bytes (e.g. 5 MESSAGE frames), so trailing frames were silently dropped and partial frames threw, killing the receiver thread. Reproduced as `StompInteropTest.testMultipleMessages` 0/5 in the combined single-JVM interop run.
+- Fix: rewrote `StompFrameCodec.receive()` as a stream reassembler on `StompCodec.findFrameEnd()` — accumulate all bytes, decode exactly one complete frame per call, keep the remainder; `FrameIncompleteException` = wait for more bytes; read timeout with no data does NOT end the caller's loop (only transport close returns null). Applies to both client (background receiver) and broker (per-connection loop).
+- Regression tests: 6 new cases in `StompFrameCodecTest` with a chunked fake transport (batched frames in one read, split frame, split + trailing next frame, heartbeat + frame, timeout survival, close-with-partial → null).
+- Verified: stomp module 233 unit tests green; messaging interop group (AmqpInteropTest + MqttMosquittoInteropTest + StompInteropTest) 12/12 in two consecutive combined runs; full Maven unit suite (all modules, no benchmarks) BUILD SUCCESS; Gradle clean test BUILD SUCCESSFUL.
+
+## 2026-09-18: Messaging transport redesign follow-up — service-layer NIO transports, MQTT/AMQP/STOMP client fixes, interop infrastructure
+
+Part 1 of the cleanup-messaging verification series (part 2 = the STOMP frame reassembly fix, same day).
+
+- **Service layer (SelectableChannelManager)**: TCP connect lifecycle moved fully into the selector thread (finishConnect, interestOps, close); protocol channel handlers no longer touch SocketChannel/SelectionKey directly; `TcpDataFlowTest` added.
+- **MQTT**: `MqttPipelineTransport.onWrite` double-flip fix (codec returns read-mode buffer; re-flip made CONNECT write 0 bytes on real TCP); `MqttClientService.doConnect` illegal CONNECTING->CONNECTING self-transition removed; `MqttTlsTransport` rewritten around SSLEngine; new `MqttMosquittoInteropTest` (real broker via MqttClientService).
+- **AMQP**: client service-layer wiring on the new channel handler; ClientConfig documents the live-verified Artemis SASL-first (proto-3) acceptor behavior; interop target moved to Artemis 5675 (artemis/guest), RabbitMQ 5672 kept as wire-capture reference.
+- **STOMP**: `StompClientService`/`StompClientChannelHandler` on the byte-level SPI + selector-thread lifecycle; `StompCodec` gains `findFrameEnd()` / ranged decode / `FrameIncompleteException` (reassembly primitives); `PipelineTransport` ring-buffer + enqueue-then-OP_WRITE outbound; new channel-handler/persistence/event-listener/pipeline tests; acl test dependency added to the module POM.
+- **Interop infra**: docker-compose Artemis creds fixed (ARTEMIS_USER entrypoint var, artemis/guest, port 5675); `interop-tests/pom.xml` AMQP port 5672->5675; new logback.xml for surefire; demos migrated to the in-memory transport pair API.
+- **Verified**: full Maven unit suite (all modules, no benchmarks) BUILD SUCCESS; Gradle clean test BUILD SUCCESSFUL; messaging interop group 12/12 in two consecutive combined single-JVM runs (AmqpInteropTest 6/6 Artemis, MqttMosquittoInteropTest 3/3, StompInteropTest 3/3); demos 771/771; benchmarks BUILD SUCCESS.
+
+## 2026-09-20: NATS compliance migration — headless core, transport SPI, service-layer I/O (messaging plan Phase 2)
+
+Part of the messaging compliance series defined in `doc/plans/messaging/` (Phase 0 cleanup `b0489992` and Phase 1 audit `6a588918` preceded it; see the 2026-09-18 entries above for the earlier STOMP reassembly and transport-redesign work).
+
+- **Transport SPI**: new `NatsTransport` byte-level SPI (`connect`, `send`, `receiveWithTimeout` — timeout is NOT EOF, `close`) + `TransportStreams` stream adapter so the proven line-based `NatsCodec` runs over any transport. `InMemoryNatsTransport.createPair()` for tests/demos (queued bytes drain before EOF — the auth-rejection race fix, D8); `PipelineNatsTransport` for production (DataChannel ring + outbound queue, selector-thread driven, the STOMP `PipelineTransport` reference form).
+- **Headless core**: `NatsServer` no longer owns a ServerSocket/accept loop — connections arrive via `handleConnection(NatsTransport)` (mirrors `StompBroker.accept`); `NatsClient(NatsTransport, ...)` performs the INFO/CONNECT handshake over the injected transport. The protocol packages in `src/main` have zero raw sockets.
+- **Service layer**: `NatsService` (client) and `NatsServerService` (server, ephemeral port via `getPort()`) are the only components touching NIO — non-blocking `SocketChannel`/`ServerSocketChannel` + `SelectableChannelManager`, wiring `PipelineNatsTransport` into the core.
+- **Codec reassembly**: `NatsCodecReassemblyTest` (10 tests) verifies split/batched line frames over chunked reads.
+- **Tests**: 5 legacy loopback test files migrated to the in-memory seam; `NatsServiceIntegrationTest` proves the real-TCP service path end-to-end (SocketChannel → manager → TcpDataChannel → PipelineNatsTransport → protocol). 6 demos moved to the in-memory seam; `NatsInteropTest` moved to the real-TCP service layer (`NatsService` + manager) — the removed socket API previously broke both (masked by a stale `~/.m2` jar; D9).
+- **Verified**: `messaging/nats` 343 tests, 0 failures; JaCoCo instruction coverage 85.1% (≥80% gate); `demos` + `interop-tests` compile against the refactored API.
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files created | 8 (transport SPI x4, reassembly test, service integration test, InMemoryNats test helper) |
+| Files modified | 21 (core, service, tests, demos, interop, docs) |
+| Lines added/removed | +848 / -658 |
+| Tests added | 31 (343 total vs 271 before) |
+
+## 2026-09-21: XMPP compliance migration — headless core, transport SPI, service-layer I/O (messaging plan Phase 3)
+
+Part of the messaging compliance series defined in `doc/plans/messaging/` — continues the Phase 2 (NATS) headless pattern to the XMPP module.
+
+- **Transport SPI**: new `XmppTransport` byte-level SPI (`onRead`, `send`, `receive`, `close` + `onWrite` registration). `InMemoryXmppTransport.createPair()` for tests/demos (paired queues, deterministic); `PipelineXmppTransport` for production (DataChannel + outbound queue, selector-thread driven).
+- **Headless core**: `XmppServer` no longer owns a `ServerSocket`/accept loop — connections arrive via `handleConnection(XmppTransport)`, each driven by a non-blocking read loop on a virtual thread that decodes stanzas and broadcasts them to registered handlers. `XmppClient(XmppTransport)` wires the protocol to the injected transport with a virtual-thread read loop and `flushOutbound()`; the legacy no-arg client stays for in-memory use. The stream stanza-listener registration that was never wired is now fixed, and the `XmppStream` outbound queue is made concurrent (the sender thread writes, the read loop drains). Zero raw sockets in the protocol packages.
+- **Service layer**: `XmppClientService` and `XmppServerService` (with channel handlers) are the only components touching NIO — non-blocking `SocketChannel`/`ServerSocketChannel` via `SelectableChannelManager`, wiring `PipelineXmppTransport` into the core. DP/DF `consume` routes inbound bytes to stanza callbacks.
+- **Codec reassembly**: verified at transport level — partial reads are requeued and split stanzas reassembled across reads (`XmppTransportTest.testPartialReadRequeuesTail`); the existing `XmppCodecTest.testIncrementalParsing` covers codec-level reassembly.
+- **Tests**: `XmppTransportTest` (SPI round-trip, reassembly, close semantics, pipeline), `XmppServerTest` (headless server + `handleConnection`), `XmppServiceIntegrationTest` (real TCP round-trip via `SelectableChannelManager`), plus expanded `XmppClientServiceTest`/`XmppServerServiceTest` (DP/DF compliance, consume routing, builder, `XmppResult`). Demos + interop compile clean against the unchanged legacy in-memory API; demo suite 30/30.
+- **Verified**: `messaging/xmpp` 283 tests, 0 failures (was 268); JaCoCo instruction coverage 81.7% (≥80% gate); `demos` + `interop-tests` compile clean.
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files created | 6 (transport SPI x3; XmppServerTest, XmppTransportTest, XmppServiceIntegrationTest) |
+| Files modified | ~15 (core, service, stream, tests, docs) |
+| Tests added | 25 (283 total vs 268 before) |
+
+## 2026-09-21: Kafka compliance migration — headless broker core, transport SPI, service-layer I/O (messaging plan Phase 4)
+
+Part of the messaging compliance series defined in `doc/plans/messaging/` — applies the Phase 2 (NATS) / Phase 3 (XMPP) headless pattern to the Kafka module.
+
+- **Transport SPI**: new `KafkaTransport` byte-level SPI (`send`, `receiveWithTimeout`, `peek`, `isOpen`, `close` + `add`/`onWrite` for the pipeline). `InMemoryKafkaTransport.createPair()` for tests/demos (deterministic, no sockets); `PipelineKafkaTransport` for production (64 KB ring buffer over a `DataChannel`, selector-thread driven, never touches a socket directly).
+- **Headless core**: `KafkaBroker` no longer owns a `ServerSocketChannel`/accept loop — connections arrive via `handleConnection(KafkaTransport)` on a virtual-thread read loop. `KafkaBrokerService` (service layer) owns the TCP listener through the `SelectableChannelManager` and feeds each inbound connection to the broker core. The clients (`KafkaProducer`/`KafkaConsumer`/`KafkaAdminClient`) take a `KafkaTransport` in their constructor; the package-private `KafkaConnection` is now a headless frame-level correlation-ID wrapper over an injected transport (never a socket). Zero raw sockets in the protocol packages (broker/codec/protocol/common/record/transport). `BrokerCluster` drops its now-dead `throws IOException` (a headless `start()` cannot throw a checked I/O error).
+- **Bug found & fixed during reassembly testing**: the in-memory transport re-queued a partially-read buffer's tail at the *back* of the queue, rotating the byte stream whenever two sends were in flight — a frame split across reads no longer reassembled in order (the 3 broker wire-reassembly tests caught it). Fixed by holding the partially-read buffer at the stream head (`headBuffer`); regression tests added (`KafkaTransportTest` two-send interleaving, `KafkaBrokerTest` partial-prefix / fragmented-body / coalesced-frames).
+- **Service layer**: `KafkaBrokerService` + `KafkaClientService` with channel handlers are the only components touching NIO (non-blocking `ServerSocketChannel`/`SocketChannel` via `SelectableChannelManager`), wiring `PipelineKafkaTransport` into the headless cores.
+- **Demos**: all five demos migrated to the dual-backend pattern (`KafkaDemoClient.inMemory` for the in-house broker, `KafkaDemoClient.tcp` via `KafkaClientService` for an external Apache Kafka broker); `demos` + `interop-tests` compile clean.
+
+### Verified
+- `messaging/kafka` 416 tests, 0 failures (was 399); JaCoCo instruction coverage 91.9% / branch 80.4% / line 91.7% (≥80% gate)
+- Headless audit: zero `java.net` socket imports in broker/codec/protocol/common/record/transport; the `service` package is the only socket owner
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files created | 7 (transport SPI x3; service x2 + channel handlers x2) |
+| Files modified | ~25 (core, client, service, tests, demos, docs) |
+| Tests added | ~17 (416 total vs 399 before) |
+
+## 2026-09-22: Messaging interop split into 4 concurrent CI groups — tag selection, per-group jobs, wire-capture CI setup (messaging plan Phase 5)
+
+Part of the messaging compliance series defined in `doc/plans/messaging/` — restructures `interop-tests` execution so groups run in parallel CI jobs. Group **membership** (which protocols sit in which group) is a frozen decision tracked separately; this entry covers the execution infrastructure only.
+
+- **Tag selection**: all 20 interop classes tagged into 4 JUnit groups — `interop-messaging-core` (6 classes / 22 tests: MQTT, STOMP, AMQP 1.0 + wire capture), `interop-kafka`, `interop-wamp` (0 tests until Phase 6), `interop-rest` (14 existing classes / 186 tests, re-tagged; CI job disabled until proper rest interop lands).
+- **Maven**: `interop-tests/pom.xml` adds `-Dinterop.group=<g>` → Surefire `<groups>` selection; `interop-group` profile flips `failIfNoTests` on so a mistyped group fails the build (opt-out `-Dinterop.failIfNoTests=false` for the not-yet-populated kafka/wamp groups). `skipInteropTests` default unchanged (`true`).
+- **CI**: the single interop job in `.github/workflows/ci.yml` is split into 3 active concurrent jobs (messaging-core / kafka / wamp) under `fail-fast: false`, each with its own compose services and health-check wait; the `interop-rest` matrix entry is disabled (documented in `interop-tests/doc/ci-groups.md`).
+- **Compose**: new `kafka` service (cp-kafka 7.6.1, single-node KRaft, `CLUSTER_ID`, verified healthy) and `crossbar` service (host 8081 to avoid the nginx 8080 collision, verified healthy). AMQP reference brokers pinned: `rabbitmq:3.13-management` and `apache/artemis:2.57.0-alpine`.
+- **Wire-capture bugs found & fixed during verification** (the core group was silently false-green):
+  - `Amqp10WireCaptureTest` authenticated with `guest`/`guest`, but the Artemis entrypoint creates only the user from `ARTEMIS_USER=artemis` — captures were a 378-byte SASL retry loop; fixed to `artemis`/`guest`, captures now 6–14 KB with real transfer + disposition frames.
+  - `rabbitmq:4-management` floated to 4.x, which rejects the `transient_nonexcl_queues` feature aiormq's auto-delete queues need → pinned to `rabbitmq:3.13-management`.
+  - `amqp_capture_scenario.py` used an aiormq API removed in 6.x (`channel.consume()` async-iterator) → rewritten to the 6.x callback API (`basic_consume`/`basic_get`, `basic_ack`).
+  - Core CI job now provisions the two external reference clients: Artemis CLI via `docker cp artemis-test:/opt/artemis …` (version-locked to the broker image, `.gitignore`d) and aiormq via `pip install 'aiormq>=6,<7'` — wire-capture tests run with zero manual setup.
+- **Docs**: `interop-tests/doc/ci-groups.md` rewritten (stale 5-group scheme → 4-group model with per-group test counts), `interop-tests/README.md` updated, plan tracker (`PLAN.md` / `PROGRESS.md` / `DECISIONS.md` D12) updated.
+
+### Verified
+- `interop-messaging-core` 22/22 green against live brokers with exactly the CI command (`mvn verify -pl interop-tests -am -DskipTests=true -DskipInteropTests=false -Dinterop.group=interop-messaging-core`)
+- Empty-group pass-through (`interop-wamp` with `failIfNoTests=false`) → BUILD SUCCESS; mistyped group (`interop-xyz`) → BUILD FAILURE (guard works)
+- All 5 reference containers healthy (mosquitto, rabbitmq, artemis, kafka, crossbar); `ci.yml` + `docker-compose.yml` YAML-validated
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files created | 1 (new aiormq reference capture) |
+| Files modified | ~20 (pom, ci.yml, compose, 20 tagged test classes, 2 capture scripts/tests, docs) |
+| Tests added | 0 (re-tagging + infrastructure; core group runs its existing 22) |
+
+## 2026-09-22: Per-group Docker Compose files (one file per interop group, no shared instances) + core-group test-count correction
+
+**Correction to the entry above:** `interop-messaging-core` runs **19** tests, not 22 — the
+per-class breakdown in that entry (6 + 3 + 3 + 3 + 3 + 1) sums to 19; the 22 total was an
+arithmetic slip in the docs. Source of truth: 19 `@Test` methods across the 6 core classes,
+confirmed by a live run of exactly the CI command (19/19 green).
+
+**D13 (doc/plans/messaging/DECISIONS.md):** the single `interop-tests/docker-compose.yml`
+(5 services in one file, subset selected at `up -d`) is replaced by one compose file per
+interop group — `docker-compose.core.yml` (artemis, rabbitmq, mosquitto),
+`docker-compose.kafka.yml` (kafka), `docker-compose.wamp.yml` (crossbar). Per user
+direction, groups must not intersect or mix: each CI job starts **only** its group's
+services from **its** file (`docker compose -f <file> up -d/ps/down`), so isolation is
+structural — the service sets are disjoint and their union is exactly the old 5 services
+(nothing moved, nothing gained). `interop-rest` gets its own file when its CI job is
+enabled; it stays disabled and its composition stays frozen.
+
+- **CI**: the matrix key `services` (subset of one shared file) is replaced by `file`
+  (the group's own compose file); the start/stop steps use `-f ${{ matrix.file }}`.
+- **Verified**: all 3 files pass `docker compose -f … config`; core group run end-to-end
+  against `docker-compose.core.yml` (19/19 green, `BUILD SUCCESS`); no stale references
+  to the merged file remain in `ci.yml`, `README.md`, or `ci-groups.md`.
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files created | 3 (docker-compose.{core,kafka,wamp}.yml) |
+| Files modified | 4 (ci.yml, README.md, ci-groups.md, DECISIONS.md) |
+| Files deleted | 1 (docker-compose.yml) |
+| Tests added | 0 |
+
+## 2026-09-22: AMQP wire-capture tests removed — diagnostic recorders, not tests (D14)
+
+**Trigger.** User question: can the AMQP wire-capture tests be removed without
+loss of test scope? (They existed to evaluate proto-3/SASL/flow-frame problems
+and were never asserted against.)
+
+**Analysis.** `Amqp10WireCaptureTest` (Artemis CLI → Artemis:5675, 3 tests) and
+`AmqpWireCaptureTest` (aiormq → RabbitMQ:5672, 1 test) contain **zero
+assertions**: both proxy an external reference client through
+`PassThroughConnection` + `WireCaptureInterceptor` and dump hex to `.txt`
+files under `src/test/resources`. Neither exercises lego-flow's AMQP 1.0 code.
+The scope-bearing coverage is `AmqpInteropTest` (6 asserting tests,
+artemis:5675 — pom Surefire block pins `interop.amqp.port=5675`; the class-code
+default of 5672 is overridden), and the in-module
+`PipelineTransportFragmentationTest` (inlines captured bytes as literals, only
+javadoc-references the `.txt` files). No test in the repo loads a capture file.
+RabbitMQ stays in `docker-compose.core.yml` for `StompInteropTest` (61613),
+independent of the capture tests.
+
+**Action.** Removed the 2 test classes, 2 scenario scripts, 5 capture `.txt`
+baselines (incl. the orphan `amqp-091-reference-capture-rabbitmq-aiormq.txt`),
+the `artemis-cli/` gitignore carve-out and the CI wire-capture setup step
+(docker cp + pip). Core group goes 19 → 15 tests. Supporting infra
+(`PassThroughConnection`, `WireCaptureInterceptor`, `PassThroughEvent` in
+`service/`) stays with its unit test — general-purpose, reusable for
+byte-level diagnosis (e.g. Phase 6 Kafka/WAMP). Decisions: D12 trimmed to
+broker-image pinning only, D14 records the removal.
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Tests removed | 4 (record-only, 0 assertions) |
+| Tests remaining (core group) | 15 |
+| Files deleted | 9 |
+| Files modified | 10 (ci.yml, .gitignore, compose.core, 5 doc/plan files, interop README) |
+
+## 2026-09-23: Kafka codec methodology reset — spec-first, one version per sub-task, unit tests before interop (D15/D16)
+
+**Trigger.** User direction after resuming Phase 6 (Kafka) work: the approach was inconsistent —
+verifying against the live broker *before* implementing + unit-testing, and adapting layouts to
+observed broker behavior instead of the exact per-version specifications. Required: plan changes
+documented and trackable without loss of overall plan goals; codec split into several classes by
+API sub-category with unit tests on the smaller files; work as sub-steps that never return to
+finished work; never mix versions — implement v0 → latest, one version per sub-task; the mechanism
+for each next version is chosen as part of that version's implementation.
+
+**Analysis.** The uncommitted Phase 6 WIP (2026-09-23, ~2h old) was red: 4 unit-test errors
+(`KafkaCodecTest.testCreateTopicsRequest` BufferUnderflow round-trip; 3 × `KafkaAdminClientTest`
+"Connection closed"). Its "fix" to `CreateTopicsRequest v0` was derived from a live-broker
+rejection, not the schema: the spec (`messaging/kafka/doc/spec/message/CreateTopicsRequest.json`,
+apache/kafka 3.6.1) defines v0 = `name, numPartitions int32, replicationFactor int16,
+[]assignments, []configs, timeoutMs int32` — the WIP changed `replicationFactor` to int32 and
+**deleted** `Configs` + `timeoutMs`; the committed layout was also wrong (missing the v0
+`Assignments` array). `ApiKey.java` version ranges were stale for 5 APIs vs the live broker
+(cp-kafka 7.6.1 = Kafka 3.6.1): Fetch 13→15, ListOffsets 7→8, LeaderAndIsr 5→7, StopReplica 3→4,
+UpdateMetadata 7→8.
+
+**Action.** (1) WIP diff preserved verbatim in `doc/plans/messaging/kafka-wip-2026-09-23.patch`;
+the two broken source files reverted to the last committed green state (416 tests, 0 failures);
+the spec JSON set (completed to 74 files = 37 APIs × req/resp), the interop-test skeleton, and the
+`interop-tests/pom.xml` additions stay in-tree for Phase 6a/6. (2) New phase **6a** inserted
+between Phase 5 and Phase 6 in `doc/plans/messaging/PLAN.md` with a 210-row version sub-task
+matrix in `doc/plans/messaging/PHASE6A_KAFKA_CODEC_VERSIONS.md`: spec-first (schema JSON = only
+layout source; broker observation = check, never source), one API version per sub-task (v0 →
+latest, no mixing), unit tests (round-trip + spec conformance) before interop, codec split into
+per-sub-category classes behind the existing `KafkaCodec` façade (existing tests compile
+unchanged), per-version mechanism choice (new methods vs parameterize) recorded in each commit.
+Overall plan goals (compliance, ≥80% coverage, interop groups 1–3, guidelines) are **unchanged**;
+Phase 6 (Kafka + WAMP interop) is gated on 6a, not replaced. Decisions D15 (preserve WIP, revert
+broken sources) and D16 (methodology) recorded in `doc/plans/messaging/DECISIONS.md`; open issue
+(codec layouts not spec-accurate) + OffsetCommit v9-spec/v8-broker nuance recorded in
+`doc/plans/messaging/ISSUES.md`.
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Version sub-tasks tracked | 210 (37 APIs, v0..vMax per spec) |
+| Spec JSONs in tree | 74 (6 fetched to complete the set) |
+| Files created | 3 (plan doc, WIP patch, spec JSONs) + 74 spec JSONs |
+| Files modified | 5 (PLAN.md, PROGRESS.md, DECISIONS.md, ISSUES.md, this file) |
+| Sources reverted | 2 (KafkaCodec.java, KafkaProducer.java → green baseline) |
+
+## 2026-09-23: Negotiation/Auth v1 sub-task — SaslHandshake v1, ApiVersions v1, SaslAuthenticate v1 (D15/D16 applied)
+Implemented the second version sub-task of the Negotiation/Auth sub-category, strictly one version (v1), no mixing, per `messaging/kafka/doc/spec/message/*.json` (Kafka 3.6.1) — the v1 layouts are response-side only in this sub-category:
+- SaslHandshake v1 — byte-identical to v0 in the 3.6.1 schema (request and response); codec dispatch falls through to the v0 methods (no duplicate code).
+- ApiVersions v1 — response adds `ThrottleTimeMs` (int32) after the ApiKeys array; request byte-identical to v0.
+- SaslAuthenticate v1 — response adds `SessionLifetimeMs` (int64) after authBytes; request byte-identical to v0.
+
+Mechanism chosen per plan §3: dedicated `encodeResponseV1`/`decodeResponseV1` methods for the two layout-divergent responses; shared v0 methods for byte-identical cases (fall-through `case 1:`). Unit tests in `NegotiationAuthCodecTest` (14→19 tests) assert exact byte layouts (16-byte ApiVersions v1 response, 20/16-byte SaslAuthenticate v1 responses, byte-identity for SaslHandshake v1). `dump_matrix.py` Δ column now unions request+response field deltas (was request-only — v1 rows previously showed "unchanged" for response-side additions). Plan matrix: three v1 rows marked ✓. Full module suite: 441 green.
+
+Out of scope, tracked as the "ApiVersions negotiation + version registry in `KafkaConnection`" row: the `KafkaCodec` facade still dispatches at v0 — wiring the negotiated version through `KafkaConnection` → broker handler → `encodeResponse` makes the v1 paths reachable end-to-end; the v1 codec paths themselves are unit-tested via the `short version` parameter.
+
+Next sub-task (same rules): ApiVersions v2 (response unchanged vs v1 → shared v1 response path), then ApiVersions v3 and SaslAuthenticate v2 (flexible encoding — new primitives).
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Version sub-tasks completed | 3 (of 210; 6 of 9 in Negotiation/Auth) |
+| Source files modified | 3 (ApiVersionsCodec, SaslAuthenticateCodec, SaslHandshakeCodec) + 1 test |
+| Tests | 441 (module), +5 in NegotiationAuthCodecTest (14→19) |
+| Plan docs | PHASE6A_KAFKA_CODEC_VERSIONS.md (3 v1 rows ✓), PROGRESS.md (log + status), this file |
+
+## 2026-09-23: Negotiation/Auth v2 row — ApiVersions v2 (byte-identical vs v1)
+
+- Spec verification (3.6.1 `ApiVersionsRequest.json` / `ApiVersionsResponse.json`): v2 adds no fields — request has no fields until v3, response v2 layout = v1 (the v2 change is throttle semantics only, per the schema notes).
+- Mechanism (plan §3): byte-identical version → shared v1 methods (`case 2:` fall-through in all four dispatch methods of `ApiVersionsCodec`).
+- Tests: `NegotiationAuthCodecTest$ApiVersions` 5→7 — v2 request byte-identity, v2 response round-trip + byte-identical-to-v1 assertion; v3 stub added (next sub-task, flexible encoding).
+
+## 2026-09-23: Negotiation/Auth v2 row 2 — SaslAuthenticate v2 (flexible encoding)
+
+- Spec (3.6.1): SaslAuthenticate v2 = same field list as v1 (AuthBytes request;
+  ErrorCode/ErrorMessage/AuthBytes/SessionLifetimeMs response), but the API switches
+  to **flexible encoding** at v2 (`flexibleVersions: 2+`): string/bytes length fields
+  become varints/compact, nullable compact fields encode null as varint 1 (indis-
+  tinguishable from empty on the wire — a format property, not a codec choice),
+  fixed-width integers are unchanged, and the **request header** becomes flexible
+  (apiKey|0x8000 + varint correlationId + compact nullable clientId).
+- Implemented: varint + compact string/bytes primitives in `KafkaCodecPrimitives`
+  (+ `varintSize`), dedicated V2 encode/decode methods in `SaslAuthenticateCodec`,
+  additive flexible frame header codec in `KafkaCodec` (`encodeRequest(..., flexible=true)`,
+  `decodeRequestHeaderFlexible`; legacy `decodeRequestHeader` untouched — version-echo
+  wiring remains the separate deferred row).
+- Bug fixed: the flexible encoder's declared frame length over-allocated the
+  correlationId varint as 5 bytes (exact-byte tests caught it; would corrupt interop).
+- Tracking: `dump_matrix.py` Δ column now flags the first flexible version per API
+  (`→ flexible encoding`) — 35 such rows across the 210-row matrix (v2 had been
+  marked "unchanged" despite a framing change; same class of gap as the earlier
+  request-only Δ bug).
+- Mechanism per plan §3: framing-divergent version → dedicated V2 methods.
+- Suite: 454 module tests green (was 443; `NegotiationAuthCodecTest` 19→32).
+- Out of scope (tracked): flexible response headers + broker version-echo wiring —
+  deferred "ApiVersions negotiation + version registry in `KafkaConnection`" row.
+- Next sub-task: ApiVersions v3 (flexible + 4 new request fields + tagged fields) —
+  last row of the Negotiation/Auth sub-category.
+
+## 2026-09-24: Negotiation/Auth v3 — ApiVersions v3 (flexible encoding; last row of the sub-category)
+
+- Spec (3.6.1): ApiVersions v3 is the first flexible version **and** the first with new
+  fields on both sides. Request adds `ClientSoftwareName`/`ClientSoftwareVersion`
+  (non-nullable compact strings — null→empty, so both encode as `varint(1)` prefix)
+  followed by a trailing tagged section (count 0 — no request tags in 3.6.1). Response:
+  `ErrorCode` + a **compact** ApiKeys array (each `ApiVersion` = 3×int16 + a per-element
+  tagged trailer `varint(0)`) + `ThrottleTimeMs`, then a tagged section with a **leading
+  count varint** (no trailing sentinel) and, when present, tag 0 = `SupportedFeatures`
+  (implicit compact array), tag 1 = `FinalizedFeaturesEpoch` (int64), tag 2 =
+  `FinalizedFeatures` (implicit compact array), tag 3 = `ZkMigrationReady` (bool). Two
+  wire details pinned from the 3.6.1 generated sources (`ApiVersionsResponseData`):
+  feature `minVersion`/`maxVersion`/`minVersionLevel`/`maxVersionLevel` are **int16**
+  (not int32), and `FinalizedFeatureKey` writes **maxVersionLevel before minVersionLevel**
+  (a 3.6.1 ordering quirk, mirrored exactly).
+- Implemented: dedicated `encodeRequestV3`/`decodeRequestV3`/`encodeResponseV3`/
+  `decodeResponseV3` in `ApiVersionsCodec` (reusing the varint + non-nullable compact
+  string primitives from the SaslAuthenticate v2 row). The tagged section is decoded over
+  a `slice()` window; absent tags fall back to the record defaults (empty lists, `-1L`
+  `ABSENT_FINALIZED_EPOCH`, `false` `zkMigrationReady`), which re-encode byte-identically
+  because the encoder omits absent tags — round-trip is stable. `ApiVersionsResponse`
+  record gains the four v3 components (`supportedFeatures`, `finalizedFeaturesEpoch`,
+  `finalizedFeatures`, `zkMigrationReady`); the existing convenience constructors are
+  preserved (they emit the absent-tag defaults), and the `-1L` sentinel is exposed as
+  `ApiVersionsResponse.ABSENT_FINALIZED_EPOCH`.
+- Tests: 6 new ApiVersions v3 cases in `NegotiationAuthCodecTest` (nested 7→12, the v3
+  stub removed): exact 13-byte request + null→empty round-trip; exact 15-byte minimal
+  response (every byte asserted); absent-features decode→defaults→byte-identical re-encode;
+  an exact 54-byte all-four-tags vector verifying every offset incl. max-before-min
+  ordering, int16 feature versions, and the implicit-list `varint(size+1)` tag payload
+  size (11, not 24 — the size varint covers only the payload, the array marker is part of
+  it); unknown-tag skip advancing to the exact boundary. Full module suite **459 green**
+  (was 454).
+- Out of scope (unchanged): facade/broker version-echo wiring + flexible response headers
+  — still the deferred "ApiVersions negotiation + version registry in `KafkaConnection`"
+  row (facade dispatches at v0; the v3 paths are unit-tested via the `short version`
+  parameter).
+- Next: next sub-category per the plan matrix (Record I/O), then the deferred
+  version-registry wiring row.
+
+## 2026-09-24: Kafka KRaft interop skeleton committed — Phase 6 scaffolding (gated on Phase 6a)
+
+- Context: Phase 6 (Kafka + WAMP composite interop) needs a real-broker reference test.
+  This commit lands its scaffolding **before** the Record I/O / Admin codec sub-tasks are
+  green, so it is kept as a compile-only WIP: the test is part of the `interop-kafka`
+  group, which CI runs with the `run-interop` label against the cp-kafka 7.6.1 KRaft
+  broker from `docker-compose` (localhost:9092). It does not run in the default build.
+- `interop-tests/pom.xml`: added `lego-flow-kafka` + `lego-flow-wamp` test dependencies
+  (both `ssg` groupId, `${project.version}`, test scope) and the Phase 6 group system
+  properties `interop.kafka.host/port` (localhost:9092) and `interop.wamp.host/port`
+  (localhost:8081) next to the existing SMTP/FTP block.
+- `interop-tests/src/test/java/ssg/legoflow/interop/kafka/KafkaKRaftInteropTest.java`
+  (192 lines, `@Tag("interop-kafka")`): exercises the production client path —
+  `KafkaClientService` opens `TcpDataChannel` + `PipelineKafkaTransport` through the
+  in-house `SelectableChannelManager`, then the protocol core
+  (`KafkaProducer`/`KafkaAdminClient`/`KafkaConsumer`) is constructed over that
+  transport. Current step coverage: ApiVersions negotiation, CreateTopics, Metadata,
+  Produce v3 + Fetch round-trip; later Phase 6 steps (multi-partition streaming,
+  transactions) extend the same class.
+- Verification: `mvn -pl interop-tests test-compile` green (forced recompile of the
+  fresh file after a stale `target` class from 09-23). No assertions run yet — the
+  test is gated on the Phase 6a sub-tasks it exercises (Record I/O v0–v3, Admin
+  CreateTopics v0, Negotiation ✓ already done); per plan §4 interop is the final
+  verifier, not the development driver.
+- Next: Record I/O sub-category (Produce v0 first — the committed v0 layout predates
+  the spec-first reset and must be re-verified against `doc/spec/message/ProduceRequest.json`).
+
+## 2026-09-24: Record I/O sub-category started — Produce v0 (API 0) spec-correct, dedicated ProduceCodec
+
+- Context: Phase 6a step 3 (Record I/O, 35 rows) begins with the first row, Produce
+  v0. Per the spec-first ground rule (plan §3), the committed v0 layout from the
+  green 416-test baseline was re-derived from `doc/spec/message/Produce{Request,
+  Response}.json` (3.6.1) instead of trusted. It turned out to be a **layout bug**:
+  the inline `KafkaCodec.encodeProduceRequest` unconditionally wrote a leading
+  nullable `transactionalId` (a v3+ field) — a v3-shaped body under a v0 frame that
+  a real broker misparses — and `encodeProduceResponse` wrote a per-partition
+  `logAppendTimeMs` (v2+) and a trailing `throttleTimeMs` (v1+).
+- `ProduceCodec` (new): dedicated per-API class following the Negotiation/Auth
+  pattern (`SaslHandshakeCodec`/`ApiVersionsCodec`/`SaslAuthenticateCodec`),
+  `short version` dispatch, `CodecNotImplementedException` for unimplemented
+  versions (no silent fall-through), `BufferPool` + `KafkaCodecPrimitives` reuse
+  (v0 is all fixed-width — no new primitives). `ProduceRequest`/`ProduceResponse`
+  records are unchanged: they keep `transactionalId` (v3+), `logAppendTimeMs`
+  (v2+) and `throttleTimeMs` (v1+) for the later rows; at v0 those values are
+  discarded on encode and defaulted (null / -1 / 0) on decode.
+- v0 layouts (spec field order): request = Acks(int16) + TimeoutMs(int32) +
+  TopicData[](Name(string16) + PartitionData[](Index(int32) + Records(nullable
+  bytes))); response = TopicData[](Name(string16) + PartitionResponse[](Index
+  (int32) + ErrorCode(int16) + BaseOffset(int64))). The façade methods
+  `KafkaCodec.encodeProduceRequest/decodeProduceRequest/encodeProduceResponse/
+  decodeProduceResponse` now delegate at the in-house pinned v0; the in-memory
+  broker and the client pin v0, so no wire change for the in-house path.
+- Tests: new `ProduceCodecTest` (11 tests: exact-byte v0 request — 25-byte
+  null-records and 32-byte records cases verifying every field offset incl. no
+  leading transactionalId; exact-byte v0 response — 25 bytes; round-trips incl.
+  multi-topic/mixed records presence; error-code partition; v1/v3 dispatch
+  throws). `KafkaCodecTest` Produce section re-pinned to v0 (85→85, 1:1
+  replacement); the old `testProduceRequest` asserted the buggy transactionalId
+  round-trip. Full module suite **470 green** (was 459). Interop-tests recompile
+  clean against the delegating façade.
+- Next: Produce v1 (response + ThrottleTimeMs) per the one-version-per-sub-task
+  rule; the Phase 6 `KafkaKRaftInteropTest` (357e7e08) stays gated/compile-only
+  until the Produce v3 row + the Record I/O / Admin paths it exercises are green.

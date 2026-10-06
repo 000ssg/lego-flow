@@ -8,6 +8,7 @@ import ssg.legoflow.messaging.kafka.broker.RangeAssigner;
 import ssg.legoflow.messaging.kafka.broker.StickyAssigner;
 import ssg.legoflow.messaging.kafka.protocol.*;
 import ssg.legoflow.messaging.kafka.record.RecordBatch;
+import ssg.legoflow.messaging.kafka.transport.KafkaTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -67,21 +68,20 @@ public final class KafkaConsumer implements AutoCloseable {
     private volatile RebalanceListener rebalanceListener;
 
     /**
-     * Creates a new Kafka consumer.
+     * Creates a new Kafka consumer over an injected transport.
      *
-     * @param host                  the broker host
-     * @param port                  the broker port
-     * @param clientId              the client ID
-     * @param groupId               the consumer group ID
-     * @param autoCommit            whether to auto-commit offsets
+     * @param transport           the connection transport (service layer or in-memory pair)
+     * @param clientId            the client ID
+     * @param groupId             the consumer group ID
+     * @param autoCommit          whether to auto-commit offsets
      * @param autoCommitIntervalMs  the auto-commit interval
-     * @param sessionTimeoutMs      the session timeout
-     * @param maxPollRecords        the max records per poll
+     * @param sessionTimeoutMs    the session timeout
+     * @param maxPollRecords      the max records per poll
      */
-    public KafkaConsumer(String host, int port, String clientId, String groupId,
+    public KafkaConsumer(KafkaTransport transport, String clientId, String groupId,
                          boolean autoCommit, long autoCommitIntervalMs,
                          int sessionTimeoutMs, int maxPollRecords) {
-        this.connection = new KafkaConnection(host, port, clientId);
+        this.connection = new KafkaConnection(transport, clientId);
         this.groupId = groupId;
         this.autoCommit = autoCommit;
         this.autoCommitIntervalMs = autoCommitIntervalMs;
@@ -92,13 +92,17 @@ public final class KafkaConsumer implements AutoCloseable {
     /**
      * Creates a consumer with defaults.
      *
-     * @param host     the broker host
-     * @param port     the broker port
-     * @param clientId the client ID
-     * @param groupId  the consumer group ID
+     * @param transport  the connection transport
+     * @param clientId   the client ID
+     * @param groupId    the consumer group ID
      */
-    public KafkaConsumer(String host, int port, String clientId, String groupId) {
-        this(host, port, clientId, groupId, true, 5000, 10000, 500);
+    public KafkaConsumer(KafkaTransport transport, String clientId, String groupId) {
+        this(transport, clientId, groupId, true, 5000, 10000, 500);
+    }
+
+    /** Exposes the underlying connection (for tests). */
+    KafkaConnection connection() {
+        return connection;
     }
 
     /**
@@ -143,7 +147,9 @@ public final class KafkaConsumer implements AutoCloseable {
      * @throws IOException if subscription fails
      */
     public void subscribe(List<String> topics) throws IOException {
-        connection.connect();
+        if (!connection.isConnected()) {
+            throw new IOException("Connection not open");
+        }
         subscribedTopics.clear();
         subscribedTopics.addAll(topics);
         joinGroup();

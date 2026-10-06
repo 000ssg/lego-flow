@@ -9,13 +9,16 @@ import ssg.legoflow.xmpp.presence.PresenceManager;
 import ssg.legoflow.xmpp.roster.Roster;
 import ssg.legoflow.xmpp.stream.XmppCodec;
 import ssg.legoflow.xmpp.stream.XmppStream;
+import ssg.legoflow.xmpp.transport.XmppTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 /**
  * Full XMPP client with support for messaging, presence, roster, and IoT extensions.
  *
@@ -43,13 +46,17 @@ public class XmppClient implements AutoCloseable {
     private JID localJid;
     private volatile boolean connected;
     private volatile boolean authenticated;
+    private volatile XmppTransport transport;
+    private volatile Thread readThread;
+    private final Object ioLock = new Object();
 
     /**
-     * Creates a new XMPP client.
+     * Creates a new XMPP client (no transport; outbound/inbound are in-memory only).
      */
     public XmppClient() {
         this.codec = new XmppCodec();
         this.stream = new XmppStream(codec);
+        this.stream.addStanzaListener(this::handleStanza);
         this.authenticator = new SaslAuthenticator();
         this.roster = new Roster();
         this.sensorManager = new SensorManager();
@@ -58,7 +65,25 @@ public class XmppClient implements AutoCloseable {
     }
 
     /**
+     * Creates a new XMPP client with an injected byte-level transport.
+     *
+     * <p>The core is socket-free: this constructor wires the protocol to the given transport.
+     * The transport is opened by the service layer (or a test) before {@link #connect};
+     * {@link #connect} sends the stream-open bytes through it and starts the read loop.
+     *
+     * @param transport the client's byte-level transport (e.g. {@code PipelineXmppTransport}
+     *                  in production, {@code InMemoryXmppTransport} in tests)
+     */
+    public XmppClient(XmppTransport transport) {
+        this();
+        this.transport = Objects.requireNonNull(transport, "transport must not be null");
+    }
+
+    /**
      * Connects to the XMPP server.
+     *
+     * <p>Opens the stream and, when a transport was injected, flushes the stream-open bytes
+     * through it and starts the virtual-thread read loop.
      *
      * @param config the client configuration
      * @return a future that completes when connected
@@ -69,6 +94,10 @@ public class XmppClient implements AutoCloseable {
         LOG.info("Connecting to {}:{} (domain: {})", config.host(), config.port(), config.domain());
 
         return stream.open(config.domain()).thenRun(() -> {
+            drainOutboundToTransport();
+            if (transport != null) {
+                startReadLoop();
+            }
             this.connected = true;
             LOG.info("Connected to {}", config.domain());
         });
@@ -78,15 +107,27 @@ public class XmppClient implements AutoCloseable {
      * Disconnects from the XMPP server.
      */
     public void disconnect() {
-        if (connected) {
-            if (presenceManager != null) {
-                presenceManager.sendUnavailable();
-            }
-            stream.closeStream();
-            this.connected = false;
-            this.authenticated = false;
-            LOG.info("Disconnected");
+        if (!connected && transport == null) {
+            return;
         }
+        if (connected && presenceManager != null) {
+            presenceManager.sendUnavailable();
+        }
+        if (connected) {
+            try {
+                stream.closeStream();
+            } catch (IllegalStateException e) {
+                LOG.debug("Stream already closed: {}", e.getMessage());
+            }
+        }
+        stopReadLoop();
+        drainOutboundToTransport();
+        if (transport != null) {
+            transport.close();
+        }
+        this.connected = false;
+        this.authenticated = false;
+        LOG.info("Disconnected");
     }
 
     /**
@@ -127,6 +168,7 @@ public class XmppClient implements AutoCloseable {
         Objects.requireNonNull(to, "to must not be null");
         var message = MessageStanza.chat(UUID.randomUUID().toString(), localJid, to, body);
         stream.sendStanza(message);
+        flushOutbound();
         LOG.debug("Sent message to {}", to.toBareJid());
     }
 
@@ -160,6 +202,82 @@ public class XmppClient implements AutoCloseable {
                 }
             }
             case IqStanza iq -> LOG.debug("Received IQ: id={}, type={}", iq.id(), iq.iqType());
+        }
+    }
+
+    /**
+     * Returns the injected transport, or null for the legacy in-memory-only client.
+     *
+     * @return the transport, or null
+     */
+    public XmppTransport getTransport() {
+        return transport;
+    }
+
+    /**
+     * Starts the virtual-thread read loop that feeds bytes from the transport through the
+     * codec into the stream (which dispatches decoded stanzas to registered listeners).
+     */
+    private void startReadLoop() {
+        synchronized (ioLock) {
+            if (readThread != null && readThread.isAlive()) {
+                return;
+            }
+            var thread = new Thread(
+                    () -> {
+                        var recv = ByteBuffer.allocate(8192);
+                        while (transport.isOpen()) {
+                            recv.clear();
+                            int n = transport.receiveWithTimeout(recv, 500, TimeUnit.MILLISECONDS);
+                            if (n == -1) {
+                                if (transport.isOpen()) {
+                                    continue; // read timeout — a silent peer is not EOF
+                                }
+                                break; // real EOF
+                            }
+                            recv.flip();
+                            stream.receiveData(recv);
+                        }
+                        LOG.debug("Client read loop ended");
+                    },
+                    "xmpp-client-read");
+            thread.setDaemon(true);
+            readThread = thread;
+            thread.start();
+        }
+    }
+
+    /**
+     * Stops the read loop (woken immediately by closing the transport).
+     */
+    private void stopReadLoop() {
+        synchronized (ioLock) {
+            if (readThread != null) {
+                // closing the transport makes receiveWithTimeout return -1 and end the loop
+                if (transport != null) {
+                    transport.close();
+                }
+                readThread = null;
+            }
+        }
+    }
+
+    /**
+     * Flushes queued stream/stanza bytes to the transport (no-op when no transport is
+     * injected — the legacy in-memory client exposes them via {@code stream.drainOutbound()}).
+     */
+    public void flushOutbound() {
+        drainOutboundToTransport();
+    }
+
+    private void drainOutboundToTransport() {
+        if (transport == null) {
+            return;
+        }
+        for (var buffer : stream.drainOutbound()) {
+            if (buffer.hasRemaining()) {
+                transport.send(buffer);
+            }
         }
     }
 

@@ -200,15 +200,43 @@ jobs:
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
   # ──────────────────────────────────────────────
-  # 4. Interoperability tests (Gradle + Docker Compose)
-  #    Runs against real reference implementations via Gradle.
+  # 4. Interoperability tests (Maven + Docker Compose) — 4 groups, 3 active jobs
+  #    Each active group runs in its own job against the reference brokers its
+  #    protocols need (see interop-tests/doc/ci-groups.md):
+  #      interop-messaging-core: MQTT, STOMP, AMQP — mosquitto, rabbitmq, artemis
+  #      interop-kafka:          Kafka composite tests — kafka (KRaft broker)
+  #      interop-wamp:           WAMP composite tests — crossbar (WAMP router)
+  #    interop-rest has existing tests (re-tagged) but its CI job is disabled
+  #    until proper rest interop is implemented (see the plan tracker).
+  #    kafka/wamp: failIfNoTests=false until the Phase 6 composite tests land.
   #    Disabled by default — enable with 'run-interop' label on PR.
   # ──────────────────────────────────────────────
   interoperability-tests:
-    name: "Interoperability Tests"
+    name: "Interop (${{ matrix.group }})"
     runs-on: ubuntu-latest
     needs: build
     if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-interop') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Per-group compose files — each group owns EXACTLY the reference
+          # services it needs; files never share services across groups:
+          #   core  -> artemis + rabbitmq + mosquitto
+          #   kafka -> kafka
+          #   wamp  -> crossbar
+          - group: interop-messaging-core
+            file: docker-compose.core.yml
+            containers: "artemis-test rabbitmq-test mosquitto-test"
+            failIfNoTests: "true"
+          - group: interop-kafka
+            file: docker-compose.kafka.yml
+            containers: "kafka-test"
+            failIfNoTests: "false"
+          - group: interop-wamp
+            file: docker-compose.wamp.yml
+            containers: "wamp-router-test"
+            failIfNoTests: "false"
 
     steps:
       - name: Checkout repository
@@ -229,53 +257,50 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-caches-
 
-      - name: Start Docker services
+      - name: Start Docker services for ${{ matrix.group }}
+        working-directory: interop-tests
         run: |
-          docker compose -f interop-tests/docker-compose.yml up -d
-          echo "Waiting for all services to become healthy..."
+          COMPOSE_FILE=${{ matrix.file }}
+          echo "Starting per-group services from ${COMPOSE_FILE}..."
+          docker compose -f "${COMPOSE_FILE}" up -d
+          echo "Waiting for ${{ matrix.containers }} to become healthy..."
           timeout=180
           elapsed=0
           interval=5
           while [ $elapsed -lt $timeout ]; do
             all_healthy=true
-            for svc in nginx nats rabbitmq activemq openldap prosody mosquitto redis postgresql mailhog ftp; do
-              status=$(docker inspect --format='{{.State.Health.Status}}' "legoflow-${svc}" 2>/dev/null || echo "not_found")
+            for c in ${{ matrix.containers }}; do
+              status=$(docker inspect --format='{{.State.Health.Status}}' "$c" 2>/dev/null || echo "not_found")
               if [ "$status" != "healthy" ]; then
                 all_healthy=false
-                echo "  ${svc}: ${status}"
+                echo "  $c: $status"
               fi
             done
             if [ "$all_healthy" = true ]; then
               echo "All services healthy!"
-              docker compose -f interop-tests/docker-compose.yml ps
+              docker compose -f "${COMPOSE_FILE}" ps
               break
             fi
             elapsed=$((elapsed + interval))
             echo "Waiting... (${elapsed}s / ${timeout}s)"
             sleep $interval
           done
-          # Final verification
-          for svc in nginx nats rabbitmq activemq openldap prosody mosquitto redis postgresql mailhog ftp; do
-            status=$(docker inspect --format='{{.State.Health.Status}}' "legoflow-${svc}" 2>/dev/null || echo "not_found")
+          for c in ${{ matrix.containers }}; do
+            status=$(docker inspect --format='{{.State.Health.Status}}' "$c" 2>/dev/null || echo "not_found")
             if [ "$status" != "healthy" ]; then
-              echo "ERROR: ${svc} is not healthy (status: ${status})"
-              docker logs "legoflow-${svc}" 2>&1 | tail -30
+              echo "ERROR: $c is not healthy (status: $status)"
+              docker logs "$c" 2>&1 | tail -30
               exit 1
             fi
           done
 
-      - name: Register XMPP test user (Prosody)
-        run: docker exec legoflow-prosody prosodyctl register test localhost test 2>/dev/null || true
-
-      - name: Run interoperability tests (Docker services are running)
+      - name: Run ${{ matrix.group }} interop tests (Maven)
         run: |
-          # Build and install protocol modules to local Maven repo first
           mvn install -DskipTests -pl interop-tests -am -q
-          # Run interop tests with Maven
-          mvn verify -pl interop-tests -am -DskipInteropTests=false
+          mvn verify -pl interop-tests -am -DskipInteropTests=false -Dinterop.group=${{ matrix.group }} -Dinterop.failIfNoTests=${{ matrix.failIfNoTests }}
         env:
           CI: true
 
       - name: Stop Docker services
         if: always()
-        run: docker compose -f interop-tests/docker-compose.yml down
+        run: cd interop-tests && docker compose -f ${{ matrix.file }} down --remove-orphans

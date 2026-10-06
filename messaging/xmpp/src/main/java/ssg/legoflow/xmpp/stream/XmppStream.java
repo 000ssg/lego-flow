@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -39,7 +40,7 @@ public class XmppStream implements AutoCloseable {
     private String streamId;
     private JID localJid;
     private JID remoteJid;
-    private final List<ByteBuffer> outboundQueue = new ArrayList<>();
+    private final ConcurrentLinkedQueue<ByteBuffer> outboundQueue = new ConcurrentLinkedQueue<>();
 
     /**
      * Creates a new XMPP stream.
@@ -230,8 +231,11 @@ public class XmppStream implements AutoCloseable {
      * @return the list of outbound buffers
      */
     public List<ByteBuffer> drainOutbound() {
-        var result = new ArrayList<>(outboundQueue);
-        outboundQueue.clear();
+        var result = new ArrayList<ByteBuffer>();
+        ByteBuffer item;
+        while ((item = outboundQueue.poll()) != null) {
+            result.add(item);
+        }
         return result;
     }
 

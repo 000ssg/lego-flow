@@ -245,6 +245,316 @@
 
 ---
 
+## Phase 4: Compliance migration — headless broker core, transport SPI, service-layer I/O (messaging plan)
+
+Part of the messaging compliance series defined in `doc/plans/messaging/` — applies the Phase 2/3 (NATS/XMPP) headless pattern to the Kafka module.
+
+### What Changed
+- **Transport SPI**: new `KafkaTransport` byte-level SPI (`send`, `receiveWithTimeout`, `peek`, `isOpen`, `close` + `add`/`onWrite` for the pipeline). `InMemoryKafkaTransport.createPair()` for tests/demos (deterministic, no sockets); `PipelineKafkaTransport` for production (64 KB ring buffer over a `DataChannel`, selector-thread driven, never touches a socket directly).
+- **Headless core**: `KafkaBroker` no longer owns a `ServerSocketChannel`/accept loop — connections arrive via `handleConnection(KafkaTransport)` on a virtual-thread read loop. `KafkaBrokerService` (service layer) owns the TCP listener through the `SelectableChannelManager` and feeds each inbound connection to the broker core. The client (`KafkaProducer`/`KafkaConsumer`/`KafkaAdminClient`) takes a `KafkaTransport` in its constructor; the package-private `KafkaConnection` is now a headless frame-level correlation-ID wrapper over an injected transport (never a socket). Zero raw sockets in the protocol packages (broker/codec/protocol/common/record/transport).
+- **Bug found & fixed during reassembly testing**: the in-memory transport re-queued a partially-read buffer's tail at the *back* of the queue, rotating the byte stream when two sends were in flight — a frame split across reads no longer reassembled in order. Fixed by holding the partially-read buffer at the stream head (`headBuffer`); regression tests added (`KafkaTransportTest` two-send interleaving, `KafkaBrokerTest` partial-prefix / fragmented-body / coalesced-frames).
+- **Service layer**: `KafkaBrokerService` + `KafkaClientService` with channel handlers are the only components touching NIO (non-blocking `ServerSocketChannel`/`SocketChannel` via `SelectableChannelManager`), wiring `PipelineKafkaTransport` into the headless cores.
+- **Demos**: all five demos migrated to the dual-backend pattern (`KafkaDemoClient.inMemory` for the in-house broker, `KafkaDemoClient.tcp` via `KafkaClientService` for an external broker).
+
+### Test Coverage
+- 416 tests, 0 failures (was 399): transport trio (`KafkaTransportTest` 18, `KafkaServiceIntegrationTest` 3 real-TCP), broker wire-reassembly (3), service unit tests, migrated client/broker tests on the in-memory seam
+- JaCoCo instruction coverage 91.9% (≥80% gate); weakest package `service` at 65.9% (integration tests exercise the DP/DF pipeline; builder/lifecycle branches remain)
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files created | 5 (KafkaTransport, InMemoryKafkaTransport, PipelineKafkaTransport, KafkaBrokerService, KafkaClientService + 2 channel handlers) |
+| Files modified | ~20 (broker, client, service, tests, demos, docs) |
+| Tests added | ~17 (416 total vs 399 before) |
+
+---
+
+## Commit: `dbd46370` — Fetch v9/v10 (Record I/O rows 20–21) + hybrid builder approach
+
+Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified from the 3.6.1 `FetchRequest.json` / `FetchResponse.json` schemas.
+
+### What Changed
+- **Fetch v9/v10 codec**: v9 is a STRUCTURAL BRANCH on the REQUEST ONLY — the per-partition layout gains `CurrentLeaderEpoch(int32)` after `Partition` (default -1) — dedicated `encode/decodeRequestV9`. v10 request is wire-identical to v9 (no field change) and dispatch falls through to the v9 request methods. The v9/v10 RESPONSE is wire-identical to v7/v8 and falls through to the v7 response methods in both directions. `FetchRequest.PartitionFetch` gains `currentLeaderEpoch` (v9+, -1 default) with a compatibility constructor for pre-v9 call sites.
+- **Hybrid builder approach** (in-session decision, first application): records stay records — canonical + compat constructors untouched (free `equals`/`hashCode`/`toString`; every existing positional call site keeps compiling); a static nested `Builder` is added as the preferred entry point, one method per field defaulting to the spec absent-value, `build()` = pure delegation to the canonical constructor, no per-version validation (the codec enforces field presence on write and auto-fills absent fields on read). Scope rule: records with >=3 fields or version-growth get builders; 1–2-field records (SaslHandshake*, SaslAuthenticateRequest, ApiVersionsRequest, ApiVersion, AbortedTransaction, nested TopicResponse/TopicFetch/ForgottenTopic) stay plain. Applied to the 8 builder records: `FetchRequest`, `FetchRequest.PartitionFetch`, `FetchResponse`, `FetchResponse.PartitionResponse`, `ProduceRequest`, `ProduceResponse.PartitionResponse`, `ApiVersionsResponse`, `SaslAuthenticateResponse`.
+- **New tests** (all builder-based): FetchCodecTest 53 -> 63 (+10): RequestV9 x4 (round-trip incl. CurrentLeaderEpoch; exact 72-byte walk; v9 = v7 + 4-byte CurrentLeaderEpoch structural byte-identity at offset 44; default -1 round-trip) + RequestV10 x2 (byte-identical to v9; round-trip) + ResponseV9 x2 + ResponseV10 x2 (byte-identical to v7; round-trip through the v7 methods). Dispatch re-pinned: v11 is now the next unimplemented version (both directions).
+
+### Test Coverage
+- FetchCodecTest 63 tests; full module 570 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 8 (FetchCodec, 7 protocol records, FetchCodecTest) |
+| Lines added/removed | +735 / -35 |
+| Tests added | 10 (570 total) |
+
+---
+
+## Commit: `5205b7f1` — retrofit the 4 dedicated-codec test classes onto the hybrid builders
+
+Mechanically rewrite every canonical-arity positional constructor call in the Produce / Fetch / NegotiationAuth / KafkaCodec test classes onto the builder chains from `dbd46370`. Records stay records — no model changes.
+
+### What Changed
+- **62 canonical-arity call sites rewritten** onto fluent builder chains (one method per field, spec absent-value defaults, `build()` delegating to the canonical constructor): `ProduceCodecTest` 27, `FetchCodecTest` 22, `NegotiationAuthCodecTest` 9, `KafkaCodecTest` 4. Net −73 lines (positional argument lists replaced by named fluent calls — the builder makes each field's version semantics explicit at the call site).
+- **Compatibility-constructor sites left positional** (fewer args than the record arity): they carry per-version absent-value semantics the builder defaults provide, and auto-mapping them would silently change which overload resolves.
+- **Mechanical transform**: `messaging/kafka/.builder_transform.py` — one canonical `new X(...)` site rewritten per pass (re-scan after each, so a nested `new A.B(...)` inside a rewritten `new A(...)` becomes a nested builder chain on a later pass); a `new X(` match whose name is immediately followed by `.` is skipped (qualified type — its args belong to the nested record); arity gate = exact match of top-level arg count to the record's canonical component count (verified against each record's header); comments / string literals / `byte[]{...}` / generics handled by a single-pass state machine tracking `()[]{}` depth and literal state without mutating the text. Reusable verbatim for the next dedicated-codec rows (Admin / Transactions / Consumer Groups / Metadata) — extend the script's `RECORDS` table with the new record's qualified type + canonical component order first.
+
+### Test Coverage
+- Full module 570 green, 0 failures, 0 errors, 0 skipped (no test added or removed — pure call-site refactor)
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 4 (test classes) |
+| Lines added/removed | +98 / -171 |
+| Tests added | 0 |
+
+---
+
+## Commit: `794a9417` — Fetch v11 (Record I/O row 22)
+
+Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified from the 3.6.1 `FetchRequest.json` / `FetchResponse.json` schemas.
+
+### What Changed
+- **Fetch v11 codec**: v11 is a STRUCTURAL BRANCH in BOTH directions. REQUEST: appends `RackId(string)` as the last field after the `ForgottenTopicsData` array (spec: "Rack ID of the consumer making this request"; default "") — dedicated `encode/decodeRequestV11`. RESPONSE: the per-partition layout inserts `PreferredReadReplica(int32)` after the `AbortedTransactions` array and before `Records` (spec: "The preferred read replica for the consumer to use on its next fetch request"; default -1) — dedicated `encode/decodeResponseV11`.
+- **Models**: `FetchRequest` gains `rackId` (v11+, "" default); `FetchResponse.PartitionResponse` gains `preferredReadReplica` (v11+, -1 default). The pre-v11 legacy methods that build the models (v7/v9 request decodes, v5/v7 response decodes) now pass the spec absent-values ("", -1) on the canonical-constructor calls, keeping their output byte-identical to the pre-v11 wire layout.
+- **New tests** (all builder-based): FetchCodecTest 63 -> 71 (+8): RequestV11 x4 (round-trip incl. RackId + forgotten topics; exact 79-byte walk; v11 = v9 + 7-byte trailing RackId structural byte-identity; "" default round-trip) + ResponseV11 x4 (round-trip incl. PreferredReadReplica + aborted transactions; exact 83-byte walk; v11 = v7 + 4-byte per-partition PreferredReadReplica structural byte-identity at offset 75; -1 default round-trip). Dispatch re-pinned: v12 is now the next unimplemented version (both directions).
+
+### Test Coverage
+- FetchCodecTest 71 tests; full module 578 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 4 (FetchCodec, 2 protocol records, FetchCodecTest) |
+| Lines added/removed | +510 / -45 |
+| Tests added | 8 (578 total) |
+
+---
+
+## Commit: `97c82bb3` — Fetch v12 (Record I/O row 23)
+
+Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified from the 3.6.1 `FetchRequest.json` / `FetchResponse.json` generated sources.
+
+### What Changed
+- **Fetch v12 codec**: v12 is a STRUCTURAL BRANCH in BOTH directions and the first FLEXIBLE-ENCODING version of the Fetch API. REQUEST: compact strings + varint array counts + per-element tagged sections throughout; the per-partition layout gains `LastFetchedEpoch(int32, default -1)` after `FetchOffset`; `ClusterId(string, null:12+)` rides in the trailing top-level tagged section as tag 0 (implicit compact nullable string, written only when non-null). RESPONSE: flexible encoding; the per-partition tagged section gains tag 0 `DivergingEpoch(EpochEndOffset)`, tag 1 `CurrentLeader(LeaderIdAndEpoch)` and tag 2 `SnapshotId(SnapshotId)` — each written only when non-null. Verified wire-layout traps: the partition tagged section sits AFTER `Records` (flexible nullable bytes), not before `AbortedTransactions`; each `AbortedTransaction` element carries its own trailing `varint(0)` section; `PreferredReadReplica(int32)` stays the fixed-width field between `AbortedTransactions` and `Records`. Mechanism per plan section 3: dedicated `encode/decodeRequestV12` + `encode/decodeResponseV12` in `FetchCodec` (reusing the `KafkaCodecPrimitives` varint / compact-string / tagged helpers); legacy v11-and-earlier paths untouched.
+- **Models**: `FetchRequest` gains `clusterId` (v12+, null default) with a 10-arg pre-v12 compat constructor; `PartitionFetch` gains `lastFetchedEpoch` (v12+, -1 default) with a 5-arg compat constructor; `FetchResponse.PartitionResponse` gains `divergingEpoch` / `currentLeader` / `snapshotId` (v12+, null defaults) with a 5-arg pre-v12 compat constructor; new nested `DivergingEpoch` / `LeaderIdAndEpoch` / `SnapshotId` records; builders gain the v12 setters.
+- **New tests** (all builder-based): FetchCodecTest 71 -> 77 (+6): RequestV12 x3 (round-trip incl. ClusterId + LastFetchedEpoch + forgotten topics; exact 87-byte walk; ClusterId null round-trip -> tag 0 absent, trailing section count 0) + ResponseV12 x3 (round-trip incl. all three partition tags; exact 118-byte walk; no-records/no-tags 57-byte walk). Dispatch re-pinned: v13 is now the next unimplemented version (both directions).
+
+### Test Coverage
+- FetchCodecTest 77 tests; full module 584 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 4 (FetchCodec, 2 protocol records, FetchCodecTest) |
+| Lines added/removed | +830 / -58 |
+| Tests added | 6 (584 total) |
+
+---
+
+## Commit: `abb533be` — Fetch v13 (Record I/O row 24)
+
+Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified from the vendored `FetchRequest.json` / `FetchResponse.json` (cross-checked against the Apache trunk schemas and the 3.7.0 `kafka-clients` generated source).
+
+### What Changed
+- **Fetch v13 codec**: v13 is a STRUCTURAL BRANCH in BOTH directions: the `Topic(string)` name is replaced by a non-nullable fixed 16-byte `TopicId(uuid)` in all three topic-carrying structs — request `Topics`, request `ForgottenTopicsData`, response `Responses` (delta per plan row 128: `+ TopicId:uuid[13+]` x3, `- Topic:string` x3). The topic name is absent from the v13+ wire, so decoded models carry `name == null`. The uuid is non-nullable (spec: `TopicId:uuid`, versions 13+, no nullableVersions) — no varint prefix, just the raw UUID bytes; absent = all-zeros (spec default). Everything else (flexible encoding, `LastFetchedEpoch`, the per-partition tagged section, the tagged `ClusterId`) is wire-identical to v12. Dispatch (verified from the vendored spec): request v13 + v14 are wire-identical (v14 adds no field) and both map to the dedicated `encode/decodeRequestV13` methods; request v15 (a later, request-only change) introduced the tagged `ReplicaState`. Response v13/v14/v15 are wire-identical and all map to the dedicated `encode/decodeResponseV13` methods. Mechanism per plan section 3: dedicated `encode/decodeRequestV13` + `encode/decodeResponseV13` in `FetchCodec` (+ `writeFetchPartitionV13` shared partition writer; hand-sized buffers; `KafkaCodecPrimitives` compact-string / varint / tagged helpers; new `readUuid`/`writeUuid` fixed 16-byte uuid primitives); legacy v12-and-earlier paths untouched.
+- **Models** (overloaded compatibility constructors only — all 114 existing call sites use the 2-arg canonical constructors): `FetchRequest.TopicFetch` + `topicId` (`byte[16]`, all-zeros default) + `topicUuid()`; `FetchRequest.ForgottenTopicData` + `topicId` + `topicUuid()`; `FetchResponse.TopicResponse` + `topicId` + `topicUuid()`; new `protocol/Uuid` helper for the raw 16-byte wire form (8-byte MSB + 8-byte LSB, big-endian) to/from `java.util.UUID` — JDK-portable, no preview APIs.
+- **New tests** (all builder-based): FetchCodecTest 77 -> 83 (+6): RequestV13 x3 (round-trip incl. TopicId + LastFetchedEpoch + forgotten topics; exact 97-byte walk vs the v12 87-byte reference; forgotten-topic TopicId round-trip with exact 106-byte walk) + ResponseV13 x3 (round-trip incl. TopicId + all three partition tags; exact 128-byte walk vs the v12 118-byte reference; null-records / absent-tags round-trip). Dispatch re-pinned: v13/v14 now implemented (both directions fall through to the V13 methods), next unimplemented = request v15 (tagged ReplicaState) and response v16.
+
+### Test Coverage
+- FetchCodecTest 83 tests; full module 590 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 5 (FetchCodec, KafkaCodecPrimitives, 2 protocol records, FetchCodecTest) + 1 new (protocol/Uuid) |
+| Lines added/removed | +846 / -30 |
+| Tests added | 6 (590 total) |
+
+---
+
+## Commit: `051f61f0` — Fetch v15 (Record I/O row 26)
+
+- **FetchRequest**: v15 is a STRUCTURAL BRANCH in the REQUEST only: the top-level `ReplicaId:int32` (present versions 0-14) is dropped, replaced by a tagged `ReplicaState` struct (versions 15+, tag 1) carrying `ReplicaId:int32` + `ReplicaEpoch:int64` (delta per plan row 129: `+ ReplicaState[15+]`, `- ReplicaId:int32[0-14]`). The consumer case (both -1) omits the tag entirely. The RESPONSE is wire-identical to v14 — `gen_kafka.py order` 14 14 vs 15 15 produce byte-identical field sequences and FetchResponse.json has no `15+` field at any nesting level. Model gains `replicaEpoch` (int64) with a compat-constructor default (-1) and a builder setter; the 7-arg and 8-arg compat constructors are preserved.
+- **FetchCodec**: request `case 15` routes to dedicated `encode/decodeRequestV15` which writes/reads the tagged `ReplicaState` (tag 1) after the flexible-tagged `ClusterId` (tag 0); the consumer case (replicaId==replicaEpoch==-1) omits the tag. Response `case 15` routes to the V13 response methods (request-only change). Legacy v14-and-earlier paths untouched.
+- **Dispatch (verified from the vendored spec)**: request v15 = `case 15` → `encode/decodeRequestV15`; response v14 and v15 both → `encode/decodeResponseV13` (response wire-identical). Next unimplemented request version: v16.
+- **Tests**: `FetchCodecTest` 83 → 87 (+4 net: 6 new v15 tests — `v15ConsumerExactBytes`, `v15GroupRoundTrip`, `v15RequestExactBytes`, `v15ResponseUnchangedFromV14`, `v15DispatchAndFallthrough`, `v15ConsumerOmitsTag` — plus 2 old v15-stub `CodecNotImplemented` methods removed); full module 590 → 594 green.
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 3 (FetchRequest, FetchCodec, FetchCodecTest) |
+| Lines added/removed | +416 / -31 |
+| Tests added | 6 net +4 (594 total) |
+
+---
+
+## Commit: `ec1a6ea3` — ListOffsets v0–v8 (Record I/O rows 137–145, sub-category completion)
+
+- **ListOffsets v0–v8 codec**: new dedicated `ListOffsetsCodec` — the first spec-correct ListOffsets implementation (all 9 rows at once, per the vendored ListOffsetsRequest.json / ListOffsetsResponse.json, spec-validated in `doc/spec/SPEC_VALIDATION_ListOffsets.md`). The old inline `KafkaCodec.encodeListOffsetsRequest` omitted the mandatory leading `ReplicaId` int32 (it started at `numTopics`), so every admin ListOffsets call was malformed on the wire; the new codec writes `ReplicaId` first. Client/broker interaction is pinned at v1 (the earliest version returning the per-partition `Timestamp` + `Offset` pair); the full range v0–v8 is encoded/decoded in both directions: v0 request `MaxNumOffsets` int32, v0 response `OldStyleOffsets` int64[1+], v2+ request `IsolationLevel` int8 / response `ThrottleTimeMs` int32, v4+ `CurrentLeaderEpoch` / `LeaderEpoch` int32, v6+ flexible encoding with compact arrays/strings + tagged fields.
+- **Models** (constructor arities preserved — all call sites unchanged): `ListOffsetsRequest` / `ListOffsetsResponse` are kept at the compact v1 shape (`PartitionIndex` / `Timestamp` / `Offset`); version-gated fields are handled in the codec — written with their spec defaults and read + discarded on decode — so `PartitionOffsets(partitionIndex, timestamp)` and `PartitionResponse(partitionIndex, errorCode, timestamp, offset)` keep their arities and `KafkaBroker` / `KafkaAdminClient` callers are untouched.
+- **KafkaCodec facade**: `encode/decodeListOffsetsRequest` and `encode/decodeListOffsetsResponse` now delegate to `ListOffsetsCodec`; the malformed inline `encodeListOffsetsRequest` is removed.
+- **New tests**: `ListOffsetsCodecTest` (23 tests — byte-for-byte layout assertions vs the canonical spec JSONs, exact 13-byte v1 request + 18-byte v1 response walks, pin validation, full v0–v8 range both directions, version guards).
+
+### Test Coverage
+- ListOffsetsCodecTest 23 tests; full module 594 → 617 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 1 (KafkaCodec) + 2 new (ListOffsetsCodec, ListOffsetsCodecTest) |
+| Lines added/removed | +863 / -51 |
+| Tests added | 23 (617 total) |
+
+- **Sub-category**: Record I/O is now complete (35 rows = Produce v0–9 + Fetch v0–15 + ListOffsets v0–8); remaining Admin (35), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
+
+## Commit: `6a9bd355` — CreateTopics v0–v7 (Admin rows 167–174, sub-category start)
+
+- **CreateTopics v0–v7 codec**: new dedicated `CreateTopicsCodec` — the first spec-correct CreateTopics implementation (all 8 rows at once, per the vendored CreateTopicsRequest.json / CreateTopicsResponse.json, frozen order tables in `doc/spec/order/CreateTopics.{Request,Response}.txt`). The old inline `KafkaCodec.encodeCreateTopicsRequest` omitted the mandatory Assignments array in each CreatableTopic (v0+), so every admin CreateTopics frame was desynced against spec-compliant peers; the new codec writes the full spec layout (Topics[] with the Assignments array). Client/broker interaction is pinned at v0; the full range v0–v7 is encoded/decoded in both directions (v0 request base: Topics[] with Name/NumPartitions/ReplicationFactor/Assignments/PartitionIndex/BrokerIds/Configs + timeoutMs; v1+ request validateOnly; v5+ flexible encoding with compact arrays/strings + tagged fields; response v0 Name/ErrorCode, v1+ ErrorMessage (nullable, read+discarded), v2+ ThrottleTimeMs, v5+ TopicConfigErrorCode (tag 0)/NumPartitions/ReplicationFactor/Configs (nullable, spec defaults -1), v7+ TopicId (non-nullable uuid, fixed 16 bytes on the wire)).
+- **Models** (constructor arities preserved — all call sites unchanged): `CreateTopicsRequest` gains the nested `TopicCreate` + `Assignment` records + the `assignments` field (the Assignments array is mandatory on the wire v0+); version-gated response fields are handled in the codec — written with their spec defaults and read + discarded on decode.
+- **KafkaCodec facade**: `encode/decodeCreateTopicsRequest` and `encode/decodeCreateTopicsResponse` now delegate to `CreateTopicsCodec`; the malformed inline bodies are removed.
+- **New tests**: `CreateTopicsCodecTest` (25 tests — byte-for-byte layout assertions vs the canonical spec JSONs, exact pinned v0 request/response walks, full v0–v7 range both directions, flexible layout, version guards).
+
+### Test Coverage
+- CreateTopicsCodecTest 25 tests; full module 617 → 642 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 2 (KafkaCodec, CreateTopicsRequest) + 2 new (CreateTopicsCodec, CreateTopicsCodecTest) |
+| Lines added/removed | +989 / -48 |
+| Tests added | 25 (642 total) |
+
+- **Sub-category**: Admin started (CreateTopics 8/35 rows); remaining Admin (27), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
+
+## Commit: doc-only — ListOffsets validation docs + settled rules + work ledger (retroactive)
+
+- **Docs committed** (no code change — these were written during the ListOffsets sub-task but left untracked):
+  - `doc/RULES.md` — module-level settled rules (spec JSONs authoritative/frozen, `//` comments legal, field order = spec `fields` order, no re-litigating settled decisions).
+  - `doc/CODEC_VALIDATION_ListOffsets.md` — ListOffsets v0–v8 field/byte-order validation notes (LOCKED): the v1 pin rationale, request/response field tables, the old inline facade bug (omitted leading `ReplicaId`), codec design, flexible size-calc notes.
+  - `doc/spec/SPEC_VALIDATION_ListOffsets.md` — grounded spec validation: vendored `ListOffsetsRequest/Response.json` are byte-identical to Apache Kafka 3.6.1; all ListOffsets faults were in the Java models + old inline facade, not the spec; hallucinated fields removed, missing fields added; decoded-default semantics table.
+  - `doc/work/LISTOFFSETS_SETTLED.md` — reusable evaluation ledger (settled per-version Δ for all APIs used downstream).
+  - `doc/work/WIP.md` — fast-recovery ledger (environment, conventions, next activity = DeleteTopics v0–v6, matrix rows 175–181).
+- **Effect**: single source of truth for the ListOffsets/CODEC_VALIDATION validation results is now under version control; the WIP ledger documents where the codec work is in flight for sub-2-minute recovery.
+
+### Test Coverage
+- No code changes; full module stays 642 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files added | 5 (doc-only) |
+| Tests added | 0 |
+
+## Commit: `a32bd1a4` — DeleteTopics v0–v6 (Admin rows 175–181)
+
+- **DeleteTopics v0–v6 codec**: new dedicated `DeleteTopicsCodec` — spec-correct DeleteTopics implementation (all 7 rows at once, per the vendored DeleteTopicsRequest.json / DeleteTopicsResponse.json, frozen order tables in `doc/spec/order/DeleteTopics.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v6 is encoded/decoded in both directions. Request: v0–v3 byte-identical (`int32 count + [int16 name] + int32 timeoutMs`); v4+ flexible (KIP-482: varint N+1 count, compact strings); v6 structural branch — the flat TopicNames[] is reorganized into `Topics[]DeleteTopicState[Name? (nullable compact), TopicId (uuid)]` + timeoutMs, with names written as Name and the all-zero uuid as TopicId (the in-house model carries only names; an ID-addressed v6 request cannot round-trip to it — documented in the codec javadoc). Response: v0 (`int32 count + [int16 name, int16 errorCode]`), v1+ leading ThrottleTimeMs (spec default 0, written + discarded), v4+ flexible, v5+ per-result ErrorMessage (nullable compact, spec default null, read + discarded), v6+ per-result TopicId (fixed 16 bytes, all-zero absent default, read + discarded).
+- **Models** (unchanged — constructor arities preserved, all call sites untouched): `DeleteTopicsRequest(topicNames, timeoutMs)` and `DeleteTopicsResponse(responses[])` keep their shape; every version-gated field is handled in the codec (written with the spec default, read + discarded on decode), documented in the codec class javadoc.
+- **KafkaCodec facade**: `encode/decodeDeleteTopicsRequest` and `encode/decodeDeleteTopicsResponse` now delegate to `DeleteTopicsCodec` (ListOffsets/CreateTopics pattern); the old inline v0-only bodies are removed.
+- **New tests**: `DeleteTopicsCodecTest` (22 tests — pinned-version assertions, byte-for-byte v0/v1–v3/v4/v5/v6 request + response walks, v5-vs-v6 request shape difference, full v0–v6 range round-trips both directions, empty-list edge, version guards).
+
+### Test Coverage
+- DeleteTopicsCodecTest 22 tests; full module 642 → 664 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 1 (KafkaCodec) + 2 new (DeleteTopicsCodec, DeleteTopicsCodecTest) + 2 new frozen order tables |
+| Tests added | 22 (664 total) |
+
+- **Sub-category**: Admin continues (CreateTopics 8/35 + DeleteTopics 7/35 = 15/35 rows); remaining Admin (20), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
+
+## Commit: `204cafff` — DeleteRecords v0–v2 (Admin rows 182–184)
+
+- **DeleteRecords v0–v2 codec**: new dedicated `DeleteRecordsCodec` — spec-correct DeleteRecords implementation (all 3 rows, per the vendored DeleteRecordsRequest.json / DeleteRecordsResponse.json, frozen order tables in `doc/spec/order/DeleteRecords.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v2 is encoded/decoded in both directions. Request: v0 and v1 byte-identical (`int32 count + [int16 name, int32 partCount + [int32 partitionIndex, int64 offset]] + int32 timeoutMs`); v2 flexible (KIP-482: varint N+1 counts, compact strings). Response: v0 and v1 wire-identical (leading ThrottleTimeMs int32 present from v0 — spec default 0, written + discarded; `int32 count + [int16 name, int32 partCount + [int32 partitionIndex, int64 lowWatermark, int16 errorCode]]`); v2 flexible.
+- **Models** (unchanged — constructor arities preserved, all call sites untouched): `DeleteRecordsRequest(topics, timeoutMs)` and `DeleteRecordsResponse(topics)` keep their shape; every version-gated field is handled in the codec (written with the spec default, read + discarded on decode), documented in the codec class javadoc.
+- **KafkaCodec facade**: `encode/decodeDeleteRecordsRequest` and `encode/decodeDeleteRecordsResponse` now delegate to `DeleteRecordsCodec` (ListOffsets/CreateTopics/DeleteTopics pattern); the old inline bodies are removed (the inline response omitted the leading ThrottleTimeMs — malformed on the wire v0+).
+- **New tests**: `DeleteRecordsCodecTest` (27 tests — pinned-version assertions, byte-for-byte v0/v1/v2 request + response walks, v1-vs-v2 request shape difference, v1-vs-v2 response shape difference, full v0–v2 range round-trips both directions, flexible empty-strings-array edge, version guards).
+
+### Test Coverage
+- DeleteRecordsCodecTest 27 tests; full module 664 → 691 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 1 (KafkaCodec) + 2 new (DeleteRecordsCodec, DeleteRecordsCodecTest) + 2 new frozen order tables |
+| Tests added | 27 |
+
+- **Sub-category**: Admin continues (CreateTopics 8/35 + DeleteTopics 7/35 + DeleteRecords 3/35 = 18/35 rows); remaining Admin (17), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
+
+## Commit: `5ae7bc87` — CreatePartitions v0–v3 (Admin rows 437–440)
+
+- **CreatePartitions v0–v3 codec**: new dedicated `CreatePartitionsCodec` — spec-correct CreatePartitions implementation (all 4 rows, per the vendored CreatePartitionsRequest.json / CreatePartitionsResponse.json, frozen order tables in `doc/spec/order/CreatePartitions.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v3 is encoded/decoded in both directions. Request: v0 and v1 byte-identical (`int32 count + [int16 name, int32 count, int32 assignmentsCount + [int32 brokerIds]] + int32 timeoutMs + bool validateOnly`; per-topic Assignments written as empty array — spec default — and ValidateOnly as false, both read + discarded); v2–v3 flexible (KIP-482: varint N+1 counts, compact strings, per-struct tagged sections; nullable Assignments absent = varint 0). Response: leading ThrottleTimeMs int32 (present from v0, spec default 0, written + discarded) + `int32 count + [int16 name, int16 errorCode, nullable errorMessage]` with ErrorMessage written as null (spec default) and read + discarded; v2–v3 flexible.
+- **Models** (unchanged — constructor arities preserved, all call sites untouched): `CreatePartitionsRequest(topics, timeoutMs)` and `CreatePartitionsResponse(results)` keep their shape; every version-gated field is handled in the codec (written with the spec default, read + discarded on decode), documented in the codec class javadoc.
+- **KafkaCodec facade**: `encode/decodeCreatePartitionsRequest` and `encode/decodeCreatePartitionsResponse` now delegate to `CreatePartitionsCodec` (ListOffsets/CreateTopics/DeleteTopics pattern); the old inline v0-only bodies are removed (they omitted the per-topic Assignments array + ValidateOnly from the request and the leading ThrottleTimeMs + nullable ErrorMessage from the response — malformed on the wire).
+- **New tests**: `CreatePartitionsCodecTest` (29 tests — pinned-version assertions, byte-for-byte v0/v1/v2 request + response walks, v1-vs-v2 request and response shape differences, full v0–v3 range round-trips both directions, empty-results edge, version guards).
+
+### Test Coverage
+- CreatePartitionsCodecTest 29 tests; full module 691 → 720 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 1 (KafkaCodec) + 2 new (CreatePartitionsCodec, CreatePartitionsCodecTest) + 2 new frozen order tables |
+| Tests added | 29 |
+
+- **Sub-category**: Admin continues (CreateTopics 8/35 + DeleteTopics 7/35 + DeleteRecords 3/35 + CreatePartitions 4/35 = 22/35 rows); remaining Admin (13), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
+
+## Commit: `c6d7b3b4` — DeleteGroups v0–v2 (Admin rows 446–448)
+
+- **DeleteGroups v0–v2 codec**: new dedicated `DeleteGroupsCodec` — spec-correct DeleteGroups implementation (all 3 rows, per the vendored DeleteGroupsRequest.json / DeleteGroupsResponse.json, frozen order tables in `doc/spec/order/DeleteGroups.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v2 is encoded/decoded in both directions. Request: single `GroupsNames []string` field present from v0 (v1 byte-identical); v2 flexible (KIP-482: varint N+1 count + compact strings). Response: leading `ThrottleTimeMs int32` (present from v0, spec default 0, written + discarded) + `int32 count + [groupId:compact/string, errorCode:int16]` per result; v2 flexible.
+- **Models** (unchanged — constructor arities preserved, all call sites untouched): `DeleteGroupsRequest(groups)` and `DeleteGroupsResponse(results)` keep their shape; every version-gated field is handled in the codec (written with the spec default, read + discarded on decode), documented in the codec class javadoc.
+- **KafkaCodec facade**: `encode/decodeDeleteGroupsRequest` and `encode/decodeDeleteGroupsResponse` now delegate to `DeleteGroupsCodec` (CreateTopics/DeleteTopics pattern); the old inline v0-only bodies are removed (the inline request was wire-correct but the inline response omitted the leading ThrottleTimeMs — malformed on the wire).
+- **New tests**: `DeleteGroupsCodecTest` (28 tests — pinned-version assertions, byte-for-byte v0/v1/v2 request + response walks, v1-vs-v2 shape differences, full v0–v2 range round-trips both directions, empty-groups/results edge, version guards).
+
+### Test Coverage
+- DeleteGroupsCodecTest 28 tests; full module 720 → 748 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 1 (KafkaCodec) + 2 new (DeleteGroupsCodec, DeleteGroupsCodecTest) + 2 new frozen order tables |
+| Tests added | 28 |
+
+- **Sub-category**: Admin continues (CreateTopics 8/35 + DeleteTopics 7/35 + DeleteRecords 3/35 + CreatePartitions 4/35 + DeleteGroups 3/35 = 25/35 rows); remaining Admin (10), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
+
+## Commit: `ec5df5f7` — DescribeConfigs v0–v4 (Admin rows 454–458)
+
+- **DescribeConfigs v0–v4 codec**: new dedicated `DescribeConfigsCodec` — spec-correct DescribeConfigs implementation (all 5 rows, per the vendored DescribeConfigsRequest.json / DescribeConfigsResponse.json, frozen order tables in `doc/spec/order/DescribeConfigs.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v4 is encoded/decoded in both directions. Request: v0 base (`int32 count + [int8 resourceType, string resourceName, nullable int32-count + []string configNames]`); v1+ `IncludeSynonyms` (bool, spec default false); v3+ `IncludeDocumentation` (bool, spec default false); v4 flexible (KIP-482: varint N+1 counts, compact strings, per-resource tagged section; nullable configNames = varint 0). Response: leading `ThrottleTimeMs int32` (present from v0, spec default 0, written + discarded) + `int32 count + [int16 errorCode, nullable errorMessage, int8 resourceType, string resourceName, int32-count configs]` where each config is `[name, nullable value, bool readOnly, int8 configSource, bool isSensitive]`; v1+ per-config `Synonyms` (int32 count, null = -1; each `[name?, value?, source]`); v3+ per-config `ConfigType` (int8) + `Documentation` (nullable string); v4 flexible. The old inline response omitted the leading ThrottleTimeMs, per-result ErrorMessage, per-result ResourceType and per-config ConfigSource — malformed on the wire.
+- **Models** (unchanged — constructor arities preserved, all call sites untouched): `DescribeConfigsRequest(resources)` / `DescribeConfigsResponse(resources)` keep their shape; every version-gated field is handled in the codec (written with the spec default, read + discarded on decode), documented in the codec class javadoc.
+- **KafkaCodec facade**: `encode/decodeDescribeConfigsRequest` and `encode/decodeDescribeConfigsResponse` now delegate to `DescribeConfigsCodec` (ListOffsets/CreateTopics pattern); the old inline v0-only bodies are removed (the inline request was wire-correct; the inline response was missing the fields above — malformed on the wire).
+- **New tests**: `DescribeConfigsCodecTest` (34 tests across 6 nested classes — pinned-version assertions, byte-for-byte v0 request/response walks, v1/v3 trailing-field deltas, v4 flexible request + response byte walks, full v0–v4 range round-trips both directions, null configNames / null value edges, version guards).
+
+### Test Coverage
+- DescribeConfigsCodecTest 34 tests; full module 748 → 782 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 1 (KafkaCodec) + 2 new (DescribeConfigsCodec, DescribeConfigsCodecTest) + 2 new frozen order tables |
+| Tests added | 34 |
+
+- **Sub-category**: Admin continues (CreateTopics 8/35 + DeleteTopics 7/35 + DeleteRecords 3/35 + CreatePartitions 4/35 + DeleteGroups 3/35 + DescribeConfigs 5/35 = 30/35 rows); remaining Admin (5), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
+
+## Commit: `7fb6e3ef` — AlterConfigs v0–v2 (Admin rows 464–466)
+
+- **AlterConfigs v0–v2 codec**: new dedicated `AlterConfigsCodec` — spec-correct AlterConfigs implementation (all 3 rows, per the vendored AlterConfigsRequest.json / AlterConfigsResponse.json, frozen order tables in `doc/spec/order/AlterConfigs.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v2 is encoded/decoded in both directions. Request: v0 base (`int32 count + [int8 resourceType, string resourceName, int32-count configs []config[string name, nullable string value]]` + trailing `bool validateOnly`); v1 byte-identical; v2 flexible (KIP-482: varint N+1 counts, compact strings, nullable compact value — null = varint 0 — per-resource + per-config tagged section). Response: leading `ThrottleTimeMs int32` (present from v0, spec default 0, written + discarded) + `int32 count + [int16 errorCode, nullable errorMessage, int8 resourceType, string resourceName]` per result; v1 byte-identical; v2 flexible. The old inline response omitted the leading ThrottleTimeMs, per-result ErrorMessage and per-result ResourceType — malformed on the wire.
+- **Models** (unchanged — constructor arities preserved, all call sites untouched): `AlterConfigsRequest(resources, validateOnly)` / `AlterConfigsResponse(resources)` keep their shape; the response `ResourceResponse(errorCode, resourceName)` does not expose `errorMessage` or `resourceType` — both are handled in the codec (written with the spec default, read + discarded on decode), documented in the codec class javadoc.
+- **KafkaCodec facade**: `encode/decodeAlterConfigsRequest` and `encode/decodeAlterConfigsResponse` now delegate to `AlterConfigsCodec` (CreateTopics/ListOffsets pattern); the old inline v0-only bodies are removed (the inline request was wire-correct; the inline response was missing the fields above — malformed on the wire).
+- **New tests**: `AlterConfigsCodecTest` (21 tests — pinned-version assertions, byte-for-byte v0 request/response walks, v2 flexible request + response byte walks, full v0–v2 range round-trips both directions, null config value edges, version guards).
+
+### Test Coverage
+- AlterConfigsCodecTest 21 tests; full module 782 → 803 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 1 (KafkaCodec) + 2 new (AlterConfigsCodec, AlterConfigsCodecTest) + 2 new frozen order tables |
+| Tests added | 21 |
+
+- **Sub-category**: Admin continues (CreateTopics 8/35 + DeleteTopics 7/35 + DeleteRecords 3/35 + CreatePartitions 4/35 + DeleteGroups 3/35 + DescribeConfigs 5/35 + AlterConfigs 3/35 = 33/35 rows); remaining Admin (2), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
+
 ## Document Maintenance
 
 - This document is append-only for commit sections

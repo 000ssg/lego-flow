@@ -1,7 +1,7 @@
 package ssg.legoflow.messaging.nats.cluster;
 
 import org.junit.jupiter.api.Test;
-import ssg.legoflow.messaging.nats.client.NatsClient;
+import ssg.legoflow.messaging.nats.server.InMemoryNats;
 import ssg.legoflow.messaging.nats.server.NatsServer;
 import ssg.legoflow.network.cluster.core.ClusterNode;
 import ssg.legoflow.network.cluster.core.ClusterNodeStatus;
@@ -19,29 +19,26 @@ class NatsClusterHealthBusTest {
     @Test
     void heartbeat_send_and_receive() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
             // Create two buses — one publisher, one subscriber
             NatsClusterConfig cfg1 = NatsClusterConfig.builder()
-                    .serverUrl("nats://localhost:" + port)
+                    .serverUrl("nats://localhost:4222")
                     .clusterId("test")
                     .nodeId("node-A")
                     .heartbeatInterval(Duration.ofSeconds(1))
                     .build();
 
             NatsClusterConfig cfg2 = NatsClusterConfig.builder()
-                    .serverUrl("nats://localhost:" + port)
+                    .serverUrl("nats://localhost:4222")
                     .clusterId("test")
                     .nodeId("node-B")
                     .heartbeatInterval(Duration.ofSeconds(1))
                     .build();
 
-            try (var client1 = new NatsClient("localhost", port);
-                 var client2 = new NatsClient("localhost", port)) {
-                client1.connect();
-                client2.connect();
+            try (var client1 = InMemoryNats.client(server);
+                 var client2 = InMemoryNats.client(server)) {
 
                 NatsClusterBus bus1 = new NatsClusterBus(cfg1, client1);
                 NatsClusterBus bus2 = new NatsClusterBus(cfg2, client2);
@@ -80,19 +77,17 @@ class NatsClusterHealthBusTest {
     @Test
     void start_and_stop() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
             NatsClusterConfig cfg = NatsClusterConfig.builder()
-                    .serverUrl("nats://localhost:" + port)
+                    .serverUrl("nats://localhost:4222")
                     .clusterId("test")
                     .nodeId("node-A")
                     .heartbeatInterval(Duration.ofMillis(500))
                     .build();
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
                 NatsClusterHealthBus healthBus = new NatsClusterHealthBus(bus, Duration.ofMillis(500), "127.0.0.1", 8080);
 
@@ -122,18 +117,16 @@ class NatsClusterHealthBusTest {
     @Test
     void self_node_info() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
             NatsClusterConfig cfg = NatsClusterConfig.builder()
-                    .serverUrl("nats://localhost:" + port)
+                    .serverUrl("nats://localhost:4222")
                     .clusterId("test")
                     .nodeId("my-node")
                     .build();
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
                 NatsClusterHealthBus healthBus = new NatsClusterHealthBus(bus, Duration.ofSeconds(5), "192.168.1.10", 9090);
 
@@ -155,18 +148,16 @@ class NatsClusterHealthBusTest {
     void heartbeat_json_format() throws Exception {
         // Verify the heartbeat JSON is well-formed by parsing it on the receiver side
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
             NatsClusterConfig cfg = NatsClusterConfig.builder()
-                    .serverUrl("nats://localhost:" + port)
+                    .serverUrl("nats://localhost:4222")
                     .clusterId("test")
                     .nodeId("node-A")
                     .build();
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
 
                 // Subscribe to heartbeat subject to capture raw JSON
@@ -205,18 +196,16 @@ class NatsClusterHealthBusTest {
     void peer_heartbeat_not_echoed_to_self() throws Exception {
         // When a node receives its own heartbeat, it should be ignored by the health listener
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
             NatsClusterConfig cfg = NatsClusterConfig.builder()
-                    .serverUrl("nats://localhost:" + port)
+                    .serverUrl("nats://localhost:4222")
                     .clusterId("test")
                     .nodeId("node-A")
                     .build();
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
 
                 NatsClusterHealthBus healthBus = new NatsClusterHealthBus(bus, Duration.ofSeconds(5), "127.0.0.1", 8080);
@@ -245,19 +234,17 @@ class NatsClusterHealthBusTest {
     @Test
     void close_stops_scheduler() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
             NatsClusterConfig cfg = NatsClusterConfig.builder()
-                    .serverUrl("nats://localhost:" + port)
+                    .serverUrl("nats://localhost:4222")
                     .clusterId("test")
                     .nodeId("node-A")
                     .heartbeatInterval(Duration.ofMillis(100))
                     .build();
 
-            try (var client = new NatsClient("localhost", port)) {
-                client.connect();
+            try (var client = InMemoryNats.client(server)) {
                 NatsClusterBus bus = new NatsClusterBus(cfg, client);
                 NatsClusterHealthBus healthBus = new NatsClusterHealthBus(bus, Duration.ofMillis(100), "127.0.0.1", 8080);
 
@@ -279,26 +266,23 @@ class NatsClusterHealthBusTest {
     @Test
     void multiple_heartbeats_received() throws Exception {
         NatsServer server = new NatsServer();
-        server.start(0);
-        int port = server.port();
+        server.start();
 
         try {
             NatsClusterConfig cfg1 = NatsClusterConfig.builder()
-                    .serverUrl("nats://localhost:" + port)
+                    .serverUrl("nats://localhost:4222")
                     .clusterId("test")
                     .nodeId("node-A")
                     .build();
 
             NatsClusterConfig cfg2 = NatsClusterConfig.builder()
-                    .serverUrl("nats://localhost:" + port)
+                    .serverUrl("nats://localhost:4222")
                     .clusterId("test")
                     .nodeId("node-B")
                     .build();
 
-            try (var client1 = new NatsClient("localhost", port);
-                 var client2 = new NatsClient("localhost", port)) {
-                client1.connect();
-                client2.connect();
+            try (var client1 = InMemoryNats.client(server);
+                 var client2 = InMemoryNats.client(server)) {
 
                 NatsClusterBus bus1 = new NatsClusterBus(cfg1, client1);
                 NatsClusterBus bus2 = new NatsClusterBus(cfg2, client2);

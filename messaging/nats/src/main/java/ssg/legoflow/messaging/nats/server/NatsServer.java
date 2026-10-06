@@ -3,23 +3,27 @@ package ssg.legoflow.messaging.nats.server;
 import ssg.legoflow.messaging.nats.jetstream.JetStreamManager;
 import ssg.legoflow.messaging.nats.protocol.*;
 import ssg.legoflow.messaging.nats.server.auth.Authenticator;
+import ssg.legoflow.messaging.nats.transport.NatsTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+
 /**
- * NATS server supporting TCP connections with virtual threads.
+ * NATS server core — connection-agnostic, driven through the {@link NatsTransport} SPI.
  *
- * <p>Accepts client connections, handles the NATS text protocol,
- * manages subscriptions and message routing, supports authentication,
- * queue groups, and JetStream persistent streaming.
+ * <p>Handles the NATS text protocol for each client connection, manages subscriptions and
+ * message routing, supports authentication, queue groups, and JetStream persistent streaming.
+ *
+ * <p><b>Transport-agnostic:</b> the core opens <b>no sockets</b> and has <b>no accept loop</b>.
+ * Accepted connections are handed in via {@link #handleConnection(NatsTransport)} — in
+ * production the {@code SelectableChannelManager} (through {@code NatsServerService}) calls it
+ * with a {@code PipelineNatsTransport} per accepted channel; in tests a
+ * {@code InMemoryNatsTransport} is injected. This mirrors the STOMP {@code StompBroker.accept}
+ * reference form — the service layer owns all socket lifecycle.
  *
  * @since 0.1.0
  */
@@ -35,8 +39,6 @@ public final class NatsServer implements AutoCloseable {
     private final AtomicLong clientIdCounter = new AtomicLong(0);
     private final JetStreamManager jetStreamManager;
 
-    private volatile ServerSocket serverSocket;
-    private volatile int boundPort;
     private volatile Authenticator authenticator;
 
     /**
@@ -47,14 +49,23 @@ public final class NatsServer implements AutoCloseable {
     }
 
     /**
-     * Creates a NATS server on the specified port.
+     * Creates a NATS server.
      *
-     * @param port the port (0 for ephemeral)
+     * @param port the advertised port (informational; the real listen port is owned by the
+     *             service layer that wraps this core)
      */
     public NatsServer(int port) {
         String serverId = UUID.randomUUID().toString().substring(0, 20).toUpperCase();
         this.serverInfo = ServerInfo.withDefaults(serverId, "lego-flow-nats", port);
         this.jetStreamManager = new JetStreamManager(this);
+    }
+
+    /**
+     * Marks the server running (called by the service layer once the listener is bound).
+     */
+    public void start() {
+        running.set(true);
+        LOG.info("NATS server core started");
     }
 
     /**
@@ -106,39 +117,22 @@ public final class NatsServer implements AutoCloseable {
     }
 
     /**
-     * Starts the server and binds to the configured port.
+     * Handles a newly-accepted client connection over the given transport.
      *
-     * @throws IOException if binding fails
-     */
-    public void start() throws IOException {
-        start(serverInfo.port());
-    }
-
-    /**
-     * Starts the server on the specified port.
+     * <p>Runs the client connection loop over the transport on a virtual thread — the seam the
+     * service layer (production) and tests (in-memory) use to feed the core. No socket here.
      *
-     * @param port the port (0 for ephemeral)
-     * @throws IOException if binding fails
+     * @param transport the client's byte-level transport
      */
-    public void start(int port) throws IOException {
-        serverSocket = new ServerSocket();
-        serverSocket.setReuseAddress(true);
-        serverSocket.bind(new InetSocketAddress("0.0.0.0", port));
-        boundPort = serverSocket.getLocalPort();
-        running.set(true);
-
-        LOG.info("NATS server started on port {}", boundPort);
-
-        executor.submit(this::acceptLoop);
-    }
-
-    /**
-     * Returns the port the server is bound to.
-     *
-     * @return the bound port
-     */
-    public int port() {
-        return boundPort;
+    public void handleConnection(NatsTransport transport) {
+        if (!running.get()) {
+            running.set(true);
+        }
+        long clientId = clientIdCounter.incrementAndGet();
+        var connection = new ClientConnection(clientId, transport, this);
+        clients.put(clientId, connection);
+        executor.submit(connection::run);
+        LOG.debug("Client {} accepted", clientId);
     }
 
     /**
@@ -182,24 +176,6 @@ public final class NatsServer implements AutoCloseable {
         LOG.debug("Client {} removed, {} clients remaining", client.id(), clients.size());
     }
 
-    private void acceptLoop() {
-        while (running.get()) {
-            try {
-                Socket clientSocket = serverSocket.accept();
-                clientSocket.setTcpNoDelay(true);
-                long clientId = clientIdCounter.incrementAndGet();
-                var connection = new ClientConnection(clientId, clientSocket, this);
-                clients.put(clientId, connection);
-                executor.submit(connection::run);
-                LOG.debug("Client {} connected from {}", clientId, clientSocket.getRemoteSocketAddress());
-            } catch (IOException e) {
-                if (running.get()) {
-                    LOG.error("Error accepting client connection", e);
-                }
-            }
-        }
-    }
-
     @Override
     public void close() {
         running.set(false);
@@ -208,14 +184,6 @@ public final class NatsServer implements AutoCloseable {
             client.close();
         }
         clients.clear();
-        // Close server socket
-        try {
-            if (serverSocket != null && !serverSocket.isClosed()) {
-                serverSocket.close();
-            }
-        } catch (IOException e) {
-            LOG.debug("Error closing server socket", e);
-        }
         executor.shutdown();
         LOG.info("NATS server stopped");
     }

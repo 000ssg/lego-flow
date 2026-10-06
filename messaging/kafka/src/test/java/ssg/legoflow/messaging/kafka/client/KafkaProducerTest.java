@@ -14,14 +14,11 @@ import static org.assertj.core.api.Assertions.*;
 class KafkaProducerTest {
 
     private KafkaBroker broker;
-    private int port;
 
     @BeforeEach
-    void setUp() throws IOException {
-        broker = new KafkaBroker("localhost", 0);
-        broker.start();
+    void setUp() {
+        broker = InMemoryKafka.broker();
         broker.createTopic("test", 3);
-        port = broker.port();
     }
 
     @AfterEach
@@ -31,7 +28,7 @@ class KafkaProducerTest {
 
     @Test
     void testSimpleProduce() throws IOException {
-        try (var producer = new KafkaProducer("localhost", port, "test-producer")) {
+        try (var producer = new KafkaProducer(InMemoryKafka.pair(broker)[1], "test-producer")) {
             producer.init();
             var result = producer.send("test", "key", "value");
             assertThat(result.topic()).isEqualTo("test");
@@ -41,7 +38,7 @@ class KafkaProducerTest {
 
     @Test
     void testProduceMultipleMessages() throws IOException {
-        try (var producer = new KafkaProducer("localhost", port, "test-producer")) {
+        try (var producer = new KafkaProducer(InMemoryKafka.pair(broker)[1], "test-producer")) {
             producer.init();
             for (int i = 0; i < 10; i++) {
                 var result = producer.send("test", "key-" + i, "value-" + i);
@@ -52,7 +49,7 @@ class KafkaProducerTest {
 
     @Test
     void testProduceWithByteArrays() throws IOException {
-        try (var producer = new KafkaProducer("localhost", port, "test-producer")) {
+        try (var producer = new KafkaProducer(InMemoryKafka.pair(broker)[1], "test-producer")) {
             producer.init();
             var result = producer.send("test", new byte[]{1, 2}, new byte[]{3, 4});
             assertThat(result).isNotNull();
@@ -61,7 +58,7 @@ class KafkaProducerTest {
 
     @Test
     void testProduceNullKey() throws IOException {
-        try (var producer = new KafkaProducer("localhost", port, "test-producer")) {
+        try (var producer = new KafkaProducer(InMemoryKafka.pair(broker)[1], "test-producer")) {
             producer.init();
             var result = producer.send("test", (String) null, "value");
             assertThat(result).isNotNull();
@@ -70,7 +67,7 @@ class KafkaProducerTest {
 
     @Test
     void testProduceWithHeaders() throws IOException {
-        try (var producer = new KafkaProducer("localhost", port, "test-producer")) {
+        try (var producer = new KafkaProducer(InMemoryKafka.pair(broker)[1], "test-producer")) {
             producer.init();
             var result = producer.send("test", "key".getBytes(), "value".getBytes(),
                     List.of(Header.of("h1", "v1")));
@@ -80,7 +77,7 @@ class KafkaProducerTest {
 
     @Test
     void testProduceAutoCreateTopic() throws IOException {
-        try (var producer = new KafkaProducer("localhost", port, "test-producer")) {
+        try (var producer = new KafkaProducer(InMemoryKafka.pair(broker)[1], "test-producer")) {
             producer.init();
             var result = producer.send("new-topic", "key", "value");
             assertThat(result).isNotNull();
@@ -90,7 +87,7 @@ class KafkaProducerTest {
 
     @Test
     void testProduceWithRoundRobinPartitioner() throws IOException {
-        try (var producer = new KafkaProducer("localhost", port, "test-producer",
+        try (var producer = new KafkaProducer(InMemoryKafka.pair(broker)[1], "test-producer",
                 Partitioner.roundRobin(), (short) 1, 0, 100, Compression.NONE, false, null)) {
             producer.init();
             java.util.Set<Integer> usedPartitions = new java.util.HashSet<>();
@@ -104,7 +101,7 @@ class KafkaProducerTest {
 
     @Test
     void testProduceWithGzipCompression() throws IOException {
-        try (var producer = new KafkaProducer("localhost", port, "test-producer",
+        try (var producer = new KafkaProducer(InMemoryKafka.pair(broker)[1], "test-producer",
                 null, (short) 1, 0, 100, Compression.GZIP, false, null)) {
             producer.init();
             var result = producer.send("test", "key", "compressed-value");
@@ -114,7 +111,7 @@ class KafkaProducerTest {
 
     @Test
     void testIdempotentProducer() throws IOException {
-        try (var producer = new KafkaProducer("localhost", port, "test-producer",
+        try (var producer = new KafkaProducer(InMemoryKafka.pair(broker)[1], "test-producer",
                 null, (short) -1, 0, 100, Compression.NONE, true, null)) {
             producer.init();
             var r1 = producer.send("test", "key", "value-1");
@@ -126,7 +123,7 @@ class KafkaProducerTest {
 
     @Test
     void testTransactionalProducer() throws IOException {
-        try (var producer = new KafkaProducer("localhost", port, "test-producer",
+        try (var producer = new KafkaProducer(InMemoryKafka.pair(broker)[1], "test-producer",
                 null, (short) -1, 0, 100, Compression.NONE, true, "my-txn")) {
             producer.init();
             producer.beginTransaction();
@@ -138,7 +135,7 @@ class KafkaProducerTest {
 
     @Test
     void testTransactionalProducerAbort() throws IOException {
-        try (var producer = new KafkaProducer("localhost", port, "test-producer",
+        try (var producer = new KafkaProducer(InMemoryKafka.pair(broker)[1], "test-producer",
                 null, (short) -1, 0, 100, Compression.NONE, true, "my-txn")) {
             producer.init();
             producer.beginTransaction();
@@ -150,7 +147,7 @@ class KafkaProducerTest {
 
     @Test
     void testBeginTransactionWithoutTxnIdThrows() throws IOException {
-        try (var producer = new KafkaProducer("localhost", port, "test-producer")) {
+        try (var producer = new KafkaProducer(InMemoryKafka.pair(broker)[1], "test-producer")) {
             producer.init();
             assertThatThrownBy(producer::beginTransaction)
                     .isInstanceOf(IllegalStateException.class);
@@ -159,7 +156,7 @@ class KafkaProducerTest {
 
     @Test
     void testSendToPartition() throws IOException {
-        try (var producer = new KafkaProducer("localhost", port, "test-producer")) {
+        try (var producer = new KafkaProducer(InMemoryKafka.pair(broker)[1], "test-producer")) {
             producer.init();
             var result = producer.sendToPartition("test", 1, "key".getBytes(), "value".getBytes(), List.of());
             assertThat(result.partition()).isEqualTo(1);
@@ -168,7 +165,7 @@ class KafkaProducerTest {
 
     @Test
     void testRefreshMetadata() throws IOException {
-        try (var producer = new KafkaProducer("localhost", port, "test-producer")) {
+        try (var producer = new KafkaProducer(InMemoryKafka.pair(broker)[1], "test-producer")) {
             producer.init();
             producer.refreshMetadata("test");
             // Should not throw
