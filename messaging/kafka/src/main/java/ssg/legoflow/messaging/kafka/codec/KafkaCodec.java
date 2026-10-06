@@ -941,28 +941,19 @@ public final class KafkaCodec {
     // ===== InitProducerId (22) =====
 
     public static byte[] encodeInitProducerIdRequest(InitProducerIdRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(256);
-        writeNullableString(buf, req.transactionalId());
-        buf.putInt(req.transactionTimeoutMs());
-        buf.flip();
-        return toBytes(buf);
+        return InitProducerIdCodec.encodeRequest(req);
     }
 
     public static InitProducerIdRequest decodeInitProducerIdRequest(ByteBuffer buf) {
-        return new InitProducerIdRequest(readNullableString(buf), buf.getInt());
+        return InitProducerIdCodec.decodeRequest(InitProducerIdCodec.PINNED_VERSION, buf);
     }
 
     public static byte[] encodeInitProducerIdResponse(InitProducerIdResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(12);
-        buf.putShort(resp.errorCode());
-        buf.putLong(resp.producerId());
-        buf.putShort(resp.producerEpoch());
-        buf.flip();
-        return toBytes(buf);
+        return InitProducerIdCodec.encodeResponse(resp);
     }
 
     public static InitProducerIdResponse decodeInitProducerIdResponse(ByteBuffer buf) {
-        return new InitProducerIdResponse(buf.getShort(), buf.getLong(), buf.getShort());
+        return InitProducerIdCodec.decodeResponse(InitProducerIdCodec.PINNED_VERSION, buf);
     }
 
     // ===== AddPartitionsToTxn (24) =====

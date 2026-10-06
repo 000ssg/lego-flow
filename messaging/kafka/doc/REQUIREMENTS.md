@@ -591,6 +591,24 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 - **Sub-category**: **Admin complete 35/35** (CreateTopics 8 + DeleteTopics 7 + DeleteRecords 3 + CreatePartitions 4 + DeleteGroups 3 + DescribeConfigs 5 + AlterConfigs 3 + AlterPartitionReassignments 1 + ListPartitionReassignments 1); next sub-category: Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
 
+## Commit: `PENDING` — InitProducerId v0–v4 (Transactions rows 348–352, sub-category start)
+
+- **InitProducerId v0–v4 codec**: new dedicated `InitProducerIdCodec` — spec-correct InitProducerId implementation (all 5 rows v0–v4, per the vendored InitProducerIdRequest.json / InitProducerIdResponse.json, frozen order tables in `doc/spec/order/InitProducerId.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v4 is encoded/decoded in both directions. Request: v0 and v1 byte-identical (`nullable TransactionalId:string + TransactionTimeoutMs:int32`); v2+ flexible (KIP-482: nullable compact TransactionalId, varint count — top-level messages carry no array counts, only the tagged-section sentinel); v3+ appends `ProducerId:int64 + ProducerEpoch:int16` (both spec default -1, written + discarded). Response: leading `ThrottleTimeMs:int32` (present from v0, spec default 0, written + discarded) + `ErrorCode:int16 + ProducerId:int64 + ProducerEpoch:int16`; v2+ flexible (no compact strings/arrays — every field is fixed-width int16/int64, so the flexible body is byte-identical to v0/v1 modulo the top-level endTags sentinel + the v3+ producerId/producerEpoch append). The old inline facade `encodeInitProducerIdResponse` omitted the mandatory leading ThrottleTimeMs — malformed on the wire.
+- **Models** (unchanged — constructor arities preserved, all call sites untouched): `InitProducerIdRequest(transactionalId, transactionTimeoutMs)` / `InitProducerIdResponse(errorCode, producerId, producerEpoch)` keep their shape; the version-gated request `ProducerId`/`ProducerEpoch` (v3+) and the response `ThrottleTimeMs` are handled in the codec (written with the spec default, read + discarded on decode), documented in the codec class javadoc.
+- **KafkaCodec facade**: `encode/decodeInitProducerIdRequest` and `encode/decodeInitProducerIdResponse` now delegate to `InitProducerIdCodec` (CreateTopics/ListOffsets pattern); the old inline v0-only bodies are removed.
+- **New tests**: `InitProducerIdCodecTest` (21 tests — pinned-version assertions, byte-for-byte v0/v1/v2/v3/v4 request + response walks, v3 v3+ producerId/producerEpoch append + endTags, full v0–v4 range round-trips both directions, null transactionalId edge, version guards, facade delegation).
+
+### Test Coverage
+- InitProducerIdCodecTest 21 tests; full module 836 → 857 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 1 (KafkaCodec) + 2 new (InitProducerIdCodec, InitProducerIdCodecTest) + 2 new frozen order tables |
+| Tests added | 21 |
+
+- **Sub-category**: **Transactions STARTED 5/24** (InitProducerId 5); remaining: AddPartitionsToTxn (5), AddOffsetsToTxn (4), EndTxn (4), WriteTxnMarkers (2), TxnOffsetCommit (4).
+
 ## Document Maintenance
 
 - This document is append-only for commit sections
