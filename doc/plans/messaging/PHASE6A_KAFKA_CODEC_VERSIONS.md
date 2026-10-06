@@ -461,9 +461,9 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (7 fields): Resources, ResourceType, ResourceName, Configs, Name, Value, ValidateOnly | ☐ | |
-| v1 | unchanged | ☐ | |
-| v2 | → flexible encoding | ☐ | |
+| v0 | base (7 fields): Resources, ResourceType, ResourceName, Configs, Name, Value, ValidateOnly | ✓ | `PENDING` |
+| v1 | unchanged | ✓ | `PENDING` |
+| v2 | → flexible encoding | ✓ | `PENDING` |
 
 ### AlterPartitionReassignments (API 45) — v0..v0
 

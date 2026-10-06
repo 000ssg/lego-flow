@@ -537,6 +537,24 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 - **Sub-category**: Admin continues (CreateTopics 8/35 + DeleteTopics 7/35 + DeleteRecords 3/35 + CreatePartitions 4/35 + DeleteGroups 3/35 + DescribeConfigs 5/35 = 30/35 rows); remaining Admin (5), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
 
+## Commit: `PENDING` — AlterConfigs v0–v2 (Admin rows 464–466)
+
+- **AlterConfigs v0–v2 codec**: new dedicated `AlterConfigsCodec` — spec-correct AlterConfigs implementation (all 3 rows, per the vendored AlterConfigsRequest.json / AlterConfigsResponse.json, frozen order tables in `doc/spec/order/AlterConfigs.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v2 is encoded/decoded in both directions. Request: v0 base (`int32 count + [int8 resourceType, string resourceName, int32-count configs []config[string name, nullable string value]]` + trailing `bool validateOnly`); v1 byte-identical; v2 flexible (KIP-482: varint N+1 counts, compact strings, nullable compact value — null = varint 0 — per-resource + per-config tagged section). Response: leading `ThrottleTimeMs int32` (present from v0, spec default 0, written + discarded) + `int32 count + [int16 errorCode, nullable errorMessage, int8 resourceType, string resourceName]` per result; v1 byte-identical; v2 flexible. The old inline response omitted the leading ThrottleTimeMs, per-result ErrorMessage and per-result ResourceType — malformed on the wire.
+- **Models** (unchanged — constructor arities preserved, all call sites untouched): `AlterConfigsRequest(resources, validateOnly)` / `AlterConfigsResponse(resources)` keep their shape; the response `ResourceResponse(errorCode, resourceName)` does not expose `errorMessage` or `resourceType` — both are handled in the codec (written with the spec default, read + discarded on decode), documented in the codec class javadoc.
+- **KafkaCodec facade**: `encode/decodeAlterConfigsRequest` and `encode/decodeAlterConfigsResponse` now delegate to `AlterConfigsCodec` (CreateTopics/ListOffsets pattern); the old inline v0-only bodies are removed (the inline request was wire-correct; the inline response was missing the fields above — malformed on the wire).
+- **New tests**: `AlterConfigsCodecTest` (21 tests — pinned-version assertions, byte-for-byte v0 request/response walks, v2 flexible request + response byte walks, full v0–v2 range round-trips both directions, null config value edges, version guards).
+
+### Test Coverage
+- AlterConfigsCodecTest 21 tests; full module 782 → 803 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 1 (KafkaCodec) + 2 new (AlterConfigsCodec, AlterConfigsCodecTest) + 2 new frozen order tables |
+| Tests added | 21 |
+
+- **Sub-category**: Admin continues (CreateTopics 8/35 + DeleteTopics 7/35 + DeleteRecords 3/35 + CreatePartitions 4/35 + DeleteGroups 3/35 + DescribeConfigs 5/35 + AlterConfigs 3/35 = 33/35 rows); remaining Admin (2), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
+
 ## Document Maintenance
 
 - This document is append-only for commit sections

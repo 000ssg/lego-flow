@@ -37,16 +37,20 @@ without re-deriving where/what is in flight.
 - Commit: `git add <files>`, heredoc message + `Co-Authored-By: AI assistant`, update
   plan matrix + PROGRESS.md + module doc/REQUIREMENTS.md; NEVER push.
 
-## Activity: DeleteGroups (API 42) v0–v2 — IN PROGRESS
+## Activity: AlterConfigs (API 33) v0–v2 — IN PROGRESS
 
-In-flight (not committed): new `DeleteGroupsCodec` v0–v2 both directions (pinned v0; request
-single `GroupsNames []string` v1 byte-identical, v2 flexible; response leading ThrottleTimeMs
-int32 spec default 0 written+discarded, results [groupId, int16 errorCode], v2 flexible;
-models unchanged) + `DeleteGroupsCodecTest` (28 tests) + facade delegation in `KafkaCodec`
-(inline v0-only bodies removed — inline response omitted the leading ThrottleTimeMs,
-malformed on the wire) + frozen order tables `doc/spec/order/DeleteGroups.{Request,Response}.txt`
-+ matrix rows 446–448 ✓ (Admin 25/35) + PROGRESS.md + module doc/REQUIREMENTS.md updated.
-Full module `:lego-flow-kafka` 720 → 748 green, 0 failures/errors/skipped. Awaiting commit.
+In-flight (not committed): new `AlterConfigsCodec` v0–v2 both directions (pinned v0; request
+v0 base — int32 count + [int8 resourceType, string resourceName, int32-count configs
+[string name, nullable string value]] + trailing bool validateOnly; v1 byte-identical;
+v2 flexible KIP-482 varint N+1 counts + compact strings + per-struct tagged section;
+response — leading ThrottleTimeMs int32 (spec default 0) + int32 count + [int16 errorCode,
+nullable errorMessage, int8 resourceType, string resourceName], v1 byte-identical, v2 flexible;
+models unchanged) + `AlterConfigsCodecTest` (21 tests) + facade delegation in `KafkaCodec`
+(inline v0-only bodies removed — the inline response omitted the leading ThrottleTimeMs,
+per-result ErrorMessage and per-result ResourceType, malformed on the wire) + frozen order
+tables `doc/spec/order/AlterConfigs.{Request,Response}.txt` + matrix rows 464–466 ✓ (Admin 33/35)
++ PROGRESS.md + module doc/REQUIREMENTS.md updated. Full module `:lego-flow-kafka`
+782 → 803 green, 0 failures/errors/skipped. Awaiting commit.
 
 ## Last completed (2026-10-05): CreatePartitions (API 37) v0–v3 — dedicated codec ✓
 

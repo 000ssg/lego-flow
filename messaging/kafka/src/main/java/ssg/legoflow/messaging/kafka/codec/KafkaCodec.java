@@ -1355,81 +1355,45 @@ public final class KafkaCodec {
     // ===== AlterConfigs (33) =====
 
     /**
-     * Encodes an AlterConfigs request body.
+     * Encodes an AlterConfigs request body (pinned version; v1 byte-identical, v2 flexible;
+     * see {@link AlterConfigsCodec} for the version-gated layout).
      *
      * @param req the request
      * @return the encoded bytes
      */
     public static byte[] encodeAlterConfigsRequest(AlterConfigsRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(8192);
-        buf.putInt(req.resources().size());
-        for (var r : req.resources()) {
-            buf.put(r.resourceType());
-            writeString(buf, r.resourceName());
-            buf.putInt(r.configs().size());
-            for (var c : r.configs()) {
-                writeString(buf, c.name());
-                writeNullableString(buf, c.value());
-            }
-        }
-        buf.put((byte) (req.validateOnly() ? 1 : 0));
-        buf.flip();
-        return toBytes(buf);
+        return AlterConfigsCodec.encodeRequest(req);
     }
 
     /**
-     * Decodes an AlterConfigs request body.
+     * Decodes an AlterConfigs request body at the pinned version.
      *
      * @param buf the buffer
      * @return the decoded request
      */
     public static AlterConfigsRequest decodeAlterConfigsRequest(ByteBuffer buf) {
-        int count = buf.getInt();
-        List<AlterConfigsRequest.ResourceConfig> resources = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            byte resourceType = buf.get();
-            String resourceName = readString(buf);
-            int configCount = buf.getInt();
-            List<AlterConfigsRequest.ConfigEntry> configs = new ArrayList<>(configCount);
-            for (int j = 0; j < configCount; j++) {
-                configs.add(new AlterConfigsRequest.ConfigEntry(readString(buf), readNullableString(buf)));
-            }
-            resources.add(new AlterConfigsRequest.ResourceConfig(resourceType, resourceName, configs));
-        }
-        boolean validateOnly = buf.get() == 1;
-        return new AlterConfigsRequest(resources, validateOnly);
+        return AlterConfigsCodec.decodeRequest(AlterConfigsCodec.PINNED_VERSION, buf);
     }
 
     /**
-     * Encodes an AlterConfigs response body.
+     * Encodes an AlterConfigs response body (pinned version; v1 byte-identical, v2 flexible;
+     * leading ThrottleTimeMs written with the spec default per {@link AlterConfigsCodec}).
      *
      * @param resp the response
      * @return the encoded bytes
      */
     public static byte[] encodeAlterConfigsResponse(AlterConfigsResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putInt(resp.resources().size());
-        for (var r : resp.resources()) {
-            buf.putShort(r.errorCode());
-            writeString(buf, r.resourceName());
-        }
-        buf.flip();
-        return toBytes(buf);
+        return AlterConfigsCodec.encodeResponse(resp);
     }
 
     /**
-     * Decodes an AlterConfigs response body.
+     * Decodes an AlterConfigs response body at the pinned version.
      *
      * @param buf the buffer
      * @return the decoded response
      */
     public static AlterConfigsResponse decodeAlterConfigsResponse(ByteBuffer buf) {
-        int count = buf.getInt();
-        List<AlterConfigsResponse.ResourceResponse> resources = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            resources.add(new AlterConfigsResponse.ResourceResponse(buf.getShort(), readString(buf)));
-        }
-        return new AlterConfigsResponse(resources);
+        return AlterConfigsCodec.decodeResponse(AlterConfigsCodec.PINNED_VERSION, buf);
     }
 
     // ===== AddOffsetsToTxn (25) =====
