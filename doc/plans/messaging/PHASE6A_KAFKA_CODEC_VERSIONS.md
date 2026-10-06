@@ -367,10 +367,12 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (4 fields): TransactionalId, ProducerId, ProducerEpoch, GroupId | ☐ | |
-| v1 | unchanged | ☐ | |
-| v2 | unchanged | ☐ | |
-| v3 | → flexible encoding | ☐ | |
+| v0 | base (4 fields): TransactionalId:string(nullable), ProducerId:int64, ProducerEpoch:int16, GroupId:string(nullable) + response ThrottleTimeMs:int32, ErrorCode:int16 | ✓ | `PENDING` |
+| v1 | unchanged | ✓ | `PENDING` |
+| v2 | unchanged | ✓ | `PENDING` |
+| v3 | → flexible encoding | ✓ | `PENDING` |
+
+**AddOffsetsToTxn — v0–v3 complete (4/4)** (dedicated spec-correct `AddOffsetsToTxnCodec`, facade pinned at v0; request v0–v2 byte-identical — nullable TransactionalId:string + ProducerId:int64 + ProducerEpoch:int16 + nullable GroupId:string, v0–v2 fixed-width counts + plain strings, v3 flexible KIP-482 — compact strings + top-level endTags sentinel (no tagged fields declared); response v0–v2 byte-identical — leading ThrottleTimeMs:int32 [spec default 0, written + discarded] + ErrorCode:int16, v3 flexible + top-level endTags; models unchanged — `AddOffsetsToTxnRequest(transactionalId, producerId, producerEpoch, groupId)` / `AddOffsetsToTxnResponse(errorCode)` arities preserved, all fields present from v0 so the model maps 1:1 onto every version; the in-house response model exposes no ThrottleTimeMs, written with the spec default + read/discarded (documented in the codec class javadoc))
 
 ### EndTxn (API 26) — v0..v3
 

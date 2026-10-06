@@ -1,0 +1,11 @@
+AddOffsetsToTxn Response — field processing order (binding; spec 3.6.1) — flexible encoding from v3
+wire order by layout (equal run = byte-identical field layout):
+  v0-v2 -> ThrottleTimeMs:ErrorCode
+  v3 -> ThrottleTimeMs:ErrorCode|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0-v2:
+  v0: fixed: ThrottleTimeMs(int32), ErrorCode(int16) || tagged: ∅
+  v1: fixed: ThrottleTimeMs(int32), ErrorCode(int16) || tagged: ∅
+  v2: fixed: ThrottleTimeMs(int32), ErrorCode(int16) || tagged: ∅
+  v3:
+  v3: fixed: ThrottleTimeMs(int32) [flex], ErrorCode(int16) [flex] || tagged: ∅

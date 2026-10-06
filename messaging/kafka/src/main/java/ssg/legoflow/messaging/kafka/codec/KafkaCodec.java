@@ -1351,13 +1351,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeAddOffsetsToTxnRequest(AddOffsetsToTxnRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(256);
-        writeString(buf, req.transactionalId());
-        buf.putLong(req.producerId());
-        buf.putShort(req.producerEpoch());
-        writeString(buf, req.groupId());
-        buf.flip();
-        return toBytes(buf);
+        return AddOffsetsToTxnCodec.encodeRequest(AddOffsetsToTxnCodec.PINNED_VERSION, req);
     }
 
     /**
@@ -1367,11 +1361,7 @@ public final class KafkaCodec {
      * @return the decoded request
      */
     public static AddOffsetsToTxnRequest decodeAddOffsetsToTxnRequest(ByteBuffer buf) {
-        String txnId = readString(buf);
-        long producerId = buf.getLong();
-        short epoch = buf.getShort();
-        String groupId = readString(buf);
-        return new AddOffsetsToTxnRequest(txnId, producerId, epoch, groupId);
+        return AddOffsetsToTxnCodec.decodeRequest(AddOffsetsToTxnCodec.PINNED_VERSION, buf);
     }
 
     /**
@@ -1381,10 +1371,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeAddOffsetsToTxnResponse(AddOffsetsToTxnResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(2);
-        buf.putShort(resp.errorCode());
-        buf.flip();
-        return toBytes(buf);
+        return AddOffsetsToTxnCodec.encodeResponse(AddOffsetsToTxnCodec.PINNED_VERSION, resp);
     }
 
     /**
@@ -1394,7 +1381,7 @@ public final class KafkaCodec {
      * @return the decoded response
      */
     public static AddOffsetsToTxnResponse decodeAddOffsetsToTxnResponse(ByteBuffer buf) {
-        return new AddOffsetsToTxnResponse(buf.getShort());
+        return AddOffsetsToTxnCodec.decodeResponse(AddOffsetsToTxnCodec.PINNED_VERSION, buf);
     }
 
     // ===== TxnOffsetCommit (28) =====
