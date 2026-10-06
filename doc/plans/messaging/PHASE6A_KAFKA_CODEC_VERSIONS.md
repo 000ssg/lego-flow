@@ -355,11 +355,13 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (4 fields): V3AndBelowTransactionalId, V3AndBelowProducerId, V3AndBelowProducerEpoch, V3AndBelowTopics | ☐ | |
-| v1 | unchanged | ☐ | |
-| v2 | unchanged | ☐ | |
-| v3 | → flexible encoding | ☐ | |
-| v4 | + Transactions:[]AddPartitionsToTxnTransaction[4+], TransactionalId:string[4+](key), ProducerId:int64[4+], ProducerEpoch:int16[4+], VerifyOnly:bool[4+], Topics:[]AddPartitionsToTxnTopic[4+], ErrorCode:int16[4+], ResultsByTransaction:[]AddPartitionsToTxnResult[4+], TransactionalId:string[4+](key), TopicResults:[]AddPartitionsToTxnTopicResult[4+]<br>− V3AndBelowTransactionalId:string[0-3], V3AndBelowProducerId:int64[0-3], V3AndBelowProducerEpoch:int16[0-3], V3AndBelowTopics:[]AddPartitionsToTxnTopic[0-3], ResultsByTopicV3AndBelow:[]AddPartitionsToTxnTopicResult[0-3] | ☐ | |
+| v0 | base (4 fields): V3AndBelowTransactionalId, V3AndBelowProducerId, V3AndBelowProducerEpoch, V3AndBelowTopics | ✓ | `PENDING` |
+| v1 | unchanged | ✓ | `PENDING` |
+| v2 | unchanged | ✓ | `PENDING` |
+| v3 | → flexible encoding | ✓ | `PENDING` |
+| v4 | + Transactions:[]AddPartitionsToTxnTransaction[4+], TransactionalId:string[4+](key), ProducerId:int64[4+], ProducerEpoch:int16[4+], VerifyOnly:bool[4+], Topics:[]AddPartitionsToTxnTopic[4+], ErrorCode:int16[4+], ResultsByTransaction:[]AddPartitionsToTxnResult[4+], TransactionalId:string[4+](key), TopicResults:[]AddPartitionsToTxnTopicResult[4+]<br>− V3AndBelowTransactionalId:string[0-3], V3AndBelowProducerId:int64[0-3], V3AndBelowProducerEpoch:int16[0-3], V3AndBelowTopics:[]AddPartitionsToTxnTopic[0-3], ResultsByTopicV3AndBelow:[]AddPartitionsToTxnTopicResult[0-3] | ✓ | `PENDING` |
+
+**AddPartitionsToTxn — v0–v4 complete (5/5)** (dedicated spec-correct `AddPartitionsToTxnCodec`, facade pinned at v0; request v0–v2 byte-identical, v3 flexible, v4 structural per-transaction layout; response v0–v2 byte-identical, v3 flexible, v4 structural + leading ThrottleTimeMs + top-level ErrorCode + per-transaction ResultsByTransaction; models unchanged — the v4 per-transaction `VerifyOnly` written with the spec default `false` + read/discarded (the in-house model exposes no verifyOnly; it is a single-transaction batch))
 
 ### AddOffsetsToTxn (API 25) — v0..v3
 

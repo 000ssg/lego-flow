@@ -609,6 +609,24 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 - **Sub-category**: **Transactions STARTED 5/24** (InitProducerId 5); remaining: AddPartitionsToTxn (5), AddOffsetsToTxn (4), EndTxn (4), WriteTxnMarkers (2), TxnOffsetCommit (4).
 
+## Commit: `PENDING` — AddPartitionsToTxn v0–v4 (Transactions rows 358–362)
+
+- **AddPartitionsToTxn v0–v4 codec**: new dedicated `AddPartitionsToTxnCodec` — spec-correct AddPartitionsToTxn implementation (all 5 rows v0–v4, per the vendored AddPartitionsToTxnRequest.json / AddPartitionsToTxnResponse.json, frozen order tables in `doc/spec/order/AddPartitionsToTxn.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v4 is encoded/decoded in both directions. Request: v0–v2 byte-identical (`nullable V3AndBelowTransactionalId:string + V3AndBelowProducerId:int64 [dflt -1] + V3AndBelowProducerEpoch:int16 [dflt -1] + V3AndBelowTopics []AddPartitionsToTxnTopic[topic, partitions]`, v0–v2 fixed-width counts + plain strings); v3 flexible (KIP-482: compact strings/arrays, varint N+1 counts, top-level endTags sentinel — the 3.6.1 schema declares no tagged fields, so the top-level endTags byte is the only flexible marker); v4 structural — the flat v0–v3 field set is reorganized into a leading `Transactions []AddPartitionsToTxnTransaction[TransactionalId? (nullable compact), ProducerId? (nullable compact int64), ProducerEpoch? (nullable compact int16), VerifyOnly:bool, Topics []AddPartitionsToTxnTopic[compact topic, compact partitions]]` (the v4 per-transaction layout). Response: v0–v2 byte-identical (leading `ThrottleTimeMs:int32 [dflt 0]` + `ResultsByTopicV3AndBelow []AddPartitionsToTxnTopicResult[topic, partitionResults []AddPartitionsToTxnPartitionResult[partitionIndex, errorCode]]`, v0–v2 fixed-width counts + plain strings); v3 flexible (compact, varint counts, top-level endTags sentinel); v4 structural — reorganized to leading `ThrottleTimeMs` + top-level `ErrorCode:int16` + `ResultsByTransaction []AddPartitionsToTxnResult[TransactionalId? (nullable compact), TopicResults []AddPartitionsToTxnTopicResult[compact topic, compact partitionResults []AddPartitionsToTxnPartitionResult]]` (per-transaction; the v0–v3 by-topic `ResultsByTopicV3AndBelow` is gone). The old inline facade `encodeAddPartitionsToTxnResponse` omitted the mandatory leading ThrottleTimeMs + the v4 top-level ErrorCode + per-transaction ResultsByTransaction — malformed on the wire.
+- **Models** (unchanged — constructor arities preserved, all call sites untouched): `AddPartitionsToTxnRequest(transactionalId, producerId, producerEpoch, topics)` / `AddPartitionsToTxnResponse(topics)` keep their shape; v0–v3 writes the model's transactionalId/producerId/producerEpoch + topics directly (transactionalId may be null = no txn), and v4 packs the model into a single per-transaction `Transactions` entry (TransactionalId = model value, `VerifyOnly` written with the spec default `false` — the model exposes no verifyOnly — Topics = model topics). The response is by-topic for v0–v3 and a single per-transaction entry (decoded to the by-topic `TopicResponse` list) for v4; the v4 per-transaction `VerifyOnly` is read + discarded (documented in the codec class javadoc).
+- **KafkaCodec facade**: `encode/decodeAddPartitionsToTxnRequest` and `encode/decodeAddPartitionsToTxnResponse` now delegate to `AddPartitionsToTxnCodec` (CreateTopics/ListOffsets pattern); the old inline v0-only bodies are removed.
+- **New tests**: `AddPartitionsToTxnCodecTest` (19 tests — pinned-version assertions, byte-for-byte v0/v1/v2/v3/v4 request + response walks, v3 flexible endTags, v4 per-transaction `Transactions`/`ResultsByTransaction` structural branch + top-level `ErrorCode`, full v0–v4 range round-trips both directions, null/empty topics + null transactionalId edges, version guards, facade delegation).
+
+### Test Coverage
+- AddPartitionsToTxnCodecTest 19 tests; full module 857 → 876 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 1 (KafkaCodec) + 2 new (AddPartitionsToTxnCodec, AddPartitionsToTxnCodecTest) + 2 new frozen order tables |
+| Tests added | 19 |
+
+- **Sub-category**: **Transactions 10/24** (InitProducerId 5 + AddPartitionsToTxn 5); remaining: AddOffsetsToTxn (4), EndTxn (4), WriteTxnMarkers (2), TxnOffsetCommit (4).
+
 ## Document Maintenance
 
 - This document is append-only for commit sections

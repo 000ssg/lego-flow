@@ -959,64 +959,19 @@ public final class KafkaCodec {
     // ===== AddPartitionsToTxn (24) =====
 
     public static byte[] encodeAddPartitionsToTxnRequest(AddPartitionsToTxnRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        writeString(buf, req.transactionalId());
-        buf.putLong(req.producerId());
-        buf.putShort(req.producerEpoch());
-        buf.putInt(req.topics().size());
-        for (var t : req.topics()) {
-            writeString(buf, t.name());
-            buf.putInt(t.partitionIndexes().size());
-            for (int idx : t.partitionIndexes()) buf.putInt(idx);
-        }
-        buf.flip();
-        return toBytes(buf);
+        return AddPartitionsToTxnCodec.encodeRequest(AddPartitionsToTxnCodec.PINNED_VERSION, req);
     }
 
     public static AddPartitionsToTxnRequest decodeAddPartitionsToTxnRequest(ByteBuffer buf) {
-        String txnId = readString(buf);
-        long producerId = buf.getLong();
-        short epoch = buf.getShort();
-        int topicCount = buf.getInt();
-        List<AddPartitionsToTxnRequest.TopicPartitions> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String name = readString(buf);
-            int partCount = buf.getInt();
-            List<Integer> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) parts.add(buf.getInt());
-            topics.add(new AddPartitionsToTxnRequest.TopicPartitions(name, parts));
-        }
-        return new AddPartitionsToTxnRequest(txnId, producerId, epoch, topics);
+        return AddPartitionsToTxnCodec.decodeRequest(AddPartitionsToTxnCodec.PINNED_VERSION, buf);
     }
 
     public static byte[] encodeAddPartitionsToTxnResponse(AddPartitionsToTxnResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putInt(resp.topics().size());
-        for (var t : resp.topics()) {
-            writeString(buf, t.name());
-            buf.putInt(t.partitions().size());
-            for (var p : t.partitions()) {
-                buf.putInt(p.partitionIndex());
-                buf.putShort(p.errorCode());
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return AddPartitionsToTxnCodec.encodeResponse(AddPartitionsToTxnCodec.PINNED_VERSION, resp);
     }
 
     public static AddPartitionsToTxnResponse decodeAddPartitionsToTxnResponse(ByteBuffer buf) {
-        int topicCount = buf.getInt();
-        List<AddPartitionsToTxnResponse.TopicResponse> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String name = readString(buf);
-            int partCount = buf.getInt();
-            List<AddPartitionsToTxnResponse.PartitionResponse> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                parts.add(new AddPartitionsToTxnResponse.PartitionResponse(buf.getInt(), buf.getShort()));
-            }
-            topics.add(new AddPartitionsToTxnResponse.TopicResponse(name, parts));
-        }
-        return new AddPartitionsToTxnResponse(topics);
+        return AddPartitionsToTxnCodec.decodeResponse(AddPartitionsToTxnCodec.PINNED_VERSION, buf);
     }
 
     // ===== ListGroups (16) =====
