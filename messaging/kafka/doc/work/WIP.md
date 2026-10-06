@@ -37,34 +37,32 @@ without re-deriving where/what is in flight.
 - Commit: `git add <files>`, heredoc message + `Co-Authored-By: AI assistant`, update
   plan matrix + PROGRESS.md + module doc/REQUIREMENTS.md; NEVER push.
 
-## Activity: AlterPartitionReassignments (API 45) v0 — IN PROGRESS
+## Activity: ListPartitionReassignments (API 46) v0 — IN PROGRESS
 
-In-flight (not committed): new `AlterPartitionReassignmentsCodec` v0 both directions (pinned
+In-flight (not committed): new `ListPartitionReassignmentsCodec` v0 both directions (pinned
 v0; v0 is flexible from the start (KIP-482) — `TimeoutMs` int32 leads the request as fixed
-width, then compact topics [compact topic name, compact partitions [int32 partition,
-nullable compact int32 replicas — null = varint 0]] + tagged sections per partition + per
-topic; response — leading ThrottleTimeMs int32 (spec default 0, written + discarded) +
-int16 errorCode + nullable errorMessage (varint 0) + compact topics [compact name, compact
-partitions [int32 partition, int16 errorCode, nullable errorMessage — varint 0]] + tagged
-sections per partition + per topic; models unchanged) + `AlterPartitionReassignmentsCodecTest`
-(16 tests) + facade delegation in `KafkaCodec` (inline fixed-array bodies removed — the
-inline request/response used fixed arrays + plain strings throughout, malformed on the wire
-for a KIP-482 flexible schema) + frozen order tables
-`doc/spec/order/AlterPartitionReassignments.{Request,Response}.txt` + matrix row 472 ✓
-(Admin 34/35) + PROGRESS.md + module doc/REQUIREMENTS.md updated. Full module `:lego-flow-kafka`
-803 → 819 green. Awaiting commit.
+width, then nullable compact topics [compact topic name, compact partitionIndexes int32] —
+null topics = varint 0; response — leading ThrottleTimeMs int32 (spec default 0, written +
+discarded) + int16 errorCode + nullable errorMessage (varint 0) + compact topics [compact
+name, compact partitions [int32 partitionIndex, compact replicas, compact addingReplicas,
+compact removingReplicas]] + tagged sections per partition + per topic; models unchanged)
++ `ListPartitionReassignmentsCodecTest` (17 tests) + facade delegation in `KafkaCodec`
+(inline fixed-array bodies removed — the inline request/response used fixed arrays + plain
+strings throughout and the response omitted the mandatory leading ThrottleTimeMs + top-level
+nullable ErrorMessage, malformed on the wire) + frozen order tables
+`doc/spec/order/ListPartitionReassignments.{Request,Response}.txt` + matrix row 478 ✓
+(**Admin sub-category complete 35/35**) + PROGRESS.md + module doc/REQUIREMENTS.md updated.
+Full module `:lego-flow-kafka` 819 → 836 green. Awaiting commit.
 
-## Last completed (2026-10-06): AlterConfigs (API 33) v0–v2 — dedicated codec ✓
+## Last completed (2026-10-06): AlterPartitionReassignments (API 45) v0 — dedicated codec ✓
 
-Committed `7fb6e3ef`: frozen order tables (`doc/spec/order/AlterConfigs.{Request,Response}.txt`)
-+ new `AlterConfigsCodec` v0–v2 both directions (pinned v0; request v0 base — int32 count +
-[int8 resourceType, string resourceName, int32-count configs [string name, nullable string
-value]] + trailing bool validateOnly; v1 byte-identical; v2 flexible KIP-482 varint N+1 counts
-+ compact strings + per-struct tagged section; response — leading ThrottleTimeMs int32
-(spec default 0) + int32 count + [int16 errorCode, nullable errorMessage, int8 resourceType,
-string resourceName], v1 byte-identical, v2 flexible; models unchanged) + `AlterConfigsCodecTest`
-(21 tests) + facade delegation (old inline v0-only bodies removed — the inline response omitted
-the leading ThrottleTimeMs, per-result ErrorMessage and per-result ResourceType, malformed on
-the wire) + matrix rows 464–466 checked, PROGRESS.md + module doc/REQUIREMENTS.md updated.
-Next: next Admin API per plan (remaining Admin 1/35 — ListPartitionReassignments API 46;
-Transactions 24, Consumer Groups 63, Metadata/Cluster 44).
+Committed `907cb4da`: frozen order tables (`doc/spec/order/AlterPartitionReassignments.{Request,Response}.txt`)
++ new `AlterPartitionReassignmentsCodec` v0 both directions (pinned v0; v0 flexible KIP-482 —
+request int32 timeoutMs + compact topics [compact topic name, compact partitions [int32 partition,
+nullable compact int32 replicas]]; response leading ThrottleTimeMs + int16 errorCode + nullable
+errorMessage + compact topics with per-partition errorCode + nullable errorMessage; models
+unchanged) + `AlterPartitionReassignmentsCodecTest` (16 tests) + facade delegation (old inline
+v0-only bodies removed — the inline request/response used fixed arrays + plain strings throughout,
+malformed on the wire) + matrix row 472 checked, PROGRESS.md + module doc/REQUIREMENTS.md
+updated. Next: next Admin API per plan (remaining Admin 1/35 — ListPartitionReassignments
+API 46; Transactions 24, Consumer Groups 63, Metadata/Cluster 44).

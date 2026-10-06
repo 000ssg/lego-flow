@@ -475,7 +475,7 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (4 fields) (flexible): TimeoutMs, Topics, Name, PartitionIndexes | ☐ | |
+| v0 | base (4 fields) (flexible): TimeoutMs, Topics, Name, PartitionIndexes | ✓ | `PENDING` |
 
 ## Negotiation/Auth
 

@@ -2206,20 +2206,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeListPartitionReassignmentsRequest(ListPartitionReassignmentsRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putInt(req.timeoutMs());
-        if (req.topics() == null) {
-            buf.putInt(-1);
-        } else {
-            buf.putInt(req.topics().size());
-            for (var t : req.topics()) {
-                writeString(buf, t.topic());
-                buf.putInt(t.partitions().size());
-                for (int p : t.partitions()) buf.putInt(p);
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return ListPartitionReassignmentsCodec.encodeRequest(req);
     }
 
     /**
@@ -2229,18 +2216,7 @@ public final class KafkaCodec {
      * @return the decoded request
      */
     public static ListPartitionReassignmentsRequest decodeListPartitionReassignmentsRequest(ByteBuffer buf) {
-        int timeoutMs = buf.getInt();
-        int topicCount = buf.getInt();
-        if (topicCount < 0) return new ListPartitionReassignmentsRequest(timeoutMs, null);
-        List<ListPartitionReassignmentsRequest.TopicData> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String topic = readString(buf);
-            int partCount = buf.getInt();
-            List<Integer> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) parts.add(buf.getInt());
-            topics.add(new ListPartitionReassignmentsRequest.TopicData(topic, parts));
-        }
-        return new ListPartitionReassignmentsRequest(timeoutMs, topics);
+        return ListPartitionReassignmentsCodec.decodeRequest(ListPartitionReassignmentsCodec.PINNED_VERSION, buf);
     }
 
     /**
@@ -2250,24 +2226,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeListPartitionReassignmentsResponse(ListPartitionReassignmentsResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(8192);
-        buf.putShort(resp.errorCode());
-        buf.putInt(resp.topics().size());
-        for (var t : resp.topics()) {
-            writeString(buf, t.topic());
-            buf.putInt(t.partitions().size());
-            for (var p : t.partitions()) {
-                buf.putInt(p.partition());
-                buf.putInt(p.replicas().size());
-                for (int r : p.replicas()) buf.putInt(r);
-                buf.putInt(p.addingReplicas().size());
-                for (int r : p.addingReplicas()) buf.putInt(r);
-                buf.putInt(p.removingReplicas().size());
-                for (int r : p.removingReplicas()) buf.putInt(r);
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return ListPartitionReassignmentsCodec.encodeResponse(resp);
     }
 
     /**
@@ -2277,29 +2236,7 @@ public final class KafkaCodec {
      * @return the decoded response
      */
     public static ListPartitionReassignmentsResponse decodeListPartitionReassignmentsResponse(ByteBuffer buf) {
-        short errorCode = buf.getShort();
-        int topicCount = buf.getInt();
-        List<ListPartitionReassignmentsResponse.TopicResult> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String topic = readString(buf);
-            int partCount = buf.getInt();
-            List<ListPartitionReassignmentsResponse.PartitionResult> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                int partition = buf.getInt();
-                int repCount = buf.getInt();
-                List<Integer> replicas = new ArrayList<>(repCount);
-                for (int k = 0; k < repCount; k++) replicas.add(buf.getInt());
-                int addCount = buf.getInt();
-                List<Integer> adding = new ArrayList<>(addCount);
-                for (int k = 0; k < addCount; k++) adding.add(buf.getInt());
-                int remCount = buf.getInt();
-                List<Integer> removing = new ArrayList<>(remCount);
-                for (int k = 0; k < remCount; k++) removing.add(buf.getInt());
-                parts.add(new ListPartitionReassignmentsResponse.PartitionResult(partition, replicas, adding, removing));
-            }
-            topics.add(new ListPartitionReassignmentsResponse.TopicResult(topic, parts));
-        }
-        return new ListPartitionReassignmentsResponse(errorCode, topics);
+        return ListPartitionReassignmentsCodec.decodeResponse(ListPartitionReassignmentsCodec.PINNED_VERSION, buf);
     }
 
     // ===== Helper methods =====

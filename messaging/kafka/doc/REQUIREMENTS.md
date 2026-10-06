@@ -573,6 +573,24 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 - **Sub-category**: Admin continues (CreateTopics 8/35 + DeleteTopics 7/35 + DeleteRecords 3/35 + CreatePartitions 4/35 + DeleteGroups 3/35 + DescribeConfigs 5/35 + AlterConfigs 3/35 + AlterPartitionReassignments 1/35 = 34/35 rows); remaining Admin (1 — ListPartitionReassignments), Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
 
+## Commit: `PENDING` — ListPartitionReassignments v0 (Admin row 478)
+
+- **ListPartitionReassignments v0 codec**: new dedicated `ListPartitionReassignmentsCodec` — spec-correct ListPartitionReassignments implementation (single v0 row, per the vendored ListPartitionReassignmentsRequest.json / ListPartitionReassignmentsResponse.json, frozen order tables in `doc/spec/order/ListPartitionReassignments.{Request,Response}.txt`). Client/broker interaction is pinned at v0. v0 is flexible from the start (KIP-482): `TimeoutMs` (int32) leads the request as a fixed-width field, all array/string fields after it use compact encoding with varint N+1 counts and tagged sections. Request: `int32 timeoutMs` + nullable compact topics `[compact topic name, compact partitionIndexes int32]` — null topics (list everything) = varint 0. Response: leading `ThrottleTimeMs int32` (spec default 0, written + discarded) + `int16 errorCode` + `nullable errorMessage` (varint 0) + compact topics `[compact name, compact partitions [int32 partitionIndex, compact replicas, compact addingReplicas, compact removingReplicas — all []int32]]` with a tagged section per partition and per topic. The old inline request/response used fixed-width counts + plain strings throughout and the response omitted the mandatory leading ThrottleTimeMs + top-level nullable ErrorMessage — malformed on the wire.
+- **Models** (unchanged — constructor arities preserved, all call sites untouched): `ListPartitionReassignmentsRequest(timeoutMs, topics)` / `ListPartitionReassignmentsResponse(errorCode, topics)` keep their shape; `TopicData(topic, partitions)` / `TopicResult(topic, partitions)` / `PartitionResult(partition, replicas, addingReplicas, removingReplicas)` keep their shape; the response top-level `ThrottleTimeMs` + `ErrorMessage` are handled in the codec (written with the spec default, read + discarded on decode), documented in the codec class javadoc.
+- **KafkaCodec facade**: `encode/decodeListPartitionReassignmentsRequest` and `encode/decodeListPartitionReassignmentsResponse` now delegate to `ListPartitionReassignmentsCodec` (CreateTopics/ListOffsets pattern); the old inline v0-only fixed-width bodies are removed (malformed on the wire for a KIP-482 flexible schema).
+- **New tests**: `ListPartitionReassignmentsCodecTest` (17 tests — pinned-version assertions, byte-for-byte v0 request/response walks, null topics edge, full v0 range round-trips both directions, empty topics/partition-list edges, version guards, facade delegation).
+
+### Test Coverage
+- ListPartitionReassignmentsCodecTest 17 tests; full module 819 → 836 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 1 (KafkaCodec) + 2 new (ListPartitionReassignmentsCodec, ListPartitionReassignmentsCodecTest) + 2 new frozen order tables |
+| Tests added | 17 |
+
+- **Sub-category**: **Admin complete 35/35** (CreateTopics 8 + DeleteTopics 7 + DeleteRecords 3 + CreatePartitions 4 + DeleteGroups 3 + DescribeConfigs 5 + AlterConfigs 3 + AlterPartitionReassignments 1 + ListPartitionReassignments 1); next sub-category: Transactions (24), Consumer Groups (63), Metadata/Cluster (44).
+
 ## Document Maintenance
 
 - This document is append-only for commit sections
