@@ -469,7 +469,7 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (6 fields) (flexible): TimeoutMs, Topics, Name, Partitions, PartitionIndex, Replicas | ☐ | |
+| v0 | base (6 fields) (flexible): TimeoutMs, Topics, Name, Partitions, PartitionIndex, Replicas | ✓ | `PENDING` |
 
 ### ListPartitionReassignments (API 46) — v0..v0
 

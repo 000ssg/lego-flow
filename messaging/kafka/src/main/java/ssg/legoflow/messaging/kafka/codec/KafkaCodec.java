@@ -2164,24 +2164,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeAlterPartitionReassignmentsRequest(AlterPartitionReassignmentsRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(8192);
-        buf.putInt(req.timeoutMs());
-        buf.putInt(req.topics().size());
-        for (var t : req.topics()) {
-            writeString(buf, t.topic());
-            buf.putInt(t.partitions().size());
-            for (var p : t.partitions()) {
-                buf.putInt(p.partition());
-                if (p.replicas() == null) {
-                    buf.putInt(-1);
-                } else {
-                    buf.putInt(p.replicas().size());
-                    for (int r : p.replicas()) buf.putInt(r);
-                }
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return AlterPartitionReassignmentsCodec.encodeRequest(req);
     }
 
     /**
@@ -2191,26 +2174,7 @@ public final class KafkaCodec {
      * @return the decoded request
      */
     public static AlterPartitionReassignmentsRequest decodeAlterPartitionReassignmentsRequest(ByteBuffer buf) {
-        int timeoutMs = buf.getInt();
-        int topicCount = buf.getInt();
-        List<AlterPartitionReassignmentsRequest.TopicReassignment> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String topic = readString(buf);
-            int partCount = buf.getInt();
-            List<AlterPartitionReassignmentsRequest.PartitionReassignment> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                int partition = buf.getInt();
-                int repCount = buf.getInt();
-                List<Integer> replicas = null;
-                if (repCount >= 0) {
-                    replicas = new ArrayList<>(repCount);
-                    for (int k = 0; k < repCount; k++) replicas.add(buf.getInt());
-                }
-                parts.add(new AlterPartitionReassignmentsRequest.PartitionReassignment(partition, replicas));
-            }
-            topics.add(new AlterPartitionReassignmentsRequest.TopicReassignment(topic, parts));
-        }
-        return new AlterPartitionReassignmentsRequest(timeoutMs, topics);
+        return AlterPartitionReassignmentsCodec.decodeRequest(AlterPartitionReassignmentsCodec.PINNED_VERSION, buf);
     }
 
     /**
@@ -2220,19 +2184,7 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeAlterPartitionReassignmentsResponse(AlterPartitionReassignmentsResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putShort(resp.errorCode());
-        buf.putInt(resp.topics().size());
-        for (var t : resp.topics()) {
-            writeString(buf, t.topic());
-            buf.putInt(t.partitions().size());
-            for (var p : t.partitions()) {
-                buf.putInt(p.partition());
-                buf.putShort(p.errorCode());
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return AlterPartitionReassignmentsCodec.encodeResponse(resp);
     }
 
     /**
@@ -2242,19 +2194,7 @@ public final class KafkaCodec {
      * @return the decoded response
      */
     public static AlterPartitionReassignmentsResponse decodeAlterPartitionReassignmentsResponse(ByteBuffer buf) {
-        short errorCode = buf.getShort();
-        int topicCount = buf.getInt();
-        List<AlterPartitionReassignmentsResponse.TopicResult> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String topic = readString(buf);
-            int partCount = buf.getInt();
-            List<AlterPartitionReassignmentsResponse.PartitionResult> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                parts.add(new AlterPartitionReassignmentsResponse.PartitionResult(buf.getInt(), buf.getShort()));
-            }
-            topics.add(new AlterPartitionReassignmentsResponse.TopicResult(topic, parts));
-        }
-        return new AlterPartitionReassignmentsResponse(errorCode, topics);
+        return AlterPartitionReassignmentsCodec.decodeResponse(AlterPartitionReassignmentsCodec.PINNED_VERSION, buf);
     }
 
     // ===== ListPartitionReassignments (46) =====

@@ -37,32 +37,34 @@ without re-deriving where/what is in flight.
 - Commit: `git add <files>`, heredoc message + `Co-Authored-By: AI assistant`, update
   plan matrix + PROGRESS.md + module doc/REQUIREMENTS.md; NEVER push.
 
-## Activity: AlterConfigs (API 33) v0–v2 — IN PROGRESS
+## Activity: AlterPartitionReassignments (API 45) v0 — IN PROGRESS
 
-In-flight (not committed): new `AlterConfigsCodec` v0–v2 both directions (pinned v0; request
-v0 base — int32 count + [int8 resourceType, string resourceName, int32-count configs
-[string name, nullable string value]] + trailing bool validateOnly; v1 byte-identical;
-v2 flexible KIP-482 varint N+1 counts + compact strings + per-struct tagged section;
-response — leading ThrottleTimeMs int32 (spec default 0) + int32 count + [int16 errorCode,
-nullable errorMessage, int8 resourceType, string resourceName], v1 byte-identical, v2 flexible;
-models unchanged) + `AlterConfigsCodecTest` (21 tests) + facade delegation in `KafkaCodec`
-(inline v0-only bodies removed — the inline response omitted the leading ThrottleTimeMs,
-per-result ErrorMessage and per-result ResourceType, malformed on the wire) + frozen order
-tables `doc/spec/order/AlterConfigs.{Request,Response}.txt` + matrix rows 464–466 ✓ (Admin 33/35)
-+ PROGRESS.md + module doc/REQUIREMENTS.md updated. Full module `:lego-flow-kafka`
-782 → 803 green, 0 failures/errors/skipped. Awaiting commit.
+In-flight (not committed): new `AlterPartitionReassignmentsCodec` v0 both directions (pinned
+v0; v0 is flexible from the start (KIP-482) — `TimeoutMs` int32 leads the request as fixed
+width, then compact topics [compact topic name, compact partitions [int32 partition,
+nullable compact int32 replicas — null = varint 0]] + tagged sections per partition + per
+topic; response — leading ThrottleTimeMs int32 (spec default 0, written + discarded) +
+int16 errorCode + nullable errorMessage (varint 0) + compact topics [compact name, compact
+partitions [int32 partition, int16 errorCode, nullable errorMessage — varint 0]] + tagged
+sections per partition + per topic; models unchanged) + `AlterPartitionReassignmentsCodecTest`
+(16 tests) + facade delegation in `KafkaCodec` (inline fixed-array bodies removed — the
+inline request/response used fixed arrays + plain strings throughout, malformed on the wire
+for a KIP-482 flexible schema) + frozen order tables
+`doc/spec/order/AlterPartitionReassignments.{Request,Response}.txt` + matrix row 472 ✓
+(Admin 34/35) + PROGRESS.md + module doc/REQUIREMENTS.md updated. Full module `:lego-flow-kafka`
+803 → 819 green. Awaiting commit.
 
-## Last completed (2026-10-05): CreatePartitions (API 37) v0–v3 — dedicated codec ✓
+## Last completed (2026-10-06): AlterConfigs (API 33) v0–v2 — dedicated codec ✓
 
-Committed: frozen order tables (`doc/spec/order/CreatePartitions.{Request,Response}.txt`) + new
-`CreatePartitionsCodec` v0–v3 both directions (pinned v0; request v0/v1 byte-identical —
-int32 count + [int16 name, int32 count, int32 assignmentsCount + [int32 brokerIds]] +
-int32 timeoutMs + bool validateOnly; v2–v3 flexible; response — leading ThrottleTimeMs
-int32 present from v0, spec default 0, written + discarded; int16 errorCode +
-nullable ErrorMessage per result; v2–v3 flexible; models unchanged) +
-`CreatePartitionsCodecTest` (29 tests) + facade delegation (old inline v0-only bodies
-removed — the inline request omitted Assignments + ValidateOnly, the inline response
-omitted the leading ThrottleTimeMs + nullable ErrorMessage, malformed on the wire) +
-matrix rows 437–440 checked, PROGRESS.md + module doc/REQUIREMENTS.md updated.
-Next: next Admin API per plan (remaining Admin 13/35; Transactions 24, Consumer Groups 63,
-Metadata/Cluster 44).
+Committed `7fb6e3ef`: frozen order tables (`doc/spec/order/AlterConfigs.{Request,Response}.txt`)
++ new `AlterConfigsCodec` v0–v2 both directions (pinned v0; request v0 base — int32 count +
+[int8 resourceType, string resourceName, int32-count configs [string name, nullable string
+value]] + trailing bool validateOnly; v1 byte-identical; v2 flexible KIP-482 varint N+1 counts
++ compact strings + per-struct tagged section; response — leading ThrottleTimeMs int32
+(spec default 0) + int32 count + [int16 errorCode, nullable errorMessage, int8 resourceType,
+string resourceName], v1 byte-identical, v2 flexible; models unchanged) + `AlterConfigsCodecTest`
+(21 tests) + facade delegation (old inline v0-only bodies removed — the inline response omitted
+the leading ThrottleTimeMs, per-result ErrorMessage and per-result ResourceType, malformed on
+the wire) + matrix rows 464–466 checked, PROGRESS.md + module doc/REQUIREMENTS.md updated.
+Next: next Admin API per plan (remaining Admin 1/35 — ListPartitionReassignments API 46;
+Transactions 24, Consumer Groups 63, Metadata/Cluster 44).
