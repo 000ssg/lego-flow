@@ -345,11 +345,11 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (2 fields): TransactionalId, TransactionTimeoutMs | ✓ | `PENDING` |
-| v1 | unchanged | ✓ | `PENDING` |
-| v2 | → flexible encoding | ✓ | `PENDING` |
-| v3 | + ProducerId:int64[3+], ProducerEpoch:int16[3+] | ✓ | `PENDING` |
-| v4 | unchanged | ✓ | `PENDING` |
+| v0 | base (2 fields): TransactionalId, TransactionTimeoutMs | ✓ | `2a877ca5` |
+| v1 | unchanged | ✓ | `2a877ca5` |
+| v2 | → flexible encoding | ✓ | `2a877ca5` |
+| v3 | + ProducerId:int64[3+], ProducerEpoch:int16[3+] | ✓ | `2a877ca5` |
+| v4 | unchanged | ✓ | `2a877ca5` |
 
 ### AddPartitionsToTxn (API 24) — v0..v4
 
