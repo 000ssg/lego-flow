@@ -37,29 +37,32 @@ without re-deriving where/what is in flight.
 - Commit: `git add <files>`, heredoc message + `Co-Authored-By: AI assistant`, update
   plan matrix + PROGRESS.md + module doc/REQUIREMENTS.md; NEVER push.
 
-## Activity: AddOffsetsToTxn (API 25) v0–v3 — IN PROGRESS
+## Activity: EndTxn (API 26) v0–v3 — IN PROGRESS
 
-In-flight (not committed): new `AddOffsetsToTxnCodec` v0–v3 both directions (pinned v0;
-request v0–v2 byte-identical — nullable TransactionalId:string + ProducerId:int64 + ProducerEpoch:int16
-+ nullable GroupId:string, v0–v2 fixed-width counts + plain strings; v3 flexible KIP-482 — compact
-strings + top-level endTags sentinel (no tagged fields declared); all four fields present from v0, so the
-model maps 1:1 onto every version); response v0–v2 byte-identical (leading ThrottleTimeMs:int32 [dflt 0] +
-ErrorCode:int16); v3 flexible + top-level endTags. Old inline facade `encodeAddOffsetsToTxnResponse` wrote
-only the int16 ErrorCode — omitted the mandatory leading ThrottleTimeMs — malformed on the wire. Models
+In-flight (not committed): new `EndTxnCodec` v0–v3 both directions (pinned v0;
+request v0–v2 byte-identical — nullable TransactionalId:string + ProducerId:int64 + ProducerEpoch:int16 +
+Committed:bool, v0–v2 fixed-width counts + plain strings; the bool is fixed-width in both encodings; v3 flexible
+KIP-482 — compact string + top-level endTags sentinel (no tagged fields declared); all four fields present from v0,
+so the model maps 1:1 onto every version); response v0–v2 byte-identical (leading ThrottleTimeMs:int32 [dflt 0] +
+ErrorCode:int16); v3 flexible + top-level endTags. Old inline facade `encodeEndTxnResponse` wrote only the int16
+ErrorCode — omitted the mandatory leading ThrottleTimeMs — malformed on the wire. Models unchanged
+(`EndTxnRequest(transactionalId, producerId, producerEpoch, committed)` / `EndTxnResponse(errorCode)` arities
+preserved; the in-house response model exposes no ThrottleTimeMs, written with the spec default + read/discarded)
++ `EndTxnCodecTest` (16 tests) + facade delegation in `KafkaCodec` (inline v0-only bodies removed) + frozen order
+tables `doc/spec/order/EndTxn.{Request,Response}.txt` + matrix rows 381–384 ✓ (**Transactions sub-category 18/24
+done**) + PROGRESS.md + module doc/REQUIREMENTS.md updated. Full module `:lego-flow-kafka` 892 → 908 green.
+
+## Last completed (2026-10-06): AddOffsetsToTxn (API 25) v0–v3 — dedicated codec ✓
+
+Committed `76582a67` (+ backfill `bb9d2aaf`): new `AddOffsetsToTxnCodec` v0–v3 both directions (pinned v0;
+request v0–v2 byte-identical — nullable TransactionalId + ProducerId + ProducerEpoch + nullable GroupId, v0–v2
+fixed-width counts + plain strings; v3 flexible KIP-482 — compact strings + top-level endTags sentinel; all four
+fields present from v0, so the model maps 1:1 onto every version); response v0–v2 byte-identical (leading
+ThrottleTimeMs:int32 [dflt 0, written + discarded] + ErrorCode:int16), v3 flexible + top-level endTags. Models
 unchanged (`AddOffsetsToTxnRequest(transactionalId, producerId, producerEpoch, groupId)` /
-`AddOffsetsToTxnResponse(errorCode)` arities preserved; the in-house response model exposes no ThrottleTimeMs,
-written with the spec default + read/discarded) + `AddOffsetsToTxnCodecTest` (16 tests) + facade delegation in
-`KafkaCodec` (inline v0-only bodies removed) + frozen order tables `doc/spec/order/AddOffsetsToTxn.{Request,Response}.txt`
-+ matrix rows 370–373 ✓ (**Transactions sub-category 14/24 done**) + PROGRESS.md + module doc/REQUIREMENTS.md
-updated. Full module `:lego-flow-kafka` 876 → 892 green. Awaiting commit.
-
-## Last completed (2026-10-06): AddPartitionsToTxn (API 24) v0–v4 — dedicated codec ✓
-
-Committed `3fa44b24` (+ backfill `4aa38ebe`): new `AddPartitionsToTxnCodec` v0–v4 both directions (pinned v0;
-request v0–v2 byte-identical, v3 flexible, v4 structural per-transaction `Transactions` layout; response v0–v2
-byte-identical, v3 flexible, v4 structural + leading ThrottleTimeMs + top-level ErrorCode + per-transaction
-ResultsByTransaction; models unchanged — v4 per-transaction `VerifyOnly` written with the spec default `false` +
-read/discarded) + `AddPartitionsToTxnCodecTest` (19 tests) + facade delegation + frozen order tables
-`doc/spec/order/AddPartitionsToTxn.{Request,Response}.txt` + matrix rows 358–362 checked, PROGRESS.md + module
-doc/REQUIREMENTS.md updated. **Transactions sub-category 10/24 done.** Full module `:lego-flow-kafka` 857 → 876
-green. Next: AddOffsetsToTxn (API 25) v0–v3; remaining Transactions: EndTxn, WriteTxnMarkers, TxnOffsetCommit (10 rows).
+`AddOffsetsToTxnResponse(errorCode)` arities preserved — the response ThrottleTimeMs is written with the spec
+default + read/discarded, documented in the codec class javadoc). + `AddOffsetsToTxnCodecTest` (16 tests) + facade
+delegation in `KafkaCodec` (inline v0-only bodies removed) + frozen order tables
+`doc/spec/order/AddOffsetsToTxn.{Request,Response}.txt` + matrix rows 370–373 checked, PROGRESS.md + module
+doc/REQUIREMENTS.md updated. **Transactions sub-category 14/24 done.** Full module `:lego-flow-kafka` 876 → 892
+green. Next: EndTxn (API 26) v0–v3; remaining Transactions: WriteTxnMarkers, TxnOffsetCommit (6 rows).

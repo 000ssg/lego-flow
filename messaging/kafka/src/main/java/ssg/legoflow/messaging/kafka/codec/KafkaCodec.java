@@ -1482,29 +1482,48 @@ public final class KafkaCodec {
 
     // ===== EndTxn (26) =====
 
+    /**
+     * Encodes an EndTxn request body (pinned version).
+     *
+     * @param req the request
+     * @return encoded body bytes
+     * @since 0.1.0
+     */
     public static byte[] encodeEndTxnRequest(EndTxnRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(256);
-        writeString(buf, req.transactionalId());
-        buf.putLong(req.producerId());
-        buf.putShort(req.producerEpoch());
-        buf.put((byte) (req.committed() ? 1 : 0));
-        buf.flip();
-        return toBytes(buf);
+        return EndTxnCodec.encodeRequest(req);
     }
 
+    /**
+     * Decodes an EndTxn request body (pinned version).
+     *
+     * @param buf the request body
+     * @return the decoded request
+     * @since 0.1.0
+     */
     public static EndTxnRequest decodeEndTxnRequest(ByteBuffer buf) {
-        return new EndTxnRequest(readString(buf), buf.getLong(), buf.getShort(), buf.get() == 1);
+        return EndTxnCodec.decodeRequest(EndTxnCodec.PINNED_VERSION, buf);
     }
 
+    /**
+     * Encodes an EndTxn response body (pinned version).
+     *
+     * @param resp the response
+     * @return encoded body bytes
+     * @since 0.1.0
+     */
     public static byte[] encodeEndTxnResponse(EndTxnResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(2);
-        buf.putShort(resp.errorCode());
-        buf.flip();
-        return toBytes(buf);
+        return EndTxnCodec.encodeResponse(resp);
     }
 
+    /**
+     * Decodes an EndTxn response body (pinned version).
+     *
+     * @param buf the response body
+     * @return the decoded response
+     * @since 0.1.0
+     */
     public static EndTxnResponse decodeEndTxnResponse(ByteBuffer buf) {
-        return new EndTxnResponse(buf.getShort());
+        return EndTxnCodec.decodeResponse(EndTxnCodec.PINNED_VERSION, buf);
     }
 
     // ===== SaslHandshake (17) =====

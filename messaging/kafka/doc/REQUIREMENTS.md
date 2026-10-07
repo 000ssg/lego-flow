@@ -645,6 +645,24 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 - **Sub-category**: **Transactions 14/24** (InitProducerId 5 + AddPartitionsToTxn 5 + AddOffsetsToTxn 4); remaining: EndTxn (4), WriteTxnMarkers (2), TxnOffsetCommit (4).
 
+## Commit: `PENDING` — EndTxn v0–v3 (Transactions rows 381–384)
+
+- **EndTxn v0–v3 codec**: new dedicated `EndTxnCodec` — spec-correct EndTxn implementation (all 4 rows v0–v3, per the vendored EndTxnRequest.json / EndTxnResponse.json, frozen order tables in `doc/spec/order/EndTxn.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v3 is encoded/decoded in both directions. Request: v0–v2 byte-identical (`nullable TransactionalId:string + ProducerId:int64 + ProducerEpoch:int16 + Committed:bool`, v0–v2 fixed-width counts + plain strings; the bool is fixed-width in both encodings); v3 flexible (KIP-482: compact string + top-level endTags sentinel — the 3.6.1 schema declares no tagged fields, so the top-level endTags byte is the only flexible marker). All four fields are present from v0, so the in-house `EndTxnRequest(transactionalId, producerId, producerEpoch, committed)` maps 1:1 onto every version. Response: v0–v2 byte-identical (leading `ThrottleTimeMs:int32 [dflt 0, written + discarded]` + `ErrorCode:int16`); v3 flexible + top-level endTags. The old inline facade `encodeEndTxnResponse` wrote only the int16 ErrorCode — omitted the mandatory leading ThrottleTimeMs, malformed on the wire.
+- **Models** (unchanged — constructor arities preserved, all call sites untouched): `EndTxnRequest(transactionalId, producerId, producerEpoch, committed)` / `EndTxnResponse(errorCode)` keep their shape; every request field is present from v0 so the model maps 1:1 onto every version, and the response `ThrottleTimeMs` is handled in the codec (written with the spec default, read + discarded on decode), documented in the codec class javadoc.
+- **KafkaCodec facade**: `encode/decodeEndTxnRequest` and `encode/decodeEndTxnResponse` now delegate to `EndTxnCodec` (CreateTopics/ListOffsets pattern); the old inline v0-only bodies are removed.
+- **New tests**: `EndTxnCodecTest` (16 tests — pinned-version assertions, byte-for-byte v0/v1/v2/v3 request + response walks, v3 flexible endTags, full v0–v3 range round-trips both directions, null transactionalId + committed true/false edges, version guards, facade delegation).
+
+### Test Coverage
+- EndTxnCodecTest 16 tests; full module 892 → 908 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 1 (KafkaCodec) + 2 new (EndTxnCodec, EndTxnCodecTest) + 2 new frozen order tables |
+| Tests added | 16 |
+
+- **Sub-category**: **Transactions 18/24** (InitProducerId 5 + AddPartitionsToTxn 5 + AddOffsetsToTxn 4 + EndTxn 4); remaining: WriteTxnMarkers (2), TxnOffsetCommit (4).
+
 ## Document Maintenance
 
 - This document is append-only for commit sections
