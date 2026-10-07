@@ -1387,97 +1387,47 @@ public final class KafkaCodec {
     // ===== TxnOffsetCommit (28) =====
 
     /**
-     * Encodes a TxnOffsetCommit request body.
+     * Encodes a TxnOffsetCommit request body (pinned version).
      *
      * @param req the request
-     * @return the encoded bytes
+     * @return encoded body bytes
+     * @since 0.1.0
      */
     public static byte[] encodeTxnOffsetCommitRequest(TxnOffsetCommitRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        writeString(buf, req.transactionalId());
-        writeString(buf, req.groupId());
-        buf.putLong(req.producerId());
-        buf.putShort(req.producerEpoch());
-        buf.putInt(req.topics().size());
-        for (var t : req.topics()) {
-            writeString(buf, t.name());
-            buf.putInt(t.partitions().size());
-            for (var p : t.partitions()) {
-                buf.putInt(p.partitionIndex());
-                buf.putLong(p.committedOffset());
-                writeNullableString(buf, p.metadata());
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return TxnOffsetCommitCodec.encodeRequest(req);
     }
 
     /**
-     * Decodes a TxnOffsetCommit request body.
+     * Decodes a TxnOffsetCommit request body (pinned version).
      *
-     * @param buf the buffer
+     * @param buf the request body
      * @return the decoded request
+     * @since 0.1.0
      */
     public static TxnOffsetCommitRequest decodeTxnOffsetCommitRequest(ByteBuffer buf) {
-        String txnId = readString(buf);
-        String groupId = readString(buf);
-        long producerId = buf.getLong();
-        short epoch = buf.getShort();
-        int topicCount = buf.getInt();
-        List<TxnOffsetCommitRequest.TopicData> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String name = readString(buf);
-            int partCount = buf.getInt();
-            List<TxnOffsetCommitRequest.PartitionData> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                parts.add(new TxnOffsetCommitRequest.PartitionData(
-                        buf.getInt(), buf.getLong(), readNullableString(buf)));
-            }
-            topics.add(new TxnOffsetCommitRequest.TopicData(name, parts));
-        }
-        return new TxnOffsetCommitRequest(txnId, groupId, producerId, epoch, topics);
+        return TxnOffsetCommitCodec.decodeRequest(TxnOffsetCommitCodec.PINNED_VERSION, buf);
     }
 
     /**
-     * Encodes a TxnOffsetCommit response body.
+     * Encodes a TxnOffsetCommit response body (pinned version).
      *
      * @param resp the response
-     * @return the encoded bytes
+     * @return encoded body bytes
+     * @since 0.1.0
      */
     public static byte[] encodeTxnOffsetCommitResponse(TxnOffsetCommitResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putInt(resp.topics().size());
-        for (var t : resp.topics()) {
-            writeString(buf, t.name());
-            buf.putInt(t.partitions().size());
-            for (var p : t.partitions()) {
-                buf.putInt(p.partitionIndex());
-                buf.putShort(p.errorCode());
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return TxnOffsetCommitCodec.encodeResponse(resp);
     }
 
     /**
-     * Decodes a TxnOffsetCommit response body.
+     * Decodes a TxnOffsetCommit response body (pinned version).
      *
-     * @param buf the buffer
+     * @param buf the response body
      * @return the decoded response
+     * @since 0.1.0
      */
     public static TxnOffsetCommitResponse decodeTxnOffsetCommitResponse(ByteBuffer buf) {
-        int topicCount = buf.getInt();
-        List<TxnOffsetCommitResponse.TopicData> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String name = readString(buf);
-            int partCount = buf.getInt();
-            List<TxnOffsetCommitResponse.PartitionData> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                parts.add(new TxnOffsetCommitResponse.PartitionData(buf.getInt(), buf.getShort()));
-            }
-            topics.add(new TxnOffsetCommitResponse.TopicData(name, parts));
-        }
-        return new TxnOffsetCommitResponse(topics);
+        return TxnOffsetCommitCodec.decodeResponse(TxnOffsetCommitCodec.PINNED_VERSION, buf);
     }
 
     // ===== EndTxn (26) =====

@@ -396,10 +396,12 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (10 fields): TransactionalId, GroupId, ProducerId, ProducerEpoch, Topics, Name, Partitions, PartitionIndex, CommittedOffset, CommittedMetadata | ☐ | |
-| v1 | unchanged | ☐ | |
-| v2 | + CommittedLeaderEpoch:int32[2+] | ☐ | |
-| v3 | + GenerationId:int32[3+], MemberId:string[3+], GroupInstanceId:string[3+](null:3+)<br>→ flexible encoding | ☐ | |
+| v0 | base (10 fields): TransactionalId, GroupId, ProducerId, ProducerEpoch, Topics, Name, Partitions, PartitionIndex, CommittedOffset, CommittedMetadata + response ThrottleTimeMs:int32, Topics, Name, Partitions, PartitionIndex, ErrorCode | ✓ | `PENDING` |
+| v1 | unchanged | ✓ | `PENDING` |
+| v2 | + CommittedLeaderEpoch:int32[2+] | ✓ | `PENDING` |
+| v3 | + GenerationId:int32[3+], MemberId:string[3+], GroupInstanceId:string[3+](null:3+)<br>→ flexible encoding | ✓ | `PENDING` |
+
+**TxnOffsetCommit — v0–v3 complete (4/4)** (dedicated spec-correct `TxnOffsetCommitCodec`, facade pinned at v0; request v0–v2 fixed-width — non-nullable TransactionalId:string + GroupId:string + ProducerId:int64 + ProducerEpoch:int16 + Topics[] { Name:string + Partitions[] { PartitionIndex:int32 + CommittedOffset:int64 + CommittedMetadata:string(nullable) } }, v2+ appends CommittedLeaderEpoch:int32 [dflt -1, written + discarded], v3 flexible (KIP-482: compact strings + varint N+1 counts + top-level endTags sentinel) and adds the v3-only triple GenerationId:int32 [dflt -1] + MemberId:string [dflt ""] + GroupInstanceId:string [dflt null] written with spec defaults + read/discarded (the in-house model does not expose them — documented in the codec class javadoc); response v0–v2 byte-identical — leading ThrottleTimeMs:int32 [dflt 0, written + discarded] + Topics[] { Name:string + Partitions[] { PartitionIndex:int32 + ErrorCode:int16 } }, v3 flexible (compact + endTags); the old inline facade request omitted TransactionalId + GroupId entirely and called a non-existent 3-arg constructor, and the old inline response omitted the mandatory leading ThrottleTimeMs — malformed on the wire and a compile error; models unchanged — `TxnOffsetCommitRequest(transactionalId, groupId, producerId, producerEpoch, topics)` / `TxnOffsetCommitResponse(topics)` arities preserved, version-gated fields (CommittedLeaderEpoch v2+; GenerationId/MemberId/GroupInstanceId v3+) and the response ThrottleTimeMs handled in the codec, so `KafkaBroker` call sites are untouched)
 
 ## Admin
 

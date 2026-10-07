@@ -37,35 +37,39 @@ without re-deriving where/what is in flight.
 - Commit: `git add <files>`, heredoc message + `Co-Authored-By: AI assistant`, update
   plan matrix + PROGRESS.md + module doc/REQUIREMENTS.md; NEVER push.
 
-## Activity: WriteTxnMarkers (API 27) v0–v1 — IN PROGRESS
+## Activity: TxnOffsetCommit (API 28) v0–v3 — IN PROGRESS
 
-In-flight (not committed): new `WriteTxnMarkersCodec` v0–v1 both directions (pinned v0;
+In-flight (not committed): new `TxnOffsetCommitCodec` v0–v3 both directions (pinned v0;
+request v0–v1 byte-identical — TransactionalId:string + GroupId:string + ProducerId:int64 + ProducerEpoch:int16 +
+Topics[] { Name:string + Partitions[] { PartitionIndex:int32 + CommittedOffset:int64 + CommittedMetadata:string(nullable) } },
+fixed-width counts + plain strings; v2 appends per-partition CommittedLeaderEpoch:int32 [dflt -1, written + discarded —
+the model does not expose it]; v3 flexible KIP-482 — compact strings, varint N+1 counts, top-level endTags sentinel
+(no tagged fields declared), and the v3-only triple GenerationId:int32 [dflt -1] + MemberId:string [dflt ""] +
+GroupInstanceId:string [dflt null] written with spec defaults + read/discarded); response v0–v2 byte-identical
+(leading ThrottleTimeMs:int32 [dflt 0, written + discarded] + Topics[] { Name:string + Partitions[]
+{ PartitionIndex:int32 + ErrorCode:int16 } }), v3 flexible + endTags. Old inline facade request omitted TransactionalId
++ GroupId entirely + called a non-existent 3-arg constructor; old inline response omitted the mandatory leading
+ThrottleTimeMs — malformed on the wire + a compile error. Models unchanged (`TxnOffsetCommitRequest(transactionalId,
+groupId, producerId, producerEpoch, topics)` / `TxnOffsetCommitResponse(topics)` arities preserved; version-gated
+request fields + the response ThrottleTimeMs are written with the spec default + read/discarded, documented in the
+codec class javadoc) + `TxnOffsetCommitCodecTest` (21 tests) + facade delegation in `KafkaCodec` (inline v0-only
+bodies removed) + frozen order tables `doc/spec/order/TxnOffsetCommit.{Request,Response}.txt` + matrix rows 399–402
+✓ (**Transactions sub-category 24/24 — complete**) + PROGRESS.md + module doc/REQUIREMENTS.md updated. Full module
+`:lego-flow-kafka` 925 → 946 green. Next: Consumer Groups sub-category (63 rows).
+
+## Last completed (2026-10-07): WriteTxnMarkers (API 27) v0–v1 — dedicated codec ✓
+
+Committed `0aae7710` (+ backfill `dd4522f3`): new `WriteTxnMarkersCodec` v0–v1 both directions (pinned v0;
 request v0 fixed-width — `Markers[] { ProducerId:int64 + ProducerEpoch:int16 + TransactionResult:bool +
-Topics[] { Name:string + PartitionIndexes[]int32 } + CoordinatorEpoch:int32 }`, coordinator epoch LAST,
-partitions grouped by topic; v1 flexible KIP-482 — compact strings/arrays, varint N+1 counts, per-partition/per-topic/
-per-marker/top-level endTags); response v0 fixed-width — `Markers[] { ProducerId:int64 + Topics[] { Name:string +
-Partitions[] { PartitionIndex:int32 + ErrorCode:int16 } } }` (no leading ThrottleTimeMs); v1 flexible + endTags. Old
-inline facade request wrote a flat non-grouped `partitions[]` with the coordinator epoch in the wrong position +
-non-nullable `writeString` for topic names — malformed on the wire. In-house request carries a flat `partitions`
-list; the wire groups by topic — encode groups by topic (insertion-ordered), decode re-flattens per-topic groups back
-into the flat list (preserves every (topic, partition) pair + per-topic order, reorganizes cross-topic interleaving;
-documented in the codec class javadoc). Models unchanged (`WriteTxnMarkersRequest(markers)` /
-`WriteTxnMarkersResponse(markers)` arities preserved) + `WriteTxnMarkersCodecTest` (17 tests) + facade delegation in
-`KafkaCodec` (inline v0-only bodies removed) + frozen order tables
-`doc/spec/order/WriteTxnMarkers.{Request,Response}.txt` + matrix rows 392–393 ✓ (**Transactions sub-category 20/24
-done**) + PROGRESS.md + module doc/REQUIREMENTS.md updated. Full module `:lego-flow-kafka` 908 → 925 green.
-
-## Last completed (2026-10-06): EndTxn (API 26) v0–v3 — dedicated codec ✓
-
-Committed `2e1e539a` (+ backfill `dbd68b52`): new `EndTxnCodec` v0–v3 both directions (pinned v0;
-request v0–v2 byte-identical — nullable TransactionalId + ProducerId + ProducerEpoch + Committed:bool, v0–v2
-fixed-width counts + plain strings; the bool is fixed-width in both encodings; v3 flexible KIP-482 — compact string +
-top-level endTags sentinel; all four fields present from v0, so the model maps 1:1 onto every version); response
-v0–v2 byte-identical (leading ThrottleTimeMs:int32 [dflt 0, written + discarded] + ErrorCode:int16), v3 flexible +
-top-level endTags. Models unchanged (`EndTxnRequest(transactionalId, producerId, producerEpoch, committed)` /
-`EndTxnResponse(errorCode)` arities preserved — the response ThrottleTimeMs is written with the spec
-default + read/discarded, documented in the codec class javadoc). + `EndTxnCodecTest` (16 tests) + facade
-delegation in `KafkaCodec` (inline v0-only bodies removed) + frozen order tables
-`doc/spec/order/EndTxn.{Request,Response}.txt` + matrix rows 381–384 checked, PROGRESS.md + module
-doc/REQUIREMENTS.md updated. **Transactions sub-category 18/24 done.** Full module `:lego-flow-kafka` 892 → 908
-green. Next: WriteTxnMarkers (API 27) v0–v1; remaining Transactions: TxnOffsetCommit (4 rows).
+Topics[] { Name:string + PartitionIndexes[]int32 } + CoordinatorEpoch:int32 }`, coordinator epoch LAST, partitions
+grouped by topic; v1 flexible KIP-482 — compact strings/arrays, varint N+1 counts, per-partition/per-topic/per-marker/
+top-level endTags (no tagged fields declared)); response v0 fixed-width — `Markers[] { ProducerId:int64 +
+Topics[] { Name:string + Partitions[] { PartitionIndex:int32 + ErrorCode:int16 } } }` (no leading ThrottleTimeMs),
+v1 flexible + endTags. In-house request carries a flat `partitions` list; the wire groups by topic — encode groups by
+topic (insertion-ordered), decode re-flattens per-topic groups into the flat list (preserves every (topic, partition)
+pair + per-topic order, reorganizes cross-topic interleaving; documented in the codec class javadoc). Models unchanged
+(`WriteTxnMarkersRequest(markers)` / `WriteTxnMarkersResponse(markers)` arities preserved) + `WriteTxnMarkersCodecTest`
+(17 tests) + facade delegation in `KafkaCodec` (inline bodies removed) + frozen order tables
+`doc/spec/order/WriteTxnMarkers.{Request,Response}.txt` + matrix rows 392–393 checked, PROGRESS.md + module
+doc/REQUIREMENTS.md updated. **Transactions sub-category 20/24 done.** Full module `:lego-flow-kafka` 908 → 925
+green. Next: TxnOffsetCommit (API 28) v0–v3.
