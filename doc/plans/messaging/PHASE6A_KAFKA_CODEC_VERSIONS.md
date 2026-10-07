@@ -378,10 +378,10 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (4 fields): TransactionalId:string(nullable), ProducerId:int64, ProducerEpoch:int16, Committed:bool + response ThrottleTimeMs:int32, ErrorCode:int16 | ✓ | `PENDING` |
-| v1 | unchanged | ✓ | `PENDING` |
-| v2 | unchanged | ✓ | `PENDING` |
-| v3 | → flexible encoding | ✓ | `PENDING` |
+| v0 | base (4 fields): TransactionalId:string(nullable), ProducerId:int64, ProducerEpoch:int16, Committed:bool + response ThrottleTimeMs:int32, ErrorCode:int16 | ✓ | `2e1e539a` |
+| v1 | unchanged | ✓ | `2e1e539a` |
+| v2 | unchanged | ✓ | `2e1e539a` |
+| v3 | → flexible encoding | ✓ | `2e1e539a` |
 
 **EndTxn — v0–v3 complete (4/4)** (dedicated spec-correct `EndTxnCodec`, facade pinned at v0; request v0–v2 byte-identical — nullable TransactionalId:string + ProducerId:int64 + ProducerEpoch:int16 + Committed:bool, v0–v2 fixed-width counts + plain strings, v3 flexible KIP-482 — compact string + top-level endTags sentinel (bool stays fixed-width; no tagged fields declared); response v0–v2 byte-identical — leading ThrottleTimeMs:int32 [spec default 0, written + discarded] + ErrorCode:int16, v3 flexible + top-level endTags; models unchanged — `EndTxnRequest(transactionalId, producerId, producerEpoch, committed)` / `EndTxnResponse(errorCode)` arities preserved, all fields present from v0 so the model maps 1:1 onto every version; the in-house response model exposes no ThrottleTimeMs, written with the spec default + read/discarded (documented in the codec class javadoc); the old inline facade `encodeEndTxnResponse` wrote only the int16 ErrorCode — omitted the mandatory leading ThrottleTimeMs — malformed on the wire)
 
