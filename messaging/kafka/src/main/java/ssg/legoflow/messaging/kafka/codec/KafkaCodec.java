@@ -2007,104 +2007,20 @@ public final class KafkaCodec {
 
     // ===== WriteTxnMarkers (27) =====
 
-    /**
-     * Encodes a WriteTxnMarkers request body.
-     *
-     * @param req the request
-     * @return the encoded bytes
-     */
     public static byte[] encodeWriteTxnMarkersRequest(WriteTxnMarkersRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(8192);
-        buf.putInt(req.markers().size());
-        for (var m : req.markers()) {
-            buf.putLong(m.producerId());
-            buf.putShort(m.producerEpoch());
-            buf.putInt(m.coordinatorEpoch());
-            buf.put((byte) (m.committed() ? 1 : 0));
-            buf.putInt(m.partitions().size());
-            for (var p : m.partitions()) {
-                writeString(buf, p.topic());
-                buf.putInt(p.partition());
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return WriteTxnMarkersCodec.encodeRequest(req);
     }
 
-    /**
-     * Decodes a WriteTxnMarkers request body.
-     *
-     * @param buf the buffer
-     * @return the decoded request
-     */
     public static WriteTxnMarkersRequest decodeWriteTxnMarkersRequest(ByteBuffer buf) {
-        int markerCount = buf.getInt();
-        List<WriteTxnMarkersRequest.TxnMarker> markers = new ArrayList<>(markerCount);
-        for (int i = 0; i < markerCount; i++) {
-            long producerId = buf.getLong();
-            short producerEpoch = buf.getShort();
-            int coordinatorEpoch = buf.getInt();
-            boolean committed = buf.get() == 1;
-            int partCount = buf.getInt();
-            List<WriteTxnMarkersRequest.TopicPartitionData> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                parts.add(new WriteTxnMarkersRequest.TopicPartitionData(readString(buf), buf.getInt()));
-            }
-            markers.add(new WriteTxnMarkersRequest.TxnMarker(producerId, producerEpoch, coordinatorEpoch, committed, parts));
-        }
-        return new WriteTxnMarkersRequest(markers);
+        return WriteTxnMarkersCodec.decodeRequest(WriteTxnMarkersCodec.PINNED_VERSION, buf);
     }
 
-    /**
-     * Encodes a WriteTxnMarkers response body.
-     *
-     * @param resp the response
-     * @return the encoded bytes
-     */
     public static byte[] encodeWriteTxnMarkersResponse(WriteTxnMarkersResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(8192);
-        buf.putInt(resp.markers().size());
-        for (var m : resp.markers()) {
-            buf.putLong(m.producerId());
-            buf.putInt(m.topics().size());
-            for (var t : m.topics()) {
-                writeString(buf, t.topic());
-                buf.putInt(t.partitions().size());
-                for (var p : t.partitions()) {
-                    buf.putInt(p.partition());
-                    buf.putShort(p.errorCode());
-                }
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return WriteTxnMarkersCodec.encodeResponse(resp);
     }
 
-    /**
-     * Decodes a WriteTxnMarkers response body.
-     *
-     * @param buf the buffer
-     * @return the decoded response
-     */
     public static WriteTxnMarkersResponse decodeWriteTxnMarkersResponse(ByteBuffer buf) {
-        int markerCount = buf.getInt();
-        List<WriteTxnMarkersResponse.MarkerResult> markers = new ArrayList<>(markerCount);
-        for (int i = 0; i < markerCount; i++) {
-            long producerId = buf.getLong();
-            int topicCount = buf.getInt();
-            List<WriteTxnMarkersResponse.TopicResult> topics = new ArrayList<>(topicCount);
-            for (int j = 0; j < topicCount; j++) {
-                String topic = readString(buf);
-                int partCount = buf.getInt();
-                List<WriteTxnMarkersResponse.PartitionResult> parts = new ArrayList<>(partCount);
-                for (int k = 0; k < partCount; k++) {
-                    parts.add(new WriteTxnMarkersResponse.PartitionResult(buf.getInt(), buf.getShort()));
-                }
-                topics.add(new WriteTxnMarkersResponse.TopicResult(topic, parts));
-            }
-            markers.add(new WriteTxnMarkersResponse.MarkerResult(producerId, topics));
-        }
-        return new WriteTxnMarkersResponse(markers);
+        return WriteTxnMarkersCodec.decodeResponse(WriteTxnMarkersCodec.PINNED_VERSION, buf);
     }
 
     // ===== AlterPartitionReassignments (45) =====

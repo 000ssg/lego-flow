@@ -1,0 +1,9 @@
+WriteTxnMarkers Request — field processing order (binding; spec 3.6.1) — flexible encoding from v1
+wire order by layout (equal run = byte-identical field layout):
+  v0 -> Markers:(Markers)ProducerId:(Markers)ProducerEpoch:(Markers)TransactionResult:(Markers)Topics:(Topics)Name:(Topics)PartitionIndexes:(Markers)CoordinatorEpoch
+  v1 -> Markers:(Markers)ProducerId:(Markers)ProducerEpoch:(Markers)TransactionResult:(Markers)Topics:(Topics)Name:(Topics)PartitionIndexes:(Markers)CoordinatorEpoch|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0:
+  v0: fixed: Markers([]WritableTxnMarker) || tagged: ∅
+  v1:
+  v1: fixed: Markers([]WritableTxnMarker) [flex] || tagged: ∅

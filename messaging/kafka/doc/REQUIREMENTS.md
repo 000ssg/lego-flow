@@ -663,6 +663,24 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 - **Sub-category**: **Transactions 18/24** (InitProducerId 5 + AddPartitionsToTxn 5 + AddOffsetsToTxn 4 + EndTxn 4); remaining: WriteTxnMarkers (2), TxnOffsetCommit (4).
 
+## Commit: `PENDING` — WriteTxnMarkers v0–v1 (Transactions rows 392–393)
+
+- **WriteTxnMarkers v0–v1 codec**: new dedicated `WriteTxnMarkersCodec` — spec-correct WriteTxnMarkers implementation (both rows v0–v1, per the vendored WriteTxnMarkersRequest.json / WriteTxnMarkersResponse.json, frozen order tables in `doc/spec/order/WriteTxnMarkers.{Request,Response}.txt`). Client/broker interaction is pinned at v0; both versions are encoded/decoded in both directions. Request: v0 fixed-width (`Markers[] { ProducerId:int64 + ProducerEpoch:int16 + TransactionResult:bool + Topics[] { Name:string + PartitionIndexes[]int32 } + CoordinatorEpoch:int32 }` — coordinator epoch is the **last** marker field, partitions are **grouped by topic**); v1 flexible (KIP-482: compact strings/arrays, varint N+1 counts, per-partition/per-topic/per-marker/top-level endTags — the 3.6.1 schema declares no tagged fields, so the endTags bytes are the only flexible markers). Response: v0 fixed-width (`Markers[] { ProducerId:int64 + Topics[] { Name:string + Partitions[] { PartitionIndex:int32 + ErrorCode:int16 } } }` — no leading ThrottleTimeMs); v1 flexible (compact + endTags). The old inline facade request wrote a flat non-grouped `partitions[]` with the coordinator epoch in the wrong position and used non-nullable `writeString` for topic names — malformed on the wire.
+- **Models** (unchanged — constructor arities preserved, all call sites untouched): `WriteTxnMarkersRequest(markers)` / `WriteTxnMarkersResponse(markers)` keep their shape; the response model maps 1:1 onto the spec. The in-house request carries a flat `partitions` list while the wire groups by topic — on encode the codec groups the partitions by topic (insertion-ordered), and on decode it re-flattens the spec's per-topic groups back into the flat list (topics in wire order, partitions in group order), preserving every (topic, partition) pair and each topic's per-topic partition order while reorganizing cross-topic interleaving, documented in the codec class javadoc.
+- **KafkaCodec facade**: `encode/decodeWriteTxnMarkersRequest` and `encode/decodeWriteTxnMarkersResponse` now delegate to `WriteTxnMarkersCodec` (the `decode*(ByteBuffer)` signature is preserved — pinned at v0); the old inline bodies are removed.
+- **New tests**: `WriteTxnMarkersCodecTest` (17 tests — pinned-version assertions, byte-for-byte v0/v1 request + response goldens, v0-vs-v1 shape difference, multi-marker, grouped-topics round-trips, interleaved-topic reorganization edge, empty request/response, flexible empty-string edge, truncation, version guards, facade delegation).
+
+### Test Coverage
+- WriteTxnMarkersCodecTest 17 tests; full module 908 → 925 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 1 (KafkaCodec) + 2 new (WriteTxnMarkersCodec, WriteTxnMarkersCodecTest) + 2 new frozen order tables |
+| Tests added | 17 |
+
+- **Sub-category**: **Transactions 20/24** (InitProducerId 5 + AddPartitionsToTxn 5 + AddOffsetsToTxn 4 + EndTxn 4 + WriteTxnMarkers 2); remaining: TxnOffsetCommit (4).
+
 ## Document Maintenance
 
 - This document is append-only for commit sections
