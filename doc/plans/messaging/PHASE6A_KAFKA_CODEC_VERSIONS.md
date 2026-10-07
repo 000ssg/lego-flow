@@ -389,8 +389,8 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (8 fields): Markers[], ProducerId, ProducerEpoch, TransactionResult, Topics[], Name, PartitionIndexes, CoordinatorEpoch + response Markers[], ProducerId, Topics[], Name, Partitions[](PartitionIndex, ErrorCode) | ✓ | `PENDING` |
-| v1 | → flexible encoding | ✓ | `PENDING` |
+| v0 | base (8 fields): Markers[], ProducerId, ProducerEpoch, TransactionResult, Topics[], Name, PartitionIndexes, CoordinatorEpoch + response Markers[], ProducerId, Topics[], Name, Partitions[](PartitionIndex, ErrorCode) | ✓ | `0aae7710` |
+| v1 | → flexible encoding | ✓ | `0aae7710` |
 
 ### TxnOffsetCommit (API 28) — v0..v3
 
