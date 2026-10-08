@@ -699,6 +699,24 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 - **Sub-category**: **Transactions 24/24 — complete** (InitProducerId 5 + AddPartitionsToTxn 5 + AddOffsetsToTxn 4 + EndTxn 4 + WriteTxnMarkers 2 + TxnOffsetCommit 4); next sub-category: Consumer Groups (63).
 
+## Commit: `PENDING` — OffsetCommit v0–v9 (Consumer Groups rows 231–240)
+
+- **OffsetCommit v0–v9 codec**: new dedicated `OffsetCommitCodec` — spec-correct OffsetCommit implementation (all 10 rows v0–v9, per the vendored OffsetCommitRequest.json / OffsetCommitResponse.json, frozen order tables in `doc/spec/order/OffsetCommit.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v9 is encoded/decoded in both directions. Request: v0 base 7 fields (`GroupId:string + Topics[] { Name:string + Partitions[] { PartitionIndex:int32 + CommittedOffset:int64 + CommittedMetadata:string(nullable) } }`, fixed-width counts + plain strings); v1 adds `GenerationIdOrMemberEpoch:int32 + MemberId:string` + per-partition `CommitTimestamp:int64` (spec dflt -1, written + discarded — v1 only); v2–v4 add `RetentionTimeMs:int64` (spec dflt -1, written + discarded, dropped at v5); v6 adds per-partition `CommittedLeaderEpoch:int32` (spec dflt -1, written + discarded); v7 adds nullable `GroupInstanceId:string` (written null; non-flexible v7 = legacy nullable string, flexible v8+ = nullable compact); v8–v9 KIP-482 flexible (compact strings, varint N+1 counts, top-level endTags sentinel — the 3.6.1 schema declares no tagged fields, so the endTags byte is the only flexible marker); v9 wire-identical to v8 (KIP-848 changed the response error-code surface, not the schema). Response: `Topics[] { Name:string + Partitions[] { PartitionIndex:int32 + ErrorCode:int16 } }`, leading `ThrottleTimeMs:int32` (spec dflt 0, written + discarded) from v3+. The old inline v0-only `KafkaCodec` request/response bodies are replaced with thin delegates.
+- **Models** (unchanged — constructor arities preserved, all call sites untouched): `OffsetCommitRequest(groupId, topics)` / `OffsetCommitResponse(topics)` keep their shape; version-gated request fields the model does not expose (`GenerationIdOrMemberEpoch`/`MemberId` v1+, `CommitTimestamp` v1, `RetentionTimeMs` v2–v4, `CommittedLeaderEpoch` v6+, `GroupInstanceId` v7+) and the response `ThrottleTimeMs` (v3+) are written with their spec defaults on encode and read + discarded on decode (documented in the codec class javadoc), so `KafkaBroker` call sites are untouched.
+- **KafkaCodec facade**: `encode/decodeOffsetCommitRequest` and `encode/decodeOffsetCommitResponse` now delegate to `OffsetCommitCodec` (the `decode*(ByteBuffer)` signature is preserved — pinned at v0); the old inline v0-only bodies are removed.
+- **New tests**: `OffsetCommitCodecTest` (38 tests — pinned-version assertions, byte-for-byte v0/v8 request + response goldens (hand-built), per-version shape diffs (v1→v2 net −8/partition after top-level RetentionTimeMs +8 and per-partition CommitTimestamp removal; v5 = v2 − 8; v6 = v5 + 4 per partition; v7 = v6 + 2 for null GroupInstanceId; request + response v8/v9 byte-identical; response v3 +4), round-trips all versions both directions, null committedMetadata/groupInstanceId edges, truncation, version guards, facade delegation).
+
+### Test Coverage
+- OffsetCommitCodecTest 38 tests; full module 946 → 984 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | 1 (KafkaCodec) + 1 new (OffsetCommitCodec) + 1 new (OffsetCommitCodecTest) + 2 new frozen order tables |
+| Tests added | 38 |
+
+- **Sub-category**: **Consumer Groups 10/63** (OffsetCommit 10); next: OffsetFetch (API 9) v0–v8.
+
 ## Document Maintenance
 
 - This document is append-only for commit sections

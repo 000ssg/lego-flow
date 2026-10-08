@@ -648,72 +648,48 @@ public final class KafkaCodec {
 
     // ===== OffsetCommit (8) =====
 
+    /**
+     * Encodes an OffsetCommit request body (pinned version).
+     *
+     * @param req the request
+     * @return encoded body bytes
+     * @since 0.1.0
+     */
     public static byte[] encodeOffsetCommitRequest(OffsetCommitRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        writeString(buf, req.groupId());
-        buf.putInt(req.generationId());
-        writeString(buf, req.memberId());
-        buf.putInt(req.topics().size());
-        for (var t : req.topics()) {
-            writeString(buf, t.name());
-            buf.putInt(t.partitions().size());
-            for (var p : t.partitions()) {
-                buf.putInt(p.partitionIndex());
-                buf.putLong(p.committedOffset());
-                writeNullableString(buf, p.metadata());
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return OffsetCommitCodec.encodeRequest(req);
     }
 
+    /**
+     * Decodes an OffsetCommit request body (pinned version).
+     *
+     * @param buf the request body
+     * @return the decoded request
+     * @since 0.1.0
+     */
     public static OffsetCommitRequest decodeOffsetCommitRequest(ByteBuffer buf) {
-        String groupId = readString(buf);
-        int generationId = buf.getInt();
-        String memberId = readString(buf);
-        int topicCount = buf.getInt();
-        List<OffsetCommitRequest.TopicOffsets> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String name = readString(buf);
-            int partCount = buf.getInt();
-            List<OffsetCommitRequest.PartitionOffset> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                parts.add(new OffsetCommitRequest.PartitionOffset(
-                        buf.getInt(), buf.getLong(), readNullableString(buf)));
-            }
-            topics.add(new OffsetCommitRequest.TopicOffsets(name, parts));
-        }
-        return new OffsetCommitRequest(groupId, generationId, memberId, topics);
+        return OffsetCommitCodec.decodeRequest(OffsetCommitCodec.PINNED_VERSION, buf);
     }
 
+    /**
+     * Encodes an OffsetCommit response body (pinned version).
+     *
+     * @param resp the response
+     * @return encoded body bytes
+     * @since 0.1.0
+     */
     public static byte[] encodeOffsetCommitResponse(OffsetCommitResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putInt(resp.topics().size());
-        for (var t : resp.topics()) {
-            writeString(buf, t.name());
-            buf.putInt(t.partitions().size());
-            for (var p : t.partitions()) {
-                buf.putInt(p.partitionIndex());
-                buf.putShort(p.errorCode());
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return OffsetCommitCodec.encodeResponse(resp);
     }
 
+    /**
+     * Decodes an OffsetCommit response body (pinned version).
+     *
+     * @param buf the response body
+     * @return the decoded response
+     * @since 0.1.0
+     */
     public static OffsetCommitResponse decodeOffsetCommitResponse(ByteBuffer buf) {
-        int topicCount = buf.getInt();
-        List<OffsetCommitResponse.TopicResponse> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String name = readString(buf);
-            int partCount = buf.getInt();
-            List<OffsetCommitResponse.PartitionResponse> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                parts.add(new OffsetCommitResponse.PartitionResponse(buf.getInt(), buf.getShort()));
-            }
-            topics.add(new OffsetCommitResponse.TopicResponse(name, parts));
-        }
-        return new OffsetCommitResponse(topics);
+        return OffsetCommitCodec.decodeResponse(OffsetCommitCodec.PINNED_VERSION, buf);
     }
 
     // ===== OffsetFetch (9) =====

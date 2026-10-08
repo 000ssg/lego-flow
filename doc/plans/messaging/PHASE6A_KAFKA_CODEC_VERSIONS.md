@@ -230,16 +230,18 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (7 fields): GroupId, Topics, Name, Partitions, PartitionIndex, CommittedOffset, CommittedMetadata | ☐ | |
-| v1 | + GenerationIdOrMemberEpoch:int32[1+], MemberId:string[1+], CommitTimestamp:int64[1] | ☐ | |
-| v2 | + RetentionTimeMs:int64[2-4]<br>− CommitTimestamp:int64[1] | ☐ | |
-| v3 | + ThrottleTimeMs:int32[3+] | ☐ | |
-| v4 | unchanged | ☐ | |
-| v5 | − RetentionTimeMs:int64[2-4] | ☐ | |
-| v6 | + CommittedLeaderEpoch:int32[6+] | ☐ | |
-| v7 | + GroupInstanceId:string[7+](null:7+) | ☐ | |
-| v8 | → flexible encoding | ☐ | |
-| v9 | unchanged | ☐ | |
+| v0 | base (7 fields): GroupId, Topics, Name, Partitions, PartitionIndex, CommittedOffset, CommittedMetadata | ✓ | `PENDING` |
+| v1 | + GenerationIdOrMemberEpoch:int32[1+], MemberId:string[1+], CommitTimestamp:int64[1] | ✓ | `PENDING` |
+| v2 | + RetentionTimeMs:int64[2-4]<br>− CommitTimestamp:int64[1] | ✓ | `PENDING` |
+| v3 | + ThrottleTimeMs:int32[3+] | ✓ | `PENDING` |
+| v4 | unchanged | ✓ | `PENDING` |
+| v5 | − RetentionTimeMs:int64[2-4] | ✓ | `PENDING` |
+| v6 | + CommittedLeaderEpoch:int32[6+] | ✓ | `PENDING` |
+| v7 | + GroupInstanceId:string[7+](null:7+) | ✓ | `PENDING` |
+| v8 | → flexible encoding | ✓ | `PENDING` |
+| v9 | unchanged | ✓ | `PENDING` |
+
+**DONE (v0–v9)** — New dedicated `OffsetCommitCodec` (v0–v9, request + response, both directions; client/broker exchange pinned at v0). Request layout (frozen `doc/spec/order/OffsetCommit.Request.txt`): v0 `GroupId:string + Topics[] { Name + Partitions[] { PartitionIndex:int32, CommittedOffset:int64, CommittedMetadata:string(nullable) } }`; v1+ adds `GenerationIdOrMemberEpoch:int32 + MemberId:string` and per-partition `CommitTimestamp:int64` (v1 only, written -1); v2–v4 adds `RetentionTimeMs:int64` (written -1, dropped at v5); v6+ adds per-partition `CommittedLeaderEpoch:int32` (written -1); v7+ adds nullable `GroupInstanceId:string` (written null; non-flexible v7 = legacy nullable string, flexible v8+ = nullable compact). Response layout (frozen `doc/spec/order/OffsetCommit.Response.txt`): `Topics[] { Name:string, Partitions[] { PartitionIndex:int32, ErrorCode:int16 } }`, with leading `ThrottleTimeMs:int32` from v3+ (written 0). v8–v9: KIP-482 flexible encoding (compact strings, N+1 varint counts, trailing endTags=0); v9 wire-identical to v8 (KIP-848). Inline v0-only `KafkaCodec` methods replaced with thin delegates. `OffsetCommitCodecTest`: 38 tests — round-trips all versions both directions, v0/v8 byte-for-byte goldens (hand-built), per-version size diffs, null-metadata handling, truncation + version guards, facade delegation. Full module suite green (984 tests).
 
 ### OffsetFetch (API 9) — v0..v8
 
