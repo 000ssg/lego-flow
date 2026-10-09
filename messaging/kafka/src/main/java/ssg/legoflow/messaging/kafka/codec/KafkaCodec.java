@@ -694,66 +694,48 @@ public final class KafkaCodec {
 
     // ===== OffsetFetch (9) =====
 
+    /**
+     * Encodes an OffsetFetch request body (pinned version).
+     *
+     * @param req the request
+     * @return encoded body bytes
+     * @since 0.1.0
+     */
     public static byte[] encodeOffsetFetchRequest(OffsetFetchRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        writeString(buf, req.groupId());
-        buf.putInt(req.topics().size());
-        for (var t : req.topics()) {
-            writeString(buf, t.name());
-            buf.putInt(t.partitionIndexes().size());
-            for (int idx : t.partitionIndexes()) {
-                buf.putInt(idx);
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return OffsetFetchCodec.encodeRequest(req);
     }
 
+    /**
+     * Decodes an OffsetFetch request body (pinned version).
+     *
+     * @param buf the request body
+     * @return the decoded request
+     * @since 0.1.0
+     */
     public static OffsetFetchRequest decodeOffsetFetchRequest(ByteBuffer buf) {
-        String groupId = readString(buf);
-        int topicCount = buf.getInt();
-        List<OffsetFetchRequest.TopicPartitions> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String name = readString(buf);
-            int partCount = buf.getInt();
-            List<Integer> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) parts.add(buf.getInt());
-            topics.add(new OffsetFetchRequest.TopicPartitions(name, parts));
-        }
-        return new OffsetFetchRequest(groupId, topics);
+        return OffsetFetchCodec.decodeRequest(OffsetFetchCodec.PINNED_VERSION, buf);
     }
 
+    /**
+     * Encodes an OffsetFetch response body (pinned version).
+     *
+     * @param resp the response
+     * @return encoded body bytes
+     * @since 0.1.0
+     */
     public static byte[] encodeOffsetFetchResponse(OffsetFetchResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putInt(resp.topics().size());
-        for (var t : resp.topics()) {
-            writeString(buf, t.name());
-            buf.putInt(t.partitions().size());
-            for (var p : t.partitions()) {
-                buf.putInt(p.partitionIndex());
-                buf.putLong(p.committedOffset());
-                writeNullableString(buf, p.metadata());
-                buf.putShort(p.errorCode());
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return OffsetFetchCodec.encodeResponse(resp);
     }
 
+    /**
+     * Decodes an OffsetFetch response body (pinned version).
+     *
+     * @param buf the response body
+     * @return the decoded response
+     * @since 0.1.0
+     */
     public static OffsetFetchResponse decodeOffsetFetchResponse(ByteBuffer buf) {
-        int topicCount = buf.getInt();
-        List<OffsetFetchResponse.TopicResponse> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String name = readString(buf);
-            int partCount = buf.getInt();
-            List<OffsetFetchResponse.PartitionResponse> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                parts.add(new OffsetFetchResponse.PartitionResponse(
-                        buf.getInt(), buf.getLong(), readNullableString(buf), buf.getShort()));
-            }
-            topics.add(new OffsetFetchResponse.TopicResponse(name, parts));
-        }
-        return new OffsetFetchResponse(topics);
+        return OffsetFetchCodec.decodeResponse(OffsetFetchCodec.PINNED_VERSION, buf);
     }
 
     // ===== CreateTopics (19) =====
