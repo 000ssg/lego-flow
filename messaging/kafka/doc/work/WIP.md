@@ -7,12 +7,12 @@ Any entry claiming DONE without a verifiable commit in `git log` is **void** —
 and redo the work. NEVER trust a SHA without `git cat-file -e <sha>`.
 Consensus is persisted in commits, not in this file alone — commit each completed API.
 
-## Consumer Groups sub-category (10/63) — ledger
+## Consumer Groups sub-category (18/63) — ledger
 
 | API | Versions | Codec file | Test file | Commit SHA (in git log) | Status |
 |---|---|---|---|---|---|
 | OffsetCommit (8) | v0–v9 | `OffsetCommitCodec.java` | `OffsetCommitCodecTest.java` (38) | `f8cd4201` | DONE — committed + 1012-module-green verified |
-| OffsetFetch (9) | v0–v8 | `OffsetFetchCodec.java` | `OffsetFetchCodecTest.java` (28) | (in flight — commit this session) | IN FLIGHT — files on disk, 28 tests green, facade delegates, 2 spec/order txt files, NOT YET COMMITTED |
+| OffsetFetch (9) | v0–v8 | `OffsetFetchCodec.java` | `OffsetFetchCodecTest.java` (28) | `067d876e` | DONE — committed; 28 tests green, full module 1012 green (verified 2026-10-09) |
 | FindCoordinator (10) | v0–v4 | — | — | — | **NOT STARTED** (previous "DONE, commit 8720b451, 30 tests" claim was FALSE — commit does not exist, no files, no reports) |
 | JoinGroup (11) | v0–v9 | — | — | — | NOT STARTED |
 | Heartbeat (12) | v0–v5 | — | — | — | NOT STARTED |

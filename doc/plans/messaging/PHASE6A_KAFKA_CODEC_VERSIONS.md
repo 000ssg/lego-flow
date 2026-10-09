@@ -247,15 +247,15 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (4 fields): GroupId, Topics, Name, PartitionIndexes | ✓ | `PENDING` |
-| v1 | unchanged | ✓ | `PENDING` |
-| v2 | + ErrorCode:int16[2-7] | ✓ | `PENDING` |
-| v3 | + ThrottleTimeMs:int32[3+] | ✓ | `PENDING` |
-| v4 | unchanged | ✓ | `PENDING` |
-| v5 | + CommittedLeaderEpoch:int32[5-7] | ✓ | `PENDING` |
-| v6 | → flexible encoding | ✓ | `PENDING` |
-| v7 | + RequireStable:bool[7+] | ✓ | `PENDING` |
-| v8 | + Groups:[]OffsetFetchRequestGroup[8+], groupId:string[8+], Topics:[]OffsetFetchRequestTopics[8+](null:8+), Name:string[8+], PartitionIndexes:[]int32[8+], Groups:[]OffsetFetchResponseGroup[8+], groupId:string[8+], Topics:[]OffsetFetchResponseTopics[8+], Name:string[8+], Partitions:[]OffsetFetchResponsePartitions[8+], PartitionIndex:int32[8+], CommittedOffset:int64[8+], CommittedLeaderEpoch:int32[8+], Metadata:string[8+](null:8+), ErrorCode:int16[8+], ErrorCode:int16[8+]<br>− GroupId:string[0-7], Topics:[]OffsetFetchRequestTopic[0-7](null:2-7), Name:string[0-7], PartitionIndexes:[]int32[0-7], Topics:[]OffsetFetchResponseTopic[0-7], Name:string[0-7], Partitions:[]OffsetFetchResponsePartition[0-7], PartitionIndex:int32[0-7], CommittedOffset:int64[0-7], CommittedLeaderEpoch:int32[5-7], Metadata:string[0-7](null:0-7), ErrorCode:int16[0-7], ErrorCode:int16[2-7] | ✓ | `PENDING` |
+| v0 | base (4 fields): GroupId, Topics, Name, PartitionIndexes | ✓ | `067d876e` |
+| v1 | unchanged | ✓ | `067d876e` |
+| v2 | + ErrorCode:int16[2-7] | ✓ | `067d876e` |
+| v3 | + ThrottleTimeMs:int32[3+] | ✓ | `067d876e` |
+| v4 | unchanged | ✓ | `067d876e` |
+| v5 | + CommittedLeaderEpoch:int32[5-7] | ✓ | `067d876e` |
+| v6 | → flexible encoding | ✓ | `067d876e` |
+| v7 | + RequireStable:bool[7+] | ✓ | `067d876e` |
+| v8 | + Groups:[]OffsetFetchRequestGroup[8+], groupId:string[8+], Topics:[]OffsetFetchRequestTopics[8+](null:8+), Name:string[8+], PartitionIndexes:[]int32[8+], Groups:[]OffsetFetchResponseGroup[8+], groupId:string[8+], Topics:[]OffsetFetchResponseTopics[8+], Name:string[8+], Partitions:[]OffsetFetchResponsePartitions[8+], PartitionIndex:int32[8+], CommittedOffset:int64[8+], CommittedLeaderEpoch:int32[8+], Metadata:string[8+](null:8+), ErrorCode:int16[8+], ErrorCode:int16[8+]<br>− GroupId:string[0-7], Topics:[]OffsetFetchRequestTopic[0-7](null:2-7), Name:string[0-7], PartitionIndexes:[]int32[0-7], Topics:[]OffsetFetchResponseTopic[0-7], Name:string[0-7], Partitions:[]OffsetFetchResponsePartition[0-7], PartitionIndex:int32[0-7], CommittedOffset:int64[0-7], CommittedLeaderEpoch:int32[5-7], Metadata:string[0-7](null:0-7), ErrorCode:int16[0-7], ErrorCode:int16[2-7] | ✓ | `067d876e` |
 
 ### FindCoordinator (API 10) — v0..v4
 
