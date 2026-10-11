@@ -261,11 +261,11 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (1 fields): Key | ✓ | PENDING |
-| v1 | + KeyType:int8[1+], ThrottleTimeMs:int32[1+], ErrorMessage:string[1-3](null:1-3) | ✓ | PENDING |
-| v2 | unchanged | ☐ | |
-| v3 | → flexible encoding | ☐ | |
-| v4 | + CoordinatorKeys:[]string[4+], Coordinators:[]Coordinator[4+], Key:string[4+], NodeId:int32[4+], Host:string[4+], Port:int32[4+], ErrorCode:int16[4+], ErrorMessage:string[4+](null:4+)<br>− Key:string[0-3], ErrorCode:int16[0-3], ErrorMessage:string[1-3](null:1-3), NodeId:int32[0-3], Host:string[0-3], Port:int32[0-3] | ✓ | PENDING |
+| v0 | base (1 fields): Key | ✓ | e4db2c87 |
+| v1 | + KeyType:int8[1+], ThrottleTimeMs:int32[1+], ErrorMessage:string[1-3](null:1-3) | ✓ | e4db2c87 |
+| v2 | unchanged | ✓ | e4db2c87 |
+| v3 | → flexible encoding | ✓ | e4db2c87 |
+| v4 | + CoordinatorKeys:[]string[4+], Coordinators:[]Coordinator[4+], Key:string[4+], NodeId:int32[4+], Host:string[4+], Port:int32[4+], ErrorCode:int16[4+], ErrorMessage:string[4+](null:4+)<br>− Key:string[0-3], ErrorCode:int16[0-3], ErrorMessage:string[1-3](null:1-3), NodeId:int32[0-3], Host:string[0-3], Port:int32[0-3] | ✓ | e4db2c87 |
 
 ### JoinGroup (API 11) — v0..v9
 

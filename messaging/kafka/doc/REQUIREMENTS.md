@@ -735,7 +735,7 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 - **Sub-category**: **Consumer Groups 18/63** (OffsetCommit 10 + OffsetFetch 8); next: FindCoordinator (API 10) v0–v4.
 
-## Commit: `PENDING` — FindCoordinator v0–v4 (Consumer Groups rows 264–268)
+## Commit: `e4db2c87` — FindCoordinator v0–v4 (Consumer Groups rows 264–268)
 
 - **FindCoordinator v0–v4 codec**: new dedicated `FindCoordinatorCodec` — spec-correct FindCoordinator implementation (all 5 rows v0–v4, per the vendored FindCoordinatorRequest.json / FindCoordinatorResponse.json, frozen order tables in `doc/spec/order/FindCoordinator.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v4 is encoded/decoded in both directions. Request: v0 base `Key:string` (nullable); v1+ adds `KeyType:int8` (spec dflt 1, written + discarded); v3+ flexible (KIP-482: compact strings, varint N+1 counts, top-level endTags sentinel — the 3.6.1 schema declares no tagged fields); v4 adds `CoordinatorKeys:[]string` (KIP-699 batch lookup; spec dflt empty, written + discarded). Response: v0 base `ErrorCode:int16 + NodeId:int32 + Host:string + Port:int32`; v1+ adds leading `ThrottleTimeMs:int32` (spec dflt 0, written + discarded) + `ErrorMessage:string` (nullable); v3+ flexible; v4 replaces the singular coordinator fields with `Coordinators[]Coordinator { Key:string + NodeId:int32 + Host:string + Port:int32 + ErrorCode:int16 + ErrorMessage:string(nullable) }`. The old inline v0-only `KafkaCodec` request/response bodies are replaced with thin delegates.
 - **Models** (unchanged — constructor arities preserved, all call sites untouched): `FindCoordinatorRequest(key, keyType)` / `FindCoordinatorResponse(errorCode, nodeId, host, port)` keep their shape; version-gated request fields (`KeyType` v1+, `CoordinatorKeys` v4) and response version-gated fields (leading `ThrottleTimeMs` v1+, `ErrorMessage` v1+, v4 singular→`Coordinators[]` regrouping) are written with their spec defaults on encode and read + discarded on decode (documented in the codec class javadoc), so `KafkaBroker` call sites are untouched.
@@ -751,7 +751,7 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 | Files modified | 1 (KafkaCodec) + 1 new (FindCoordinatorCodec) + 1 new (FindCoordinatorCodecTest) + 2 new frozen order tables |
 | Tests added | 28 |
 
-- **Sub-category**: **Consumer Groups 24/63** (OffsetCommit 10 + OffsetFetch 8 + FindCoordinator 6); next: JoinGroup (API 11) v0–v9.
+- **Sub-category**: **Consumer Groups 24/63** (OffsetCommit 10 + OffsetFetch 9 + FindCoordinator 5); next: JoinGroup (API 11) v0–v9.
 
 ## Document Maintenance
 

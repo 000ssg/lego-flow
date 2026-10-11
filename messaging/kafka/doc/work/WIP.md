@@ -7,13 +7,13 @@ Any entry claiming DONE without a verifiable commit in `git log` is **void** —
 and redo the work. NEVER trust a SHA without `git cat-file -e <sha>`.
 Consensus is persisted in commits, not in this file alone — commit each completed API.
 
-## Consumer Groups sub-category (19/63) — ledger
+## Consumer Groups sub-category (24/63) — ledger
 
 | API | Versions | Codec file | Test file | Commit SHA (in git log) | Status |
 |---|---|---|---|---|---|
 | OffsetCommit (8) | v0–v9 | `OffsetCommitCodec.java` | `OffsetCommitCodecTest.java` (38) | `f8cd4201` | DONE — committed + 1012-module-green verified |
 | OffsetFetch (9) | v0–v8 | `OffsetFetchCodec.java` | `OffsetFetchCodecTest.java` (28) | `067d876e` | DONE — committed; 28 tests green, full module 1012 green (verified 2026-10-09) |
-| FindCoordinator (10) | v0–v4 | `FindCoordinatorCodec.java` | `FindCoordinatorCodecTest.java` (28) | (in flight) | **IN FLIGHT** — codec + tests + facade delegates green; commit SHA recorded on commit |
+| FindCoordinator (10) | v0–v4 | `FindCoordinatorCodec.java` | `FindCoordinatorCodecTest.java` (28) | `e4db2c87` | DONE — committed 2026-10-11; 28 tests green, full module 1040 green (verified this session) |
 | JoinGroup (11) | v0–v9 | — | — | — | NOT STARTED |
 | Heartbeat (12) | v0–v5 | — | — | — | NOT STARTED |
 | LeaveGroup (13) | v0–v4 | — | — | — | NOT STARTED |
@@ -31,9 +31,9 @@ In-house models are single-member `JoinGroupRequest(groupId, protocolType, membe
 fields encoded/decoded with spec-default handling like sibling codecs. Models unchanged if possible.
 
 ## Verified facts (2026-10-11, this branch cleanup-messaging)
-- Full `:lego-flow-kafka` module: **1040 tests, 0 failures** (baseline at 1012 after OffsetFetch +28 FindCoordinator).
-- `git log`: OffsetCommit code `f8cd4201`, docs backfill `eef4c02d`; OffsetFetch code `067d876e`, docs backfill `91f7fe78`; FindCoordinator code (this commit) — 28 new tests green.
+- Full `:lego-flow-kafka` module: **1040 tests, 0 failures** (baseline at 1012 after OffsetFetch +28 FindCoordinator), verified via surefire reports after `mvn test`.
+- `git log`: OffsetCommit code `f8cd4201`, docs backfill `eef4c02d`; OffsetFetch code `067d876e`, docs backfill `91f7fe78`; FindCoordinator code `e4db2c87` (28 new tests green); FindCoordinator docs backfill = this commit.
 - Pattern per API: freeze `doc/spec/order/<Api>.{Request,Response}.txt` → dedicated `<Api>Codec` (all versions,
   both directions; flex = KIP-482 compact + varint N+1 + endTags) → replace inline `KafkaCodec` bodies with thin
   delegates → `<Api>CodecTest` (pinned + hand-built goldens + per-version Δ + round-trips + truncation/guards/facade)
-  → docs: PHASE6A matrix rows ✓ (PENDING→SHA in follow-up docs commit), PROGRESS bullet + history, kafka REQUIREMENTS entry.
+  → docs: PHASE6A matrix rows ✓ + commit SHA, PROGRESS bullet + history, kafka REQUIREMENTS entry.
