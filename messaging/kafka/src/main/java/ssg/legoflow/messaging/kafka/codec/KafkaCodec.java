@@ -440,36 +440,48 @@ public final class KafkaCodec {
 
     // ===== FindCoordinator (10) =====
 
+    /**
+     * Encodes a FindCoordinator request body (pinned version).
+     *
+     * @param req the request
+     * @return encoded body bytes
+     * @since 0.1.0
+     */
     public static byte[] encodeFindCoordinatorRequest(FindCoordinatorRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(256);
-        writeString(buf, req.key());
-        buf.put(req.keyType());
-        buf.flip();
-        return toBytes(buf);
+        return FindCoordinatorCodec.encodeRequest(req);
     }
 
+    /**
+     * Decodes a FindCoordinator request body (pinned version).
+     *
+     * @param buf the request body
+     * @return the decoded request
+     * @since 0.1.0
+     */
     public static FindCoordinatorRequest decodeFindCoordinatorRequest(ByteBuffer buf) {
-        String key = readString(buf);
-        byte keyType = buf.hasRemaining() ? buf.get() : FindCoordinatorRequest.KEY_TYPE_GROUP;
-        return new FindCoordinatorRequest(key, keyType);
+        return FindCoordinatorCodec.decodeRequest(FindCoordinatorCodec.PINNED_VERSION, buf);
     }
 
+    /**
+     * Encodes a FindCoordinator response body (pinned version).
+     *
+     * @param resp the response
+     * @return encoded body bytes
+     * @since 0.1.0
+     */
     public static byte[] encodeFindCoordinatorResponse(FindCoordinatorResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(256);
-        buf.putShort(resp.errorCode());
-        buf.putInt(resp.nodeId());
-        writeString(buf, resp.host());
-        buf.putInt(resp.port());
-        buf.flip();
-        return toBytes(buf);
+        return FindCoordinatorCodec.encodeResponse(resp);
     }
 
+    /**
+     * Decodes a FindCoordinator response body (pinned version).
+     *
+     * @param buf the response body
+     * @return the decoded response
+     * @since 0.1.0
+     */
     public static FindCoordinatorResponse decodeFindCoordinatorResponse(ByteBuffer buf) {
-        short errorCode = buf.getShort();
-        int nodeId = buf.getInt();
-        String host = readString(buf);
-        int port = buf.getInt();
-        return new FindCoordinatorResponse(errorCode, nodeId, host, port);
+        return FindCoordinatorCodec.decodeResponse(FindCoordinatorCodec.PINNED_VERSION, buf);
     }
 
     // ===== JoinGroup (11) =====
