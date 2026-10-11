@@ -7,13 +7,13 @@ Any entry claiming DONE without a verifiable commit in `git log` is **void** —
 and redo the work. NEVER trust a SHA without `git cat-file -e <sha>`.
 Consensus is persisted in commits, not in this file alone — commit each completed API.
 
-## Consumer Groups sub-category (18/63) — ledger
+## Consumer Groups sub-category (19/63) — ledger
 
 | API | Versions | Codec file | Test file | Commit SHA (in git log) | Status |
 |---|---|---|---|---|---|
 | OffsetCommit (8) | v0–v9 | `OffsetCommitCodec.java` | `OffsetCommitCodecTest.java` (38) | `f8cd4201` | DONE — committed + 1012-module-green verified |
 | OffsetFetch (9) | v0–v8 | `OffsetFetchCodec.java` | `OffsetFetchCodecTest.java` (28) | `067d876e` | DONE — committed; 28 tests green, full module 1012 green (verified 2026-10-09) |
-| FindCoordinator (10) | v0–v4 | — | — | — | **NOT STARTED** (previous "DONE, commit 8720b451, 30 tests" claim was FALSE — commit does not exist, no files, no reports) |
+| FindCoordinator (10) | v0–v4 | `FindCoordinatorCodec.java` | `FindCoordinatorCodecTest.java` (28) | (in flight) | **IN FLIGHT** — codec + tests + facade delegates green; commit SHA recorded on commit |
 | JoinGroup (11) | v0–v9 | — | — | — | NOT STARTED |
 | Heartbeat (12) | v0–v5 | — | — | — | NOT STARTED |
 | LeaveGroup (13) | v0–v4 | — | — | — | NOT STARTED |
@@ -22,18 +22,17 @@ Consensus is persisted in commits, not in this file alone — commit each comple
 | ListGroups (16) | v0–v4 | — | — | — | NOT STARTED |
 | OffsetDelete (47) | v0 | — | — | — | NOT STARTED |
 
-Next up after OffsetFetch commit: **FindCoordinator (API 10) v0–v4** — spec in
-`doc/spec/message/FindCoordinatorRequest.json` / `FindCoordinatorResponse.json`.
-Request: `Key:string[0-3]`, `KeyType:int8[1+]`, `CoordinatorKeys:[]string[4+]` (KIP-699), flex 3+.
-Response: `ThrottleTimeMs:int32[1+]`, `ErrorCode:int16[0-3]`, `ErrorMessage:string[1-3]`,
-`NodeId:int32[0-3]`, `Host:string[0-3]`, `Port:int32[0-3]`, v4+ `Coordinators[]Coordinator{Key,NodeId,Host,Port,ErrorCode,ErrorMessage}`, flex 3+.
-In-house models are single-coordinator `FindCoordinatorRequest(key, keyType)` /
-`FindCoordinatorResponse(errorCode, nodeId, host, port)` — facade pins v0; v4 batch fields
-encoded/decoded with spec-default handling like sibling codecs. Models unchanged if possible.
+Next up after FindCoordinator commit: **JoinGroup (API 11) v0–v9** — spec in
+`doc/spec/message/JoinGroupRequest.json` / `JoinGroupResponse.json`.
+Request: v0–v5 base (`Group:string + ProtocolType:string + MemberId:string + GroupInstanceId:string(nullable) + RebalanceTimeoutMs:int32[1+] + SessionTimeoutMs:int32 + ProtocolData:Protocol[] + Reason:string[8+]`), flex 6+.
+Response: `ThrottleTimeMs:int32[2+]`, `ErrorCode:int16`, `GenerationId:int32`, `Protocol:string[1-9]`, `Leader:string`, `MemberId:string[4-9]`, `Members[]Member{MemberId:string, GroupInstanceId:string[5-9](nullable), Metadata:string[1-9]}`.
+In-house models are single-member `JoinGroupRequest(groupId, protocolType, memberId, protocolData)` /
+`JoinGroupResponse(errorCode, generationId, protocol, leader, memberId, members)` — facade pins v0; flex/batch
+fields encoded/decoded with spec-default handling like sibling codecs. Models unchanged if possible.
 
-## Verified facts (2026-10-09, this branch cleanup-messaging)
-- Full `:lego-flow-kafka` module: **1012 tests, 0 failures** (baseline at 984 after OffsetCommit +28 OffsetFetch).
-- `git log`: OffsetCommit code `f8cd4201`, docs backfill `eef4c02d`. No FindCoordinator commit exists in any branch/reflog/fsck.
+## Verified facts (2026-10-11, this branch cleanup-messaging)
+- Full `:lego-flow-kafka` module: **1040 tests, 0 failures** (baseline at 1012 after OffsetFetch +28 FindCoordinator).
+- `git log`: OffsetCommit code `f8cd4201`, docs backfill `eef4c02d`; OffsetFetch code `067d876e`, docs backfill `91f7fe78`; FindCoordinator code (this commit) — 28 new tests green.
 - Pattern per API: freeze `doc/spec/order/<Api>.{Request,Response}.txt` → dedicated `<Api>Codec` (all versions,
   both directions; flex = KIP-482 compact + varint N+1 + endTags) → replace inline `KafkaCodec` bodies with thin
   delegates → `<Api>CodecTest` (pinned + hand-built goldens + per-version Δ + round-trips + truncation/guards/facade)
