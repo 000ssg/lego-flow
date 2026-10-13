@@ -271,16 +271,16 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (7 fields): GroupId, SessionTimeoutMs, MemberId, ProtocolType, Protocols, Name, Metadata | ✓ | PENDING |
-| v1 | + RebalanceTimeoutMs:int32[1+] | ✓ | PENDING |
-| v2 | response: + ThrottleTimeMs:int32[2+] (req unchanged) | ✓ | PENDING |
-| v3 | unchanged | ✓ | PENDING |
-| v4 | unchanged | ✓ | PENDING |
-| v5 | + GroupInstanceId:string[5+](null:5+) | ✓ | PENDING |
-| v6 | → flexible encoding (KIP-482) | ✓ | PENDING |
-| v7 | response: + ProtocolType:string[7+](null:7+) (req unchanged) | ✓ | PENDING |
-| v8 | response: + Reason:string[8+](null:8+) (req unchanged) | ✓ | PENDING |
-| v9 | response: + SkipAssignment:bool[9+] (req unchanged) | ✓ | PENDING |
+| v0 | base (7 fields): GroupId, SessionTimeoutMs, MemberId, ProtocolType, Protocols, Name, Metadata | ✓ | `5aa5a7a4` |
+| v1 | + RebalanceTimeoutMs:int32[1+] | ✓ | `5aa5a7a4` |
+| v2 | response: + ThrottleTimeMs:int32[2+] (req unchanged) | ✓ | `5aa5a7a4` |
+| v3 | unchanged | ✓ | `5aa5a7a4` |
+| v4 | unchanged | ✓ | `5aa5a7a4` |
+| v5 | + GroupInstanceId:string[5+](null:5+) | ✓ | `5aa5a7a4` |
+| v6 | → flexible encoding (KIP-482) | ✓ | `5aa5a7a4` |
+| v7 | response: + ProtocolType:string[7+](null:7+) (req unchanged) | ✓ | `5aa5a7a4` |
+| v8 | response: + Reason:string[8+](null:8+) (req unchanged) | ✓ | `5aa5a7a4` |
+| v9 | response: + SkipAssignment:bool[9+] (req unchanged) | ✓ | `5aa5a7a4` |
 
 **DONE (v0–v9)** — New dedicated `JoinGroupCodec` (v0–v9, request + response, both directions; client/broker exchange pinned at v0). Request layout (frozen `doc/spec/order/JoinGroup.Request.txt`): v0 `GroupId:string + SessionTimeoutMs:int32 + MemberId:string + ProtocolType:string + Protocols[] { Name:string + Metadata:bytes(nullable) }`; v1+ adds `RebalanceTimeoutMs:int32` (dflt 0, written + discarded); v5+ adds nullable `GroupInstanceId:string` (written null; non-flexible v5 = legacy nullable string, flexible v6+ = nullable compact); v6+ flexible (KIP-482: compact strings, varint N+1 counts, top-level endTags sentinel — no tagged fields declared); v8+ nullable `Reason` (written null; v9 = identical layout to v8). Response layout (frozen `doc/spec/order/JoinGroup.Response.txt`): `ErrorCode:int16 + GenerationId:int32 + Protocol:string(nullable) + Leader:string + MemberId:string(nullable) + Members[] { MemberId:string + GroupInstanceId:string[5+](nullable) + Metadata:bytes[1+](nullable) }`, leading `ThrottleTimeMs:int32` from v2+ (spec dflt 0, written + discarded); v6+ flexible; v7+ nullable `ProtocolType` (written as the given value); v9 `SkipAssignment:bool` (written false). Inline v0-only `KafkaCodec` methods replaced with thin delegates. `JoinGroupCodecTest`: 49 tests — round-trips all versions both directions, v0/v6 byte-for-byte goldens (hand-built), per-version size diffs, null edges, truncation + version guards, facade delegation. Full module suite 1040 → 1089 green.
 
