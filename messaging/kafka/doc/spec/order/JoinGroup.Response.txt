@@ -1,0 +1,25 @@
+JoinGroup Response — field processing order (binding; spec 3.6.1) — flexible encoding from v6
+wire order by layout (equal run = byte-identical field layout):
+  v0-v1 -> ErrorCode:GenerationId:ProtocolName:Leader:MemberId:Members:(Members)MemberId:(Members)Metadata
+  v2-v4 -> ThrottleTimeMs?:ErrorCode:GenerationId:ProtocolName:Leader:MemberId:Members:(Members)MemberId:(Members)Metadata
+  v5 -> ThrottleTimeMs?:ErrorCode:GenerationId:ProtocolName:Leader:MemberId:Members:(Members)MemberId:(Members)GroupInstanceId?:(Members)Metadata
+  v6 -> ThrottleTimeMs?:ErrorCode:GenerationId:ProtocolName:Leader:MemberId:Members:(Members)MemberId:(Members)GroupInstanceId?:(Members)Metadata|flex
+  v7-v8 -> ThrottleTimeMs?:ErrorCode:GenerationId:ProtocolType?:ProtocolName:Leader:MemberId:Members:(Members)MemberId:(Members)GroupInstanceId?:(Members)Metadata|flex
+  v9 -> ThrottleTimeMs?:ErrorCode:GenerationId:ProtocolType?:ProtocolName:Leader:SkipAssignment?:MemberId:Members:(Members)MemberId:(Members)GroupInstanceId?:(Members)Metadata|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0-v1:
+  v0: fixed: ErrorCode(int16), GenerationId(int32), ProtocolName(string), Leader(string), MemberId(string), Members([]JoinGroupResponseMember) || tagged: ∅
+  v1: fixed: ErrorCode(int16), GenerationId(int32), ProtocolName(string), Leader(string), MemberId(string), Members([]JoinGroupResponseMember) || tagged: ∅
+  v2-v4:
+  v2: fixed: ThrottleTimeMs(int32), ErrorCode(int16), GenerationId(int32), ProtocolName(string), Leader(string), MemberId(string), Members([]JoinGroupResponseMember) || tagged: ∅
+  v3: fixed: ThrottleTimeMs(int32), ErrorCode(int16), GenerationId(int32), ProtocolName(string), Leader(string), MemberId(string), Members([]JoinGroupResponseMember) || tagged: ∅
+  v4: fixed: ThrottleTimeMs(int32), ErrorCode(int16), GenerationId(int32), ProtocolName(string), Leader(string), MemberId(string), Members([]JoinGroupResponseMember) || tagged: ∅
+  v5:
+  v5: fixed: ThrottleTimeMs(int32), ErrorCode(int16), GenerationId(int32), ProtocolName(string), Leader(string), MemberId(string), Members([]JoinGroupResponseMember) || tagged: ∅
+  v6:
+  v6: fixed: ThrottleTimeMs(int32) [flex], ErrorCode(int16) [flex], GenerationId(int32) [flex], ProtocolName(string) [flex], Leader(string) [flex], MemberId(string) [flex], Members([]JoinGroupResponseMember) [flex] || tagged: ∅
+  v7-v8:
+  v7: fixed: ThrottleTimeMs(int32) [flex], ErrorCode(int16) [flex], GenerationId(int32) [flex], ProtocolType(string) [flex], ProtocolName(string) [flex], Leader(string) [flex], MemberId(string) [flex], Members([]JoinGroupResponseMember) [flex] || tagged: ∅
+  v8: fixed: ThrottleTimeMs(int32) [flex], ErrorCode(int16) [flex], GenerationId(int32) [flex], ProtocolType(string) [flex], ProtocolName(string) [flex], Leader(string) [flex], MemberId(string) [flex], Members([]JoinGroupResponseMember) [flex] || tagged: ∅
+  v9:
+  v9: fixed: ThrottleTimeMs(int32) [flex], ErrorCode(int16) [flex], GenerationId(int32) [flex], ProtocolType(string) [flex], ProtocolName(string) [flex], Leader(string) [flex], SkipAssignment(bool) [flex], MemberId(string) [flex], Members([]JoinGroupResponseMember) [flex] || tagged: ∅

@@ -486,75 +486,48 @@ public final class KafkaCodec {
 
     // ===== JoinGroup (11) =====
 
+    /**
+     * Encodes a JoinGroup request body at the pinned version (v0).
+     *
+     * @param req the request
+     * @return encoded body bytes
+     * @since 0.1.0
+     */
     public static byte[] encodeJoinGroupRequest(JoinGroupRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        writeString(buf, req.groupId());
-        buf.putInt(req.sessionTimeoutMs());
-        buf.putInt(req.rebalanceTimeoutMs());
-        writeString(buf, req.memberId());
-        writeString(buf, req.protocolType());
-        buf.putInt(req.protocols().size());
-        for (var p : req.protocols()) {
-            writeString(buf, p.name());
-            buf.putInt(p.metadata().length);
-            buf.put(p.metadata());
-        }
-        buf.flip();
-        return toBytes(buf);
+        return JoinGroupCodec.encodeRequest(req);
     }
 
+    /**
+     * Decodes a JoinGroup request body (pinned version).
+     *
+     * @param buf the request body
+     * @return the decoded request
+     * @since 0.1.0
+     */
     public static JoinGroupRequest decodeJoinGroupRequest(ByteBuffer buf) {
-        String groupId = readString(buf);
-        int sessionTimeout = buf.getInt();
-        int rebalanceTimeout = buf.getInt();
-        String memberId = readString(buf);
-        String protocolType = readString(buf);
-        int protocolCount = buf.getInt();
-        List<JoinGroupRequest.Protocol> protocols = new ArrayList<>(protocolCount);
-        for (int i = 0; i < protocolCount; i++) {
-            String name = readString(buf);
-            int metaLen = buf.getInt();
-            byte[] metadata = new byte[metaLen];
-            buf.get(metadata);
-            protocols.add(new JoinGroupRequest.Protocol(name, metadata));
-        }
-        return new JoinGroupRequest(groupId, sessionTimeout, rebalanceTimeout, memberId,
-                protocolType, protocols);
+        return JoinGroupCodec.decodeRequest(JoinGroupCodec.PINNED_VERSION, buf);
     }
 
+    /**
+     * Encodes a JoinGroup response body at the pinned version (v0).
+     *
+     * @param resp the response
+     * @return encoded body bytes
+     * @since 0.1.0
+     */
     public static byte[] encodeJoinGroupResponse(JoinGroupResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putShort(resp.errorCode());
-        buf.putInt(resp.generationId());
-        writeString(buf, resp.protocolName());
-        writeString(buf, resp.leader());
-        writeString(buf, resp.memberId());
-        buf.putInt(resp.members().size());
-        for (var m : resp.members()) {
-            writeString(buf, m.memberId());
-            buf.putInt(m.metadata().length);
-            buf.put(m.metadata());
-        }
-        buf.flip();
-        return toBytes(buf);
+        return JoinGroupCodec.encodeResponse(resp);
     }
 
+    /**
+     * Decodes a JoinGroup response body (pinned version).
+     *
+     * @param buf the response body
+     * @return the decoded response
+     * @since 0.1.0
+     */
     public static JoinGroupResponse decodeJoinGroupResponse(ByteBuffer buf) {
-        short errorCode = buf.getShort();
-        int generationId = buf.getInt();
-        String protocolName = readString(buf);
-        String leader = readString(buf);
-        String memberId = readString(buf);
-        int memberCount = buf.getInt();
-        List<JoinGroupResponse.Member> members = new ArrayList<>(memberCount);
-        for (int i = 0; i < memberCount; i++) {
-            String mId = readString(buf);
-            int metaLen = buf.getInt();
-            byte[] metadata = new byte[metaLen];
-            buf.get(metadata);
-            members.add(new JoinGroupResponse.Member(mId, metadata));
-        }
-        return new JoinGroupResponse(errorCode, generationId, protocolName, leader, memberId, members);
+        return JoinGroupCodec.decodeResponse(JoinGroupCodec.PINNED_VERSION, buf);
     }
 
     // ===== SyncGroup (14) =====
