@@ -632,27 +632,52 @@ public final class KafkaCodec {
 
     // ===== LeaveGroup (13) =====
 
-    public static byte[] encodeLeaveGroupRequest(LeaveGroupRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(256);
-        writeString(buf, req.groupId());
-        writeString(buf, req.memberId());
-        buf.flip();
-        return toBytes(buf);
+    /**
+     * Encodes a LeaveGroup request body at the given API version.
+     *
+     * @param version the API version (0–5)
+     * @param req     the request
+     * @return encoded body bytes
+     * @since 0.1.0
+     */
+    public static byte[] encodeLeaveGroupRequest(short version, LeaveGroupRequest req) {
+        return LeaveGroupCodec.encodeRequest(version, req);
     }
 
-    public static LeaveGroupRequest decodeLeaveGroupRequest(ByteBuffer buf) {
-        return new LeaveGroupRequest(readString(buf), readString(buf));
+    /**
+     * Decodes a LeaveGroup request body at the given API version.
+     *
+     * @param version the API version (0–5)
+     * @param buf     the request body
+     * @return the decoded request
+     * @since 0.1.0
+     */
+    public static LeaveGroupRequest decodeLeaveGroupRequest(short version, ByteBuffer buf) {
+        return LeaveGroupCodec.decodeRequest(version, buf);
     }
 
-    public static byte[] encodeLeaveGroupResponse(LeaveGroupResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(2);
-        buf.putShort(resp.errorCode());
-        buf.flip();
-        return toBytes(buf);
+    /**
+     * Encodes a LeaveGroup response body at the given API version.
+     *
+     * @param version the API version (0–5)
+     * @param resp    the response
+     * @return encoded body bytes
+     * @since 0.1.0
+     */
+    public static byte[] encodeLeaveGroupResponse(short version, LeaveGroupResponse resp) {
+        return LeaveGroupCodec.encodeResponse(version, resp);
     }
 
-    public static LeaveGroupResponse decodeLeaveGroupResponse(ByteBuffer buf) {
-        return new LeaveGroupResponse(buf.getShort());
+    /**
+     * Decodes a LeaveGroup response body at the given API version.
+     *
+     * @param version the API version (0–5)
+     * @param buf     the response body
+     * @return the decoded response
+     * @since 0.1.0
+     */
+    public static LeaveGroupResponse decodeLeaveGroupResponse(short version, ByteBuffer buf) {
+        return LeaveGroupCodec.decodeResponse(version, buf);
     }
 
     // ===== OffsetCommit (8) =====

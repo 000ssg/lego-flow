@@ -309,8 +309,8 @@ class KafkaCodecTest {
     @Test
     void testLeaveGroupRequest() {
         var req = new LeaveGroupRequest("group1", "member-1");
-        byte[] encoded = KafkaCodec.encodeLeaveGroupRequest(req);
-        var decoded = KafkaCodec.decodeLeaveGroupRequest(ByteBuffer.wrap(encoded));
+        byte[] encoded = KafkaCodec.encodeLeaveGroupRequest((short) 0, req);
+        var decoded = KafkaCodec.decodeLeaveGroupRequest((short) 0, ByteBuffer.wrap(encoded));
         assertThat(decoded.groupId()).isEqualTo("group1");
         assertThat(decoded.memberId()).isEqualTo("member-1");
     }
@@ -318,8 +318,8 @@ class KafkaCodecTest {
     @Test
     void testLeaveGroupResponse() {
         var resp = new LeaveGroupResponse((short) 0);
-        byte[] encoded = KafkaCodec.encodeLeaveGroupResponse(resp);
-        var decoded = KafkaCodec.decodeLeaveGroupResponse(ByteBuffer.wrap(encoded));
+        byte[] encoded = KafkaCodec.encodeLeaveGroupResponse((short) 0, resp);
+        var decoded = KafkaCodec.decodeLeaveGroupResponse((short) 0, ByteBuffer.wrap(encoded));
         assertThat(decoded.errorCode()).isZero();
     }
 

@@ -512,7 +512,7 @@ public final class KafkaConsumer implements AutoCloseable {
     public void leaveGroup() throws IOException {
         if (!memberId.isEmpty()) {
             byte[] payload = KafkaCodec.encodeLeaveGroupRequest(
-                    new LeaveGroupRequest(groupId, memberId));
+                    (short) 0, new LeaveGroupRequest(groupId, memberId));
             connection.sendAndReceive(ApiKey.LEAVE_GROUP.key(), (short) 0, payload);
             LOG.info("Left group '{}'", groupId);
         }
