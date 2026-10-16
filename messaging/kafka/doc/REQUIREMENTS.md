@@ -771,6 +771,60 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 - **Sub-category**: **Consumer Groups 34/63** (OffsetCommit 10 + OffsetFetch 9 + FindCoordinator 5 + JoinGroup 10); next: Heartbeat (API 12) v0–v4.
 
+## Commit: `5ef87d92` / `b9001902` / `4d16fcec` — Unpin negotiated version end-to-end
+
+> ⚠️ **Intermediate results** — these three commits close the unpin sub-task incrementally
+> (code → broker clamp → verification test). This entry consolidates all three; treat it
+> as the single documented record of the sub-task.
+
+- **Requirement**: the negotiated runtime version must be honored end-to-end — facade,
+  broker, and clients must encode/decode at the version the client chose (default v0
+  until ApiVersions negotiation is wired), and the broker must serve whatever version the
+  request header carries, clamped to what it advertises and what the codec implements.
+  Previously `KafkaCodec.encode*/decode*` body methods took no version param (hardcoded
+  `PINNED_VERSION`), so the header version was silently ignored.
+
+- **Design decisions** (confirmed with the user):
+  1. The codec is the source of truth for the versions it serves: `ApiKey` = *advertised*
+     range, `<Api>Codec.MAX_VERSION` = *serviced* range; reconcile rather than let them
+     drift silently.
+  2. Client negotiates (or defaults to) V → encodes the request body at V and the request
+     header at V, with the flex bit set when `V >= ApiKey.flexibleVersion()`.
+  3. Broker decodes the body at `version = min(headerV, ApiKey.maxVersion(),
+     Codec.MAX_VERSION)`; reject with `UNSUPPORTED_VERSION` (35) if below the codec's MIN;
+     client-side out-of-range → `IllegalArgumentException`.
+  4. Response headers carry no version — only the request header is version-dependent.
+  5. Client default stays v0 until the ApiVersions-negotiation logic is wired; the unpin
+     makes the plumbing correct, not the negotiation.
+
+- **`5ef87d92` (code)**: `KafkaCodec` facade — all 100 encode/decode delegate methods for
+  the 25 dedicated-codec APIs take an explicit `short version` param; no-version overloads
+  and every `PINNED_VERSION` constant removed from the dedicated codecs; `KafkaBroker`
+  threads `header.apiVersion()` into all 25 handlers; producer/consumer/admin encode/decode
+  calls updated to the versioned facade; 5 codecs (ApiVersions, Fetch, Produce,
+  SaslHandshake, SaslAuthenticate) gained `MIN_VERSION`/`MAX_VERSION`/`FLEXIBLE_START`
+  constants. 1087 tests green.
+- **`b9001902` (broker clamp)**: the request version is further bounded by the advertised
+  `ApiKey.maxVersion()` — a broker cannot serve a version it never advertised.
+- **`4d16fcec` (verification test)**: `KafkaCodecNegotiatedVersionTest` — round-trips all
+  25 versioned APIs at their MIN/MID/MAX versions through the versioned facade, plus an
+  end-to-end FindCoordinator v3 (a non-pinned version) over the in-memory transport: the
+  version survives request-encode → broker-decode → response-encode → client-decode,
+  including the broker-side clamp.
+
+### Test Coverage
+- KafkaCodecNegotiatedVersionTest 26 tests; full module 1089 → 1113 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | KafkaCodec (facade) + 25 dedicated codecs + KafkaBroker + 3 clients |
+| Files added | 1 test (KafkaCodecNegotiatedVersionTest, 554 lines) |
+| Tests added | 26 |
+
+- **Next**: Heartbeat (API 12) v0–v5 dedicated-codec cycle; client-side ApiVersions
+  negotiation (choose per-API version from the advertised range).
+
 ## Document Maintenance
 
 - This document is append-only for commit sections

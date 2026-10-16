@@ -30,27 +30,41 @@ Request: v0 base (`GroupId:string + GenerationId:int32 + MemberId:string`); v3+ 
 Response: v0 base `ErrorCode:int16`; v1+ `ThrottleTimeMs:int32` leading (spec dflt 0).
 In-house models are `HeartbeatRequest(groupId, generationId, memberId)` / `HeartbeatResponse(errorCode)` — facade pins v0; version-gated fields encoded/decoded with spec-default handling like sibling codecs. Models unchanged if possible.
 
-## KNOWN GAP (user-flagged UNACCEPTABLE — fix AFTER the JoinGroup sub-task, 2026-10-12)
-**Audit: negotiated version is ignored at runtime, not in the codecs.**
-- Codec layer is clean: all 24 dedicated `<Api>Codec` classes accept `short version`
-  and branch on it (verified per-file: `version >= FLEXIBLE_START`, per-version
-  field gating; v0-only APIs pin via `checkVersion`). NONE ignore the version param.
-- Facade `KafkaCodec.encode*/decode*` body methods take NO version param → hardcode
-  `PINNED_VERSION` (v0, except ListOffsets v1) or literal `(short) 0` (ApiVersions,
-  Sasl*). ~50 methods.
-- `KafkaBroker.processRequest` decodes `RequestHeader` (incl. `apiVersion`) but
-  decodes bodies via pinned facade and encodes responses at pinned version —
-  the header version is never threaded into any codec. Broker advertises full
-  min/max range in ApiVersionsResponse it cannot actually serve → a foreign
-  client sending e.g. v5 Metadata / v8 Fetch gets misparsed as v0.
-- Clients (`KafkaProducer`/`KafkaConsumer`/`KafkaAdminClient`) always send header
-  version 0, never negotiate (AdminClient.apiVersions() exists but is not consumed
-  to select per-API versions).
-- In-house round-trip stays self-consistent (always v0/v1), which is why tests pass.
-**Follow-up fix (sequenced after JoinGroup):** (1) broker: thread `header.apiVersion()`
-into decode + encode response at that version, reject out-of-range; (2) facade: add
-version overloads or have broker call dedicated codecs directly; (3) clients: perform
-ApiVersions negotiation and use negotiated version in header + body.
+## KNOWN GAP (RESOLVED 2026-10-16 — see "Unpin negotiated version" below)
+**Historical audit (was user-flagged UNACCEPTABLE): negotiated version ignored at runtime, not in the codecs.**
+- Codec layer was always clean: all dedicated `<Api>Codec` classes accept `short version`
+  and branch on it (per-version field gating, flex from FLEXIBLE_START). NONE ignored the version param.
+- Facade `KafkaCodec.encode*/decode*` body methods previously took NO version param → hardcoded
+  `PINNED_VERSION` (v0, except ListOffsets v1) or literal `(short) 0` (ApiVersions, Sasl*).
+- `KafkaBroker.processRequest` decoded `RequestHeader` (incl. `apiVersion`) but decoded bodies via the
+  pinned facade and encoded responses at the pinned version — the header version was never threaded
+  into any codec. Broker advertised a full min/max range in ApiVersionsResponse it could not serve.
+- Clients always sent header version 0 and never negotiated.
+**Resolution:** threaded the negotiated version end-to-end (facade versioned overloads → broker
+decode/response-encode at the header version with an advertised-max clamp → clients negotiate via
+ApiVersions). See the "Unpin negotiated version" section and commits `5ef87d92`, `b9001902`, `4d16fcec`.
+
+## Unpin negotiated version (CLOSED 2026-10-16)
+The version-carrying plumbing is now correct end-to-end. Design (confirmed with the
+user): the codec's `MAX_VERSION` is the *serviced* range, `ApiKey` the *advertised*
+range, and the broker clamps the request version to
+`min(headerV, ApiKey.maxVersion(), Codec.MAX_VERSION)`. Response headers carry no
+version — only the request header is version-dependent. Client default stays v0 until
+ApiVersions negotiation is wired (plumbing correct, negotiation not yet active).
+
+- `5ef87d92` — all 100 encode/decode facade delegate methods for the 25 dedicated-codec
+  APIs take an explicit `short version` param; no-version overloads and every
+  `PINNED_VERSION` constant removed; `KafkaBroker` threads `header.apiVersion()` into
+  all 25 handlers; producer/consumer/admin encode/decode calls updated to the
+  versioned facade; 5 codecs (ApiVersions, Fetch, Produce, SaslHandshake,
+  SaslAuthenticate) gained `MIN_VERSION`/`MAX_VERSION`/`FLEXIBLE_START`.
+- `b9001902` — broker-side clamp: the request version is bounded by the advertised
+  `ApiKey.maxVersion()` (a broker cannot serve a version it never advertised).
+- `4d16fcec` — `KafkaCodecNegotiatedVersionTest`: round-trips all 25 versioned APIs at
+  their MIN/MID/MAX versions through the versioned facade, plus an end-to-end
+  FindCoordinator v3 (a non-pinned version) over the in-memory transport — the version
+  survives request-encode → broker-decode → response-encode → client-decode, including
+  the broker-side clamp. 26 tests green.
 
 ## Verified facts (2026-10-11, this branch cleanup-messaging)
 - Full `:lego-flow-kafka` module: **1089 tests, 0 failures** (1040 after FindCoordinator +49 JoinGroup), verified via surefire reports after `mvn test`.
