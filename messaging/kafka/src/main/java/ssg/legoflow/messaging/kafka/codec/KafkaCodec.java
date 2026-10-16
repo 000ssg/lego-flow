@@ -155,8 +155,8 @@ public final class KafkaCodec {
      * @param req the request
      * @return the encoded bytes
      */
-    public static byte[] encodeApiVersionsRequest(ApiVersionsRequest req) {
-        return ApiVersionsCodec.encodeRequest((short) 0, req);
+    public static byte[] encodeApiVersionsRequest(short version, ApiVersionsRequest req) {
+        return ApiVersionsCodec.encodeRequest(version, req);
     }
 
     /**
@@ -165,8 +165,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded request
      */
-    public static ApiVersionsRequest decodeApiVersionsRequest(ByteBuffer buf) {
-        return ApiVersionsCodec.decodeRequest((short) 0, buf);
+    public static ApiVersionsRequest decodeApiVersionsRequest(short version, ByteBuffer buf) {
+        return ApiVersionsCodec.decodeRequest(version, buf);
     }
 
     /**
@@ -176,8 +176,8 @@ public final class KafkaCodec {
      * @param resp the response
      * @return the encoded bytes
      */
-    public static byte[] encodeApiVersionsResponse(ApiVersionsResponse resp) {
-        return ApiVersionsCodec.encodeResponse((short) 0, resp);
+    public static byte[] encodeApiVersionsResponse(short version, ApiVersionsResponse resp) {
+        return ApiVersionsCodec.encodeResponse(version, resp);
     }
 
     /**
@@ -186,8 +186,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded response
      */
-    public static ApiVersionsResponse decodeApiVersionsResponse(ByteBuffer buf) {
-        return ApiVersionsCodec.decodeResponse((short) 0, buf);
+    public static ApiVersionsResponse decodeApiVersionsResponse(short version, ByteBuffer buf) {
+        return ApiVersionsCodec.decodeResponse(version, buf);
     }
 
     // ===== Metadata (3) =====
@@ -303,8 +303,8 @@ public final class KafkaCodec {
      * @param req the request
      * @return the encoded bytes
      */
-    public static byte[] encodeProduceRequest(ProduceRequest req) {
-        return ProduceCodec.encodeRequest(ProduceCodec.PINNED_VERSION, req);
+    public static byte[] encodeProduceRequest(short version, ProduceRequest req) {
+        return ProduceCodec.encodeRequest(version, req);
     }
 
     /**
@@ -313,8 +313,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded request
      */
-    public static ProduceRequest decodeProduceRequest(ByteBuffer buf) {
-        return ProduceCodec.decodeRequest(ProduceCodec.PINNED_VERSION, buf);
+    public static ProduceRequest decodeProduceRequest(short version, ByteBuffer buf) {
+        return ProduceCodec.decodeRequest(version, buf);
     }
 
     /**
@@ -327,8 +327,8 @@ public final class KafkaCodec {
      * @param resp the response
      * @return the encoded bytes
      */
-    public static byte[] encodeProduceResponse(ProduceResponse resp) {
-        return ProduceCodec.encodeResponse(ProduceCodec.PINNED_VERSION, resp);
+    public static byte[] encodeProduceResponse(short version, ProduceResponse resp) {
+        return ProduceCodec.encodeResponse(version, resp);
     }
 
     /**
@@ -337,8 +337,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded response
      */
-    public static ProduceResponse decodeProduceResponse(ByteBuffer buf) {
-        return ProduceCodec.decodeResponse(ProduceCodec.PINNED_VERSION, buf);
+    public static ProduceResponse decodeProduceResponse(short version, ByteBuffer buf) {
+        return ProduceCodec.decodeResponse(version, buf);
     }
 
     // ===== Fetch (1) =====
@@ -355,8 +355,8 @@ public final class KafkaCodec {
      * @param req the request
      * @return the encoded bytes
      */
-    public static byte[] encodeFetchRequest(FetchRequest req) {
-        return FetchCodec.encodeRequest(FetchCodec.PINNED_VERSION, req);
+    public static byte[] encodeFetchRequest(short version, FetchRequest req) {
+        return FetchCodec.encodeRequest(version, req);
     }
 
     /**
@@ -365,8 +365,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded request
      */
-    public static FetchRequest decodeFetchRequest(ByteBuffer buf) {
-        return FetchCodec.decodeRequest(FetchCodec.PINNED_VERSION, buf);
+    public static FetchRequest decodeFetchRequest(short version, ByteBuffer buf) {
+        return FetchCodec.decodeRequest(version, buf);
     }
 
     /**
@@ -380,8 +380,8 @@ public final class KafkaCodec {
      * @param resp the response
      * @return the encoded bytes
      */
-    public static byte[] encodeFetchResponse(FetchResponse resp) {
-        return FetchCodec.encodeResponse(FetchCodec.PINNED_VERSION, resp);
+    public static byte[] encodeFetchResponse(short version, FetchResponse resp) {
+        return FetchCodec.encodeResponse(version, resp);
     }
 
     /**
@@ -390,8 +390,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded response
      */
-    public static FetchResponse decodeFetchResponse(ByteBuffer buf) {
-        return FetchCodec.decodeResponse(FetchCodec.PINNED_VERSION, buf);
+    public static FetchResponse decodeFetchResponse(short version, ByteBuffer buf) {
+        return FetchCodec.decodeResponse(version, buf);
     }
 
     // ===== ListOffsets (2) =====
@@ -403,8 +403,8 @@ public final class KafkaCodec {
      * @param req the request
      * @return the encoded bytes
      */
-    public static byte[] encodeListOffsetsRequest(ListOffsetsRequest req) {
-        return ListOffsetsCodec.encodeRequest(ListOffsetsCodec.PINNED_VERSION, req);
+    public static byte[] encodeListOffsetsRequest(short version, ListOffsetsRequest req) {
+        return ListOffsetsCodec.encodeRequest(version, req);
     }
 
     /**
@@ -413,8 +413,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded request
      */
-    public static ListOffsetsRequest decodeListOffsetsRequest(ByteBuffer buf) {
-        return ListOffsetsCodec.decodeRequest(ListOffsetsCodec.PINNED_VERSION, buf);
+    public static ListOffsetsRequest decodeListOffsetsRequest(short version, ByteBuffer buf) {
+        return ListOffsetsCodec.decodeRequest(version, buf);
     }
 
     /**
@@ -424,8 +424,8 @@ public final class KafkaCodec {
      * @param resp the response
      * @return the encoded bytes
      */
-    public static byte[] encodeListOffsetsResponse(ListOffsetsResponse resp) {
-        return ListOffsetsCodec.encodeResponse(ListOffsetsCodec.PINNED_VERSION, resp);
+    public static byte[] encodeListOffsetsResponse(short version, ListOffsetsResponse resp) {
+        return ListOffsetsCodec.encodeResponse(version, resp);
     }
 
     /**
@@ -434,8 +434,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded response
      */
-    public static ListOffsetsResponse decodeListOffsetsResponse(ByteBuffer buf) {
-        return ListOffsetsCodec.decodeResponse(ListOffsetsCodec.PINNED_VERSION, buf);
+    public static ListOffsetsResponse decodeListOffsetsResponse(short version, ByteBuffer buf) {
+        return ListOffsetsCodec.decodeResponse(version, buf);
     }
 
     // ===== FindCoordinator (10) =====
@@ -447,8 +447,8 @@ public final class KafkaCodec {
      * @return encoded body bytes
      * @since 0.1.0
      */
-    public static byte[] encodeFindCoordinatorRequest(FindCoordinatorRequest req) {
-        return FindCoordinatorCodec.encodeRequest(req);
+    public static byte[] encodeFindCoordinatorRequest(short version, FindCoordinatorRequest req) {
+        return FindCoordinatorCodec.encodeRequest(version, req);
     }
 
     /**
@@ -458,8 +458,8 @@ public final class KafkaCodec {
      * @return the decoded request
      * @since 0.1.0
      */
-    public static FindCoordinatorRequest decodeFindCoordinatorRequest(ByteBuffer buf) {
-        return FindCoordinatorCodec.decodeRequest(FindCoordinatorCodec.PINNED_VERSION, buf);
+    public static FindCoordinatorRequest decodeFindCoordinatorRequest(short version, ByteBuffer buf) {
+        return FindCoordinatorCodec.decodeRequest(version, buf);
     }
 
     /**
@@ -469,8 +469,8 @@ public final class KafkaCodec {
      * @return encoded body bytes
      * @since 0.1.0
      */
-    public static byte[] encodeFindCoordinatorResponse(FindCoordinatorResponse resp) {
-        return FindCoordinatorCodec.encodeResponse(resp);
+    public static byte[] encodeFindCoordinatorResponse(short version, FindCoordinatorResponse resp) {
+        return FindCoordinatorCodec.encodeResponse(version, resp);
     }
 
     /**
@@ -480,8 +480,8 @@ public final class KafkaCodec {
      * @return the decoded response
      * @since 0.1.0
      */
-    public static FindCoordinatorResponse decodeFindCoordinatorResponse(ByteBuffer buf) {
-        return FindCoordinatorCodec.decodeResponse(FindCoordinatorCodec.PINNED_VERSION, buf);
+    public static FindCoordinatorResponse decodeFindCoordinatorResponse(short version, ByteBuffer buf) {
+        return FindCoordinatorCodec.decodeResponse(version, buf);
     }
 
     // ===== JoinGroup (11) =====
@@ -493,8 +493,8 @@ public final class KafkaCodec {
      * @return encoded body bytes
      * @since 0.1.0
      */
-    public static byte[] encodeJoinGroupRequest(JoinGroupRequest req) {
-        return JoinGroupCodec.encodeRequest(req);
+    public static byte[] encodeJoinGroupRequest(short version, JoinGroupRequest req) {
+        return JoinGroupCodec.encodeRequest(version, req);
     }
 
     /**
@@ -504,8 +504,8 @@ public final class KafkaCodec {
      * @return the decoded request
      * @since 0.1.0
      */
-    public static JoinGroupRequest decodeJoinGroupRequest(ByteBuffer buf) {
-        return JoinGroupCodec.decodeRequest(JoinGroupCodec.PINNED_VERSION, buf);
+    public static JoinGroupRequest decodeJoinGroupRequest(short version, ByteBuffer buf) {
+        return JoinGroupCodec.decodeRequest(version, buf);
     }
 
     /**
@@ -515,8 +515,8 @@ public final class KafkaCodec {
      * @return encoded body bytes
      * @since 0.1.0
      */
-    public static byte[] encodeJoinGroupResponse(JoinGroupResponse resp) {
-        return JoinGroupCodec.encodeResponse(resp);
+    public static byte[] encodeJoinGroupResponse(short version, JoinGroupResponse resp) {
+        return JoinGroupCodec.encodeResponse(version, resp);
     }
 
     /**
@@ -526,8 +526,8 @@ public final class KafkaCodec {
      * @return the decoded response
      * @since 0.1.0
      */
-    public static JoinGroupResponse decodeJoinGroupResponse(ByteBuffer buf) {
-        return JoinGroupCodec.decodeResponse(JoinGroupCodec.PINNED_VERSION, buf);
+    public static JoinGroupResponse decodeJoinGroupResponse(short version, ByteBuffer buf) {
+        return JoinGroupCodec.decodeResponse(version, buf);
     }
 
     // ===== SyncGroup (14) =====
@@ -640,8 +640,8 @@ public final class KafkaCodec {
      * @return encoded body bytes
      * @since 0.1.0
      */
-    public static byte[] encodeOffsetCommitRequest(OffsetCommitRequest req) {
-        return OffsetCommitCodec.encodeRequest(req);
+    public static byte[] encodeOffsetCommitRequest(short version, OffsetCommitRequest req) {
+        return OffsetCommitCodec.encodeRequest(version, req);
     }
 
     /**
@@ -651,8 +651,8 @@ public final class KafkaCodec {
      * @return the decoded request
      * @since 0.1.0
      */
-    public static OffsetCommitRequest decodeOffsetCommitRequest(ByteBuffer buf) {
-        return OffsetCommitCodec.decodeRequest(OffsetCommitCodec.PINNED_VERSION, buf);
+    public static OffsetCommitRequest decodeOffsetCommitRequest(short version, ByteBuffer buf) {
+        return OffsetCommitCodec.decodeRequest(version, buf);
     }
 
     /**
@@ -662,8 +662,8 @@ public final class KafkaCodec {
      * @return encoded body bytes
      * @since 0.1.0
      */
-    public static byte[] encodeOffsetCommitResponse(OffsetCommitResponse resp) {
-        return OffsetCommitCodec.encodeResponse(resp);
+    public static byte[] encodeOffsetCommitResponse(short version, OffsetCommitResponse resp) {
+        return OffsetCommitCodec.encodeResponse(version, resp);
     }
 
     /**
@@ -673,8 +673,8 @@ public final class KafkaCodec {
      * @return the decoded response
      * @since 0.1.0
      */
-    public static OffsetCommitResponse decodeOffsetCommitResponse(ByteBuffer buf) {
-        return OffsetCommitCodec.decodeResponse(OffsetCommitCodec.PINNED_VERSION, buf);
+    public static OffsetCommitResponse decodeOffsetCommitResponse(short version, ByteBuffer buf) {
+        return OffsetCommitCodec.decodeResponse(version, buf);
     }
 
     // ===== OffsetFetch (9) =====
@@ -686,8 +686,8 @@ public final class KafkaCodec {
      * @return encoded body bytes
      * @since 0.1.0
      */
-    public static byte[] encodeOffsetFetchRequest(OffsetFetchRequest req) {
-        return OffsetFetchCodec.encodeRequest(req);
+    public static byte[] encodeOffsetFetchRequest(short version, OffsetFetchRequest req) {
+        return OffsetFetchCodec.encodeRequest(version, req);
     }
 
     /**
@@ -697,8 +697,8 @@ public final class KafkaCodec {
      * @return the decoded request
      * @since 0.1.0
      */
-    public static OffsetFetchRequest decodeOffsetFetchRequest(ByteBuffer buf) {
-        return OffsetFetchCodec.decodeRequest(OffsetFetchCodec.PINNED_VERSION, buf);
+    public static OffsetFetchRequest decodeOffsetFetchRequest(short version, ByteBuffer buf) {
+        return OffsetFetchCodec.decodeRequest(version, buf);
     }
 
     /**
@@ -708,8 +708,8 @@ public final class KafkaCodec {
      * @return encoded body bytes
      * @since 0.1.0
      */
-    public static byte[] encodeOffsetFetchResponse(OffsetFetchResponse resp) {
-        return OffsetFetchCodec.encodeResponse(resp);
+    public static byte[] encodeOffsetFetchResponse(short version, OffsetFetchResponse resp) {
+        return OffsetFetchCodec.encodeResponse(version, resp);
     }
 
     /**
@@ -719,8 +719,8 @@ public final class KafkaCodec {
      * @return the decoded response
      * @since 0.1.0
      */
-    public static OffsetFetchResponse decodeOffsetFetchResponse(ByteBuffer buf) {
-        return OffsetFetchCodec.decodeResponse(OffsetFetchCodec.PINNED_VERSION, buf);
+    public static OffsetFetchResponse decodeOffsetFetchResponse(short version, ByteBuffer buf) {
+        return OffsetFetchCodec.decodeResponse(version, buf);
     }
 
     // ===== CreateTopics (19) =====
@@ -732,8 +732,8 @@ public final class KafkaCodec {
      * @param req the request
      * @return the encoded bytes
      */
-    public static byte[] encodeCreateTopicsRequest(CreateTopicsRequest req) {
-        return CreateTopicsCodec.encodeRequest(CreateTopicsCodec.PINNED_VERSION, req);
+    public static byte[] encodeCreateTopicsRequest(short version, CreateTopicsRequest req) {
+        return CreateTopicsCodec.encodeRequest(version, req);
     }
 
     /**
@@ -742,8 +742,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded request
      */
-    public static CreateTopicsRequest decodeCreateTopicsRequest(ByteBuffer buf) {
-        return CreateTopicsCodec.decodeRequest(CreateTopicsCodec.PINNED_VERSION, buf);
+    public static CreateTopicsRequest decodeCreateTopicsRequest(short version, ByteBuffer buf) {
+        return CreateTopicsCodec.decodeRequest(version, buf);
     }
 
     /**
@@ -753,8 +753,8 @@ public final class KafkaCodec {
      * @param resp the response
      * @return the encoded bytes
      */
-    public static byte[] encodeCreateTopicsResponse(CreateTopicsResponse resp) {
-        return CreateTopicsCodec.encodeResponse(CreateTopicsCodec.PINNED_VERSION, resp);
+    public static byte[] encodeCreateTopicsResponse(short version, CreateTopicsResponse resp) {
+        return CreateTopicsCodec.encodeResponse(version, resp);
     }
 
     /**
@@ -763,8 +763,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded response
      */
-    public static CreateTopicsResponse decodeCreateTopicsResponse(ByteBuffer buf) {
-        return CreateTopicsCodec.decodeResponse(CreateTopicsCodec.PINNED_VERSION, buf);
+    public static CreateTopicsResponse decodeCreateTopicsResponse(short version, ByteBuffer buf) {
+        return CreateTopicsCodec.decodeResponse(version, buf);
     }
 
     // ===== DeleteTopics (20) =====
@@ -776,8 +776,8 @@ public final class KafkaCodec {
      * @param req the request
      * @return the encoded bytes
      */
-    public static byte[] encodeDeleteTopicsRequest(DeleteTopicsRequest req) {
-        return DeleteTopicsCodec.encodeRequest(DeleteTopicsCodec.PINNED_VERSION, req);
+    public static byte[] encodeDeleteTopicsRequest(short version, DeleteTopicsRequest req) {
+        return DeleteTopicsCodec.encodeRequest(version, req);
     }
 
     /**
@@ -786,8 +786,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded request
      */
-    public static DeleteTopicsRequest decodeDeleteTopicsRequest(ByteBuffer buf) {
-        return DeleteTopicsCodec.decodeRequest(DeleteTopicsCodec.PINNED_VERSION, buf);
+    public static DeleteTopicsRequest decodeDeleteTopicsRequest(short version, ByteBuffer buf) {
+        return DeleteTopicsCodec.decodeRequest(version, buf);
     }
 
     /**
@@ -797,8 +797,8 @@ public final class KafkaCodec {
      * @param resp the response
      * @return the encoded bytes
      */
-    public static byte[] encodeDeleteTopicsResponse(DeleteTopicsResponse resp) {
-        return DeleteTopicsCodec.encodeResponse(DeleteTopicsCodec.PINNED_VERSION, resp);
+    public static byte[] encodeDeleteTopicsResponse(short version, DeleteTopicsResponse resp) {
+        return DeleteTopicsCodec.encodeResponse(version, resp);
     }
 
     /**
@@ -807,8 +807,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded response
      */
-    public static DeleteTopicsResponse decodeDeleteTopicsResponse(ByteBuffer buf) {
-        return DeleteTopicsCodec.decodeResponse(DeleteTopicsCodec.PINNED_VERSION, buf);
+    public static DeleteTopicsResponse decodeDeleteTopicsResponse(short version, ByteBuffer buf) {
+        return DeleteTopicsCodec.decodeResponse(version, buf);
     }
 
     // ===== DescribeGroups (15) =====
@@ -883,38 +883,38 @@ public final class KafkaCodec {
 
     // ===== InitProducerId (22) =====
 
-    public static byte[] encodeInitProducerIdRequest(InitProducerIdRequest req) {
-        return InitProducerIdCodec.encodeRequest(req);
+    public static byte[] encodeInitProducerIdRequest(short version, InitProducerIdRequest req) {
+        return InitProducerIdCodec.encodeRequest(version, req);
     }
 
-    public static InitProducerIdRequest decodeInitProducerIdRequest(ByteBuffer buf) {
-        return InitProducerIdCodec.decodeRequest(InitProducerIdCodec.PINNED_VERSION, buf);
+    public static InitProducerIdRequest decodeInitProducerIdRequest(short version, ByteBuffer buf) {
+        return InitProducerIdCodec.decodeRequest(version, buf);
     }
 
-    public static byte[] encodeInitProducerIdResponse(InitProducerIdResponse resp) {
-        return InitProducerIdCodec.encodeResponse(resp);
+    public static byte[] encodeInitProducerIdResponse(short version, InitProducerIdResponse resp) {
+        return InitProducerIdCodec.encodeResponse(version, resp);
     }
 
-    public static InitProducerIdResponse decodeInitProducerIdResponse(ByteBuffer buf) {
-        return InitProducerIdCodec.decodeResponse(InitProducerIdCodec.PINNED_VERSION, buf);
+    public static InitProducerIdResponse decodeInitProducerIdResponse(short version, ByteBuffer buf) {
+        return InitProducerIdCodec.decodeResponse(version, buf);
     }
 
     // ===== AddPartitionsToTxn (24) =====
 
-    public static byte[] encodeAddPartitionsToTxnRequest(AddPartitionsToTxnRequest req) {
-        return AddPartitionsToTxnCodec.encodeRequest(AddPartitionsToTxnCodec.PINNED_VERSION, req);
+    public static byte[] encodeAddPartitionsToTxnRequest(short version, AddPartitionsToTxnRequest req) {
+        return AddPartitionsToTxnCodec.encodeRequest(version, req);
     }
 
-    public static AddPartitionsToTxnRequest decodeAddPartitionsToTxnRequest(ByteBuffer buf) {
-        return AddPartitionsToTxnCodec.decodeRequest(AddPartitionsToTxnCodec.PINNED_VERSION, buf);
+    public static AddPartitionsToTxnRequest decodeAddPartitionsToTxnRequest(short version, ByteBuffer buf) {
+        return AddPartitionsToTxnCodec.decodeRequest(version, buf);
     }
 
-    public static byte[] encodeAddPartitionsToTxnResponse(AddPartitionsToTxnResponse resp) {
-        return AddPartitionsToTxnCodec.encodeResponse(AddPartitionsToTxnCodec.PINNED_VERSION, resp);
+    public static byte[] encodeAddPartitionsToTxnResponse(short version, AddPartitionsToTxnResponse resp) {
+        return AddPartitionsToTxnCodec.encodeResponse(version, resp);
     }
 
-    public static AddPartitionsToTxnResponse decodeAddPartitionsToTxnResponse(ByteBuffer buf) {
-        return AddPartitionsToTxnCodec.decodeResponse(AddPartitionsToTxnCodec.PINNED_VERSION, buf);
+    public static AddPartitionsToTxnResponse decodeAddPartitionsToTxnResponse(short version, ByteBuffer buf) {
+        return AddPartitionsToTxnCodec.decodeResponse(version, buf);
     }
 
     // ===== ListGroups (16) =====
@@ -983,8 +983,8 @@ public final class KafkaCodec {
      * @param req the request
      * @return the encoded bytes
      */
-    public static byte[] encodeDeleteRecordsRequest(DeleteRecordsRequest req) {
-        return DeleteRecordsCodec.encodeRequest(DeleteRecordsCodec.PINNED_VERSION, req);
+    public static byte[] encodeDeleteRecordsRequest(short version, DeleteRecordsRequest req) {
+        return DeleteRecordsCodec.encodeRequest(version, req);
     }
 
     /**
@@ -993,8 +993,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded request
      */
-    public static DeleteRecordsRequest decodeDeleteRecordsRequest(ByteBuffer buf) {
-        return DeleteRecordsCodec.decodeRequest(DeleteRecordsCodec.PINNED_VERSION, buf);
+    public static DeleteRecordsRequest decodeDeleteRecordsRequest(short version, ByteBuffer buf) {
+        return DeleteRecordsCodec.decodeRequest(version, buf);
     }
 
     /**
@@ -1004,8 +1004,8 @@ public final class KafkaCodec {
      * @param resp the response
      * @return the encoded bytes
      */
-    public static byte[] encodeDeleteRecordsResponse(DeleteRecordsResponse resp) {
-        return DeleteRecordsCodec.encodeResponse(DeleteRecordsCodec.PINNED_VERSION, resp);
+    public static byte[] encodeDeleteRecordsResponse(short version, DeleteRecordsResponse resp) {
+        return DeleteRecordsCodec.encodeResponse(version, resp);
     }
 
     /**
@@ -1014,8 +1014,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded response
      */
-    public static DeleteRecordsResponse decodeDeleteRecordsResponse(ByteBuffer buf) {
-        return DeleteRecordsCodec.decodeResponse(DeleteRecordsCodec.PINNED_VERSION, buf);
+    public static DeleteRecordsResponse decodeDeleteRecordsResponse(short version, ByteBuffer buf) {
+        return DeleteRecordsCodec.decodeResponse(version, buf);
     }
 
     // ===== CreatePartitions (37) =====
@@ -1027,8 +1027,8 @@ public final class KafkaCodec {
      * @param req the request
      * @return the encoded bytes
      */
-    public static byte[] encodeCreatePartitionsRequest(CreatePartitionsRequest req) {
-        return CreatePartitionsCodec.encodeRequest(CreatePartitionsCodec.PINNED_VERSION, req);
+    public static byte[] encodeCreatePartitionsRequest(short version, CreatePartitionsRequest req) {
+        return CreatePartitionsCodec.encodeRequest(version, req);
     }
 
     /**
@@ -1037,8 +1037,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded request
      */
-    public static CreatePartitionsRequest decodeCreatePartitionsRequest(ByteBuffer buf) {
-        return CreatePartitionsCodec.decodeRequest(CreatePartitionsCodec.PINNED_VERSION, buf);
+    public static CreatePartitionsRequest decodeCreatePartitionsRequest(short version, ByteBuffer buf) {
+        return CreatePartitionsCodec.decodeRequest(version, buf);
     }
 
     /**
@@ -1048,8 +1048,8 @@ public final class KafkaCodec {
      * @param resp the response
      * @return the encoded bytes
      */
-    public static byte[] encodeCreatePartitionsResponse(CreatePartitionsResponse resp) {
-        return CreatePartitionsCodec.encodeResponse(CreatePartitionsCodec.PINNED_VERSION, resp);
+    public static byte[] encodeCreatePartitionsResponse(short version, CreatePartitionsResponse resp) {
+        return CreatePartitionsCodec.encodeResponse(version, resp);
     }
 
     /**
@@ -1058,8 +1058,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded response
      */
-    public static CreatePartitionsResponse decodeCreatePartitionsResponse(ByteBuffer buf) {
-        return CreatePartitionsCodec.decodeResponse(CreatePartitionsCodec.PINNED_VERSION, buf);
+    public static CreatePartitionsResponse decodeCreatePartitionsResponse(short version, ByteBuffer buf) {
+        return CreatePartitionsCodec.decodeResponse(version, buf);
     }
 
     // ===== DeleteGroups (42) =====
@@ -1071,8 +1071,8 @@ public final class KafkaCodec {
      * @param req the request
      * @return the encoded bytes
      */
-    public static byte[] encodeDeleteGroupsRequest(DeleteGroupsRequest req) {
-        return DeleteGroupsCodec.encodeRequest(DeleteGroupsCodec.PINNED_VERSION, req);
+    public static byte[] encodeDeleteGroupsRequest(short version, DeleteGroupsRequest req) {
+        return DeleteGroupsCodec.encodeRequest(version, req);
     }
 
     /**
@@ -1081,8 +1081,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded request
      */
-    public static DeleteGroupsRequest decodeDeleteGroupsRequest(ByteBuffer buf) {
-        return DeleteGroupsCodec.decodeRequest(DeleteGroupsCodec.PINNED_VERSION, buf);
+    public static DeleteGroupsRequest decodeDeleteGroupsRequest(short version, ByteBuffer buf) {
+        return DeleteGroupsCodec.decodeRequest(version, buf);
     }
 
     /**
@@ -1092,8 +1092,8 @@ public final class KafkaCodec {
      * @param resp the response
      * @return the encoded bytes
      */
-    public static byte[] encodeDeleteGroupsResponse(DeleteGroupsResponse resp) {
-        return DeleteGroupsCodec.encodeResponse(DeleteGroupsCodec.PINNED_VERSION, resp);
+    public static byte[] encodeDeleteGroupsResponse(short version, DeleteGroupsResponse resp) {
+        return DeleteGroupsCodec.encodeResponse(version, resp);
     }
 
     /**
@@ -1102,8 +1102,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded response
      */
-    public static DeleteGroupsResponse decodeDeleteGroupsResponse(ByteBuffer buf) {
-        return DeleteGroupsCodec.decodeResponse(DeleteGroupsCodec.PINNED_VERSION, buf);
+    public static DeleteGroupsResponse decodeDeleteGroupsResponse(short version, ByteBuffer buf) {
+        return DeleteGroupsCodec.decodeResponse(version, buf);
     }
 
     // ===== OffsetDelete (47) =====
@@ -1205,8 +1205,8 @@ public final class KafkaCodec {
      * @param req the request
      * @return the encoded bytes
      */
-    public static byte[] encodeDescribeConfigsRequest(DescribeConfigsRequest req) {
-        return DescribeConfigsCodec.encodeRequest(req);
+    public static byte[] encodeDescribeConfigsRequest(short version, DescribeConfigsRequest req) {
+        return DescribeConfigsCodec.encodeRequest(version, req);
     }
 
     /**
@@ -1215,8 +1215,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded request
      */
-    public static DescribeConfigsRequest decodeDescribeConfigsRequest(ByteBuffer buf) {
-        return DescribeConfigsCodec.decodeRequest(DescribeConfigsCodec.PINNED_VERSION, buf);
+    public static DescribeConfigsRequest decodeDescribeConfigsRequest(short version, ByteBuffer buf) {
+        return DescribeConfigsCodec.decodeRequest(version, buf);
     }
 
     /**
@@ -1227,8 +1227,8 @@ public final class KafkaCodec {
      * @param resp the response
      * @return the encoded bytes
      */
-    public static byte[] encodeDescribeConfigsResponse(DescribeConfigsResponse resp) {
-        return DescribeConfigsCodec.encodeResponse(resp);
+    public static byte[] encodeDescribeConfigsResponse(short version, DescribeConfigsResponse resp) {
+        return DescribeConfigsCodec.encodeResponse(version, resp);
     }
 
     /**
@@ -1237,8 +1237,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded response
      */
-    public static DescribeConfigsResponse decodeDescribeConfigsResponse(ByteBuffer buf) {
-        return DescribeConfigsCodec.decodeResponse(DescribeConfigsCodec.PINNED_VERSION, buf);
+    public static DescribeConfigsResponse decodeDescribeConfigsResponse(short version, ByteBuffer buf) {
+        return DescribeConfigsCodec.decodeResponse(version, buf);
     }
 
     // ===== AlterConfigs (33) =====
@@ -1250,8 +1250,8 @@ public final class KafkaCodec {
      * @param req the request
      * @return the encoded bytes
      */
-    public static byte[] encodeAlterConfigsRequest(AlterConfigsRequest req) {
-        return AlterConfigsCodec.encodeRequest(req);
+    public static byte[] encodeAlterConfigsRequest(short version, AlterConfigsRequest req) {
+        return AlterConfigsCodec.encodeRequest(version, req);
     }
 
     /**
@@ -1260,8 +1260,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded request
      */
-    public static AlterConfigsRequest decodeAlterConfigsRequest(ByteBuffer buf) {
-        return AlterConfigsCodec.decodeRequest(AlterConfigsCodec.PINNED_VERSION, buf);
+    public static AlterConfigsRequest decodeAlterConfigsRequest(short version, ByteBuffer buf) {
+        return AlterConfigsCodec.decodeRequest(version, buf);
     }
 
     /**
@@ -1271,8 +1271,8 @@ public final class KafkaCodec {
      * @param resp the response
      * @return the encoded bytes
      */
-    public static byte[] encodeAlterConfigsResponse(AlterConfigsResponse resp) {
-        return AlterConfigsCodec.encodeResponse(resp);
+    public static byte[] encodeAlterConfigsResponse(short version, AlterConfigsResponse resp) {
+        return AlterConfigsCodec.encodeResponse(version, resp);
     }
 
     /**
@@ -1281,8 +1281,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded response
      */
-    public static AlterConfigsResponse decodeAlterConfigsResponse(ByteBuffer buf) {
-        return AlterConfigsCodec.decodeResponse(AlterConfigsCodec.PINNED_VERSION, buf);
+    public static AlterConfigsResponse decodeAlterConfigsResponse(short version, ByteBuffer buf) {
+        return AlterConfigsCodec.decodeResponse(version, buf);
     }
 
     // ===== AddOffsetsToTxn (25) =====
@@ -1293,8 +1293,8 @@ public final class KafkaCodec {
      * @param req the request
      * @return the encoded bytes
      */
-    public static byte[] encodeAddOffsetsToTxnRequest(AddOffsetsToTxnRequest req) {
-        return AddOffsetsToTxnCodec.encodeRequest(AddOffsetsToTxnCodec.PINNED_VERSION, req);
+    public static byte[] encodeAddOffsetsToTxnRequest(short version, AddOffsetsToTxnRequest req) {
+        return AddOffsetsToTxnCodec.encodeRequest(version, req);
     }
 
     /**
@@ -1303,8 +1303,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded request
      */
-    public static AddOffsetsToTxnRequest decodeAddOffsetsToTxnRequest(ByteBuffer buf) {
-        return AddOffsetsToTxnCodec.decodeRequest(AddOffsetsToTxnCodec.PINNED_VERSION, buf);
+    public static AddOffsetsToTxnRequest decodeAddOffsetsToTxnRequest(short version, ByteBuffer buf) {
+        return AddOffsetsToTxnCodec.decodeRequest(version, buf);
     }
 
     /**
@@ -1313,8 +1313,8 @@ public final class KafkaCodec {
      * @param resp the response
      * @return the encoded bytes
      */
-    public static byte[] encodeAddOffsetsToTxnResponse(AddOffsetsToTxnResponse resp) {
-        return AddOffsetsToTxnCodec.encodeResponse(AddOffsetsToTxnCodec.PINNED_VERSION, resp);
+    public static byte[] encodeAddOffsetsToTxnResponse(short version, AddOffsetsToTxnResponse resp) {
+        return AddOffsetsToTxnCodec.encodeResponse(version, resp);
     }
 
     /**
@@ -1323,8 +1323,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded response
      */
-    public static AddOffsetsToTxnResponse decodeAddOffsetsToTxnResponse(ByteBuffer buf) {
-        return AddOffsetsToTxnCodec.decodeResponse(AddOffsetsToTxnCodec.PINNED_VERSION, buf);
+    public static AddOffsetsToTxnResponse decodeAddOffsetsToTxnResponse(short version, ByteBuffer buf) {
+        return AddOffsetsToTxnCodec.decodeResponse(version, buf);
     }
 
     // ===== TxnOffsetCommit (28) =====
@@ -1336,8 +1336,8 @@ public final class KafkaCodec {
      * @return encoded body bytes
      * @since 0.1.0
      */
-    public static byte[] encodeTxnOffsetCommitRequest(TxnOffsetCommitRequest req) {
-        return TxnOffsetCommitCodec.encodeRequest(req);
+    public static byte[] encodeTxnOffsetCommitRequest(short version, TxnOffsetCommitRequest req) {
+        return TxnOffsetCommitCodec.encodeRequest(version, req);
     }
 
     /**
@@ -1347,8 +1347,8 @@ public final class KafkaCodec {
      * @return the decoded request
      * @since 0.1.0
      */
-    public static TxnOffsetCommitRequest decodeTxnOffsetCommitRequest(ByteBuffer buf) {
-        return TxnOffsetCommitCodec.decodeRequest(TxnOffsetCommitCodec.PINNED_VERSION, buf);
+    public static TxnOffsetCommitRequest decodeTxnOffsetCommitRequest(short version, ByteBuffer buf) {
+        return TxnOffsetCommitCodec.decodeRequest(version, buf);
     }
 
     /**
@@ -1358,8 +1358,8 @@ public final class KafkaCodec {
      * @return encoded body bytes
      * @since 0.1.0
      */
-    public static byte[] encodeTxnOffsetCommitResponse(TxnOffsetCommitResponse resp) {
-        return TxnOffsetCommitCodec.encodeResponse(resp);
+    public static byte[] encodeTxnOffsetCommitResponse(short version, TxnOffsetCommitResponse resp) {
+        return TxnOffsetCommitCodec.encodeResponse(version, resp);
     }
 
     /**
@@ -1369,8 +1369,8 @@ public final class KafkaCodec {
      * @return the decoded response
      * @since 0.1.0
      */
-    public static TxnOffsetCommitResponse decodeTxnOffsetCommitResponse(ByteBuffer buf) {
-        return TxnOffsetCommitCodec.decodeResponse(TxnOffsetCommitCodec.PINNED_VERSION, buf);
+    public static TxnOffsetCommitResponse decodeTxnOffsetCommitResponse(short version, ByteBuffer buf) {
+        return TxnOffsetCommitCodec.decodeResponse(version, buf);
     }
 
     // ===== EndTxn (26) =====
@@ -1382,8 +1382,8 @@ public final class KafkaCodec {
      * @return encoded body bytes
      * @since 0.1.0
      */
-    public static byte[] encodeEndTxnRequest(EndTxnRequest req) {
-        return EndTxnCodec.encodeRequest(req);
+    public static byte[] encodeEndTxnRequest(short version, EndTxnRequest req) {
+        return EndTxnCodec.encodeRequest(version, req);
     }
 
     /**
@@ -1393,8 +1393,8 @@ public final class KafkaCodec {
      * @return the decoded request
      * @since 0.1.0
      */
-    public static EndTxnRequest decodeEndTxnRequest(ByteBuffer buf) {
-        return EndTxnCodec.decodeRequest(EndTxnCodec.PINNED_VERSION, buf);
+    public static EndTxnRequest decodeEndTxnRequest(short version, ByteBuffer buf) {
+        return EndTxnCodec.decodeRequest(version, buf);
     }
 
     /**
@@ -1404,8 +1404,8 @@ public final class KafkaCodec {
      * @return encoded body bytes
      * @since 0.1.0
      */
-    public static byte[] encodeEndTxnResponse(EndTxnResponse resp) {
-        return EndTxnCodec.encodeResponse(resp);
+    public static byte[] encodeEndTxnResponse(short version, EndTxnResponse resp) {
+        return EndTxnCodec.encodeResponse(version, resp);
     }
 
     /**
@@ -1415,8 +1415,8 @@ public final class KafkaCodec {
      * @return the decoded response
      * @since 0.1.0
      */
-    public static EndTxnResponse decodeEndTxnResponse(ByteBuffer buf) {
-        return EndTxnCodec.decodeResponse(EndTxnCodec.PINNED_VERSION, buf);
+    public static EndTxnResponse decodeEndTxnResponse(short version, ByteBuffer buf) {
+        return EndTxnCodec.decodeResponse(version, buf);
     }
 
     // ===== SaslHandshake (17) =====
@@ -1427,8 +1427,8 @@ public final class KafkaCodec {
      * @param req the request
      * @return the encoded bytes
      */
-    public static byte[] encodeSaslHandshakeRequest(SaslHandshakeRequest req) {
-        return SaslHandshakeCodec.encodeRequest((short) 0, req);
+    public static byte[] encodeSaslHandshakeRequest(short version, SaslHandshakeRequest req) {
+        return SaslHandshakeCodec.encodeRequest(version, req);
     }
 
     /**
@@ -1437,8 +1437,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded request
      */
-    public static SaslHandshakeRequest decodeSaslHandshakeRequest(ByteBuffer buf) {
-        return SaslHandshakeCodec.decodeRequest((short) 0, buf);
+    public static SaslHandshakeRequest decodeSaslHandshakeRequest(short version, ByteBuffer buf) {
+        return SaslHandshakeCodec.decodeRequest(version, buf);
     }
 
     /**
@@ -1447,8 +1447,8 @@ public final class KafkaCodec {
      * @param resp the response
      * @return the encoded bytes
      */
-    public static byte[] encodeSaslHandshakeResponse(SaslHandshakeResponse resp) {
-        return SaslHandshakeCodec.encodeResponse((short) 0, resp);
+    public static byte[] encodeSaslHandshakeResponse(short version, SaslHandshakeResponse resp) {
+        return SaslHandshakeCodec.encodeResponse(version, resp);
     }
 
     /**
@@ -1457,8 +1457,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded response
      */
-    public static SaslHandshakeResponse decodeSaslHandshakeResponse(ByteBuffer buf) {
-        return SaslHandshakeCodec.decodeResponse((short) 0, buf);
+    public static SaslHandshakeResponse decodeSaslHandshakeResponse(short version, ByteBuffer buf) {
+        return SaslHandshakeCodec.decodeResponse(version, buf);
     }
 
     // ===== SaslAuthenticate (36) =====
@@ -1469,8 +1469,8 @@ public final class KafkaCodec {
      * @param req the request
      * @return the encoded bytes
      */
-    public static byte[] encodeSaslAuthenticateRequest(SaslAuthenticateRequest req) {
-        return SaslAuthenticateCodec.encodeRequest((short) 0, req);
+    public static byte[] encodeSaslAuthenticateRequest(short version, SaslAuthenticateRequest req) {
+        return SaslAuthenticateCodec.encodeRequest(version, req);
     }
 
     /**
@@ -1479,8 +1479,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded request
      */
-    public static SaslAuthenticateRequest decodeSaslAuthenticateRequest(ByteBuffer buf) {
-        return SaslAuthenticateCodec.decodeRequest((short) 0, buf);
+    public static SaslAuthenticateRequest decodeSaslAuthenticateRequest(short version, ByteBuffer buf) {
+        return SaslAuthenticateCodec.decodeRequest(version, buf);
     }
 
     /**
@@ -1489,8 +1489,8 @@ public final class KafkaCodec {
      * @param resp the response
      * @return the encoded bytes
      */
-    public static byte[] encodeSaslAuthenticateResponse(SaslAuthenticateResponse resp) {
-        return SaslAuthenticateCodec.encodeResponse((short) 0, resp);
+    public static byte[] encodeSaslAuthenticateResponse(short version, SaslAuthenticateResponse resp) {
+        return SaslAuthenticateCodec.encodeResponse(version, resp);
     }
 
     /**
@@ -1499,8 +1499,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded response
      */
-    public static SaslAuthenticateResponse decodeSaslAuthenticateResponse(ByteBuffer buf) {
-        return SaslAuthenticateCodec.decodeResponse((short) 0, buf);
+    public static SaslAuthenticateResponse decodeSaslAuthenticateResponse(short version, ByteBuffer buf) {
+        return SaslAuthenticateCodec.decodeResponse(version, buf);
     }
 
     // ===== LeaderAndIsr (4) =====
@@ -1900,20 +1900,20 @@ public final class KafkaCodec {
 
     // ===== WriteTxnMarkers (27) =====
 
-    public static byte[] encodeWriteTxnMarkersRequest(WriteTxnMarkersRequest req) {
-        return WriteTxnMarkersCodec.encodeRequest(req);
+    public static byte[] encodeWriteTxnMarkersRequest(short version, WriteTxnMarkersRequest req) {
+        return WriteTxnMarkersCodec.encodeRequest(version, req);
     }
 
-    public static WriteTxnMarkersRequest decodeWriteTxnMarkersRequest(ByteBuffer buf) {
-        return WriteTxnMarkersCodec.decodeRequest(WriteTxnMarkersCodec.PINNED_VERSION, buf);
+    public static WriteTxnMarkersRequest decodeWriteTxnMarkersRequest(short version, ByteBuffer buf) {
+        return WriteTxnMarkersCodec.decodeRequest(version, buf);
     }
 
-    public static byte[] encodeWriteTxnMarkersResponse(WriteTxnMarkersResponse resp) {
-        return WriteTxnMarkersCodec.encodeResponse(resp);
+    public static byte[] encodeWriteTxnMarkersResponse(short version, WriteTxnMarkersResponse resp) {
+        return WriteTxnMarkersCodec.encodeResponse(version, resp);
     }
 
-    public static WriteTxnMarkersResponse decodeWriteTxnMarkersResponse(ByteBuffer buf) {
-        return WriteTxnMarkersCodec.decodeResponse(WriteTxnMarkersCodec.PINNED_VERSION, buf);
+    public static WriteTxnMarkersResponse decodeWriteTxnMarkersResponse(short version, ByteBuffer buf) {
+        return WriteTxnMarkersCodec.decodeResponse(version, buf);
     }
 
     // ===== AlterPartitionReassignments (45) =====
@@ -1924,8 +1924,8 @@ public final class KafkaCodec {
      * @param req the request
      * @return the encoded bytes
      */
-    public static byte[] encodeAlterPartitionReassignmentsRequest(AlterPartitionReassignmentsRequest req) {
-        return AlterPartitionReassignmentsCodec.encodeRequest(req);
+    public static byte[] encodeAlterPartitionReassignmentsRequest(short version, AlterPartitionReassignmentsRequest req) {
+        return AlterPartitionReassignmentsCodec.encodeRequest(version, req);
     }
 
     /**
@@ -1934,8 +1934,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded request
      */
-    public static AlterPartitionReassignmentsRequest decodeAlterPartitionReassignmentsRequest(ByteBuffer buf) {
-        return AlterPartitionReassignmentsCodec.decodeRequest(AlterPartitionReassignmentsCodec.PINNED_VERSION, buf);
+    public static AlterPartitionReassignmentsRequest decodeAlterPartitionReassignmentsRequest(short version, ByteBuffer buf) {
+        return AlterPartitionReassignmentsCodec.decodeRequest(version, buf);
     }
 
     /**
@@ -1944,8 +1944,8 @@ public final class KafkaCodec {
      * @param resp the response
      * @return the encoded bytes
      */
-    public static byte[] encodeAlterPartitionReassignmentsResponse(AlterPartitionReassignmentsResponse resp) {
-        return AlterPartitionReassignmentsCodec.encodeResponse(resp);
+    public static byte[] encodeAlterPartitionReassignmentsResponse(short version, AlterPartitionReassignmentsResponse resp) {
+        return AlterPartitionReassignmentsCodec.encodeResponse(version, resp);
     }
 
     /**
@@ -1954,8 +1954,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded response
      */
-    public static AlterPartitionReassignmentsResponse decodeAlterPartitionReassignmentsResponse(ByteBuffer buf) {
-        return AlterPartitionReassignmentsCodec.decodeResponse(AlterPartitionReassignmentsCodec.PINNED_VERSION, buf);
+    public static AlterPartitionReassignmentsResponse decodeAlterPartitionReassignmentsResponse(short version, ByteBuffer buf) {
+        return AlterPartitionReassignmentsCodec.decodeResponse(version, buf);
     }
 
     // ===== ListPartitionReassignments (46) =====
@@ -1966,8 +1966,8 @@ public final class KafkaCodec {
      * @param req the request
      * @return the encoded bytes
      */
-    public static byte[] encodeListPartitionReassignmentsRequest(ListPartitionReassignmentsRequest req) {
-        return ListPartitionReassignmentsCodec.encodeRequest(req);
+    public static byte[] encodeListPartitionReassignmentsRequest(short version, ListPartitionReassignmentsRequest req) {
+        return ListPartitionReassignmentsCodec.encodeRequest(version, req);
     }
 
     /**
@@ -1976,8 +1976,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded request
      */
-    public static ListPartitionReassignmentsRequest decodeListPartitionReassignmentsRequest(ByteBuffer buf) {
-        return ListPartitionReassignmentsCodec.decodeRequest(ListPartitionReassignmentsCodec.PINNED_VERSION, buf);
+    public static ListPartitionReassignmentsRequest decodeListPartitionReassignmentsRequest(short version, ByteBuffer buf) {
+        return ListPartitionReassignmentsCodec.decodeRequest(version, buf);
     }
 
     /**
@@ -1986,8 +1986,8 @@ public final class KafkaCodec {
      * @param resp the response
      * @return the encoded bytes
      */
-    public static byte[] encodeListPartitionReassignmentsResponse(ListPartitionReassignmentsResponse resp) {
-        return ListPartitionReassignmentsCodec.encodeResponse(resp);
+    public static byte[] encodeListPartitionReassignmentsResponse(short version, ListPartitionReassignmentsResponse resp) {
+        return ListPartitionReassignmentsCodec.encodeResponse(version, resp);
     }
 
     /**
@@ -1996,8 +1996,8 @@ public final class KafkaCodec {
      * @param buf the buffer
      * @return the decoded response
      */
-    public static ListPartitionReassignmentsResponse decodeListPartitionReassignmentsResponse(ByteBuffer buf) {
-        return ListPartitionReassignmentsCodec.decodeResponse(ListPartitionReassignmentsCodec.PINNED_VERSION, buf);
+    public static ListPartitionReassignmentsResponse decodeListPartitionReassignmentsResponse(short version, ByteBuffer buf) {
+        return ListPartitionReassignmentsCodec.decodeResponse(version, buf);
     }
 
     // ===== Helper methods =====

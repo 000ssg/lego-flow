@@ -376,52 +376,57 @@ public final class KafkaBroker implements AutoCloseable {
         }
 
         return switch (apiKey) {
-            case API_VERSIONS -> handleApiVersions();
+            case API_VERSIONS -> handleApiVersions(header.apiVersion());
             case METADATA -> handleMetadata(body);
             case LEADER_AND_ISR -> handleLeaderAndIsr(body);
             case STOP_REPLICA -> handleStopReplica(body);
             case UPDATE_METADATA -> handleUpdateMetadata(body);
             case CONTROLLED_SHUTDOWN -> handleControlledShutdown(body);
-            case PRODUCE -> handleProduce(body);
-            case FETCH -> handleFetch(body);
-            case LIST_OFFSETS -> handleListOffsets(body);
-            case FIND_COORDINATOR -> handleFindCoordinator(body);
-            case JOIN_GROUP -> handleJoinGroup(body, header.clientId());
+            case PRODUCE -> handleProduce(body, header.apiVersion());
+            case FETCH -> handleFetch(body, header.apiVersion());
+            case LIST_OFFSETS -> handleListOffsets(body, header.apiVersion());
+            case FIND_COORDINATOR -> handleFindCoordinator(body, header.apiVersion());
+            case JOIN_GROUP -> handleJoinGroup(body, header.clientId(), header.apiVersion());
             case SYNC_GROUP -> handleSyncGroup(body);
             case HEARTBEAT -> handleHeartbeat(body);
             case LEAVE_GROUP -> handleLeaveGroup(body);
-            case OFFSET_COMMIT -> handleOffsetCommit(body);
-            case OFFSET_FETCH -> handleOffsetFetch(body);
-            case CREATE_TOPICS -> handleCreateTopics(body);
-            case DELETE_TOPICS -> handleDeleteTopics(body);
+            case OFFSET_COMMIT -> handleOffsetCommit(body, header.apiVersion());
+            case OFFSET_FETCH -> handleOffsetFetch(body, header.apiVersion());
+            case CREATE_TOPICS -> handleCreateTopics(body, header.apiVersion());
+            case DELETE_TOPICS -> handleDeleteTopics(body, header.apiVersion());
             case DESCRIBE_GROUPS -> handleDescribeGroups(body);
             case LIST_GROUPS -> handleListGroups();
-            case SASL_HANDSHAKE -> handleSaslHandshake(body, connState);
-            case DELETE_RECORDS -> handleDeleteRecords(body);
-            case CREATE_PARTITIONS -> handleCreatePartitions(body);
-            case SASL_AUTHENTICATE -> handleSaslAuthenticate(body, connState);
-            case DELETE_GROUPS -> handleDeleteGroups(body);
+            case SASL_HANDSHAKE -> handleSaslHandshake(body, connState, header.apiVersion());
+            case DELETE_RECORDS -> handleDeleteRecords(body, header.apiVersion());
+            case CREATE_PARTITIONS -> handleCreatePartitions(body, header.apiVersion());
+            case SASL_AUTHENTICATE -> handleSaslAuthenticate(body, connState, header.apiVersion());
+            case DELETE_GROUPS -> handleDeleteGroups(body, header.apiVersion());
             case OFFSET_DELETE -> handleOffsetDelete(body);
-            case DESCRIBE_CONFIGS -> handleDescribeConfigs(body);
-            case ALTER_CONFIGS -> handleAlterConfigs(body);
-            case INIT_PRODUCER_ID -> handleInitProducerId(body);
+            case DESCRIBE_CONFIGS -> handleDescribeConfigs(body, header.apiVersion());
+            case ALTER_CONFIGS -> handleAlterConfigs(body, header.apiVersion());
+            case INIT_PRODUCER_ID -> handleInitProducerId(body, header.apiVersion());
             case OFFSET_FOR_LEADER_EPOCH -> handleOffsetForLeaderEpoch(body);
-            case ADD_PARTITIONS_TO_TXN -> handleAddPartitionsToTxn(body);
-            case ADD_OFFSETS_TO_TXN -> handleAddOffsetsToTxn(body);
-            case END_TXN -> handleEndTxn(body);
-            case WRITE_TXN_MARKERS -> handleWriteTxnMarkers(body);
-            case TXN_OFFSET_COMMIT -> handleTxnOffsetCommit(body);
-            case ALTER_PARTITION_REASSIGNMENTS -> handleAlterPartitionReassignments(body);
-            case LIST_PARTITION_REASSIGNMENTS -> handleListPartitionReassignments(body);
+            case ADD_PARTITIONS_TO_TXN -> handleAddPartitionsToTxn(body, header.apiVersion());
+            case ADD_OFFSETS_TO_TXN -> handleAddOffsetsToTxn(body, header.apiVersion());
+            case END_TXN -> handleEndTxn(body, header.apiVersion());
+            case WRITE_TXN_MARKERS -> handleWriteTxnMarkers(body, header.apiVersion());
+            case TXN_OFFSET_COMMIT -> handleTxnOffsetCommit(body, header.apiVersion());
+            case ALTER_PARTITION_REASSIGNMENTS -> handleAlterPartitionReassignments(body, header.apiVersion());
+            case LIST_PARTITION_REASSIGNMENTS -> handleListPartitionReassignments(body, header.apiVersion());
         };
     }
 
-    private byte[] handleApiVersions() {
+    private byte[] handleApiVersions(short version) {
+        // Advertise only the versions this build actually implements end-to-end
+        // (see KafkaApiVersions). The dedicated codecs support versions beyond this
+        // floor, but the broker handler + record model is verified only up to the
+        // pinned maximum, so that is the range we advertise.
         List<ApiVersionsResponse.ApiVersion> versions = new ArrayList<>();
         for (ApiKey ak : ApiKey.values()) {
-            versions.add(new ApiVersionsResponse.ApiVersion(ak.key(), ak.minVersion(), ak.maxVersion()));
+            short max = KafkaApiVersions.implementedMax(ak.key());
+            versions.add(new ApiVersionsResponse.ApiVersion(ak.key(), (short) 0, max));
         }
-        return KafkaCodec.encodeApiVersionsResponse(
+        return KafkaCodec.encodeApiVersionsResponse(version,
                 new ApiVersionsResponse(KafkaErrors.NONE.code(), versions));
     }
 
@@ -450,8 +455,8 @@ public final class KafkaBroker implements AutoCloseable {
         return KafkaCodec.encodeMetadataResponse(new MetadataResponse(brokers, topicMetas));
     }
 
-    private byte[] handleProduce(ByteBuffer body) {
-        ProduceRequest req = KafkaCodec.decodeProduceRequest(body);
+    private byte[] handleProduce(ByteBuffer body, short version) {
+        ProduceRequest req = KafkaCodec.decodeProduceRequest(version, body);
         List<ProduceResponse.TopicResponse> responses = new ArrayList<>();
 
         for (var td : req.topicData()) {
@@ -495,11 +500,11 @@ public final class KafkaBroker implements AutoCloseable {
             }
             responses.add(new ProduceResponse.TopicResponse(td.name(), partResps));
         }
-        return KafkaCodec.encodeProduceResponse(new ProduceResponse(responses, 0));
+        return KafkaCodec.encodeProduceResponse(version, new ProduceResponse(responses, 0));
     }
 
-    private byte[] handleFetch(ByteBuffer body) {
-        FetchRequest req = KafkaCodec.decodeFetchRequest(body);
+    private byte[] handleFetch(ByteBuffer body, short version) {
+        FetchRequest req = KafkaCodec.decodeFetchRequest(version, body);
         List<FetchResponse.TopicResponse> responses = new ArrayList<>();
 
         for (var tf : req.topics()) {
@@ -519,11 +524,11 @@ public final class KafkaBroker implements AutoCloseable {
             }
             responses.add(new FetchResponse.TopicResponse(tf.name(), partResps));
         }
-        return KafkaCodec.encodeFetchResponse(new FetchResponse(0, responses));
+        return KafkaCodec.encodeFetchResponse(version, new FetchResponse(0, responses));
     }
 
-    private byte[] handleListOffsets(ByteBuffer body) {
-        ListOffsetsRequest req = KafkaCodec.decodeListOffsetsRequest(body);
+    private byte[] handleListOffsets(ByteBuffer body, short version) {
+        ListOffsetsRequest req = KafkaCodec.decodeListOffsetsRequest(version, body);
         List<ListOffsetsResponse.TopicResponse> responses = new ArrayList<>();
 
         for (var t : req.topics()) {
@@ -542,17 +547,17 @@ public final class KafkaBroker implements AutoCloseable {
             }
             responses.add(new ListOffsetsResponse.TopicResponse(t.name(), partResps));
         }
-        return KafkaCodec.encodeListOffsetsResponse(new ListOffsetsResponse(responses));
+        return KafkaCodec.encodeListOffsetsResponse(version, new ListOffsetsResponse(responses));
     }
 
-    private byte[] handleFindCoordinator(ByteBuffer body) {
-        KafkaCodec.decodeFindCoordinatorRequest(body);
-        return KafkaCodec.encodeFindCoordinatorResponse(
+    private byte[] handleFindCoordinator(ByteBuffer body, short version) {
+        KafkaCodec.decodeFindCoordinatorRequest(version, body);
+        return KafkaCodec.encodeFindCoordinatorResponse(version, 
                 new FindCoordinatorResponse(KafkaErrors.NONE.code(), brokerId, host, boundPort));
     }
 
-    private byte[] handleJoinGroup(ByteBuffer body, String clientId) {
-        JoinGroupRequest req = KafkaCodec.decodeJoinGroupRequest(body);
+    private byte[] handleJoinGroup(ByteBuffer body, String clientId, short version) {
+        JoinGroupRequest req = KafkaCodec.decodeJoinGroupRequest(version, body);
         List<Map.Entry<String, byte[]>> protocols = new ArrayList<>();
         for (var p : req.protocols()) {
             protocols.add(Map.entry(p.name(), p.metadata()));
@@ -565,7 +570,7 @@ public final class KafkaBroker implements AutoCloseable {
         for (var entry : result.memberMetadata().entrySet()) {
             members.add(new JoinGroupResponse.Member(entry.getKey(), entry.getValue()));
         }
-        return KafkaCodec.encodeJoinGroupResponse(
+        return KafkaCodec.encodeJoinGroupResponse(version, 
                 new JoinGroupResponse(result.errorCode(), result.generationId(),
                         result.protocolName(), result.leader(), result.memberId(), members));
     }
@@ -594,8 +599,8 @@ public final class KafkaBroker implements AutoCloseable {
         return KafkaCodec.encodeLeaveGroupResponse(new LeaveGroupResponse(errorCode));
     }
 
-    private byte[] handleOffsetCommit(ByteBuffer body) {
-        OffsetCommitRequest req = KafkaCodec.decodeOffsetCommitRequest(body);
+    private byte[] handleOffsetCommit(ByteBuffer body, short version) {
+        OffsetCommitRequest req = KafkaCodec.decodeOffsetCommitRequest(version, body);
         Map<TopicPartition, Long> offsets = new LinkedHashMap<>();
         List<OffsetCommitResponse.TopicResponse> responses = new ArrayList<>();
 
@@ -609,11 +614,11 @@ public final class KafkaBroker implements AutoCloseable {
             responses.add(new OffsetCommitResponse.TopicResponse(t.name(), partResps));
         }
         groupCoordinator.commitOffsets(req.groupId(), offsets);
-        return KafkaCodec.encodeOffsetCommitResponse(new OffsetCommitResponse(responses));
+        return KafkaCodec.encodeOffsetCommitResponse(version, new OffsetCommitResponse(responses));
     }
 
-    private byte[] handleOffsetFetch(ByteBuffer body) {
-        OffsetFetchRequest req = KafkaCodec.decodeOffsetFetchRequest(body);
+    private byte[] handleOffsetFetch(ByteBuffer body, short version) {
+        OffsetFetchRequest req = KafkaCodec.decodeOffsetFetchRequest(version, body);
         List<TopicPartition> partitions = new ArrayList<>();
         for (var t : req.topics()) {
             for (int idx : t.partitionIndexes()) {
@@ -633,28 +638,28 @@ public final class KafkaBroker implements AutoCloseable {
         for (var entry : byTopic.entrySet()) {
             responses.add(new OffsetFetchResponse.TopicResponse(entry.getKey(), entry.getValue()));
         }
-        return KafkaCodec.encodeOffsetFetchResponse(new OffsetFetchResponse(responses));
+        return KafkaCodec.encodeOffsetFetchResponse(version, new OffsetFetchResponse(responses));
     }
 
-    private byte[] handleCreateTopics(ByteBuffer body) {
-        CreateTopicsRequest req = KafkaCodec.decodeCreateTopicsRequest(body);
+    private byte[] handleCreateTopics(ByteBuffer body, short version) {
+        CreateTopicsRequest req = KafkaCodec.decodeCreateTopicsRequest(version, body);
         List<CreateTopicsResponse.TopicResult> results = new ArrayList<>();
         for (var t : req.topics()) {
             int numParts = t.numPartitions() > 0 ? t.numPartitions() : defaultPartitions;
             short errorCode = createTopic(t.name(), numParts);
             results.add(new CreateTopicsResponse.TopicResult(t.name(), errorCode));
         }
-        return KafkaCodec.encodeCreateTopicsResponse(new CreateTopicsResponse(results));
+        return KafkaCodec.encodeCreateTopicsResponse(version, new CreateTopicsResponse(results));
     }
 
-    private byte[] handleDeleteTopics(ByteBuffer body) {
-        DeleteTopicsRequest req = KafkaCodec.decodeDeleteTopicsRequest(body);
+    private byte[] handleDeleteTopics(ByteBuffer body, short version) {
+        DeleteTopicsRequest req = KafkaCodec.decodeDeleteTopicsRequest(version, body);
         List<DeleteTopicsResponse.TopicResult> results = new ArrayList<>();
         for (String name : req.topicNames()) {
             short errorCode = deleteTopic(name);
             results.add(new DeleteTopicsResponse.TopicResult(name, errorCode));
         }
-        return KafkaCodec.encodeDeleteTopicsResponse(new DeleteTopicsResponse(results));
+        return KafkaCodec.encodeDeleteTopicsResponse(version, new DeleteTopicsResponse(results));
     }
 
     private byte[] handleDescribeGroups(ByteBuffer body) {
@@ -681,15 +686,15 @@ public final class KafkaBroker implements AutoCloseable {
         return KafkaCodec.encodeDescribeGroupsResponse(new DescribeGroupsResponse(descriptions));
     }
 
-    private byte[] handleInitProducerId(ByteBuffer body) {
-        InitProducerIdRequest req = KafkaCodec.decodeInitProducerIdRequest(body);
+    private byte[] handleInitProducerId(ByteBuffer body, short version) {
+        InitProducerIdRequest req = KafkaCodec.decodeInitProducerIdRequest(version, body);
         var result = transactionManager.initProducerId(req.transactionalId());
-        return KafkaCodec.encodeInitProducerIdResponse(
+        return KafkaCodec.encodeInitProducerIdResponse(version, 
                 new InitProducerIdResponse(result.errorCode(), result.producerId(), result.epoch()));
     }
 
-    private byte[] handleAddPartitionsToTxn(ByteBuffer body) {
-        AddPartitionsToTxnRequest req = KafkaCodec.decodeAddPartitionsToTxnRequest(body);
+    private byte[] handleAddPartitionsToTxn(ByteBuffer body, short version) {
+        AddPartitionsToTxnRequest req = KafkaCodec.decodeAddPartitionsToTxnRequest(version, body);
         List<TopicPartition> partitions = new ArrayList<>();
         for (var t : req.topics()) {
             for (int idx : t.partitionIndexes()) {
@@ -710,7 +715,7 @@ public final class KafkaBroker implements AutoCloseable {
         for (var entry : byTopic.entrySet()) {
             responses.add(new AddPartitionsToTxnResponse.TopicResponse(entry.getKey(), entry.getValue()));
         }
-        return KafkaCodec.encodeAddPartitionsToTxnResponse(new AddPartitionsToTxnResponse(responses));
+        return KafkaCodec.encodeAddPartitionsToTxnResponse(version, new AddPartitionsToTxnResponse(responses));
     }
 
     private byte[] handleListGroups() {
@@ -723,8 +728,8 @@ public final class KafkaBroker implements AutoCloseable {
                 new ListGroupsResponse(KafkaErrors.NONE.code(), listings));
     }
 
-    private byte[] handleDeleteRecords(ByteBuffer body) {
-        DeleteRecordsRequest req = KafkaCodec.decodeDeleteRecordsRequest(body);
+    private byte[] handleDeleteRecords(ByteBuffer body, short version) {
+        DeleteRecordsRequest req = KafkaCodec.decodeDeleteRecordsRequest(version, body);
         List<DeleteRecordsResponse.TopicData> responses = new ArrayList<>();
         for (var t : req.topics()) {
             List<DeleteRecordsResponse.PartitionData> partResps = new ArrayList<>();
@@ -742,11 +747,11 @@ public final class KafkaBroker implements AutoCloseable {
             }
             responses.add(new DeleteRecordsResponse.TopicData(t.name(), partResps));
         }
-        return KafkaCodec.encodeDeleteRecordsResponse(new DeleteRecordsResponse(responses));
+        return KafkaCodec.encodeDeleteRecordsResponse(version, new DeleteRecordsResponse(responses));
     }
 
-    private byte[] handleCreatePartitions(ByteBuffer body) {
-        CreatePartitionsRequest req = KafkaCodec.decodeCreatePartitionsRequest(body);
+    private byte[] handleCreatePartitions(ByteBuffer body, short version) {
+        CreatePartitionsRequest req = KafkaCodec.decodeCreatePartitionsRequest(version, body);
         List<CreatePartitionsResponse.TopicResult> results = new ArrayList<>();
         for (var t : req.topics()) {
             List<Integer> existing = topicPartitions.get(t.name());
@@ -769,17 +774,17 @@ public final class KafkaBroker implements AutoCloseable {
             LOG.info("Increased partitions for topic '{}' from {} to {}", t.name(), currentCount, t.newCount());
             results.add(new CreatePartitionsResponse.TopicResult(t.name(), KafkaErrors.NONE.code()));
         }
-        return KafkaCodec.encodeCreatePartitionsResponse(new CreatePartitionsResponse(results));
+        return KafkaCodec.encodeCreatePartitionsResponse(version, new CreatePartitionsResponse(results));
     }
 
-    private byte[] handleDeleteGroups(ByteBuffer body) {
-        DeleteGroupsRequest req = KafkaCodec.decodeDeleteGroupsRequest(body);
+    private byte[] handleDeleteGroups(ByteBuffer body, short version) {
+        DeleteGroupsRequest req = KafkaCodec.decodeDeleteGroupsRequest(version, body);
         List<DeleteGroupsResponse.GroupResult> results = new ArrayList<>();
         for (String groupId : req.groups()) {
             short errorCode = groupCoordinator.deleteGroup(groupId);
             results.add(new DeleteGroupsResponse.GroupResult(groupId, errorCode));
         }
-        return KafkaCodec.encodeDeleteGroupsResponse(new DeleteGroupsResponse(results));
+        return KafkaCodec.encodeDeleteGroupsResponse(version, new DeleteGroupsResponse(results));
     }
 
     private byte[] handleOffsetDelete(ByteBuffer body) {
@@ -807,8 +812,8 @@ public final class KafkaBroker implements AutoCloseable {
                 new OffsetDeleteResponse(KafkaErrors.NONE.code(), topics));
     }
 
-    private byte[] handleDescribeConfigs(ByteBuffer body) {
-        DescribeConfigsRequest req = KafkaCodec.decodeDescribeConfigsRequest(body);
+    private byte[] handleDescribeConfigs(ByteBuffer body, short version) {
+        DescribeConfigsRequest req = KafkaCodec.decodeDescribeConfigsRequest(version, body);
         List<DescribeConfigsResponse.ResourceResponse> resources = new ArrayList<>();
         for (var r : req.resources()) {
             var configEntries = configManager.describeConfigs(r.resourceType(), r.resourceName());
@@ -821,11 +826,11 @@ public final class KafkaBroker implements AutoCloseable {
             resources.add(new DescribeConfigsResponse.ResourceResponse(
                     KafkaErrors.NONE.code(), r.resourceName(), entries));
         }
-        return KafkaCodec.encodeDescribeConfigsResponse(new DescribeConfigsResponse(resources));
+        return KafkaCodec.encodeDescribeConfigsResponse(version, new DescribeConfigsResponse(resources));
     }
 
-    private byte[] handleAlterConfigs(ByteBuffer body) {
-        AlterConfigsRequest req = KafkaCodec.decodeAlterConfigsRequest(body);
+    private byte[] handleAlterConfigs(ByteBuffer body, short version) {
+        AlterConfigsRequest req = KafkaCodec.decodeAlterConfigsRequest(version, body);
         List<AlterConfigsResponse.ResourceResponse> resources = new ArrayList<>();
         for (var r : req.resources()) {
             Map<String, String> configMap = new LinkedHashMap<>();
@@ -835,25 +840,25 @@ public final class KafkaBroker implements AutoCloseable {
             short errorCode = configManager.alterConfigs(r.resourceType(), r.resourceName(), configMap);
             resources.add(new AlterConfigsResponse.ResourceResponse(errorCode, r.resourceName()));
         }
-        return KafkaCodec.encodeAlterConfigsResponse(new AlterConfigsResponse(resources));
+        return KafkaCodec.encodeAlterConfigsResponse(version, new AlterConfigsResponse(resources));
     }
 
-    private byte[] handleEndTxn(ByteBuffer body) {
-        EndTxnRequest req = KafkaCodec.decodeEndTxnRequest(body);
+    private byte[] handleEndTxn(ByteBuffer body, short version) {
+        EndTxnRequest req = KafkaCodec.decodeEndTxnRequest(version, body);
         short errorCode = transactionManager.endTransaction(
                 req.transactionalId(), req.producerId(), req.producerEpoch(), req.committed());
-        return KafkaCodec.encodeEndTxnResponse(new EndTxnResponse(errorCode));
+        return KafkaCodec.encodeEndTxnResponse(version, new EndTxnResponse(errorCode));
     }
 
-    private byte[] handleAddOffsetsToTxn(ByteBuffer body) {
-        AddOffsetsToTxnRequest req = KafkaCodec.decodeAddOffsetsToTxnRequest(body);
+    private byte[] handleAddOffsetsToTxn(ByteBuffer body, short version) {
+        AddOffsetsToTxnRequest req = KafkaCodec.decodeAddOffsetsToTxnRequest(version, body);
         short errorCode = transactionManager.addOffsetsToTxn(
                 req.transactionalId(), req.producerId(), req.producerEpoch(), req.groupId());
-        return KafkaCodec.encodeAddOffsetsToTxnResponse(new AddOffsetsToTxnResponse(errorCode));
+        return KafkaCodec.encodeAddOffsetsToTxnResponse(version, new AddOffsetsToTxnResponse(errorCode));
     }
 
-    private byte[] handleTxnOffsetCommit(ByteBuffer body) {
-        TxnOffsetCommitRequest req = KafkaCodec.decodeTxnOffsetCommitRequest(body);
+    private byte[] handleTxnOffsetCommit(ByteBuffer body, short version) {
+        TxnOffsetCommitRequest req = KafkaCodec.decodeTxnOffsetCommitRequest(version, body);
 
         // Collect offsets into a map
         Map<TopicPartition, Long> offsets = new LinkedHashMap<>();
@@ -886,7 +891,7 @@ public final class KafkaBroker implements AutoCloseable {
             }
         }
 
-        return KafkaCodec.encodeTxnOffsetCommitResponse(new TxnOffsetCommitResponse(responseTopics));
+        return KafkaCodec.encodeTxnOffsetCommitResponse(version, new TxnOffsetCommitResponse(responseTopics));
     }
 
     private byte[] handleLeaderAndIsr(ByteBuffer body) {
@@ -977,8 +982,8 @@ public final class KafkaBroker implements AutoCloseable {
                 new OffsetForLeaderEpochResponse(responseTopics));
     }
 
-    private byte[] handleWriteTxnMarkers(ByteBuffer body) {
-        WriteTxnMarkersRequest req = KafkaCodec.decodeWriteTxnMarkersRequest(body);
+    private byte[] handleWriteTxnMarkers(ByteBuffer body, short version) {
+        WriteTxnMarkersRequest req = KafkaCodec.decodeWriteTxnMarkersRequest(version, body);
         List<WriteTxnMarkersResponse.MarkerResult> markerResults = new ArrayList<>();
         for (var marker : req.markers()) {
             Map<String, List<WriteTxnMarkersResponse.PartitionResult>> byTopic = new LinkedHashMap<>();
@@ -1006,11 +1011,11 @@ public final class KafkaBroker implements AutoCloseable {
             }
             markerResults.add(new WriteTxnMarkersResponse.MarkerResult(marker.producerId(), topics));
         }
-        return KafkaCodec.encodeWriteTxnMarkersResponse(new WriteTxnMarkersResponse(markerResults));
+        return KafkaCodec.encodeWriteTxnMarkersResponse(version, new WriteTxnMarkersResponse(markerResults));
     }
 
-    private byte[] handleAlterPartitionReassignments(ByteBuffer body) {
-        AlterPartitionReassignmentsRequest req = KafkaCodec.decodeAlterPartitionReassignmentsRequest(body);
+    private byte[] handleAlterPartitionReassignments(ByteBuffer body, short version) {
+        AlterPartitionReassignmentsRequest req = KafkaCodec.decodeAlterPartitionReassignmentsRequest(version, body);
         List<AlterPartitionReassignmentsResponse.TopicResult> topicResults = new ArrayList<>();
         for (var t : req.topics()) {
             List<AlterPartitionReassignmentsResponse.PartitionResult> partResults = new ArrayList<>();
@@ -1027,12 +1032,12 @@ public final class KafkaBroker implements AutoCloseable {
             }
             topicResults.add(new AlterPartitionReassignmentsResponse.TopicResult(t.topic(), partResults));
         }
-        return KafkaCodec.encodeAlterPartitionReassignmentsResponse(
+        return KafkaCodec.encodeAlterPartitionReassignmentsResponse(version, 
                 new AlterPartitionReassignmentsResponse(KafkaErrors.NONE.code(), topicResults));
     }
 
-    private byte[] handleListPartitionReassignments(ByteBuffer body) {
-        ListPartitionReassignmentsRequest req = KafkaCodec.decodeListPartitionReassignmentsRequest(body);
+    private byte[] handleListPartitionReassignments(ByteBuffer body, short version) {
+        ListPartitionReassignmentsRequest req = KafkaCodec.decodeListPartitionReassignmentsRequest(version, body);
         Map<String, List<ListPartitionReassignmentsResponse.PartitionResult>> byTopic = new LinkedHashMap<>();
         for (var entry : reassignments.entrySet()) {
             TopicPartition tp = entry.getKey();
@@ -1055,16 +1060,16 @@ public final class KafkaBroker implements AutoCloseable {
         for (var entry : byTopic.entrySet()) {
             topics.add(new ListPartitionReassignmentsResponse.TopicResult(entry.getKey(), entry.getValue()));
         }
-        return KafkaCodec.encodeListPartitionReassignmentsResponse(
+        return KafkaCodec.encodeListPartitionReassignmentsResponse(version, 
                 new ListPartitionReassignmentsResponse(KafkaErrors.NONE.code(), topics));
     }
 
-    private byte[] handleSaslHandshake(ByteBuffer body, ConnectionState connState) {
-        SaslHandshakeRequest req = KafkaCodec.decodeSaslHandshakeRequest(body);
+    private byte[] handleSaslHandshake(ByteBuffer body, ConnectionState connState, short version) {
+        SaslHandshakeRequest req = KafkaCodec.decodeSaslHandshakeRequest(version, body);
         List<String> mechanisms = new ArrayList<>(enabledMechanisms);
 
         if (!enabledMechanisms.contains(req.mechanism())) {
-            return KafkaCodec.encodeSaslHandshakeResponse(
+            return KafkaCodec.encodeSaslHandshakeResponse(version, 
                     new SaslHandshakeResponse(KafkaErrors.UNSUPPORTED_SASL_MECHANISM.code(), mechanisms));
         }
 
@@ -1077,15 +1082,15 @@ public final class KafkaBroker implements AutoCloseable {
         connState.currentMechanism = mechanism;
         connState.authenticated = false;
 
-        return KafkaCodec.encodeSaslHandshakeResponse(
+        return KafkaCodec.encodeSaslHandshakeResponse(version, 
                 new SaslHandshakeResponse(KafkaErrors.NONE.code(), mechanisms));
     }
 
-    private byte[] handleSaslAuthenticate(ByteBuffer body, ConnectionState connState) {
-        SaslAuthenticateRequest req = KafkaCodec.decodeSaslAuthenticateRequest(body);
+    private byte[] handleSaslAuthenticate(ByteBuffer body, ConnectionState connState, short version) {
+        SaslAuthenticateRequest req = KafkaCodec.decodeSaslAuthenticateRequest(version, body);
 
         if (connState.currentMechanism == null) {
-            return KafkaCodec.encodeSaslAuthenticateResponse(
+            return KafkaCodec.encodeSaslAuthenticateResponse(version, 
                     new SaslAuthenticateResponse(KafkaErrors.ILLEGAL_SASL_STATE.code(),
                             "no SASL mechanism negotiated", new byte[0], 0));
         }
@@ -1097,11 +1102,11 @@ public final class KafkaBroker implements AutoCloseable {
                 LOG.info("SASL authentication successful for user: {}",
                         connState.currentMechanism.authenticatedUser());
             }
-            return KafkaCodec.encodeSaslAuthenticateResponse(
+            return KafkaCodec.encodeSaslAuthenticateResponse(version, 
                     new SaslAuthenticateResponse(KafkaErrors.NONE.code(), "", responseBytes, 0));
         } catch (AuthenticationException e) {
             LOG.debug("SASL authentication failed: {}", e.getMessage());
-            return KafkaCodec.encodeSaslAuthenticateResponse(
+            return KafkaCodec.encodeSaslAuthenticateResponse(version, 
                     new SaslAuthenticateResponse(KafkaErrors.ILLEGAL_SASL_STATE.code(),
                             e.getMessage(), new byte[0], 0));
         }

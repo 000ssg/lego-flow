@@ -13,7 +13,7 @@ import java.util.List;
  * Codec for the Kafka DeleteRecords request (API key 21) and response — truncate partition
  * log offsets to the requested offsets.
  * <p>
- * Client/broker interaction is pinned at {@link #PINNED_VERSION} (v0: the baseline that
+ * Client/broker interaction is versioned from v0 (the baseline that
  * {@code KafkaAdminClient} sends), while the full version range v0–v2 is encoded so a frame
  * carrying any DeleteRecords version can be produced or parsed.
  * <p>
@@ -37,13 +37,13 @@ import java.util.List;
 public final class DeleteRecordsCodec {
 
     /** Pinned version for client/broker DeleteRecords interaction (v0). */
-    public static final short PINNED_VERSION = 0;
+    public static final short MIN_VERSION = 0;
 
     /** Flexible-encoding versions (v2+): compact arrays/strings + tagged fields. */
-    private static final short FLEXIBLE_START = 2;
+    public static final short FLEXIBLE_START = 2;
 
     /** Highest API version with a defined wire format in the spec (v2). */
-    private static final short MAX_VERSION = 2;
+    public static final short MAX_VERSION = 2;
 
     /** Response {@code ThrottleTimeMs} default — 0 (no throttling). */
     private static final int DEFAULT_THROTTLE_TIME_MS = 0;
@@ -59,17 +59,6 @@ public final class DeleteRecordsCodec {
     }
 
     // ── Request ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode a {@link DeleteRecordsRequest} at the pinned version.
-     *
-     * @param req the request
-     * @return encoded body bytes
-     */
-    public static byte[] encodeRequest(DeleteRecordsRequest req) {
-        return encodeRequest(PINNED_VERSION, req);
-    }
-
     /**
      * Encode a DeleteRecords request body at the given API version.
      *
@@ -201,17 +190,6 @@ public final class DeleteRecordsCodec {
     }
 
     // ── Response ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode a {@link DeleteRecordsResponse} at the pinned version.
-     *
-     * @param resp the response
-     * @return encoded body bytes
-     */
-    public static byte[] encodeResponse(DeleteRecordsResponse resp) {
-        return encodeResponse(PINNED_VERSION, resp);
-    }
-
     /**
      * Encode a DeleteRecords response body at the given API version.
      *

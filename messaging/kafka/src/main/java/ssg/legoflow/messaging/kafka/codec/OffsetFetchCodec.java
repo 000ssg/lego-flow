@@ -13,7 +13,7 @@ import java.util.List;
  * Codec for the Kafka <b>Consumer Groups</b> OffsetFetch API (key 9), versions v0–v8, both
  * directions.
  * <p>
- * Client/broker interaction is pinned at {@link #PINNED_VERSION} (v0: the baseline the in-house
+ * Client/broker interaction is versioned from v0 (the baseline the in-house
  * client sends, {@code ApiKey.OFFSET_FETCH.key()} + version 0), while the full version range
  * v0–v8 is encoded so a frame carrying any version can be produced or parsed.
  * <p>
@@ -74,7 +74,6 @@ public final class OffsetFetchCodec {
     public static final short COMMITTED_LEADER_EPOCH_START = 5;
 
     /** Version pinned for the client/broker interaction (the in-house client sends v0). */
-    public static final short PINNED_VERSION = 0;
 
     private OffsetFetchCodec() {
     }
@@ -113,17 +112,6 @@ public final class OffsetFetchCodec {
     }
 
     // ── Request ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode a request at the pinned version.
-     *
-     * @param req the request
-     * @return encoded body bytes
-     */
-    public static byte[] encodeRequest(OffsetFetchRequest req) {
-        return encodeRequest(PINNED_VERSION, req);
-    }
-
     /**
      * Encode a request body at the given API version.
      *
@@ -324,17 +312,6 @@ public final class OffsetFetchCodec {
     }
 
     // ── Response ────────────────────────────────────────────────────────
-
-    /**
-     * Encode a response at the pinned version.
-     *
-     * @param resp the response
-     * @return encoded body bytes
-     */
-    public static byte[] encodeResponse(OffsetFetchResponse resp) {
-        return encodeResponse(PINNED_VERSION, resp);
-    }
-
     /**
      * Encode a response body at the given API version.
      *

@@ -13,7 +13,7 @@ import java.util.List;
  * Codec for the Kafka ListOffsets request (API key 2) and response — find the
  * offset of a partition for a given timestamp.
  * <p>
- * Client/broker interaction is pinned at {@link #PINNED_VERSION} (v1: the
+ * Client/broker interaction is versioned from v0 (v1: the
  * earliest version that returns the per-partition {@code Timestamp} +
  * {@code Offset} pair), while the full version range v0–v8 is encoded so a
  * frame carrying any ListOffsets version can be produced or parsed.
@@ -42,8 +42,8 @@ import java.util.List;
  */
 public final class ListOffsetsCodec {
 
-    /** Pinned version for client/broker ListOffsets interaction (v1). */
-    public static final short PINNED_VERSION = 1;
+    /** Floor of the negotiated version range (v0–v8); v0 writes {@code MaxNumOffsets} with the spec default. */
+    public static final short MIN_VERSION = 0;
 
     /** Request {@code ReplicaId} default — -1 selects the coordinator/leader. */
     private static final int DEFAULT_REPLICA_ID = -1;
@@ -56,25 +56,14 @@ public final class ListOffsetsCodec {
     /** Response {@code ThrottleTimeMs} default — 0 (no throttling). */
     private static final int DEFAULT_THROTTLE_TIME_MS = 0;
     /** Flexible-encoding versions (v6+): compact arrays + tagged fields. */
-    private static final short FLEXIBLE_START = 6;
+    public static final short FLEXIBLE_START = 6;
     /** Highest API version with a defined wire format in the spec (v8). */
-    private static final short MAX_VERSION = 8;
+    public static final short MAX_VERSION = 8;
 
     private ListOffsetsCodec() {
     }
 
     // ── Request ──────────────────────────────────────────────────────────
-
-    /**
-     * Encode a {@link ListOffsetsRequest} at the pinned version.
-     *
-     * @param req the request
-     * @return encoded body bytes
-     */
-    public static byte[] encodeRequest(ListOffsetsRequest req) {
-        return encodeRequest(PINNED_VERSION, req);
-    }
-
     /**
      * Encode a {@link ListOffsetsRequest} at the given API version.
      *
@@ -245,17 +234,6 @@ public final class ListOffsetsCodec {
     }
 
     // ── Response ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode a {@link ListOffsetsResponse} at the pinned version.
-     *
-     * @param resp the response
-     * @return encoded body bytes
-     */
-    public static byte[] encodeResponse(ListOffsetsResponse resp) {
-        return encodeResponse(PINNED_VERSION, resp);
-    }
-
     /**
      * Encode a {@link ListOffsetsResponse} at the given API version.
      *

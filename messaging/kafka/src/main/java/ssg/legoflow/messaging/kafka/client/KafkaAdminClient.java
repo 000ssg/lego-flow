@@ -54,9 +54,9 @@ public final class KafkaAdminClient implements AutoCloseable {
      * @throws IOException if the request fails
      */
     public ApiVersionsResponse apiVersions() throws IOException {
-        byte[] payload = KafkaCodec.encodeApiVersionsRequest(new ApiVersionsRequest());
+        byte[] payload = KafkaCodec.encodeApiVersionsRequest((short) 0, new ApiVersionsRequest());
         ByteBuffer resp = connection.sendAndReceive(ApiKey.API_VERSIONS.key(), (short) 0, payload);
-        return KafkaCodec.decodeApiVersionsResponse(resp);
+        return KafkaCodec.decodeApiVersionsResponse((short) 0, resp);
     }
 
     /**
@@ -80,9 +80,9 @@ public final class KafkaAdminClient implements AutoCloseable {
      * @throws IOException if the request fails
      */
     public CreateTopicsResponse createTopics(List<CreateTopicsRequest.TopicCreate> topics) throws IOException {
-        byte[] payload = KafkaCodec.encodeCreateTopicsRequest(new CreateTopicsRequest(topics, 30000));
+        byte[] payload = KafkaCodec.encodeCreateTopicsRequest((short) 0, new CreateTopicsRequest(topics, 30000));
         ByteBuffer resp = connection.sendAndReceive(ApiKey.CREATE_TOPICS.key(), (short) 0, payload);
-        return KafkaCodec.decodeCreateTopicsResponse(resp);
+        return KafkaCodec.decodeCreateTopicsResponse((short) 0, resp);
     }
 
     /**
@@ -108,9 +108,9 @@ public final class KafkaAdminClient implements AutoCloseable {
      * @throws IOException if the request fails
      */
     public DeleteTopicsResponse deleteTopics(List<String> topicNames) throws IOException {
-        byte[] payload = KafkaCodec.encodeDeleteTopicsRequest(new DeleteTopicsRequest(topicNames, 30000));
+        byte[] payload = KafkaCodec.encodeDeleteTopicsRequest((short) 0, new DeleteTopicsRequest(topicNames, 30000));
         ByteBuffer resp = connection.sendAndReceive(ApiKey.DELETE_TOPICS.key(), (short) 0, payload);
-        return KafkaCodec.decodeDeleteTopicsResponse(resp);
+        return KafkaCodec.decodeDeleteTopicsResponse((short) 0, resp);
     }
 
     /**
@@ -134,9 +134,9 @@ public final class KafkaAdminClient implements AutoCloseable {
      * @throws IOException if the request fails
      */
     public ListOffsetsResponse listOffsets(ListOffsetsRequest request) throws IOException {
-        byte[] payload = KafkaCodec.encodeListOffsetsRequest(request);
+        byte[] payload = KafkaCodec.encodeListOffsetsRequest((short) 0, request);
         ByteBuffer resp = connection.sendAndReceive(ApiKey.LIST_OFFSETS.key(), (short) 0, payload);
-        return KafkaCodec.decodeListOffsetsResponse(resp);
+        return KafkaCodec.decodeListOffsetsResponse((short) 0, resp);
     }
 
     /**
@@ -148,9 +148,9 @@ public final class KafkaAdminClient implements AutoCloseable {
      * @throws IOException if the request fails
      */
     public FindCoordinatorResponse findCoordinator(String key, byte keyType) throws IOException {
-        byte[] payload = KafkaCodec.encodeFindCoordinatorRequest(new FindCoordinatorRequest(key, keyType));
+        byte[] payload = KafkaCodec.encodeFindCoordinatorRequest((short) 0, new FindCoordinatorRequest(key, keyType));
         ByteBuffer resp = connection.sendAndReceive(ApiKey.FIND_COORDINATOR.key(), (short) 0, payload);
-        return KafkaCodec.decodeFindCoordinatorResponse(resp);
+        return KafkaCodec.decodeFindCoordinatorResponse((short) 0, resp);
     }
 
     /**
@@ -173,9 +173,9 @@ public final class KafkaAdminClient implements AutoCloseable {
      * @throws IOException if the request fails
      */
     public DeleteGroupsResponse deleteGroups(List<String> groupIds) throws IOException {
-        byte[] payload = KafkaCodec.encodeDeleteGroupsRequest(new DeleteGroupsRequest(groupIds));
+        byte[] payload = KafkaCodec.encodeDeleteGroupsRequest((short) 0, new DeleteGroupsRequest(groupIds));
         ByteBuffer resp = connection.sendAndReceive(ApiKey.DELETE_GROUPS.key(), (short) 0, payload);
-        return KafkaCodec.decodeDeleteGroupsResponse(resp);
+        return KafkaCodec.decodeDeleteGroupsResponse((short) 0, resp);
     }
 
     /**
@@ -187,10 +187,10 @@ public final class KafkaAdminClient implements AutoCloseable {
      */
     public CreatePartitionsResponse createPartitions(List<CreatePartitionsRequest.TopicNewPartitions> topics)
             throws IOException {
-        byte[] payload = KafkaCodec.encodeCreatePartitionsRequest(
+        byte[] payload = KafkaCodec.encodeCreatePartitionsRequest((short) 0, 
                 new CreatePartitionsRequest(topics, 30000));
         ByteBuffer resp = connection.sendAndReceive(ApiKey.CREATE_PARTITIONS.key(), (short) 0, payload);
-        return KafkaCodec.decodeCreatePartitionsResponse(resp);
+        return KafkaCodec.decodeCreatePartitionsResponse((short) 0, resp);
     }
 
     /**
@@ -201,10 +201,10 @@ public final class KafkaAdminClient implements AutoCloseable {
      * @throws IOException if the request fails
      */
     public DeleteRecordsResponse deleteRecords(List<DeleteRecordsRequest.TopicData> topics) throws IOException {
-        byte[] payload = KafkaCodec.encodeDeleteRecordsRequest(
+        byte[] payload = KafkaCodec.encodeDeleteRecordsRequest((short) 0, 
                 new DeleteRecordsRequest(topics, 30000));
         ByteBuffer resp = connection.sendAndReceive(ApiKey.DELETE_RECORDS.key(), (short) 0, payload);
-        return KafkaCodec.decodeDeleteRecordsResponse(resp);
+        return KafkaCodec.decodeDeleteRecordsResponse((short) 0, resp);
     }
 
     /**
@@ -231,9 +231,9 @@ public final class KafkaAdminClient implements AutoCloseable {
      */
     public DescribeConfigsResponse describeConfigs(List<DescribeConfigsRequest.ResourceRequest> resources)
             throws IOException {
-        byte[] payload = KafkaCodec.encodeDescribeConfigsRequest(new DescribeConfigsRequest(resources));
+        byte[] payload = KafkaCodec.encodeDescribeConfigsRequest((short) 0, new DescribeConfigsRequest(resources));
         ByteBuffer resp = connection.sendAndReceive(ApiKey.DESCRIBE_CONFIGS.key(), (short) 0, payload);
-        return KafkaCodec.decodeDescribeConfigsResponse(resp);
+        return KafkaCodec.decodeDescribeConfigsResponse((short) 0, resp);
     }
 
     /**
@@ -245,9 +245,9 @@ public final class KafkaAdminClient implements AutoCloseable {
      */
     public AlterConfigsResponse alterConfigs(List<AlterConfigsRequest.ResourceConfig> resources)
             throws IOException {
-        byte[] payload = KafkaCodec.encodeAlterConfigsRequest(new AlterConfigsRequest(resources, false));
+        byte[] payload = KafkaCodec.encodeAlterConfigsRequest((short) 0, new AlterConfigsRequest(resources, false));
         ByteBuffer resp = connection.sendAndReceive(ApiKey.ALTER_CONFIGS.key(), (short) 0, payload);
-        return KafkaCodec.decodeAlterConfigsResponse(resp);
+        return KafkaCodec.decodeAlterConfigsResponse((short) 0, resp);
     }
 
     @Override

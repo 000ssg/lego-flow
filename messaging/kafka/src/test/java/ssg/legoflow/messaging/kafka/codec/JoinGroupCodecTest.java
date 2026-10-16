@@ -615,8 +615,8 @@ class JoinGroupCodecTest {
         var req = new JoinGroupRequest("grp-1", 10000, 30000, "", "range",
                 List.of(proto("range", new byte[]{1, 2})));
         assertArrayEquals(
-                JoinGroupCodec.encodeRequest(req),
-                KafkaCodec.encodeJoinGroupRequest(req),
+                JoinGroupCodec.encodeRequest(JoinGroupCodec.MIN_VERSION, req),
+                KafkaCodec.encodeJoinGroupRequest(JoinGroupCodec.MIN_VERSION, req),
                 "facade encode must delegate to the dedicated codec");
     }
 
@@ -625,8 +625,8 @@ class JoinGroupCodecTest {
         var resp = new JoinGroupResponse((short) 0, 1, "range", "l1", "m1",
                 List.of(member("m1", new byte[]{3, 4})));
         assertArrayEquals(
-                JoinGroupCodec.encodeResponse(resp),
-                KafkaCodec.encodeJoinGroupResponse(resp),
+                JoinGroupCodec.encodeResponse(JoinGroupCodec.MIN_VERSION, resp),
+                KafkaCodec.encodeJoinGroupResponse(JoinGroupCodec.MIN_VERSION, resp),
                 "facade encode must delegate to the dedicated codec");
     }
 
@@ -634,10 +634,10 @@ class JoinGroupCodecTest {
     void facade_decode_matches_dedicatedCodec() {
         var req = new JoinGroupRequest("grp-1", 10000, -1, "", "range",
                 List.of(proto("range", new byte[]{1, 2})));
-        byte[] enc = KafkaCodec.encodeJoinGroupRequest(req);
-        var viaFacade = KafkaCodec.decodeJoinGroupRequest(ByteBuffer.wrap(enc));
+        byte[] enc = KafkaCodec.encodeJoinGroupRequest(JoinGroupCodec.MIN_VERSION, req);
+        var viaFacade = KafkaCodec.decodeJoinGroupRequest(JoinGroupCodec.MIN_VERSION, ByteBuffer.wrap(enc));
         var viaCodec = JoinGroupCodec.decodeRequest(
-                JoinGroupCodec.PINNED_VERSION, ByteBuffer.wrap(enc));
+                JoinGroupCodec.MIN_VERSION, ByteBuffer.wrap(enc));
         assertRequestRoundTrip(viaCodec, viaFacade,
                 "facade decode must forward to the dedicated codec at the pinned version");
     }
@@ -647,7 +647,8 @@ class JoinGroupCodecTest {
         var req = new JoinGroupRequest("grp-1", 10000, 30000, "", "range",
                 List.of(proto("range", new byte[]{1, 2})));
         var dec = KafkaCodec.decodeJoinGroupRequest(
-                ByteBuffer.wrap(KafkaCodec.encodeJoinGroupRequest(req)));
+                JoinGroupCodec.MIN_VERSION,
+                ByteBuffer.wrap(KafkaCodec.encodeJoinGroupRequest(JoinGroupCodec.MIN_VERSION, req)));
         // v0 round-trip: RebalanceTimeoutMs is absent on the wire → spec default -1.
         var expected = new JoinGroupRequest("grp-1", 10000, -1, "", "range",
                 List.of(proto("range", new byte[]{1, 2})));
@@ -656,7 +657,7 @@ class JoinGroupCodecTest {
 
     @Test
     void pinned_version_is_v0() {
-        assertEquals((short) 0, JoinGroupCodec.PINNED_VERSION);
+        assertEquals((short) 0, JoinGroupCodec.MIN_VERSION);
         assertEquals((short) 9, JoinGroupCodec.MAX_VERSION);
     }
 }

@@ -94,25 +94,31 @@ class AlterPartitionReassignmentsCodecTest {
     // ── Version contract ────────────────────────────────────────────────
 
     @Test
-    @DisplayName("PINNED_VERSION is v0 (KafkaAdminClient wire format)")
+    @DisplayName("minimum version is v0 (KafkaAdminClient wire format)")
     void pinnedVersion() {
-        assertEquals((short) 0, AlterPartitionReassignmentsCodec.PINNED_VERSION);
+        assertEquals((short) 0, AlterPartitionReassignmentsCodec.MIN_VERSION);
     }
 
     @Test
-    @DisplayName("single-arg encodeRequest pins to v0")
+    @DisplayName("v0 encodeRequest/encodeResponse are versioned calls (unpinned facade)")
     void pinnedEncodeRequest() {
-        byte[] pinned = AlterPartitionReassignmentsCodec.encodeRequest((short) 0, req());
-        byte[] oneArg = AlterPartitionReassignmentsCodec.encodeRequest(req());
-        assertArrayEquals(pinned, oneArg);
+        byte[] b = AlterPartitionReassignmentsCodec.encodeRequest((short) 0, req());
+        AlterPartitionReassignmentsRequest decoded = AlterPartitionReassignmentsCodec.decodeRequest(
+                (short) 0, ByteBuffer.wrap(b));
+        assertEquals(30_000, decoded.timeoutMs());
+        assertEquals(1, decoded.topics().size());
+        assertEquals("orders", decoded.topics().get(0).topic());
     }
 
     @Test
-    @DisplayName("single-arg encodeResponse pins to v0")
+    @DisplayName("v0 encodeResponse round-trips at the pinned version")
     void pinnedEncodeResponse() {
-        byte[] pinned = AlterPartitionReassignmentsCodec.encodeResponse((short) 0, resp());
-        byte[] oneArg = AlterPartitionReassignmentsCodec.encodeResponse(resp());
-        assertArrayEquals(pinned, oneArg);
+        byte[] b = AlterPartitionReassignmentsCodec.encodeResponse((short) 0, resp());
+        AlterPartitionReassignmentsResponse decoded = AlterPartitionReassignmentsCodec.decodeResponse(
+                (short) 0, ByteBuffer.wrap(b));
+        assertEquals(0, decoded.errorCode());
+        assertEquals(1, decoded.topics().size());
+        assertEquals(2, decoded.topics().get(0).partitions().size());
     }
 
     @Test
@@ -167,7 +173,7 @@ class AlterPartitionReassignmentsCodecTest {
                 0x00,                                               // partition endTags
                 0x00,                                               // topic endTags
                 0x00};                                              // top endTags
-        assertArrayEquals(expected, AlterPartitionReassignmentsCodec.encodeRequest(reqSingle()));
+        assertArrayEquals(expected, AlterPartitionReassignmentsCodec.encodeRequest((short) 0, reqSingle()));
     }
 
     @Test
@@ -191,7 +197,7 @@ class AlterPartitionReassignmentsCodecTest {
                 0x00,                                       // partition endTags
                 0x00,                                       // topic endTags
                 0x00};                                      // top endTags
-        assertArrayEquals(expected, AlterPartitionReassignmentsCodec.encodeRequest(req()));
+        assertArrayEquals(expected, AlterPartitionReassignmentsCodec.encodeRequest((short) 0, req()));
     }
 
     // ── Response round-trips ────────────────────────────────────────────
@@ -249,7 +255,7 @@ class AlterPartitionReassignmentsCodecTest {
                 0x00,                                       // partition endTags
                 0x00,                                       // topic endTags
                 0x00};                                      // top endTags
-        assertArrayEquals(expected, AlterPartitionReassignmentsCodec.encodeResponse(respSingle((short) 22)));
+        assertArrayEquals(expected, AlterPartitionReassignmentsCodec.encodeResponse((short) 0, respSingle((short) 22)));
     }
 
     // ── Encoding properties ─────────────────────────────────────────────
@@ -258,11 +264,11 @@ class AlterPartitionReassignmentsCodecTest {
     @DisplayName("encoding is deterministic (two encodes → identical bytes)")
     void deterministic() {
         assertArrayEquals(
-                AlterPartitionReassignmentsCodec.encodeRequest(req()),
-                AlterPartitionReassignmentsCodec.encodeRequest(req()));
+                AlterPartitionReassignmentsCodec.encodeRequest((short) 0, req()),
+                AlterPartitionReassignmentsCodec.encodeRequest((short) 0, req()));
         assertArrayEquals(
-                AlterPartitionReassignmentsCodec.encodeResponse(resp()),
-                AlterPartitionReassignmentsCodec.encodeResponse(resp()));
+                AlterPartitionReassignmentsCodec.encodeResponse((short) 0, resp()),
+                AlterPartitionReassignmentsCodec.encodeResponse((short) 0, resp()));
     }
 
     // ── Facade wiring ───────────────────────────────────────────────────
@@ -270,20 +276,20 @@ class AlterPartitionReassignmentsCodecTest {
     @Test
     @DisplayName("KafkaCodec facade delegates to AlterPartitionReassignmentsCodec")
     void facadeDelegation() {
-        byte[] reqFacade = KafkaCodec.encodeAlterPartitionReassignmentsRequest(req());
-        byte[] reqDirect = AlterPartitionReassignmentsCodec.encodeRequest(req());
+        byte[] reqFacade = KafkaCodec.encodeAlterPartitionReassignmentsRequest((short) 0, req());
+        byte[] reqDirect = AlterPartitionReassignmentsCodec.encodeRequest((short) 0, req());
         assertArrayEquals(reqDirect, reqFacade);
 
         AlterPartitionReassignmentsRequest decodedFacade =
-                KafkaCodec.decodeAlterPartitionReassignmentsRequest(ByteBuffer.wrap(reqDirect));
+                KafkaCodec.decodeAlterPartitionReassignmentsRequest((short) 0, ByteBuffer.wrap(reqDirect));
         assertEquals(30_000, decodedFacade.timeoutMs());
 
-        byte[] respFacade = KafkaCodec.encodeAlterPartitionReassignmentsResponse(resp());
-        byte[] respDirect = AlterPartitionReassignmentsCodec.encodeResponse(resp());
+        byte[] respFacade = KafkaCodec.encodeAlterPartitionReassignmentsResponse((short) 0, resp());
+        byte[] respDirect = AlterPartitionReassignmentsCodec.encodeResponse((short) 0, resp());
         assertArrayEquals(respDirect, respFacade);
 
         AlterPartitionReassignmentsResponse decodedResp =
-                KafkaCodec.decodeAlterPartitionReassignmentsResponse(ByteBuffer.wrap(respDirect));
+                KafkaCodec.decodeAlterPartitionReassignmentsResponse((short) 0, ByteBuffer.wrap(respDirect));
         assertEquals(1, decodedResp.topics().size());
         assertEquals(14, decodedResp.topics().get(0).partitions().get(1).errorCode());
     }

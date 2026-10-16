@@ -14,7 +14,7 @@ import java.util.Map;
 /**
  * Codec for the Kafka CreateTopics request (API key 19) and response — create topics.
  * <p>
- * Client/broker interaction is pinned at {@link #PINNED_VERSION} (v0: the baseline that
+ * Client/broker interaction is versioned from v0 (the baseline that
  * {@code KafkaAdminClient} sends), while the full version range v0–v7 is encoded so a frame
  * carrying any CreateTopics version can be produced or parsed.
  * <p>
@@ -44,12 +44,12 @@ import java.util.Map;
 public final class CreateTopicsCodec {
 
     /** Pinned version for client/broker CreateTopics interaction (v0). */
-    public static final short PINNED_VERSION = 0;
+    public static final short MIN_VERSION = 0;
 
     /** Flexible-encoding versions (v5+): compact arrays + tagged fields. */
-    private static final short FLEXIBLE_START = 5;
+    public static final short FLEXIBLE_START = 5;
     /** Highest API version with a defined wire format in the spec (v7). */
-    private static final short MAX_VERSION = 7;
+    public static final short MAX_VERSION = 7;
 
     /** Request {@code validateOnly} default — false (create, don't just validate). */
     private static final boolean DEFAULT_VALIDATE_ONLY = false;
@@ -67,17 +67,6 @@ public final class CreateTopicsCodec {
     }
 
     // ── Request ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode a {@link CreateTopicsRequest} at the pinned version.
-     *
-     * @param req the request
-     * @return encoded body bytes
-     */
-    public static byte[] encodeRequest(CreateTopicsRequest req) {
-        return encodeRequest(PINNED_VERSION, req);
-    }
-
     /**
      * Encode a CreateTopics request body at the given API version.
      *
@@ -313,17 +302,6 @@ public final class CreateTopicsCodec {
     }
 
     // ── Response ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode a {@link CreateTopicsResponse} at the pinned version.
-     *
-     * @param resp the response
-     * @return encoded body bytes
-     */
-    public static byte[] encodeResponse(CreateTopicsResponse resp) {
-        return encodeResponse(PINNED_VERSION, resp);
-    }
-
     /**
      * Encode a CreateTopics response body at the given API version.
      *

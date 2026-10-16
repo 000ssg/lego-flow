@@ -158,10 +158,11 @@ import java.util.List;
 public final class FetchCodec {
 
     /** Spec (3.6.1) highest version for API 1. */
-    public static final short SPEC_MAX_VERSION = 15;
+    public static final short MIN_VERSION = 0;
+    public static final short MAX_VERSION = 15;
+    public static final short FLEXIBLE_START = 6;
 
     /** The version the in-house client and broker pin for Fetch requests. */
-    public static final short PINNED_VERSION = 0;
 
     private FetchCodec() {
     }

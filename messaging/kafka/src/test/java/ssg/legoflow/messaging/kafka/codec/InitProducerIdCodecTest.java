@@ -62,23 +62,30 @@ class InitProducerIdCodecTest {
     // ── Version contract ────────────────────────────────────────────────
 
     @Test
-    @DisplayName("PINNED_VERSION is v0 (KafkaProducer wire format)")
+    @DisplayName("minimum version is v0 (KafkaProducer wire format)")
     void pinnedVersion() {
-        assertEquals((short) 0, InitProducerIdCodec.PINNED_VERSION);
+        assertEquals((short) 0, InitProducerIdCodec.MIN_VERSION);
     }
 
     @Test
-    @DisplayName("single-arg encodeRequest pins to v0")
+    @DisplayName("v0 encodeRequest/decodeRequest round-trips at the pinned version")
     void pinnedEncodeRequest() {
-        assertArrayEquals(InitProducerIdCodec.encodeRequest((short) 0, req()),
-                InitProducerIdCodec.encodeRequest(req()));
+        byte[] b = InitProducerIdCodec.encodeRequest((short) 0, req());
+        InitProducerIdRequest decoded = InitProducerIdCodec.decodeRequest(
+                (short) 0, ByteBuffer.wrap(b));
+        assertEquals("prod-txn", decoded.transactionalId());
+        assertEquals(60_000, decoded.transactionTimeoutMs());
     }
 
     @Test
-    @DisplayName("single-arg encodeResponse pins to v0")
+    @DisplayName("v0 encodeResponse/decodeResponse round-trips at the pinned version")
     void pinnedEncodeResponse() {
-        assertArrayEquals(InitProducerIdCodec.encodeResponse((short) 0, resp()),
-                InitProducerIdCodec.encodeResponse(resp()));
+        byte[] b = InitProducerIdCodec.encodeResponse((short) 0, resp());
+        InitProducerIdResponse decoded = InitProducerIdCodec.decodeResponse(
+                (short) 0, ByteBuffer.wrap(b));
+        assertEquals(0, decoded.errorCode());
+        assertEquals(123_456, decoded.producerId());
+        assertEquals(1, decoded.producerEpoch());
     }
 
     @Test
@@ -254,11 +261,11 @@ class InitProducerIdCodecTest {
     @DisplayName("encoding is deterministic (two encodes → identical bytes)")
     void deterministic() {
         assertArrayEquals(
-                InitProducerIdCodec.encodeRequest(req()),
-                InitProducerIdCodec.encodeRequest(req()));
+                InitProducerIdCodec.encodeRequest((short) 0, req()),
+                InitProducerIdCodec.encodeRequest((short) 0, req()));
         assertArrayEquals(
-                InitProducerIdCodec.encodeResponse(resp()),
-                InitProducerIdCodec.encodeResponse(resp()));
+                InitProducerIdCodec.encodeResponse((short) 0, resp()),
+                InitProducerIdCodec.encodeResponse((short) 0, resp()));
     }
 
     // ── Facade wiring ───────────────────────────────────────────────────
@@ -266,21 +273,21 @@ class InitProducerIdCodecTest {
     @Test
     @DisplayName("KafkaCodec facade delegates to InitProducerIdCodec")
     void facadeDelegation() {
-        byte[] reqFacade = KafkaCodec.encodeInitProducerIdRequest(req());
-        byte[] reqDirect = InitProducerIdCodec.encodeRequest(req());
+        byte[] reqFacade = KafkaCodec.encodeInitProducerIdRequest((short) 0, req());
+        byte[] reqDirect = InitProducerIdCodec.encodeRequest((short) 0, req());
         assertArrayEquals(reqDirect, reqFacade);
 
         InitProducerIdRequest decodedFacade =
-                KafkaCodec.decodeInitProducerIdRequest(ByteBuffer.wrap(reqDirect));
+                KafkaCodec.decodeInitProducerIdRequest((short) 0, ByteBuffer.wrap(reqDirect));
         assertEquals("prod-txn", decodedFacade.transactionalId());
         assertEquals(60_000, decodedFacade.transactionTimeoutMs());
 
-        byte[] respFacade = KafkaCodec.encodeInitProducerIdResponse(resp());
-        byte[] respDirect = InitProducerIdCodec.encodeResponse(resp());
+        byte[] respFacade = KafkaCodec.encodeInitProducerIdResponse((short) 0, resp());
+        byte[] respDirect = InitProducerIdCodec.encodeResponse((short) 0, resp());
         assertArrayEquals(respDirect, respFacade);
 
         InitProducerIdResponse decodedResp =
-                KafkaCodec.decodeInitProducerIdResponse(ByteBuffer.wrap(respDirect));
+                KafkaCodec.decodeInitProducerIdResponse((short) 0, ByteBuffer.wrap(respDirect));
         assertEquals(123_456, decodedResp.producerId());
         assertEquals(1, decodedResp.producerEpoch());
     }

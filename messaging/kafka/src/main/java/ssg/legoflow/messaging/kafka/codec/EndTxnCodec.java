@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
  * Codec for the Kafka EndTxn request (API key 26) and response — commit or abort an
  * in-flight transaction identified by {@code TransactionalId} + {@code ProducerId}.
  * <p>
- * Client/broker interaction is pinned at {@link #PINNED_VERSION} (v0: the baseline the
+ * Client/broker interaction is versioned from v0 (the baseline the
  * in-house client sends), while the full version range v0–v3 is encoded so a frame carrying
  * any EndTxn version can be produced or parsed.
  * <p>
@@ -47,7 +47,6 @@ public final class EndTxnCodec {
     public static final short FLEXIBLE_START = 3;
 
     /** Version pinned for the client/broker interaction. */
-    public static final short PINNED_VERSION = 0;
 
     private EndTxnCodec() {
     }
@@ -73,17 +72,6 @@ public final class EndTxnCodec {
     }
 
     // ── Request ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode an {@link EndTxnRequest} at the pinned version.
-     *
-     * @param req the request
-     * @return encoded body bytes
-     */
-    public static byte[] encodeRequest(EndTxnRequest req) {
-        return encodeRequest(PINNED_VERSION, req);
-    }
-
     /**
      * Encode an EndTxn request body at the given API version.
      *
@@ -154,17 +142,6 @@ public final class EndTxnCodec {
     }
 
     // ── Response ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode an {@link EndTxnResponse} at the pinned version.
-     *
-     * @param resp the response
-     * @return encoded body bytes
-     */
-    public static byte[] encodeResponse(EndTxnResponse resp) {
-        return encodeResponse(PINNED_VERSION, resp);
-    }
-
     /**
      * Encode an EndTxn response body at the given API version.
      *

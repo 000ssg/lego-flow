@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Codec for the Kafka DeleteTopics request (API key 20) and response — delete topics.
  * <p>
- * Client/broker interaction is pinned at {@link #PINNED_VERSION} (v0: the baseline that
+ * Client/broker interaction is versioned from v0 (the baseline that
  * {@code KafkaAdminClient} sends), while the full version range v0–v6 is encoded so a frame
  * carrying any DeleteTopics version can be produced or parsed.
  * <p>
@@ -40,14 +40,14 @@ import java.util.List;
 public final class DeleteTopicsCodec {
 
     /** Pinned version for client/broker DeleteTopics interaction (v0). */
-    public static final short PINNED_VERSION = 0;
+    public static final short MIN_VERSION = 0;
 
     /** Flexible-encoding versions (v4+): compact arrays/strings + tagged fields. */
-    private static final short FLEXIBLE_START = 4;
+    public static final short FLEXIBLE_START = 4;
     /** v6 reorganizes the request into Topics[]DeleteTopicState. */
     private static final short TOPICS_REORGANIZED = 6;
     /** Highest API version with a defined wire format in the spec (v6). */
-    private static final short MAX_VERSION = 6;
+    public static final short MAX_VERSION = 6;
 
     /** Response {@code ThrottleTimeMs} default — 0 (no throttling). */
     private static final int DEFAULT_THROTTLE_TIME_MS = 0;
@@ -63,17 +63,6 @@ public final class DeleteTopicsCodec {
     }
 
     // ── Request ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode a {@link DeleteTopicsRequest} at the pinned version.
-     *
-     * @param req the request
-     * @return encoded body bytes
-     */
-    public static byte[] encodeRequest(DeleteTopicsRequest req) {
-        return encodeRequest(PINNED_VERSION, req);
-    }
-
     /**
      * Encode a DeleteTopics request body at the given API version.
      *
@@ -220,17 +209,6 @@ public final class DeleteTopicsCodec {
     }
 
     // ── Response ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode a {@link DeleteTopicsResponse} at the pinned version.
-     *
-     * @param resp the response
-     * @return encoded body bytes
-     */
-    public static byte[] encodeResponse(DeleteTopicsResponse resp) {
-        return encodeResponse(PINNED_VERSION, resp);
-    }
-
     /**
      * Encode a DeleteTopics response body at the given API version.
      *

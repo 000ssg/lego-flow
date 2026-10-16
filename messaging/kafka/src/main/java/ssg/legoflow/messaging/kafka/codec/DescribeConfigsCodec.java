@@ -13,7 +13,7 @@ import java.util.List;
  * Codec for the Kafka DescribeConfigs request (API key 32) and response — describe the
  * configuration of resources (topics, brokers).
  * <p>
- * Client/broker interaction is pinned at {@link #PINNED_VERSION} (v0: the baseline that
+ * Client/broker interaction is versioned from v0 (the baseline that
  * {@code KafkaAdminClient} sends), while the full version range v0–v4 is encoded so a frame
  * carrying any DescribeConfigs version can be produced or parsed.
  * <p>
@@ -48,13 +48,13 @@ import java.util.List;
 public final class DescribeConfigsCodec {
 
     /** Pinned version for client/broker DescribeConfigs interaction (v0). */
-    public static final short PINNED_VERSION = 0;
+    public static final short MIN_VERSION = 0;
 
     /** Flexible-encoding versions (v4+): compact arrays/strings + tagged fields. */
-    private static final short FLEXIBLE_START = 4;
+    public static final short FLEXIBLE_START = 4;
 
     /** Highest API version with a defined wire format in the spec (v4). */
-    private static final short MAX_VERSION = 4;
+    public static final short MAX_VERSION = 4;
 
     /** {@code IncludeSynonyms} default — false (spec default). */
     private static final boolean DEFAULT_INCLUDE_SYNONYMS = false;
@@ -82,17 +82,6 @@ public final class DescribeConfigsCodec {
     }
 
     // ── Request ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode a {@link DescribeConfigsRequest} at the pinned version.
-     *
-     * @param req the request
-     * @return encoded body bytes
-     */
-    public static byte[] encodeRequest(DescribeConfigsRequest req) {
-        return encodeRequest(PINNED_VERSION, req);
-    }
-
     /**
      * Encode a DescribeConfigs request body at the given API version.
      *
@@ -268,17 +257,6 @@ public final class DescribeConfigsCodec {
     }
 
     // ── Response ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode a {@link DescribeConfigsResponse} at the pinned version.
-     *
-     * @param resp the response
-     * @return encoded body bytes
-     */
-    public static byte[] encodeResponse(DescribeConfigsResponse resp) {
-        return encodeResponse(PINNED_VERSION, resp);
-    }
-
     /**
      * Encode a DescribeConfigs response body at the given API version.
      *

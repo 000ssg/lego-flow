@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
  * consumer group's {@code __consumer_offsets} partition with an ongoing transaction so
  * transactional offset commits can be performed via {@code TxnOffsetCommit}.
  * <p>
- * Client/broker interaction is pinned at {@link #PINNED_VERSION} (v0: the baseline the
+ * Client/broker interaction is versioned from v0 (the baseline the
  * in-house client sends), while the full version range v0–v3 is encoded so a frame carrying
  * any AddOffsetsToTxn version can be produced or parsed.
  * <p>
@@ -48,7 +48,6 @@ public final class AddOffsetsToTxnCodec {
     public static final short FLEXIBLE_START = 3;
 
     /** Version pinned for the client/broker interaction. */
-    public static final short PINNED_VERSION = 0;
 
     private AddOffsetsToTxnCodec() {
     }
@@ -74,17 +73,6 @@ public final class AddOffsetsToTxnCodec {
     }
 
     // ── Request ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode an {@link AddOffsetsToTxnRequest} at the pinned version.
-     *
-     * @param req the request
-     * @return encoded body bytes
-     */
-    public static byte[] encodeRequest(AddOffsetsToTxnRequest req) {
-        return encodeRequest(PINNED_VERSION, req);
-    }
-
     /**
      * Encode an AddOffsetsToTxn request body at the given API version.
      *
@@ -162,17 +150,6 @@ public final class AddOffsetsToTxnCodec {
     }
 
     // ── Response ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode an {@link AddOffsetsToTxnResponse} at the pinned version.
-     *
-     * @param resp the response
-     * @return encoded body bytes
-     */
-    public static byte[] encodeResponse(AddOffsetsToTxnResponse resp) {
-        return encodeResponse(PINNED_VERSION, resp);
-    }
-
     /**
      * Encode an AddOffsetsToTxn response body at the given API version.
      *

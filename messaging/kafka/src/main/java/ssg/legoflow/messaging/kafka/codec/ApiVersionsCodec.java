@@ -37,7 +37,8 @@ import java.util.List;
 public final class ApiVersionsCodec {
 
     /** Spec (3.6.1) highest version for API 18. */
-    public static final short SPEC_MAX_VERSION = 3;
+    public static final short MIN_VERSION = 0;
+    public static final short MAX_VERSION = 3;
 
     private ApiVersionsCodec() {
     }

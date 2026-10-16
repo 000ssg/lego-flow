@@ -97,26 +97,12 @@ class ListPartitionReassignmentsCodecTest {
     // ── Version contract ────────────────────────────────────────────────
 
     @Test
-    @DisplayName("PINNED_VERSION is v0 (KafkaAdminClient wire format)")
+    @DisplayName("minimum version is v0 (KafkaAdminClient wire format)")
     void pinnedVersion() {
-        assertEquals((short) 0, ListPartitionReassignmentsCodec.PINNED_VERSION);
+        assertEquals((short) 0, ListPartitionReassignmentsCodec.MIN_VERSION);
     }
 
-    @Test
-    @DisplayName("single-arg encodeRequest pins to v0")
-    void pinnedEncodeRequest() {
-        byte[] pinned = ListPartitionReassignmentsCodec.encodeRequest((short) 0, req());
-        byte[] oneArg = ListPartitionReassignmentsCodec.encodeRequest(req());
-        assertArrayEquals(pinned, oneArg);
-    }
 
-    @Test
-    @DisplayName("single-arg encodeResponse pins to v0")
-    void pinnedEncodeResponse() {
-        byte[] pinned = ListPartitionReassignmentsCodec.encodeResponse((short) 0, resp());
-        byte[] oneArg = ListPartitionReassignmentsCodec.encodeResponse(resp());
-        assertArrayEquals(pinned, oneArg);
-    }
 
     @Test
     @DisplayName("version 1+ is not implemented (only v0 in spec)")
@@ -172,7 +158,7 @@ class ListPartitionReassignmentsCodecTest {
                 0x00, 0x00, 0x00, 0x07,                     // partition 7
                 0x00,                                       // topic endTags
                 0x00};                                      // top endTags
-        assertArrayEquals(expected, ListPartitionReassignmentsCodec.encodeRequest(reqSingle()));
+        assertArrayEquals(expected, ListPartitionReassignmentsCodec.encodeRequest((short) 0, reqSingle()));
     }
 
     @Test
@@ -183,7 +169,7 @@ class ListPartitionReassignmentsCodecTest {
                 0x00, 0x00, 0x75, 0x30,                     // timeoutMs = 30_000
                 0x00,                                       // topics null → varint 0
                 0x00};                                      // top endTags
-        assertArrayEquals(expected, ListPartitionReassignmentsCodec.encodeRequest(reqNullTopics()));
+        assertArrayEquals(expected, ListPartitionReassignmentsCodec.encodeRequest((short) 0, reqNullTopics()));
     }
 
     // ── Response round-trips ────────────────────────────────────────────
@@ -247,7 +233,7 @@ class ListPartitionReassignmentsCodecTest {
                 0x00,                                       // partition endTags
                 0x00,                                       // topic endTags
                 0x00};                                      // top endTags
-        assertArrayEquals(expected, ListPartitionReassignmentsCodec.encodeResponse(respSingle((short) 22)));
+        assertArrayEquals(expected, ListPartitionReassignmentsCodec.encodeResponse((short) 0, respSingle((short) 22)));
     }
 
     // ── Encoding properties ─────────────────────────────────────────────
@@ -256,11 +242,11 @@ class ListPartitionReassignmentsCodecTest {
     @DisplayName("encoding is deterministic (two encodes → identical bytes)")
     void deterministic() {
         assertArrayEquals(
-                ListPartitionReassignmentsCodec.encodeRequest(req()),
-                ListPartitionReassignmentsCodec.encodeRequest(req()));
+                ListPartitionReassignmentsCodec.encodeRequest((short) 0, req()),
+                ListPartitionReassignmentsCodec.encodeRequest((short) 0, req()));
         assertArrayEquals(
-                ListPartitionReassignmentsCodec.encodeResponse(resp()),
-                ListPartitionReassignmentsCodec.encodeResponse(resp()));
+                ListPartitionReassignmentsCodec.encodeResponse((short) 0, resp()),
+                ListPartitionReassignmentsCodec.encodeResponse((short) 0, resp()));
     }
 
     // ── Facade wiring ───────────────────────────────────────────────────
@@ -268,20 +254,20 @@ class ListPartitionReassignmentsCodecTest {
     @Test
     @DisplayName("KafkaCodec facade delegates to ListPartitionReassignmentsCodec")
     void facadeDelegation() {
-        byte[] reqFacade = KafkaCodec.encodeListPartitionReassignmentsRequest(req());
-        byte[] reqDirect = ListPartitionReassignmentsCodec.encodeRequest(req());
+        byte[] reqFacade = KafkaCodec.encodeListPartitionReassignmentsRequest((short) 0, req());
+        byte[] reqDirect = ListPartitionReassignmentsCodec.encodeRequest((short) 0, req());
         assertArrayEquals(reqDirect, reqFacade);
 
         ListPartitionReassignmentsRequest decodedFacade =
-                KafkaCodec.decodeListPartitionReassignmentsRequest(ByteBuffer.wrap(reqDirect));
+                KafkaCodec.decodeListPartitionReassignmentsRequest((short) 0, ByteBuffer.wrap(reqDirect));
         assertEquals(30_000, decodedFacade.timeoutMs());
 
-        byte[] respFacade = KafkaCodec.encodeListPartitionReassignmentsResponse(resp());
-        byte[] respDirect = ListPartitionReassignmentsCodec.encodeResponse(resp());
+        byte[] respFacade = KafkaCodec.encodeListPartitionReassignmentsResponse((short) 0, resp());
+        byte[] respDirect = ListPartitionReassignmentsCodec.encodeResponse((short) 0, resp());
         assertArrayEquals(respDirect, respFacade);
 
         ListPartitionReassignmentsResponse decodedResp =
-                KafkaCodec.decodeListPartitionReassignmentsResponse(ByteBuffer.wrap(respDirect));
+                KafkaCodec.decodeListPartitionReassignmentsResponse((short) 0, ByteBuffer.wrap(respDirect));
         assertEquals(1, decodedResp.topics().size());
         assertEquals(List.of(4), decodedResp.topics().get(0).partitions().get(0).addingReplicas());
     }

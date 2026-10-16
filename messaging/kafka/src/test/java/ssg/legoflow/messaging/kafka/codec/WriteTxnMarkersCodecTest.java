@@ -318,13 +318,13 @@ class WriteTxnMarkersCodecTest {
             .isInstanceOf(BufferUnderflowException.class);
     }
 
-    /** Pinned overloads default to v0. */
+    /** The v0 pin point: versioned calls at v0 reproduce the v0 golden bytes. */
     @Test
-    void pinnedDefaultsToV0() {
-        byte[] pinnedReq = WriteTxnMarkersCodec.encodeRequest(singleMarkerReq());
-        assertThat(toInts(pinnedReq)).isEqualTo(REQ_V0_GOLDEN);
-        byte[] pinnedResp = WriteTxnMarkersCodec.encodeResponse(singleMarkerResp());
-        assertThat(toInts(pinnedResp)).isEqualTo(RESP_V0_GOLDEN);
+    void v0RoundTripMatchesGolden() {
+        byte[] v0Req = WriteTxnMarkersCodec.encodeRequest(V0, singleMarkerReq());
+        assertThat(toInts(v0Req)).isEqualTo(REQ_V0_GOLDEN);
+        byte[] v0Resp = WriteTxnMarkersCodec.encodeResponse(V0, singleMarkerResp());
+        assertThat(toInts(v0Resp)).isEqualTo(RESP_V0_GOLDEN);
     }
 
     private static int[] toInts(byte[] bytes) {

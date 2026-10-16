@@ -348,17 +348,21 @@ final class FindCoordinatorCodecTest {
     class Defaults {
 
         @Test
-        @DisplayName("version-less overloads use v0 (the pinned version)")
-        void defaultsToPinnedVersion() {
+        @DisplayName("explicit v0 encode matches the pinned version")
+        void pinnedVersionRoundTrip() {
             FindCoordinatorRequest req = new FindCoordinatorRequest("ab", FindCoordinatorRequest.KEY_TYPE_GROUP);
-            byte[] defaultRequest = FindCoordinatorCodec.encodeRequest(req);
-            byte[] explicitV0Request = FindCoordinatorCodec.encodeRequest((short) 0, req);
-            assertArrayEquals(explicitV0Request, defaultRequest);
+            byte[] request = FindCoordinatorCodec.encodeRequest(
+                    FindCoordinatorCodec.MIN_VERSION, req);
+            FindCoordinatorRequest decoded = FindCoordinatorCodec.decodeRequest(
+                    FindCoordinatorCodec.MIN_VERSION, ByteBuffer.wrap(request));
+            assertEquals(req, decoded);
 
             FindCoordinatorResponse resp = new FindCoordinatorResponse((short) 0, 1, "h", 1);
-            byte[] defaultResponse = FindCoordinatorCodec.encodeResponse(resp);
-            byte[] explicitV0Response = FindCoordinatorCodec.encodeResponse((short) 0, resp);
-            assertArrayEquals(explicitV0Response, defaultResponse);
+            byte[] response = FindCoordinatorCodec.encodeResponse(
+                    FindCoordinatorCodec.MIN_VERSION, resp);
+            FindCoordinatorResponse decodedResp = FindCoordinatorCodec.decodeResponse(
+                    FindCoordinatorCodec.MIN_VERSION, ByteBuffer.wrap(response));
+            assertEquals(resp, decodedResp);
         }
     }
 
@@ -375,8 +379,8 @@ final class FindCoordinatorCodecTest {
         void facade_request_encode_matches_dedicatedCodec() {
             FindCoordinatorRequest req = new FindCoordinatorRequest("facade-group", FindCoordinatorRequest.KEY_TYPE_GROUP);
             assertArrayEquals(
-                    FindCoordinatorCodec.encodeRequest(req),
-                    KafkaCodec.encodeFindCoordinatorRequest(req),
+                    FindCoordinatorCodec.encodeRequest(FindCoordinatorCodec.MIN_VERSION, req),
+                    KafkaCodec.encodeFindCoordinatorRequest(FindCoordinatorCodec.MIN_VERSION, req),
                     "facade encode must delegate to the dedicated codec");
         }
 
@@ -385,8 +389,8 @@ final class FindCoordinatorCodecTest {
         void facade_response_encode_matches_dedicatedCodec() {
             FindCoordinatorResponse resp = new FindCoordinatorResponse((short) 3, 7, "facade.host", 9093);
             assertArrayEquals(
-                    FindCoordinatorCodec.encodeResponse(resp),
-                    KafkaCodec.encodeFindCoordinatorResponse(resp),
+                    FindCoordinatorCodec.encodeResponse(FindCoordinatorCodec.MIN_VERSION, resp),
+                    KafkaCodec.encodeFindCoordinatorResponse(FindCoordinatorCodec.MIN_VERSION, resp),
                     "facade encode must delegate to the dedicated codec");
         }
 
@@ -394,9 +398,9 @@ final class FindCoordinatorCodecTest {
         @DisplayName("KafkaCodec.decodeFindCoordinatorRequest forwards to the dedicated codec at the pinned version")
         void facade_request_decode_matches_dedicatedCodec() {
             FindCoordinatorRequest req = new FindCoordinatorRequest("facade-group", FindCoordinatorRequest.KEY_TYPE_TRANSACTION);
-            byte[] enc = KafkaCodec.encodeFindCoordinatorRequest(req);
-            FindCoordinatorRequest viaFacade = KafkaCodec.decodeFindCoordinatorRequest(ByteBuffer.wrap(enc));
-            FindCoordinatorRequest viaCodec = FindCoordinatorCodec.decodeRequest(FindCoordinatorCodec.PINNED_VERSION, ByteBuffer.wrap(enc));
+            byte[] enc = KafkaCodec.encodeFindCoordinatorRequest(FindCoordinatorCodec.MIN_VERSION, req);
+            FindCoordinatorRequest viaFacade = KafkaCodec.decodeFindCoordinatorRequest(FindCoordinatorCodec.MIN_VERSION, ByteBuffer.wrap(enc));
+            FindCoordinatorRequest viaCodec = FindCoordinatorCodec.decodeRequest(FindCoordinatorCodec.MIN_VERSION, ByteBuffer.wrap(enc));
             assertEquals(viaCodec, viaFacade,
                     "facade decode must forward to the dedicated codec at the pinned version");
         }
@@ -405,9 +409,9 @@ final class FindCoordinatorCodecTest {
         @DisplayName("KafkaCodec.decodeFindCoordinatorResponse forwards to the dedicated codec at the pinned version")
         void facade_response_decode_matches_dedicatedCodec() {
             FindCoordinatorResponse resp = new FindCoordinatorResponse((short) 0, 9, "facade.host", 9093);
-            byte[] enc = KafkaCodec.encodeFindCoordinatorResponse(resp);
-            FindCoordinatorResponse viaFacade = KafkaCodec.decodeFindCoordinatorResponse(ByteBuffer.wrap(enc));
-            FindCoordinatorResponse viaCodec = FindCoordinatorCodec.decodeResponse(FindCoordinatorCodec.PINNED_VERSION, ByteBuffer.wrap(enc));
+            byte[] enc = KafkaCodec.encodeFindCoordinatorResponse(FindCoordinatorCodec.MIN_VERSION, resp);
+            FindCoordinatorResponse viaFacade = KafkaCodec.decodeFindCoordinatorResponse(FindCoordinatorCodec.MIN_VERSION, ByteBuffer.wrap(enc));
+            FindCoordinatorResponse viaCodec = FindCoordinatorCodec.decodeResponse(FindCoordinatorCodec.MIN_VERSION, ByteBuffer.wrap(enc));
             assertEquals(viaCodec, viaFacade,
                     "facade decode must forward to the dedicated codec at the pinned version");
         }
@@ -416,8 +420,7 @@ final class FindCoordinatorCodecTest {
         @DisplayName("facade round-trip request")
         void facade_roundTrip_request() {
             FindCoordinatorRequest req = new FindCoordinatorRequest("facade-group", FindCoordinatorRequest.KEY_TYPE_GROUP);
-            FindCoordinatorRequest dec = KafkaCodec.decodeFindCoordinatorRequest(
-                    ByteBuffer.wrap(KafkaCodec.encodeFindCoordinatorRequest(req)));
+            FindCoordinatorRequest dec = KafkaCodec.decodeFindCoordinatorRequest(FindCoordinatorCodec.MIN_VERSION, ByteBuffer.wrap(KafkaCodec.encodeFindCoordinatorRequest(FindCoordinatorCodec.MIN_VERSION, req)));
             assertEquals(req, dec);
         }
 
@@ -425,8 +428,7 @@ final class FindCoordinatorCodecTest {
         @DisplayName("facade round-trip response")
         void facade_roundTrip_response() {
             FindCoordinatorResponse resp = new FindCoordinatorResponse((short) 1, 4, "facade.host", 9093);
-            FindCoordinatorResponse dec = KafkaCodec.decodeFindCoordinatorResponse(
-                    ByteBuffer.wrap(KafkaCodec.encodeFindCoordinatorResponse(resp)));
+            FindCoordinatorResponse dec = KafkaCodec.decodeFindCoordinatorResponse(FindCoordinatorCodec.MIN_VERSION, ByteBuffer.wrap(KafkaCodec.encodeFindCoordinatorResponse(FindCoordinatorCodec.MIN_VERSION, resp)));
             assertEquals(resp, dec);
         }
     }

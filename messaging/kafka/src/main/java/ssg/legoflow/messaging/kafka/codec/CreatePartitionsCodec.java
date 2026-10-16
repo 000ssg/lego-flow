@@ -13,7 +13,7 @@ import java.util.List;
  * Codec for the Kafka CreatePartitions request (API key 37) and response — increase the
  * number of partitions of a topic.
  * <p>
- * Client/broker interaction is pinned at {@link #PINNED_VERSION} (v0: the baseline that
+ * Client/broker interaction is versioned from v0 (the baseline that
  * {@code KafkaAdminClient} sends), while the full version range v0–v3 is encoded so a frame
  * carrying any CreatePartitions version can be produced or parsed.
  * <p>
@@ -41,13 +41,13 @@ import java.util.List;
 public final class CreatePartitionsCodec {
 
     /** Pinned version for client/broker CreatePartitions interaction (v0). */
-    public static final short PINNED_VERSION = 0;
+    public static final short MIN_VERSION = 0;
 
     /** Flexible-encoding versions (v2+): compact arrays/strings + tagged fields. */
-    private static final short FLEXIBLE_START = 2;
+    public static final short FLEXIBLE_START = 2;
 
     /** Highest API version with a defined wire format in the spec (v3). */
-    private static final short MAX_VERSION = 3;
+    public static final short MAX_VERSION = 3;
 
     /** Response {@code ThrottleTimeMs} default — 0 (no throttling). */
     private static final int DEFAULT_THROTTLE_TIME_MS = 0;
@@ -66,17 +66,6 @@ public final class CreatePartitionsCodec {
     }
 
     // ── Request ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode a {@link CreatePartitionsRequest} at the pinned version.
-     *
-     * @param req the request
-     * @return encoded body bytes
-     */
-    public static byte[] encodeRequest(CreatePartitionsRequest req) {
-        return encodeRequest(PINNED_VERSION, req);
-    }
-
     /**
      * Encode a CreatePartitions request body at the given API version.
      *
@@ -200,17 +189,6 @@ public final class CreatePartitionsCodec {
     }
 
     // ── Response ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode a {@link CreatePartitionsResponse} at the pinned version.
-     *
-     * @param resp the response
-     * @return encoded body bytes
-     */
-    public static byte[] encodeResponse(CreatePartitionsResponse resp) {
-        return encodeResponse(PINNED_VERSION, resp);
-    }
-
     /**
      * Encode a CreatePartitions response body at the given API version.
      *

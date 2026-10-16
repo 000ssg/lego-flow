@@ -27,9 +27,9 @@ class AlterConfigsCodecTest {
                         List.of(new AlterConfigsRequest.ConfigEntry("n1", "v1"),
                                 new AlterConfigsRequest.ConfigEntry("n2", "v2")))),
                 true);
-        byte[] enc = AlterConfigsCodec.encodeRequest(req);
+        byte[] enc = AlterConfigsCodec.encodeRequest(AlterConfigsCodec.MIN_VERSION, req);
         AlterConfigsRequest dec = AlterConfigsCodec.decodeRequest(
-                AlterConfigsCodec.PINNED_VERSION, ByteBuffer.wrap(enc));
+                AlterConfigsCodec.MIN_VERSION, ByteBuffer.wrap(enc));
         assertEquals(req, dec);
     }
 
@@ -42,9 +42,9 @@ class AlterConfigsCodecTest {
                         new AlterConfigsRequest.ResourceConfig((byte) 4, "1.2.3.4",
                                 List.of())),
                 false);
-        byte[] enc = AlterConfigsCodec.encodeRequest(req);
+        byte[] enc = AlterConfigsCodec.encodeRequest(AlterConfigsCodec.MIN_VERSION, req);
         AlterConfigsRequest dec = AlterConfigsCodec.decodeRequest(
-                AlterConfigsCodec.PINNED_VERSION, ByteBuffer.wrap(enc));
+                AlterConfigsCodec.MIN_VERSION, ByteBuffer.wrap(enc));
         assertEquals(req, dec);
     }
 
@@ -55,9 +55,9 @@ class AlterConfigsCodecTest {
                         List.of(new AlterConfigsRequest.ConfigEntry("k1", null),
                                 new AlterConfigsRequest.ConfigEntry("k2", "x")))),
                 true);
-        byte[] enc = AlterConfigsCodec.encodeRequest(req);
+        byte[] enc = AlterConfigsCodec.encodeRequest(AlterConfigsCodec.MIN_VERSION, req);
         AlterConfigsRequest dec = AlterConfigsCodec.decodeRequest(
-                AlterConfigsCodec.PINNED_VERSION, ByteBuffer.wrap(enc));
+                AlterConfigsCodec.MIN_VERSION, ByteBuffer.wrap(enc));
         assertEquals(req, dec);
     }
 
@@ -240,9 +240,9 @@ class AlterConfigsCodecTest {
         AlterConfigsResponse resp =
                 new AlterConfigsResponse(List.of(new AlterConfigsResponse.ResourceResponse(
                         (short) 0, "tpc")));
-        byte[] enc = AlterConfigsCodec.encodeResponse(resp);
+        byte[] enc = AlterConfigsCodec.encodeResponse(AlterConfigsCodec.MIN_VERSION, resp);
         AlterConfigsResponse dec = AlterConfigsCodec.decodeResponse(
-                AlterConfigsCodec.PINNED_VERSION, ByteBuffer.wrap(enc));
+                AlterConfigsCodec.MIN_VERSION, ByteBuffer.wrap(enc));
         assertEquals(resp, dec);
     }
 
@@ -251,9 +251,9 @@ class AlterConfigsCodecTest {
         AlterConfigsResponse resp = new AlterConfigsResponse(
                 List.of(new AlterConfigsResponse.ResourceResponse((short) 0, "t1"),
                         new AlterConfigsResponse.ResourceResponse((short) 29, "t2")));
-        byte[] enc = AlterConfigsCodec.encodeResponse(resp);
+        byte[] enc = AlterConfigsCodec.encodeResponse(AlterConfigsCodec.MIN_VERSION, resp);
         AlterConfigsResponse dec = AlterConfigsCodec.decodeResponse(
-                AlterConfigsCodec.PINNED_VERSION, ByteBuffer.wrap(enc));
+                AlterConfigsCodec.MIN_VERSION, ByteBuffer.wrap(enc));
         assertEquals(resp, dec);
     }
 
@@ -383,10 +383,10 @@ class AlterConfigsCodecTest {
                 List.of(new AlterConfigsRequest.ResourceConfig((byte) 2, "t",
                         List.of(new AlterConfigsRequest.ConfigEntry("a", "1")))),
                 true);
-        byte[] viaFacade = KafkaCodec.encodeAlterConfigsRequest(req);
-        byte[] viaCodec = AlterConfigsCodec.encodeRequest(req);
+        byte[] viaFacade = KafkaCodec.encodeAlterConfigsRequest(AlterConfigsCodec.MIN_VERSION, req);
+        byte[] viaCodec = AlterConfigsCodec.encodeRequest(AlterConfigsCodec.MIN_VERSION, req);
         assertArrayEquals(viaCodec, viaFacade);
-        AlterConfigsRequest dec = KafkaCodec.decodeAlterConfigsRequest(ByteBuffer.wrap(viaFacade));
+        AlterConfigsRequest dec = KafkaCodec.decodeAlterConfigsRequest(AlterConfigsCodec.MIN_VERSION, ByteBuffer.wrap(viaFacade));
         assertEquals(req, dec);
     }
 
@@ -395,10 +395,10 @@ class AlterConfigsCodecTest {
         AlterConfigsResponse resp =
                 new AlterConfigsResponse(List.of(new AlterConfigsResponse.ResourceResponse(
                         (short) 0, "tpc")));
-        byte[] viaFacade = KafkaCodec.encodeAlterConfigsResponse(resp);
-        byte[] viaCodec = AlterConfigsCodec.encodeResponse(resp);
+        byte[] viaFacade = KafkaCodec.encodeAlterConfigsResponse(AlterConfigsCodec.MIN_VERSION, resp);
+        byte[] viaCodec = AlterConfigsCodec.encodeResponse(AlterConfigsCodec.MIN_VERSION, resp);
         assertArrayEquals(viaCodec, viaFacade);
-        AlterConfigsResponse dec = KafkaCodec.decodeAlterConfigsResponse(ByteBuffer.wrap(viaFacade));
+        AlterConfigsResponse dec = KafkaCodec.decodeAlterConfigsResponse(AlterConfigsCodec.MIN_VERSION, ByteBuffer.wrap(viaFacade));
         assertEquals(resp, dec);
     }
 }

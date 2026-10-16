@@ -21,7 +21,7 @@ class EndTxnCodecTest {
 
     private static final short MIN_VERSION = EndTxnCodec.MIN_VERSION;
     private static final short MAX_VERSION = EndTxnCodec.MAX_VERSION;
-    private static final short PINNED = EndTxnCodec.PINNED_VERSION;
+    private static final short PINNED = EndTxnCodec.MIN_VERSION;
 
     // ---- Request round-trips, all spec versions -----------------------
 
@@ -219,16 +219,16 @@ class EndTxnCodecTest {
     @Test
     void facadeDelegatesPinnedVersion() {
         var req = new EndTxnRequest("txn-1", 1000L, (short) 0, true);
-        byte[] viaFacade = ssg.legoflow.messaging.kafka.codec.KafkaCodec.encodeEndTxnRequest(req);
+        byte[] viaFacade = ssg.legoflow.messaging.kafka.codec.KafkaCodec.encodeEndTxnRequest(PINNED, req);
         byte[] viaCodec = EndTxnCodec.encodeRequest(PINNED, req);
         assertThat(viaFacade).isEqualTo(viaCodec);
 
         var resp = new EndTxnResponse((short) 0);
-        assertThat(ssg.legoflow.messaging.kafka.codec.KafkaCodec.encodeEndTxnResponse(resp))
+        assertThat(ssg.legoflow.messaging.kafka.codec.KafkaCodec.encodeEndTxnResponse(PINNED, resp))
                 .isEqualTo(EndTxnCodec.encodeResponse(PINNED, resp));
 
         var decodedReq = ssg.legoflow.messaging.kafka.codec.KafkaCodec
-                .decodeEndTxnRequest(ByteBuffer.wrap(viaFacade));
+                .decodeEndTxnRequest(PINNED, ByteBuffer.wrap(viaFacade));
         assertThat(decodedReq.transactionalId()).isEqualTo("txn-1");
         assertThat(decodedReq.committed()).isTrue();
     }

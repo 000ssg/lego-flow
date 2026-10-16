@@ -115,10 +115,10 @@ public final class KafkaProducer implements AutoCloseable {
     }
 
     private void initProducerId() throws IOException {
-        byte[] payload = KafkaCodec.encodeInitProducerIdRequest(
+        byte[] payload = KafkaCodec.encodeInitProducerIdRequest((short) 0, 
                 new InitProducerIdRequest(transactionalId, 60000));
         ByteBuffer resp = connection.sendAndReceive(ApiKey.INIT_PRODUCER_ID.key(), (short) 0, payload);
-        InitProducerIdResponse response = KafkaCodec.decodeInitProducerIdResponse(resp);
+        InitProducerIdResponse response = KafkaCodec.decodeInitProducerIdResponse((short) 0, resp);
 
         if (response.errorCode() != KafkaErrors.NONE.code()) {
             throw new IOException("InitProducerId failed: " + KafkaErrors.forCode(response.errorCode()));
@@ -218,14 +218,14 @@ public final class KafkaProducer implements AutoCloseable {
                 List.of(new ProduceRequest.TopicData(topic,
                         List.of(new ProduceRequest.PartitionData(partition, batchBytes)))));
 
-        byte[] payload = KafkaCodec.encodeProduceRequest(request);
+        byte[] payload = KafkaCodec.encodeProduceRequest((short) 0, request);
 
         // Send with retries
         IOException lastError = null;
         for (int attempt = 0; attempt <= retries; attempt++) {
             try {
                 ByteBuffer resp = connection.sendAndReceive(ApiKey.PRODUCE.key(), (short) 0, payload);
-                ProduceResponse response = KafkaCodec.decodeProduceResponse(resp);
+                ProduceResponse response = KafkaCodec.decodeProduceResponse((short) 0, resp);
 
                 for (var tr : response.responses()) {
                     for (var pr : tr.partitionResponses()) {
@@ -288,11 +288,11 @@ public final class KafkaProducer implements AutoCloseable {
             topics.add(new AddPartitionsToTxnRequest.TopicPartitions(entry.getKey(), entry.getValue()));
         }
 
-        byte[] payload = KafkaCodec.encodeAddPartitionsToTxnRequest(
+        byte[] payload = KafkaCodec.encodeAddPartitionsToTxnRequest((short) 0, 
                 new AddPartitionsToTxnRequest(transactionalId, producerId, producerEpoch, topics));
         ByteBuffer resp = connection.sendAndReceive(
                 ApiKey.ADD_PARTITIONS_TO_TXN.key(), (short) 0, payload);
-        AddPartitionsToTxnResponse response = KafkaCodec.decodeAddPartitionsToTxnResponse(resp);
+        AddPartitionsToTxnResponse response = KafkaCodec.decodeAddPartitionsToTxnResponse((short) 0, resp);
 
         for (var t : response.topics()) {
             for (var p : t.partitions()) {
@@ -325,10 +325,10 @@ public final class KafkaProducer implements AutoCloseable {
     private void endTransaction(boolean commit) throws IOException {
         if (!inTransaction) throw new IllegalStateException("No active transaction");
 
-        byte[] payload = KafkaCodec.encodeEndTxnRequest(
+        byte[] payload = KafkaCodec.encodeEndTxnRequest((short) 0, 
                 new EndTxnRequest(transactionalId, producerId, producerEpoch, commit));
         ByteBuffer resp = connection.sendAndReceive(ApiKey.END_TXN.key(), (short) 0, payload);
-        EndTxnResponse response = KafkaCodec.decodeEndTxnResponse(resp);
+        EndTxnResponse response = KafkaCodec.decodeEndTxnResponse((short) 0, resp);
 
         if (response.errorCode() != KafkaErrors.NONE.code()) {
             throw new IOException("EndTxn failed: " + KafkaErrors.forCode(response.errorCode()).message());

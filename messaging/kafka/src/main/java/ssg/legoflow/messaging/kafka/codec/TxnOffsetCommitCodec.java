@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * Codec for the Kafka <b>Transaction</b> API (key 28), versions v0–v3, both directions.
  * <p>
- * Client/broker interaction is pinned at {@link #PINNED_VERSION} (v0: the baseline the
+ * Client/broker interaction is versioned from v0 (the baseline the
  * in-house client sends), while the full version range v0–v3 is encoded so a frame carrying
  * any version can be produced or parsed.
  * <p>
@@ -51,7 +51,6 @@ public final class TxnOffsetCommitCodec {
     public static final short FLEXIBLE_START = 3;
 
     /** Version pinned for the client/broker interaction. */
-    public static final short PINNED_VERSION = 0;
 
     private TxnOffsetCommitCodec() {
     }
@@ -64,17 +63,6 @@ public final class TxnOffsetCommitCodec {
     }
 
     // ── Request ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode a request at the pinned version.
-     *
-     * @param req the request
-     * @return encoded body bytes
-     */
-    public static byte[] encodeRequest(TxnOffsetCommitRequest req) {
-        return encodeRequest(PINNED_VERSION, req);
-    }
-
     /**
      * Encode a request body at the given API version.
      *
@@ -231,17 +219,6 @@ public final class TxnOffsetCommitCodec {
     }
 
     // ── Response ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode a response at the pinned version.
-     *
-     * @param resp the response
-     * @return encoded body bytes
-     */
-    public static byte[] encodeResponse(TxnOffsetCommitResponse resp) {
-        return encodeResponse(PINNED_VERSION, resp);
-    }
-
     /**
      * Encode a response body at the given API version.
      *

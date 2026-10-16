@@ -18,8 +18,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /**
  * Codec tests for {@link ListOffsetsCodec} — Kafka ListOffsets request/response (API key 2).
  *
- * <p>Covers the pinned version (v1) and the full implemented range (v0–v8). The in-house
- * models are compact (v1 shape), so version-gated fields the model does not expose
+ * <p>Covers the negotiated version range (v0–v8) end to end: the range floor,
+ * per-version byte layouts, and the full range round-trip. The in-house
+ * models are compact, so version-gated fields the model does not expose
  * ({@code ReplicaId}, {@code IsolationLevel}, {@code CurrentLeaderEpoch},
  * {@code MaxNumOffsets}, {@code ThrottleTimeMs}, {@code LeaderEpoch}) are written with a
  * neutral spec default and read + discarded on decode; the round-trip therefore preserves
@@ -57,30 +58,33 @@ class ListOffsetsCodecTest {
         return ListOffsetsCodec.decodeResponse(v, ByteBuffer.wrap(b));
     }
 
-    // ── Pinned version ──────────────────────────────────────────────────
+    // ── Negotiated range floor ──────────────────────────────────────────
 
     @Nested
-    @DisplayName("Pinned version (v1)")
-    class Pinned {
+    @DisplayName("Version range floor (v0)")
+    class RangeFloor {
 
         @Test
-        @DisplayName("PINNED_VERSION is v1 (client/broker wire format)")
-        void pinnedVersion() {
-            assertEquals((short) 1, ListOffsetsCodec.PINNED_VERSION);
+        @DisplayName("minimum version is v0 (negotiated range floor)")
+        void minVersion() {
+            assertEquals((short) 0, ListOffsetsCodec.MIN_VERSION);
+            assertEquals((short) 8, ListOffsetsCodec.MAX_VERSION);
         }
 
         @Test
-        @DisplayName("single-arg encodeRequest pins to v1")
-        void pinnedEncodeRequest() {
-            byte[] pinned = ListOffsetsCodec.encodeRequest((short) 1, req("t", 0, -1L));
-            byte[] oneArg = ListOffsetsCodec.encodeRequest(req("t", 0, -1L));
-            assertArrayEquals(pinned, oneArg);
+        @DisplayName("v0 encodeRequest round-trips at the range floor")
+        void minEncodeRequest() {
+            byte[] b = ListOffsetsCodec.encodeRequest((short) 0, req("t", 0, -1L));
+            ListOffsetsRequest decoded = ListOffsetsCodec.decodeRequest((short) 0, ByteBuffer.wrap(b));
+            assertEquals("t", decoded.topics().get(0).name());
+            assertEquals(0, decoded.topics().get(0).partitions().get(0).partitionIndex());
+            assertEquals(-1L, decoded.topics().get(0).partitions().get(0).timestamp());
         }
 
         @Test
-        @DisplayName("request round-trip (v1) preserves name/partitionIndex/timestamp")
+        @DisplayName("request round-trip (v0) preserves name/partitionIndex/timestamp")
         void requestRoundTrip() {
-            ListOffsetsRequest decoded = roundTripReq((short) 1, req("orders", 7, -2L));
+            ListOffsetsRequest decoded = roundTripReq((short) 0, req("orders", 7, -2L));
             assertEquals(1, decoded.topics().size());
             assertEquals("orders", decoded.topics().get(0).name());
             assertEquals(1, decoded.topics().get(0).partitions().size());
@@ -89,14 +93,16 @@ class ListOffsetsCodecTest {
         }
 
         @Test
-        @DisplayName("response round-trip (v1) preserves name/partitionIndex/errorCode/timestamp/offset")
+        @DisplayName("response round-trip (v0): v0 carries OldStyleOffsets[] — offset preserved, timestamp spec-defaults to 0")
         void responseRoundTrip() {
-            ListOffsetsResponse decoded = roundTripResp((short) 1, resp("orders", 7, (short) 0, 1000L, 42L));
+            ListOffsetsResponse decoded = roundTripResp((short) 0, resp("orders", 7, (short) 0, 1000L, 42L));
             assertEquals("orders", decoded.topics().get(0).name());
             var p = decoded.topics().get(0).partitions().get(0);
             assertEquals(7, p.partitionIndex());
             assertEquals(0, p.errorCode());
-            assertEquals(1000L, p.timestamp());
+            // v0 response has no Timestamp field (OldStyleOffsets only): the model's
+            // timestamp is reconstructed as 0; the offset survives via OldStyleOffsets[0].
+            assertEquals(0L, p.timestamp());
             assertEquals(42L, p.offset());
         }
     }

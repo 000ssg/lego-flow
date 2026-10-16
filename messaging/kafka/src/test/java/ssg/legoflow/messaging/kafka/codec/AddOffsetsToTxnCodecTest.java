@@ -21,7 +21,7 @@ class AddOffsetsToTxnCodecTest {
     private static final short MIN_VERSION = AddOffsetsToTxnCodec.MIN_VERSION;
     private static final short MAX_VERSION = AddOffsetsToTxnCodec.MAX_VERSION;
     private static final short FLEXIBLE = AddOffsetsToTxnCodec.FLEXIBLE_START;
-    private static final short PINNED = AddOffsetsToTxnCodec.PINNED_VERSION;
+    private static final short PINNED = AddOffsetsToTxnCodec.MIN_VERSION;
 
     // ---- Request round-trips, all spec versions -----------------------
 
@@ -219,16 +219,16 @@ class AddOffsetsToTxnCodecTest {
     @Test
     void facadeDelegatesPinnedVersion() {
         var req = new AddOffsetsToTxnRequest("txn-1", 1000L, (short) 0, "my-group");
-        byte[] viaFacade = ssg.legoflow.messaging.kafka.codec.KafkaCodec.encodeAddOffsetsToTxnRequest(req);
+        byte[] viaFacade = ssg.legoflow.messaging.kafka.codec.KafkaCodec.encodeAddOffsetsToTxnRequest(PINNED, req);
         byte[] viaCodec = AddOffsetsToTxnCodec.encodeRequest(PINNED, req);
         assertThat(viaFacade).isEqualTo(viaCodec);
 
         var resp = new AddOffsetsToTxnResponse((short) 0);
-        assertThat(ssg.legoflow.messaging.kafka.codec.KafkaCodec.encodeAddOffsetsToTxnResponse(resp))
+        assertThat(ssg.legoflow.messaging.kafka.codec.KafkaCodec.encodeAddOffsetsToTxnResponse(PINNED, resp))
                 .isEqualTo(AddOffsetsToTxnCodec.encodeResponse(PINNED, resp));
 
         var decodedReq = ssg.legoflow.messaging.kafka.codec.KafkaCodec
-                .decodeAddOffsetsToTxnRequest(ByteBuffer.wrap(viaFacade));
+                .decodeAddOffsetsToTxnRequest(PINNED, ByteBuffer.wrap(viaFacade));
         assertThat(decodedReq.transactionalId()).isEqualTo("txn-1");
         assertThat(decodedReq.groupId()).isEqualTo("my-group");
     }

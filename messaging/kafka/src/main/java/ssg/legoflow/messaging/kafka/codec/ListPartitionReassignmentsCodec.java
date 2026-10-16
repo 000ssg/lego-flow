@@ -13,7 +13,7 @@ import java.util.List;
  * Codec for the Kafka ListPartitionReassignments request (API key 46) and response —
  * list ongoing partition reassignments.
  * <p>
- * Client/broker interaction is pinned at {@link #PINNED_VERSION} (v0: the baseline that
+ * Client/broker interaction is versioned from v0 (the baseline that
  * {@code KafkaAdminClient} sends). v0 is the only spec version and it uses flexible
  * encoding (KIP-482) from the start — compact arrays/strings + tagged fields on every
  * struct level (partition, topic, top).
@@ -39,10 +39,10 @@ import java.util.List;
 public final class ListPartitionReassignmentsCodec {
 
     /** Pinned version for client/broker ListPartitionReassignments interaction (v0). */
-    public static final short PINNED_VERSION = 0;
+    public static final short MIN_VERSION = 0;
 
     /** Highest (and only) API version with a defined wire format in the spec (v0). */
-    private static final short MAX_VERSION = 0;
+    public static final short MAX_VERSION = 0;
 
     /** Response {@code ThrottleTimeMs} default — 0 (no throttling). */
     private static final int DEFAULT_THROTTLE_TIME_MS = 0;
@@ -58,17 +58,6 @@ public final class ListPartitionReassignmentsCodec {
     }
 
     // ── Request ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode a {@link ListPartitionReassignmentsRequest} at the pinned version.
-     *
-     * @param req the request
-     * @return encoded body bytes
-     */
-    public static byte[] encodeRequest(ListPartitionReassignmentsRequest req) {
-        return flexibleRequest(req);
-    }
-
     /**
      * Encode a ListPartitionReassignments request body at the given API version.
      *
@@ -147,17 +136,6 @@ public final class ListPartitionReassignmentsCodec {
     }
 
     // ── Response ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode a {@link ListPartitionReassignmentsResponse} at the pinned version.
-     *
-     * @param resp the response
-     * @return encoded body bytes
-     */
-    public static byte[] encodeResponse(ListPartitionReassignmentsResponse resp) {
-        return flexibleResponse(resp);
-    }
-
     /**
      * Encode a ListPartitionReassignments response body at the given API version.
      *

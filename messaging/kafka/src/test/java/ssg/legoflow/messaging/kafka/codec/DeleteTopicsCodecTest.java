@@ -58,25 +58,28 @@ class DeleteTopicsCodecTest {
     class Pinned {
 
         @Test
-        @DisplayName("PINNED_VERSION is v0 (KafkaAdminClient wire format)")
+        @DisplayName("minimum version is v0 (KafkaAdminClient wire format)")
         void pinnedVersion() {
-            assertEquals((short) 0, DeleteTopicsCodec.PINNED_VERSION);
+            assertEquals((short) 0, DeleteTopicsCodec.MIN_VERSION);
         }
 
         @Test
-        @DisplayName("single-arg encodeRequest pins to v0")
+        @DisplayName("v0 encodeRequest/encodeResponse are versioned calls (unpinned facade)")
         void pinnedEncodeRequest() {
-            byte[] pinned = DeleteTopicsCodec.encodeRequest((short) 0, req(30000));
-            byte[] oneArg = DeleteTopicsCodec.encodeRequest(req(30000));
-            assertArrayEquals(pinned, oneArg);
+            byte[] b = DeleteTopicsCodec.encodeRequest(DeleteTopicsCodec.MIN_VERSION, req(30000));
+            DeleteTopicsRequest decoded = DeleteTopicsCodec.decodeRequest(DeleteTopicsCodec.MIN_VERSION,
+                    ByteBuffer.wrap(b));
+            assertEquals(List.of("orders", "events"), decoded.topicNames());
         }
 
         @Test
-        @DisplayName("single-arg encodeResponse pins to v0")
+        @DisplayName("v0 encodeResponse round-trips at the pinned version")
         void pinnedEncodeResponse() {
-            byte[] pinned = DeleteTopicsCodec.encodeResponse((short) 0, resp((short) 0));
-            byte[] oneArg = DeleteTopicsCodec.encodeResponse(resp((short) 0));
-            assertArrayEquals(pinned, oneArg);
+            byte[] b = DeleteTopicsCodec.encodeResponse(DeleteTopicsCodec.MIN_VERSION, resp((short) 0));
+            DeleteTopicsResponse decoded = DeleteTopicsCodec.decodeResponse(DeleteTopicsCodec.MIN_VERSION,
+                    ByteBuffer.wrap(b));
+            assertEquals(2, decoded.responses().size());
+            assertEquals("orders", decoded.responses().get(0).name());
         }
 
         @Test

@@ -187,9 +187,9 @@ public final class KafkaConsumer implements AutoCloseable {
         }
 
         FetchRequest request = new FetchRequest((int) timeoutMs, 1, 10485760, topics);
-        byte[] payload = KafkaCodec.encodeFetchRequest(request);
+        byte[] payload = KafkaCodec.encodeFetchRequest((short) 0, request);
         ByteBuffer resp = connection.sendAndReceive(ApiKey.FETCH.key(), (short) 0, payload);
-        FetchResponse response = KafkaCodec.decodeFetchResponse(resp);
+        FetchResponse response = KafkaCodec.decodeFetchResponse((short) 0, resp);
 
         List<ConsumerRecord> records = new ArrayList<>();
         for (var tr : response.topics()) {
@@ -243,7 +243,7 @@ public final class KafkaConsumer implements AutoCloseable {
         }
 
         OffsetCommitRequest request = new OffsetCommitRequest(groupId, generationId, memberId, topics);
-        byte[] payload = KafkaCodec.encodeOffsetCommitRequest(request);
+        byte[] payload = KafkaCodec.encodeOffsetCommitRequest((short) 0, request);
         connection.sendAndReceive(ApiKey.OFFSET_COMMIT.key(), (short) 0, payload);
         lastCommitTime = System.currentTimeMillis();
     }
@@ -314,9 +314,9 @@ public final class KafkaConsumer implements AutoCloseable {
                 groupId, sessionTimeoutMs, sessionTimeoutMs, memberId, "consumer",
                 List.of(new JoinGroupRequest.Protocol(assignmentStrategy, metadata)));
 
-        byte[] payload = KafkaCodec.encodeJoinGroupRequest(request);
+        byte[] payload = KafkaCodec.encodeJoinGroupRequest((short) 0, request);
         ByteBuffer resp = connection.sendAndReceive(ApiKey.JOIN_GROUP.key(), (short) 0, payload);
-        JoinGroupResponse response = KafkaCodec.decodeJoinGroupResponse(resp);
+        JoinGroupResponse response = KafkaCodec.decodeJoinGroupResponse((short) 0, resp);
 
         if (response.errorCode() != KafkaErrors.NONE.code()) {
             throw new IOException("JoinGroup failed: " + KafkaErrors.forCode(response.errorCode()));
@@ -465,9 +465,9 @@ public final class KafkaConsumer implements AutoCloseable {
             topics.add(new OffsetFetchRequest.TopicPartitions(entry.getKey(), entry.getValue()));
         }
 
-        byte[] payload = KafkaCodec.encodeOffsetFetchRequest(new OffsetFetchRequest(groupId, topics));
+        byte[] payload = KafkaCodec.encodeOffsetFetchRequest((short) 0, new OffsetFetchRequest(groupId, topics));
         ByteBuffer resp = connection.sendAndReceive(ApiKey.OFFSET_FETCH.key(), (short) 0, payload);
-        OffsetFetchResponse response = KafkaCodec.decodeOffsetFetchResponse(resp);
+        OffsetFetchResponse response = KafkaCodec.decodeOffsetFetchResponse((short) 0, resp);
 
         for (var t : response.topics()) {
             for (var p : t.partitions()) {

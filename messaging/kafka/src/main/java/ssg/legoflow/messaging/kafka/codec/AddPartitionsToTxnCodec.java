@@ -14,7 +14,7 @@ import java.util.List;
  * partitions with a transaction so the broker can produce them with the transactional
  * producer.
  * <p>
- * Client/broker interaction is pinned at {@link #PINNED_VERSION} (v0: the baseline that
+ * Client/broker interaction is versioned from v0 (the baseline that
  * {@code KafkaAdminClient} sends), while the full version range v0–v4 is encoded so a frame
  * carrying any AddPartitionsToTxn version can be produced or parsed.
  * <p>
@@ -45,13 +45,13 @@ import java.util.List;
 public final class AddPartitionsToTxnCodec {
 
     /** Pinned version for client/broker AddPartitionsToTxn interaction (v0). */
-    public static final short PINNED_VERSION = 0;
+    public static final short MIN_VERSION = 0;
 
     /** Flexible-encoding versions (v3+): compact strings/arrays + tagged fields. */
-    private static final short FLEXIBLE_START = 3;
+    public static final short FLEXIBLE_START = 3;
 
     /** Highest API version with a defined wire format in the spec (v4). */
-    private static final short MAX_VERSION = 4;
+    public static final short MAX_VERSION = 4;
 
     /** v4 reorganizes both directions into a batch keyed by transactional ID. */
     private static final short V4_BATCH_START = 4;
@@ -70,17 +70,6 @@ public final class AddPartitionsToTxnCodec {
     }
 
     // ── Request ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode a {@link AddPartitionsToTxnRequest} at the pinned version.
-     *
-     * @param req the request
-     * @return encoded body bytes
-     */
-    public static byte[] encodeRequest(AddPartitionsToTxnRequest req) {
-        return encodeRequest(PINNED_VERSION, req);
-    }
-
     /**
      * Encode an AddPartitionsToTxn request body at the given API version.
      *
@@ -294,17 +283,6 @@ public final class AddPartitionsToTxnCodec {
     }
 
     // ── Response ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode a {@link AddPartitionsToTxnResponse} at the pinned version.
-     *
-     * @param resp the response
-     * @return encoded body bytes
-     */
-    public static byte[] encodeResponse(AddPartitionsToTxnResponse resp) {
-        return encodeResponse(PINNED_VERSION, resp);
-    }
-
     /**
      * Encode an AddPartitionsToTxn response body at the given API version.
      *

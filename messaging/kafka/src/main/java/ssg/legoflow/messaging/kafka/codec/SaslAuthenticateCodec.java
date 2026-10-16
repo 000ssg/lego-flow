@@ -28,7 +28,8 @@ import java.nio.ByteBuffer;
 public final class SaslAuthenticateCodec {
 
     /** Spec (3.6.1) highest version for API 36. */
-    public static final short SPEC_MAX_VERSION = 2;
+    public static final short MIN_VERSION = 0;
+    public static final short MAX_VERSION = 2;
 
     private SaslAuthenticateCodec() {
     }

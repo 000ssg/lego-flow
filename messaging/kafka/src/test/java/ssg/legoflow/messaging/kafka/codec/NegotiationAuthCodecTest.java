@@ -573,42 +573,42 @@ class NegotiationAuthCodecTest {
         // Request paths
         assertArrayEquals(
                 ApiVersionsCodec.encodeRequest((short) 0, new ApiVersionsRequest()),
-                KafkaCodec.encodeApiVersionsRequest(new ApiVersionsRequest()));
+                KafkaCodec.encodeApiVersionsRequest((short) 0, new ApiVersionsRequest()));
 
         assertArrayEquals(
                 SaslHandshakeCodec.encodeRequest((short) 0, new SaslHandshakeRequest("PLAIN")),
-                KafkaCodec.encodeSaslHandshakeRequest(new SaslHandshakeRequest("PLAIN")));
+                KafkaCodec.encodeSaslHandshakeRequest((short) 0, new SaslHandshakeRequest("PLAIN")));
 
         assertArrayEquals(
                 SaslAuthenticateCodec.encodeRequest((short) 0, new SaslAuthenticateRequest(new byte[]{9})),
-                KafkaCodec.encodeSaslAuthenticateRequest(new SaslAuthenticateRequest(new byte[]{9})));
+                KafkaCodec.encodeSaslAuthenticateRequest((short) 0, new SaslAuthenticateRequest(new byte[]{9})));
 
         // Response paths
         ApiVersionsResponse avr = new ApiVersionsResponse((short) 0,
                 List.of(new ApiVersionsResponse.ApiVersion((short) 1, (short) 0, (short) 16)), 0L);
         assertArrayEquals(
                 ApiVersionsCodec.encodeResponse((short) 0, avr),
-                KafkaCodec.encodeApiVersionsResponse(avr));
+                KafkaCodec.encodeApiVersionsResponse((short) 0, avr));
 
         SaslHandshakeResponse shr = new SaslHandshakeResponse((short) 0, List.of("PLAIN"));
         assertArrayEquals(
                 SaslHandshakeCodec.encodeResponse((short) 0, shr),
-                KafkaCodec.encodeSaslHandshakeResponse(shr));
+                KafkaCodec.encodeSaslHandshakeResponse((short) 0, shr));
 
         SaslAuthenticateResponse sar = SaslAuthenticateResponse.builder().errorCode((short) 0).errorMessage("done").authBytes(new byte[0]).sessionLifetimeMs(0L).build();
         assertArrayEquals(
                 SaslAuthenticateCodec.encodeResponse((short) 0, sar),
-                KafkaCodec.encodeSaslAuthenticateResponse(sar));
+                KafkaCodec.encodeSaslAuthenticateResponse((short) 0, sar));
 
         // Decode paths return identical objects
-        ByteBuffer avrBuf = ByteBuffer.wrap(KafkaCodec.encodeApiVersionsResponse(avr));
-        assertEquals(avr, KafkaCodec.decodeApiVersionsResponse(avrBuf));
+        ByteBuffer avrBuf = ByteBuffer.wrap(KafkaCodec.encodeApiVersionsResponse((short) 0, avr));
+        assertEquals(avr, KafkaCodec.decodeApiVersionsResponse((short) 0, avrBuf));
 
-        ByteBuffer shrBuf = ByteBuffer.wrap(KafkaCodec.encodeSaslHandshakeResponse(shr));
-        assertEquals(shr, KafkaCodec.decodeSaslHandshakeResponse(shrBuf));
+        ByteBuffer shrBuf = ByteBuffer.wrap(KafkaCodec.encodeSaslHandshakeResponse((short) 0, shr));
+        assertEquals(shr, KafkaCodec.decodeSaslHandshakeResponse((short) 0, shrBuf));
 
-        ByteBuffer sarBuf = ByteBuffer.wrap(KafkaCodec.encodeSaslAuthenticateResponse(sar));
-        SaslAuthenticateResponse sarDecoded = KafkaCodec.decodeSaslAuthenticateResponse(sarBuf);
+        ByteBuffer sarBuf = ByteBuffer.wrap(KafkaCodec.encodeSaslAuthenticateResponse((short) 0, sar));
+        SaslAuthenticateResponse sarDecoded = KafkaCodec.decodeSaslAuthenticateResponse((short) 0, sarBuf);
         // record holds a byte[] field → compare fields, not record reference-equality
         assertEquals((short) 0, sarDecoded.errorCode());
         assertEquals("done", sarDecoded.errorMessage());

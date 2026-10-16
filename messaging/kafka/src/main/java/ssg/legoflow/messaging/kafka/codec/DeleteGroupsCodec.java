@@ -13,7 +13,7 @@ import java.util.List;
  * Codec for the Kafka DeleteGroups request (API key 42) and response — delete the
  * metadata of consumer groups.
  * <p>
- * Client/broker interaction is pinned at {@link #PINNED_VERSION} (v0: the baseline that
+ * Client/broker interaction is versioned from v0 (the baseline that
  * {@code KafkaAdminClient} sends), while the full version range v0–v2 is encoded so a frame
  * carrying any DeleteGroups version can be produced or parsed.
  * <p>
@@ -36,13 +36,13 @@ import java.util.List;
 public final class DeleteGroupsCodec {
 
     /** Pinned version for client/broker DeleteGroups interaction (v0). */
-    public static final short PINNED_VERSION = 0;
+    public static final short MIN_VERSION = 0;
 
     /** Flexible-encoding versions (v2+): compact arrays/strings + tagged fields. */
-    private static final short FLEXIBLE_START = 2;
+    public static final short FLEXIBLE_START = 2;
 
     /** Highest API version with a defined wire format in the spec (v2). */
-    private static final short MAX_VERSION = 2;
+    public static final short MAX_VERSION = 2;
 
     /** Response {@code ThrottleTimeMs} default — 0 (no throttling). */
     private static final int DEFAULT_THROTTLE_TIME_MS = 0;
@@ -58,17 +58,6 @@ public final class DeleteGroupsCodec {
     }
 
     // ── Request ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode a {@link DeleteGroupsRequest} at the pinned version.
-     *
-     * @param req the request
-     * @return encoded body bytes
-     */
-    public static byte[] encodeRequest(DeleteGroupsRequest req) {
-        return encodeRequest(PINNED_VERSION, req);
-    }
-
     /**
      * Encode a DeleteGroups request body at the given API version.
      *
@@ -158,17 +147,6 @@ public final class DeleteGroupsCodec {
     }
 
     // ── Response ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode a {@link DeleteGroupsResponse} at the pinned version.
-     *
-     * @param resp the response
-     * @return encoded body bytes
-     */
-    public static byte[] encodeResponse(DeleteGroupsResponse resp) {
-        return encodeResponse(PINNED_VERSION, resp);
-    }
-
     /**
      * Encode a DeleteGroups response body at the given API version.
      *

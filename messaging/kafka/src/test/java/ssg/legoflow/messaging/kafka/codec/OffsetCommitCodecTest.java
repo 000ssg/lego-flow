@@ -487,8 +487,8 @@ class OffsetCommitCodecTest {
         var req = new OffsetCommitRequest("grp-1", 5, "member-1",
                 List.of(topic("topic-a", part(0, 42L, "meta"))));
         assertArrayEquals(
-                OffsetCommitCodec.encodeRequest(req),
-                KafkaCodec.encodeOffsetCommitRequest(req),
+                OffsetCommitCodec.encodeRequest((short) 0, req),
+                KafkaCodec.encodeOffsetCommitRequest((short) 0, req),
                 "facade encode must delegate to the dedicated codec");
     }
 
@@ -497,8 +497,8 @@ class OffsetCommitCodecTest {
         var resp = new OffsetCommitResponse(List.of(
                 topicResp("topic-a", new OffsetCommitResponse.PartitionResponse(0, (short) 0))));
         assertArrayEquals(
-                OffsetCommitCodec.encodeResponse(resp),
-                KafkaCodec.encodeOffsetCommitResponse(resp),
+                OffsetCommitCodec.encodeResponse((short) 0, resp),
+                KafkaCodec.encodeOffsetCommitResponse((short) 0, resp),
                 "facade encode must delegate to the dedicated codec");
     }
 
@@ -506,26 +506,26 @@ class OffsetCommitCodecTest {
     void facade_decode_matches_dedicatedCodec() {
         var req = new OffsetCommitRequest("grp-1", 0, null,
                 List.of(topic("topic-a", part(0, 42L, "meta"))));
-        byte[] enc = KafkaCodec.encodeOffsetCommitRequest(req);
-        var viaFacade = KafkaCodec.decodeOffsetCommitRequest(ByteBuffer.wrap(enc));
+        byte[] enc = KafkaCodec.encodeOffsetCommitRequest((short) 0, req);
+        var viaFacade = KafkaCodec.decodeOffsetCommitRequest((short) 0, ByteBuffer.wrap(enc));
         var viaCodec = OffsetCommitCodec.decodeRequest(
-                OffsetCommitCodec.PINNED_VERSION, ByteBuffer.wrap(enc));
+                OffsetCommitCodec.MIN_VERSION, ByteBuffer.wrap(enc));
         assertEquals(viaCodec, viaFacade,
-                "facade decode must forward to the dedicated codec at the pinned version");
+                "facade decode must forward to the dedicated codec at v0");
     }
 
     @Test
     void facade_roundTrip() {
         var req = new OffsetCommitRequest("grp-1", 0, null,
                 List.of(topic("topic-a", part(0, 42L, "meta"))));
-        var dec = KafkaCodec.decodeOffsetCommitRequest(
-                ByteBuffer.wrap(KafkaCodec.encodeOffsetCommitRequest(req)));
+        var dec = KafkaCodec.decodeOffsetCommitRequest((short) 0, 
+                ByteBuffer.wrap(KafkaCodec.encodeOffsetCommitRequest((short) 0, req)));
         assertEquals(req, dec);
     }
 
     @Test
     void pinned_version_is_v0() {
-        assertEquals((short) 0, OffsetCommitCodec.PINNED_VERSION);
+        assertEquals((short) 0, OffsetCommitCodec.MIN_VERSION);
         assertEquals((short) 9, OffsetCommitCodec.MAX_VERSION);
     }
 }

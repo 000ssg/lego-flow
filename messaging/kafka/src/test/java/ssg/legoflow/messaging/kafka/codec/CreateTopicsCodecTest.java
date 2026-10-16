@@ -76,25 +76,29 @@ class CreateTopicsCodecTest {
     class Pinned {
 
         @Test
-        @DisplayName("PINNED_VERSION is v0 (KafkaAdminClient wire format)")
+        @DisplayName("minimum version is v0 (KafkaAdminClient wire format)")
         void pinnedVersion() {
-            assertEquals((short) 0, CreateTopicsCodec.PINNED_VERSION);
+            assertEquals((short) 0, CreateTopicsCodec.MIN_VERSION);
         }
 
         @Test
-        @DisplayName("single-arg encodeRequest pins to v0")
+        @DisplayName("v0 encodeRequest/encodeResponse are versioned calls (unpinned facade)")
         void pinnedEncodeRequest() {
-            byte[] pinned = CreateTopicsCodec.encodeRequest((short) 0, req(30000));
-            byte[] oneArg = CreateTopicsCodec.encodeRequest(req(30000));
-            assertArrayEquals(pinned, oneArg);
+            byte[] b = CreateTopicsCodec.encodeRequest(CreateTopicsCodec.MIN_VERSION, req(30000));
+            CreateTopicsRequest decoded = CreateTopicsCodec.decodeRequest(CreateTopicsCodec.MIN_VERSION,
+                    ByteBuffer.wrap(b));
+            assertEquals(1, decoded.topics().size());
+            assertEquals("orders", decoded.topics().get(0).name());
         }
 
         @Test
-        @DisplayName("single-arg encodeResponse pins to v0")
+        @DisplayName("v0 encodeResponse round-trips at the pinned version")
         void pinnedEncodeResponse() {
-            byte[] pinned = CreateTopicsCodec.encodeResponse((short) 0, resp("orders", (short) 0));
-            byte[] oneArg = CreateTopicsCodec.encodeResponse(resp("orders", (short) 0));
-            assertArrayEquals(pinned, oneArg);
+            byte[] b = CreateTopicsCodec.encodeResponse(CreateTopicsCodec.MIN_VERSION, resp("orders", (short) 0));
+            CreateTopicsResponse decoded = CreateTopicsCodec.decodeResponse(CreateTopicsCodec.MIN_VERSION,
+                    ByteBuffer.wrap(b));
+            assertEquals(1, decoded.topics().size());
+            assertEquals("orders", decoded.topics().get(0).name());
         }
 
         @Test

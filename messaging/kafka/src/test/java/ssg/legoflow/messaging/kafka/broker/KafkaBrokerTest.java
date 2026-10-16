@@ -1,6 +1,9 @@
 package ssg.legoflow.messaging.kafka.broker;
 
+import ssg.legoflow.messaging.kafka.codec.AlterPartitionReassignmentsCodec;
 import ssg.legoflow.messaging.kafka.codec.KafkaCodec;
+import ssg.legoflow.messaging.kafka.codec.ListPartitionReassignmentsCodec;
+import ssg.legoflow.messaging.kafka.codec.ProduceCodec;
 import ssg.legoflow.messaging.kafka.common.ApiKey;
 import ssg.legoflow.messaging.kafka.common.KafkaErrors;
 import ssg.legoflow.messaging.kafka.common.TopicPartition;
@@ -211,10 +214,10 @@ class KafkaBrokerTest {
 
             // Send SaslHandshake request
             var handshakeReq = new SaslHandshakeRequest("PLAIN");
-            byte[] payload = KafkaCodec.encodeSaslHandshakeRequest(handshakeReq);
+            byte[] payload = KafkaCodec.encodeSaslHandshakeRequest((short) 0, handshakeReq);
             ByteBuffer resp = sendAndReceive(ch, ApiKey.SASL_HANDSHAKE.key(), payload);
 
-            var handshakeResp = KafkaCodec.decodeSaslHandshakeResponse(resp);
+            var handshakeResp = KafkaCodec.decodeSaslHandshakeResponse((short) 0, resp);
             assertThat(handshakeResp.errorCode()).isEqualTo(KafkaErrors.NONE.code());
             assertThat(handshakeResp.mechanisms()).contains("PLAIN", "SCRAM-SHA-256");
         }
@@ -227,10 +230,10 @@ class KafkaBrokerTest {
             var ch = inMemoryPair(broker);
 
             var handshakeReq = new SaslHandshakeRequest("GSSAPI");
-            byte[] payload = KafkaCodec.encodeSaslHandshakeRequest(handshakeReq);
+            byte[] payload = KafkaCodec.encodeSaslHandshakeRequest((short) 0, handshakeReq);
             ByteBuffer resp = sendAndReceive(ch, ApiKey.SASL_HANDSHAKE.key(), payload);
 
-            var handshakeResp = KafkaCodec.decodeSaslHandshakeResponse(resp);
+            var handshakeResp = KafkaCodec.decodeSaslHandshakeResponse((short) 0, resp);
             assertThat(handshakeResp.errorCode()).isEqualTo(KafkaErrors.UNSUPPORTED_SASL_MECHANISM.code());
             assertThat(handshakeResp.mechanisms()).contains("PLAIN", "SCRAM-SHA-256");
         }
@@ -244,17 +247,17 @@ class KafkaBrokerTest {
             var ch = inMemoryPair(broker);
 
             // Step 1: Handshake
-            byte[] hsPayload = KafkaCodec.encodeSaslHandshakeRequest(new SaslHandshakeRequest("PLAIN"));
+            byte[] hsPayload = KafkaCodec.encodeSaslHandshakeRequest((short) 0, new SaslHandshakeRequest("PLAIN"));
             ByteBuffer hsResp = sendAndReceive(ch, ApiKey.SASL_HANDSHAKE.key(), hsPayload);
-            assertThat(KafkaCodec.decodeSaslHandshakeResponse(hsResp).errorCode())
+            assertThat(KafkaCodec.decodeSaslHandshakeResponse((short) 0, hsResp).errorCode())
                     .isEqualTo(KafkaErrors.NONE.code());
 
             // Step 2: Authenticate
             byte[] authBytes = "\0testuser\0testpass".getBytes(StandardCharsets.UTF_8);
-            byte[] authPayload = KafkaCodec.encodeSaslAuthenticateRequest(new SaslAuthenticateRequest(authBytes));
+            byte[] authPayload = KafkaCodec.encodeSaslAuthenticateRequest((short) 0, new SaslAuthenticateRequest(authBytes));
             ByteBuffer authResp = sendAndReceive(ch, ApiKey.SASL_AUTHENTICATE.key(), authPayload);
 
-            var saslResp = KafkaCodec.decodeSaslAuthenticateResponse(authResp);
+            var saslResp = KafkaCodec.decodeSaslAuthenticateResponse((short) 0, authResp);
             assertThat(saslResp.errorCode()).isEqualTo(KafkaErrors.NONE.code());
         }
     }
@@ -267,10 +270,10 @@ class KafkaBrokerTest {
 
             // Try to authenticate without handshake first
             byte[] authBytes = "\0user\0pass".getBytes(StandardCharsets.UTF_8);
-            byte[] authPayload = KafkaCodec.encodeSaslAuthenticateRequest(new SaslAuthenticateRequest(authBytes));
+            byte[] authPayload = KafkaCodec.encodeSaslAuthenticateRequest((short) 0, new SaslAuthenticateRequest(authBytes));
             ByteBuffer authResp = sendAndReceive(ch, ApiKey.SASL_AUTHENTICATE.key(), authPayload);
 
-            var saslResp = KafkaCodec.decodeSaslAuthenticateResponse(authResp);
+            var saslResp = KafkaCodec.decodeSaslAuthenticateResponse((short) 0, authResp);
             assertThat(saslResp.errorCode()).isEqualTo(KafkaErrors.ILLEGAL_SASL_STATE.code());
         }
     }
@@ -326,17 +329,17 @@ class KafkaBrokerTest {
             var alterReq = new AlterPartitionReassignmentsRequest(30000, List.of(
                     new AlterPartitionReassignmentsRequest.TopicReassignment("t1", List.of(
                             new AlterPartitionReassignmentsRequest.PartitionReassignment(0, List.of(0, 1, 2))))));
-            byte[] alterPayload = KafkaCodec.encodeAlterPartitionReassignmentsRequest(alterReq);
+            byte[] alterPayload = KafkaCodec.encodeAlterPartitionReassignmentsRequest(AlterPartitionReassignmentsCodec.MIN_VERSION, alterReq);
             ByteBuffer alterResp = sendAndReceive(ch, ApiKey.ALTER_PARTITION_REASSIGNMENTS.key(), alterPayload);
-            var alterResult = KafkaCodec.decodeAlterPartitionReassignmentsResponse(alterResp);
+            var alterResult = KafkaCodec.decodeAlterPartitionReassignmentsResponse(AlterPartitionReassignmentsCodec.MIN_VERSION, alterResp);
             assertThat(alterResult.errorCode()).isEqualTo(KafkaErrors.NONE.code());
 
             // List reassignments
             var listReq = new ListPartitionReassignmentsRequest(30000, List.of(
                     new ListPartitionReassignmentsRequest.TopicData("t1", List.of(0))));
-            byte[] listPayload = KafkaCodec.encodeListPartitionReassignmentsRequest(listReq);
+            byte[] listPayload = KafkaCodec.encodeListPartitionReassignmentsRequest(ListPartitionReassignmentsCodec.MIN_VERSION, listReq);
             ByteBuffer listResp = sendAndReceive(ch, ApiKey.LIST_PARTITION_REASSIGNMENTS.key(), listPayload);
-            var listResult = KafkaCodec.decodeListPartitionReassignmentsResponse(listResp);
+            var listResult = KafkaCodec.decodeListPartitionReassignmentsResponse(ListPartitionReassignmentsCodec.MIN_VERSION, listResp);
             assertThat(listResult.errorCode()).isEqualTo(KafkaErrors.NONE.code());
             assertThat(listResult.topics()).hasSize(1);
             assertThat(listResult.topics().getFirst().partitions().getFirst().replicas()).containsExactly(0, 1, 2);
@@ -416,7 +419,7 @@ class KafkaBrokerTest {
                 .compression(Compression.NONE).producerId(-1L).producerEpoch((short) -1)
                 .records(List.of(new Record(null, value.getBytes(StandardCharsets.UTF_8), List.of())))
                 .lastOffsetDelta(0);
-        byte[] payload = KafkaCodec.encodeProduceRequest(new ProduceRequest(null, (short) 1, 5000,
+        byte[] payload = KafkaCodec.encodeProduceRequest(ProduceCodec.MIN_VERSION, new ProduceRequest(null, (short) 1, 5000,
                 List.of(new ProduceRequest.TopicData(topic,
                         List.of(new ProduceRequest.PartitionData(partition, batch.encode()))))));
         var header = new RequestHeader(ApiKey.PRODUCE.key(), (short) 0, 0, "wire-reassembly");
@@ -443,7 +446,7 @@ class KafkaBrokerTest {
         }
         body.flip();
         body.getInt(); // response header correlation id
-        return KafkaCodec.decodeProduceResponse(body);
+        return KafkaCodec.decodeProduceResponse(ProduceCodec.MIN_VERSION, body);
     }
 
     private static ByteBuffer toBuffer(byte[] bytes) {

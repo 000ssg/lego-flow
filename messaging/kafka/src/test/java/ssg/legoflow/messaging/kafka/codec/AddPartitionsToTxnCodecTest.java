@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 class AddPartitionsToTxnCodecTest {
 
-    private static final short VERSION = AddPartitionsToTxnCodec.PINNED_VERSION;
+    private static final short VERSION = AddPartitionsToTxnCodec.MIN_VERSION;
 
     // ── Fixtures ─────────────────────────────────────────────────────────
 
@@ -70,7 +70,7 @@ class AddPartitionsToTxnCodecTest {
     // ── Pinned version ───────────────────────────────────────────────────
 
     @Test
-    @DisplayName("PINNED_VERSION is v0")
+    @DisplayName("minimum version is v0")
     void pinnedVersionIsV0() {
         assertEquals(0, VERSION);
     }
@@ -285,14 +285,14 @@ class AddPartitionsToTxnCodecTest {
     @Test
     @DisplayName("KafkaCodec facade delegates to AddPartitionsToTxnCodec (pinned v0)")
     void facadeDelegates() {
-        byte[] reqBytes = KafkaCodec.encodeAddPartitionsToTxnRequest(req());
+        byte[] reqBytes = KafkaCodec.encodeAddPartitionsToTxnRequest((short) 0, req());
         assertArrayEquals(AddPartitionsToTxnCodec.encodeRequest((short) 0, req()), reqBytes);
-        AddPartitionsToTxnRequest decodedReq = KafkaCodec.decodeAddPartitionsToTxnRequest(bb(reqBytes));
+        AddPartitionsToTxnRequest decodedReq = KafkaCodec.decodeAddPartitionsToTxnRequest((short) 0, bb(reqBytes));
         assertEquals(req(), decodedReq);
 
-        byte[] respBytes = KafkaCodec.encodeAddPartitionsToTxnResponse(resp());
+        byte[] respBytes = KafkaCodec.encodeAddPartitionsToTxnResponse((short) 0, resp());
         assertArrayEquals(AddPartitionsToTxnCodec.encodeResponse((short) 0, resp()), respBytes);
-        AddPartitionsToTxnResponse decodedResp = KafkaCodec.decodeAddPartitionsToTxnResponse(bb(respBytes));
+        AddPartitionsToTxnResponse decodedResp = KafkaCodec.decodeAddPartitionsToTxnResponse((short) 0, bb(respBytes));
         assertEquals(resp(), decodedResp);
     }
 

@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
  * Codec for the Kafka InitProducerId request (API key 22) and response — a
  * transactional producer obtains its {@code ProducerId}/{@code ProducerEpoch}.
  * <p>
- * Client/broker interaction is pinned at {@link #PINNED_VERSION} (v0: the baseline that
+ * Client/broker interaction is versioned from v0 (the baseline that
  * {@code KafkaProducer} sends), while the full version range v0–v4 is encoded so a frame
  * carrying any InitProducerId version can be produced or parsed.
  * <p>
@@ -38,13 +38,13 @@ import java.nio.charset.StandardCharsets;
 public final class InitProducerIdCodec {
 
     /** Pinned version for client/broker InitProducerId interaction (v0). */
-    public static final short PINNED_VERSION = 0;
+    public static final short MIN_VERSION = 0;
 
     /** Flexible-encoding versions (v2+): compact strings + tagged fields (KIP-482). */
-    private static final short FLEXIBLE_START = 2;
+    public static final short FLEXIBLE_START = 2;
 
     /** Highest API version with a defined wire format in the spec (v4). */
-    private static final short MAX_VERSION = 4;
+    public static final short MAX_VERSION = 4;
 
     /** Request v3+ {@code ProducerId} default — -1 (model does not expose it). */
     private static final long DEFAULT_PRODUCER_ID = -1;
@@ -66,17 +66,6 @@ public final class InitProducerIdCodec {
     }
 
     // ── Request ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode a {@link InitProducerIdRequest} at the pinned version.
-     *
-     * @param req the request
-     * @return encoded body bytes
-     */
-    public static byte[] encodeRequest(InitProducerIdRequest req) {
-        return encodeRequest(PINNED_VERSION, req);
-    }
-
     /**
      * Encode an InitProducerId request body at the given API version.
      *
@@ -181,17 +170,6 @@ public final class InitProducerIdCodec {
     }
 
     // ── Response ─────────────────────────────────────────────────────────
-
-    /**
-     * Encode a {@link InitProducerIdResponse} at the pinned version.
-     *
-     * @param resp the response
-     * @return encoded body bytes
-     */
-    public static byte[] encodeResponse(InitProducerIdResponse resp) {
-        return encodeResponse(PINNED_VERSION, resp);
-    }
-
     /**
      * Encode an InitProducerId response body at the given API version.
      *

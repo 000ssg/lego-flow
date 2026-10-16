@@ -266,8 +266,8 @@ class TxnOffsetCommitCodecTest {
         var req = new TxnOffsetCommitRequest("txn-1", "grp-1", 123456L, (short) 7,
                 List.of(topic("topic-a", part(0, 42L, "meta"))));
         assertArrayEquals(
-                TxnOffsetCommitCodec.encodeRequest(req),
-                KafkaCodec.encodeTxnOffsetCommitRequest(req),
+                TxnOffsetCommitCodec.encodeRequest((short) 0, req),
+                KafkaCodec.encodeTxnOffsetCommitRequest((short) 0, req),
                 "facade encode must delegate to the dedicated codec");
     }
 
@@ -277,8 +277,8 @@ class TxnOffsetCommitCodecTest {
                 new TxnOffsetCommitResponse.TopicData("topic-a",
                         List.of(new TxnOffsetCommitResponse.PartitionData(0, (short) 0)))));
         assertArrayEquals(
-                TxnOffsetCommitCodec.encodeResponse(resp),
-                KafkaCodec.encodeTxnOffsetCommitResponse(resp),
+                TxnOffsetCommitCodec.encodeResponse((short) 0, resp),
+                KafkaCodec.encodeTxnOffsetCommitResponse((short) 0, resp),
                 "facade encode must delegate to the dedicated codec");
     }
 
@@ -286,14 +286,14 @@ class TxnOffsetCommitCodecTest {
     void facade_roundTrip() {
         var req = new TxnOffsetCommitRequest("txn-1", "grp-1", 123456L, (short) 7,
                 List.of(topic("topic-a", part(0, 42L, "meta"))));
-        var dec = KafkaCodec.decodeTxnOffsetCommitRequest(
-                ByteBuffer.wrap(KafkaCodec.encodeTxnOffsetCommitRequest(req)));
+        var dec = KafkaCodec.decodeTxnOffsetCommitRequest((short) 0, 
+                ByteBuffer.wrap(KafkaCodec.encodeTxnOffsetCommitRequest((short) 0, req)));
         assertEquals(req, dec);
     }
 
     @Test
     void pinned_version_is_v0() {
-        assertEquals((short) 0, TxnOffsetCommitCodec.PINNED_VERSION);
+        assertEquals((short) 0, TxnOffsetCommitCodec.MIN_VERSION);
         assertEquals((short) 3, TxnOffsetCommitCodec.MAX_VERSION);
     }
 }

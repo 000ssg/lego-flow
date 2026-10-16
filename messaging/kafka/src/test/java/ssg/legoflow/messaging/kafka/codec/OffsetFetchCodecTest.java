@@ -388,8 +388,8 @@ class OffsetFetchCodecTest {
     void facade_request_encode_matches_dedicatedCodec() {
         var req = new OffsetFetchRequest("grp-1", List.of(topic("topic-a", 0, 1)));
         assertArrayEquals(
-                OffsetFetchCodec.encodeRequest(req),
-                KafkaCodec.encodeOffsetFetchRequest(req),
+                OffsetFetchCodec.encodeRequest((short) 0, req),
+                KafkaCodec.encodeOffsetFetchRequest((short) 0, req),
                 "facade encode must delegate to the dedicated codec");
     }
 
@@ -398,33 +398,33 @@ class OffsetFetchCodecTest {
         var resp = new OffsetFetchResponse(List.of(
                 topicResp("topic-a", part(0, 42L, "meta", (short) 0))));
         assertArrayEquals(
-                OffsetFetchCodec.encodeResponse(resp),
-                KafkaCodec.encodeOffsetFetchResponse(resp),
+                OffsetFetchCodec.encodeResponse((short) 0, resp),
+                KafkaCodec.encodeOffsetFetchResponse((short) 0, resp),
                 "facade encode must delegate to the dedicated codec");
     }
 
     @Test
     void facade_decode_matches_dedicatedCodec() {
         var req = new OffsetFetchRequest("grp-1", List.of(topic("topic-a", 0, 1)));
-        byte[] enc = KafkaCodec.encodeOffsetFetchRequest(req);
-        var viaFacade = KafkaCodec.decodeOffsetFetchRequest(ByteBuffer.wrap(enc));
+        byte[] enc = KafkaCodec.encodeOffsetFetchRequest((short) 0, req);
+        var viaFacade = KafkaCodec.decodeOffsetFetchRequest((short) 0, ByteBuffer.wrap(enc));
         var viaCodec = OffsetFetchCodec.decodeRequest(
-                OffsetFetchCodec.PINNED_VERSION, ByteBuffer.wrap(enc));
+                OffsetFetchCodec.MIN_VERSION, ByteBuffer.wrap(enc));
         assertEquals(viaCodec, viaFacade,
-                "facade decode must forward to the dedicated codec at the pinned version");
+                "facade decode must forward to the dedicated codec at v0");
     }
 
     @Test
     void facade_roundTrip() {
         var req = new OffsetFetchRequest("grp-1", List.of(topic("topic-a", 0, 1)));
-        var dec = KafkaCodec.decodeOffsetFetchRequest(
-                ByteBuffer.wrap(KafkaCodec.encodeOffsetFetchRequest(req)));
+        var dec = KafkaCodec.decodeOffsetFetchRequest((short) 0, 
+                ByteBuffer.wrap(KafkaCodec.encodeOffsetFetchRequest((short) 0, req)));
         assertEquals(req, dec);
     }
 
     @Test
     void pinned_version_is_v0() {
-        assertEquals((short) 0, OffsetFetchCodec.PINNED_VERSION);
+        assertEquals((short) 0, OffsetFetchCodec.MIN_VERSION);
         assertEquals((short) 8, OffsetFetchCodec.MAX_VERSION);
     }
 }

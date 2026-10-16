@@ -68,10 +68,11 @@ import java.util.List;
 public final class ProduceCodec {
 
     /** Spec (3.6.1) highest version for API 0. */
-    public static final short SPEC_MAX_VERSION = 9;
+    public static final short MIN_VERSION = 0;
+    public static final short MAX_VERSION = 9;
+    public static final short FLEXIBLE_START = 4;
 
     /** The version the in-house client and broker pin for Produce requests. */
-    public static final short PINNED_VERSION = 0;
 
     private ProduceCodec() {
     }

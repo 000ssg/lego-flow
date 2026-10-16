@@ -40,7 +40,7 @@ import java.util.Map;
  * by topic (insertion-ordered), and on decode it flattens the spec's per-topic groups back into
  * the flat list (topics in wire order, partitions in group order).
  *
- * <p>Client/broker interaction is pinned at {@link #PINNED_VERSION} (v0: the fixed-width baseline).
+ * <p>Client/broker interaction is versioned from v0 (the fixed-width baseline).
  *
  * @since 0.1.0
  */
@@ -54,12 +54,6 @@ public final class WriteTxnMarkersCodec {
 
     /** First version using flexible encoding (KIP-482): v1. */
     public static final short FLEXIBLE_START = 1;
-
-    /**
-     * Pinned version for client/broker interaction (v0: the baseline layout the model was
-     * designed against).
-     */
-    public static final short PINNED_VERSION = 0;
 
     private WriteTxnMarkersCodec() {
     }
@@ -75,11 +69,6 @@ public final class WriteTxnMarkersCodec {
     // Order: Markers[] { ProducerId(int64), ProducerEpoch(int16),
     //   TransactionResult(bool), Topics[] { Name(string), PartitionIndexes[]int32 },
     //   CoordinatorEpoch(int32) } — coordinator epoch LAST, partitions grouped by topic.
-
-    public static byte[] encodeRequest(WriteTxnMarkersRequest req) {
-        return encodeRequest(PINNED_VERSION, req);
-    }
-
     public static byte[] encodeRequest(short version, WriteTxnMarkersRequest req) {
         checkVersion(version);
         boolean flexible = version >= FLEXIBLE_START;
@@ -233,11 +222,6 @@ public final class WriteTxnMarkersCodec {
     // ── Response (v0 fixed / v1 flexible) ─────────────────────────────────
     // Order: Markers[] { ProducerId(int64), Topics[] { Name(string),
     //   Partitions[] { PartitionIndex(int32), ErrorCode(int16) } } } — no ThrottleTimeMs.
-
-    public static byte[] encodeResponse(WriteTxnMarkersResponse resp) {
-        return encodeResponse(PINNED_VERSION, resp);
-    }
-
     public static byte[] encodeResponse(short version, WriteTxnMarkersResponse resp) {
         checkVersion(version);
         boolean flexible = version >= FLEXIBLE_START;
