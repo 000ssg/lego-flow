@@ -825,7 +825,7 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 - **Next**: Heartbeat (API 12) v0–v4 dedicated-codec cycle; client-side ApiVersions
   negotiation (choose per-API version from the advertised range).
 
-## Commit: `PENDING` — Heartbeat v0–v4 (Consumer Groups rows 291–295)
+## Commit: `0521ca43` — Heartbeat v0–v4 (Consumer Groups rows 291–295)
 
 - **Heartbeat v0–v4 codec**: new dedicated `HeartbeatCodec` — spec-correct Heartbeat implementation (all 5 rows v0–v4, per the vendored HeartbeatRequest.json / HeartbeatResponse.json, frozen order tables in `doc/spec/order/Heartbeat.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v4 is encoded/decoded in both directions. Request: v0 base `GroupId:string + GenerationId:int32 + MemberId:string`; v3+ adds nullable `GroupInstanceId:string` (KIP-345; written null; non-flexible v3 = legacy nullable string, flexible v4+ = nullable compact); v4+ flexible (KIP-482: compact strings, varint N+1 lengths, top-level endTags sentinel — no tagged fields declared in the schema). Response: leading `ThrottleTimeMs:int32` from v1+ (ignorable; spec dflt 0, written + discarded) + `ErrorCode:int16`; v4+ flexible. The old inline v0-only `KafkaCodec` request/response bodies are replaced with thin delegates.
 - **KafkaCodec facade**: `encode/decodeHeartbeatRequest` and `encode/decodeHeartbeatResponse` now delegate to `HeartbeatCodec` at an explicit `short version` (post-unpin, consistent with the other 24 versioned APIs); the old inline v0-only bodies are removed.
