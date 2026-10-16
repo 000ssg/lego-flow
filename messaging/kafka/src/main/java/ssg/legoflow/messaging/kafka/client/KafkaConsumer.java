@@ -492,9 +492,9 @@ public final class KafkaConsumer implements AutoCloseable {
 
     private void sendHeartbeat() throws IOException {
         byte[] payload = KafkaCodec.encodeHeartbeatRequest(
-                new HeartbeatRequest(groupId, generationId, memberId));
+                (short) 0, new HeartbeatRequest(groupId, generationId, memberId));
         ByteBuffer resp = connection.sendAndReceive(ApiKey.HEARTBEAT.key(), (short) 0, payload);
-        HeartbeatResponse response = KafkaCodec.decodeHeartbeatResponse(resp);
+        HeartbeatResponse response = KafkaCodec.decodeHeartbeatResponse((short) 0, resp);
 
         if (response.errorCode() == KafkaErrors.REBALANCE_IN_PROGRESS.code()) {
             LOG.info("Rebalance triggered, rejoining group");

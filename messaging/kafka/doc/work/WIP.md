@@ -7,7 +7,7 @@ Any entry claiming DONE without a verifiable commit in `git log` is **void** —
 and redo the work. NEVER trust a SHA without `git cat-file -e <sha>`.
 Consensus is persisted in commits, not in this file alone — commit each completed API.
 
-## Consumer Groups sub-category (34/63) — ledger
+## Consumer Groups sub-category (39/63) — ledger
 
 | API | Versions | Codec file | Test file | Commit SHA (in git log) | Status |
 |---|---|---|---|---|---|
@@ -15,8 +15,8 @@ Consensus is persisted in commits, not in this file alone — commit each comple
 | OffsetFetch (9) | v0–v8 | `OffsetFetchCodec.java` | `OffsetFetchCodecTest.java` (28) | `067d876e` | DONE — committed; 28 tests green, full module 1012 green (verified 2026-10-09) |
 | FindCoordinator (10) | v0–v4 | `FindCoordinatorCodec.java` | `FindCoordinatorCodecTest.java` (28) | `e4db2c87` | DONE — committed 2026-10-11; 28 tests green, full module 1040 green (verified this session) |
 | JoinGroup (11) | v0–v9 | `JoinGroupCodec.java` | `JoinGroupCodecTest.java` (49) | `5aa5a7a4` | **DONE** — committed; 49 tests green, full module 1089 green (verified this session) |
-| Heartbeat (12) | v0–v5 | — | — | — | NOT STARTED |
-| LeaveGroup (13) | v0–v4 | — | — | — | NOT STARTED |
+| Heartbeat (12) | v0–v4 | `HeartbeatCodec.java` | `HeartbeatCodecTest.java` (15) | (in flight) | **IN FLIGHT** — codec + tests + facade delegates green; full module 1128 green (verified this session); commit SHA recorded on commit |
+| LeaveGroup (13) | v0–v5 | — | — | — | NOT STARTED |
 | SyncGroup (14) | v0–v5 | — | — | — | NOT STARTED |
 | DescribeGroups (15) | v0–v5 | — | — | — | NOT STARTED |
 | ListGroups (16) | v0–v4 | — | — | — | NOT STARTED |
@@ -24,11 +24,11 @@ Consensus is persisted in commits, not in this file alone — commit each comple
 
 ## Next sub-task
 
-Heartbeat (API 12) v0–v4 — spec in
-`doc/spec/message/HeartbeatRequest.json` / `HeartbeatResponse.json`.
-Request: v0 base (`GroupId:string + GenerationId:int32 + MemberId:string`); v3+ `GroupInstanceId:string(nullable)`; v4 flexible.
-Response: v0 base `ErrorCode:int16`; v1+ `ThrottleTimeMs:int32` leading (spec dflt 0).
-In-house models are `HeartbeatRequest(groupId, generationId, memberId)` / `HeartbeatResponse(errorCode)` — facade pins v0; version-gated fields encoded/decoded with spec-default handling like sibling codecs. Models unchanged if possible.
+LeaveGroup (API 13) v0–v5 — spec in
+`doc/spec/message/LeaveGroupRequest.json` / `LeaveGroupResponse.json` (JSON5: Apache license header + inline comments).
+Request: v0 base (`GroupId:string + MemberId:string`); v3+ batch `Members[]MemberIdentity{MemberId:string + GroupInstanceId:string(nullable) + Reason:string[5+](nullable, KIP-800)}` replaces singular MemberId; v4+ flexible.
+Response: `ErrorCode:int16`, leading `ThrottleTimeMs:int32` from v1+; v3+ `Members[]MemberResponse{MemberId:string + GroupInstanceId:string(nullable) + ErrorCode:int16}`; v4+ flexible.
+In-house model is single-member `LeaveGroupRequest(groupId, memberId)` / `LeaveGroupResponse(errorCode)` — facade pins v0; version-gated/batch fields encoded/decoded with spec-default handling like sibling codecs (empty Members list v3+, or single entry mirroring groupId/memberId — decide on first encode). Models unchanged if possible.
 
 ## KNOWN GAP (RESOLVED 2026-10-16 — see "Unpin negotiated version" below)
 **Historical audit (was user-flagged UNACCEPTABLE): negotiated version ignored at runtime, not in the codecs.**
@@ -68,7 +68,7 @@ ApiVersions negotiation is wired (plumbing correct, negotiation not yet active).
 
 ## Verified facts (2026-10-11, this branch cleanup-messaging)
 - Full `:lego-flow-kafka` module: **1089 tests, 0 failures** (1040 after FindCoordinator +49 JoinGroup), verified via surefire reports after `mvn test`.
-- `git log`: OffsetCommit code `f8cd4201`, docs backfill `eef4c02d`; OffsetFetch code `067d876e`, docs backfill `91f7fe78`; FindCoordinator code `e4db2c87` (28 new tests green), docs backfill `dbf5a371`; JoinGroup code `5aa5a7a4` (49 new tests green), docs backfill follows.
+- `git log`: OffsetCommit code `f8cd4201`, docs backfill `eef4c02d`; OffsetFetch code `067d876e`, docs backfill `91f7fe78`; FindCoordinator code `e4db2c87` (28 new tests green), docs backfill `dbf5a371`; JoinGroup code `5aa5a7a4` (49 new tests green), docs backfill `c2c12030`; Heartbeat code in flight (15 new tests green; full module 1128), docs backfill follows.
 - Pattern per API: freeze `doc/spec/order/<Api>.{Request,Response}.txt` → dedicated `<Api>Codec` (all versions,
   both directions; flex = KIP-482 compact + varint N+1 + endTags) → replace inline `KafkaCodec` bodies with thin
   delegates → `<Api>CodecTest` (pinned + hand-built goldens + per-version Δ + round-trips + truncation/guards/facade)

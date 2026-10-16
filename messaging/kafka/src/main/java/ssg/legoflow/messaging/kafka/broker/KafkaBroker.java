@@ -405,7 +405,7 @@ public final class KafkaBroker implements AutoCloseable {
             case FIND_COORDINATOR -> handleFindCoordinator(body, version);
             case JOIN_GROUP -> handleJoinGroup(body, header.clientId(), version);
             case SYNC_GROUP -> handleSyncGroup(body);
-            case HEARTBEAT -> handleHeartbeat(body);
+            case HEARTBEAT -> handleHeartbeat(body, version);
             case LEAVE_GROUP -> handleLeaveGroup(body);
             case OFFSET_COMMIT -> handleOffsetCommit(body, version);
             case OFFSET_FETCH -> handleOffsetFetch(body, version);
@@ -604,10 +604,10 @@ public final class KafkaBroker implements AutoCloseable {
                 new SyncGroupResponse(result.getKey(), result.getValue()));
     }
 
-    private byte[] handleHeartbeat(ByteBuffer body) {
-        HeartbeatRequest req = KafkaCodec.decodeHeartbeatRequest(body);
+    private byte[] handleHeartbeat(ByteBuffer body, short version) {
+        HeartbeatRequest req = KafkaCodec.decodeHeartbeatRequest(version, body);
         short errorCode = groupCoordinator.heartbeat(req.groupId(), req.generationId(), req.memberId());
-        return KafkaCodec.encodeHeartbeatResponse(new HeartbeatResponse(errorCode));
+        return KafkaCodec.encodeHeartbeatResponse(version, new HeartbeatResponse(errorCode));
     }
 
     private byte[] handleLeaveGroup(ByteBuffer body) {

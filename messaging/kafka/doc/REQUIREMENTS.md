@@ -822,8 +822,28 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 | Files added | 1 test (KafkaCodecNegotiatedVersionTest, 554 lines) |
 | Tests added | 26 |
 
-- **Next**: Heartbeat (API 12) v0–v5 dedicated-codec cycle; client-side ApiVersions
+- **Next**: Heartbeat (API 12) v0–v4 dedicated-codec cycle; client-side ApiVersions
   negotiation (choose per-API version from the advertised range).
+
+## Commit: `PENDING` — Heartbeat v0–v4 (Consumer Groups rows 291–295)
+
+- **Heartbeat v0–v4 codec**: new dedicated `HeartbeatCodec` — spec-correct Heartbeat implementation (all 5 rows v0–v4, per the vendored HeartbeatRequest.json / HeartbeatResponse.json, frozen order tables in `doc/spec/order/Heartbeat.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v4 is encoded/decoded in both directions. Request: v0 base `GroupId:string + GenerationId:int32 + MemberId:string`; v3+ adds nullable `GroupInstanceId:string` (KIP-345; written null; non-flexible v3 = legacy nullable string, flexible v4+ = nullable compact); v4+ flexible (KIP-482: compact strings, varint N+1 lengths, top-level endTags sentinel — no tagged fields declared in the schema). Response: leading `ThrottleTimeMs:int32` from v1+ (ignorable; spec dflt 0, written + discarded) + `ErrorCode:int16`; v4+ flexible. The old inline v0-only `KafkaCodec` request/response bodies are replaced with thin delegates.
+- **KafkaCodec facade**: `encode/decodeHeartbeatRequest` and `encode/decodeHeartbeatResponse` now delegate to `HeartbeatCodec` at an explicit `short version` (post-unpin, consistent with the other 24 versioned APIs); the old inline v0-only bodies are removed.
+- **Wiring** (broker + consumer, since the unpin removed the facade's no-version overloads): `KafkaBroker.handleHeartbeat(body, version)` threads the request-header version into both decode and encode; `KafkaConsumer.sendHeartbeat()` calls the versioned facade at `(short) 0` (client still pins v0 until ApiVersions negotiation is wired); `KafkaCodecTest` heartbeat cases updated to the versioned calls.
+- **Models** (unchanged — constructor arities preserved): `HeartbeatRequest(groupId, generationId, memberId)` / `HeartbeatResponse(errorCode)`; version-gated fields (`GroupInstanceId` request v3+, leading `ThrottleTimeMs` response v1+) are written with their spec defaults on encode and read + discarded on decode (documented in the codec class javadoc).
+- **New tests**: `HeartbeatCodecTest` (15 tests — round-trips all versions both directions, byte-for-byte v0/v3/v4 request + v0/v1/v4 response goldens (hand-built), per-version shape diffs, null edges, truncation, version guards, facade delegation).
+
+### Test Coverage
+- HeartbeatCodecTest 15 tests; full module 1113 → 1128 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | KafkaCodec (facade) + KafkaBroker + KafkaConsumer + KafkaCodecTest |
+| Files added | 1 (HeartbeatCodec) + 1 (HeartbeatCodecTest) + 2 frozen order tables |
+| Tests added | 15 |
+
+- **Sub-category**: **Consumer Groups 39/63** (OffsetCommit 10 + OffsetFetch 9 + FindCoordinator 5 + JoinGroup 10 + Heartbeat 5); next: LeaveGroup (API 13) v0–v5.
 
 ## Document Maintenance
 

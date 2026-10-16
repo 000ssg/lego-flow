@@ -582,28 +582,52 @@ public final class KafkaCodec {
 
     // ===== Heartbeat (12) =====
 
-    public static byte[] encodeHeartbeatRequest(HeartbeatRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(256);
-        writeString(buf, req.groupId());
-        buf.putInt(req.generationId());
-        writeString(buf, req.memberId());
-        buf.flip();
-        return toBytes(buf);
+    /**
+     * Encodes a Heartbeat request body at the given API version.
+     *
+     * @param version the API version (0–4)
+     * @param req     the request
+     * @return encoded body bytes
+     * @since 0.1.0
+     */
+    public static byte[] encodeHeartbeatRequest(short version, HeartbeatRequest req) {
+        return HeartbeatCodec.encodeRequest(version, req);
     }
 
-    public static HeartbeatRequest decodeHeartbeatRequest(ByteBuffer buf) {
-        return new HeartbeatRequest(readString(buf), buf.getInt(), readString(buf));
+    /**
+     * Decodes a Heartbeat request body at the given API version.
+     *
+     * @param version the API version (0–4)
+     * @param buf     the request body
+     * @return the decoded request
+     * @since 0.1.0
+     */
+    public static HeartbeatRequest decodeHeartbeatRequest(short version, ByteBuffer buf) {
+        return HeartbeatCodec.decodeRequest(version, buf);
     }
 
-    public static byte[] encodeHeartbeatResponse(HeartbeatResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(2);
-        buf.putShort(resp.errorCode());
-        buf.flip();
-        return toBytes(buf);
+    /**
+     * Encodes a Heartbeat response body at the given API version.
+     *
+     * @param version the API version (0–4)
+     * @param resp    the response
+     * @return encoded body bytes
+     * @since 0.1.0
+     */
+    public static byte[] encodeHeartbeatResponse(short version, HeartbeatResponse resp) {
+        return HeartbeatCodec.encodeResponse(version, resp);
     }
 
-    public static HeartbeatResponse decodeHeartbeatResponse(ByteBuffer buf) {
-        return new HeartbeatResponse(buf.getShort());
+    /**
+     * Decodes a Heartbeat response body at the given API version.
+     *
+     * @param version the API version (0–4)
+     * @param buf     the response body
+     * @return the decoded response
+     * @since 0.1.0
+     */
+    public static HeartbeatResponse decodeHeartbeatResponse(short version, ByteBuffer buf) {
+        return HeartbeatCodec.decodeResponse(version, buf);
     }
 
     // ===== LeaveGroup (13) =====

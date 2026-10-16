@@ -288,11 +288,13 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (3 fields): GroupId, GenerationId, MemberId | ☐ | |
-| v1 | + ThrottleTimeMs:int32[1+] | ☐ | |
-| v2 | unchanged | ☐ | |
-| v3 | + GroupInstanceId:string[3+](null:3+) | ☐ | |
-| v4 | → flexible encoding | ☐ | |
+| v0 | base (3 fields): GroupId, GenerationId, MemberId | ✓ | PENDING |
+| v1 | response: + ThrottleTimeMs:int32[1+] (req unchanged) | ✓ | PENDING |
+| v2 | unchanged | ✓ | PENDING |
+| v3 | request: + GroupInstanceId:string[3+](null:3+) (resp unchanged) | ✓ | PENDING |
+| v4 | → flexible encoding (KIP-482) | ✓ | PENDING |
+
+**DONE (v0–v4)** — New dedicated `HeartbeatCodec` (v0–v4, request + response, both directions; client/broker exchange pinned at v0). Request layout (frozen `doc/spec/order/Heartbeat.Request.txt`): v0 `GroupId:string + GenerationId:int32 + MemberId:string`; v3+ adds nullable `GroupInstanceId:string` (KIP-345; written null — legacy nullable string v3, nullable compact v4+); v4+ flexible (KIP-482: compact strings, varint N+1 lengths, top-level endTags sentinel — no tagged fields declared). Response layout (frozen `doc/spec/order/Heartbeat.Response.txt`): leading `ThrottleTimeMs:int32` from v1+ (ignorable; spec dflt 0, written + discarded) + `ErrorCode:int16`; v4+ flexible. Inline v0-only `KafkaCodec` methods replaced with thin versioned delegates. `HeartbeatCodecTest`: 15 tests — round-trips all versions both directions, byte-for-byte v0/v3/v4 request + v0/v1/v4 response goldens (hand-built), per-version shape diffs, null edges, truncation + version guards, facade delegation. Full module suite 1089 → 1128 green.
 
 ### LeaveGroup (API 13) — v0..v5
 

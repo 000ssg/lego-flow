@@ -289,8 +289,8 @@ class KafkaCodecTest {
     @Test
     void testHeartbeatRequest() {
         var req = new HeartbeatRequest("group1", 5, "member-1");
-        byte[] encoded = KafkaCodec.encodeHeartbeatRequest(req);
-        var decoded = KafkaCodec.decodeHeartbeatRequest(ByteBuffer.wrap(encoded));
+        byte[] encoded = KafkaCodec.encodeHeartbeatRequest((short) 0, req);
+        var decoded = KafkaCodec.decodeHeartbeatRequest((short) 0, ByteBuffer.wrap(encoded));
         assertThat(decoded.groupId()).isEqualTo("group1");
         assertThat(decoded.generationId()).isEqualTo(5);
         assertThat(decoded.memberId()).isEqualTo("member-1");
@@ -299,8 +299,8 @@ class KafkaCodecTest {
     @Test
     void testHeartbeatResponse() {
         var resp = new HeartbeatResponse((short) 27); // REBALANCE_IN_PROGRESS
-        byte[] encoded = KafkaCodec.encodeHeartbeatResponse(resp);
-        var decoded = KafkaCodec.decodeHeartbeatResponse(ByteBuffer.wrap(encoded));
+        byte[] encoded = KafkaCodec.encodeHeartbeatResponse((short) 0, resp);
+        var decoded = KafkaCodec.decodeHeartbeatResponse((short) 0, ByteBuffer.wrap(encoded));
         assertThat(decoded.errorCode()).isEqualTo((short) 27);
     }
 
