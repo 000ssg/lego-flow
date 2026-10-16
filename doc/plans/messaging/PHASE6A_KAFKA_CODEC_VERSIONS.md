@@ -300,12 +300,14 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (2 fields): GroupId, MemberId | ☐ | |
-| v1 | + ThrottleTimeMs:int32[1+] | ☐ | |
-| v2 | unchanged | ☐ | |
-| v3 | + Members:[]MemberIdentity[3+], MemberId:string[3+], GroupInstanceId:string[3+](null:3+), Members:[]MemberResponse[3+], MemberId:string[3+], GroupInstanceId:string[3+](null:3+), ErrorCode:int16[3+]<br>− MemberId:string[0-2] | ☐ | |
-| v4 | → flexible encoding | ☐ | |
-| v5 | + Reason:string[5+](null:5+) | ☐ | |
+| v0 | base (2 fields): GroupId, MemberId | ✓ | `ecdc712a` |
+| v1 | response: + ThrottleTimeMs:int32[1+] (req unchanged) | ✓ | `ecdc712a` |
+| v2 | unchanged | ✓ | `ecdc712a` |
+| v3 | request: Members:[]MemberIdentity[3+], MemberId:string[3+], GroupInstanceId:string[3+](null:3+)<br>− MemberId:string[0-2]<br>response: + Members:[]MemberResponse[3+], MemberId:string[3+], GroupInstanceId:string[3+](null:3+), ErrorCode:int16[3+] | ✓ | `ecdc712a` |
+| v4 | → flexible encoding (KIP-482) | ✓ | `ecdc712a` |
+| v5 | request: + Reason:string[5+](null:5+); resp unchanged | ✓ | `ecdc712a` |
+
+**DONE (v0–v5)** — New dedicated `LeaveGroupCodec` (v0–v5, request + response, both directions). Request layout (frozen `doc/spec/order/LeaveGroup.Request.txt`): v0–v2 `GroupId:string + MemberId:string`; v3+ batch `Members[] { MemberId:string + GroupInstanceId:string(nullable) + Reason:string[5+](nullable, KIP-800) }` replaces singular MemberId (KIP-343); v4+ flexible (KIP-482: compact strings, varint N+1 lengths, top-level endTags sentinel — no tagged fields declared). Response layout (frozen `doc/spec/order/LeaveGroup.Response.txt`): v0 `ErrorCode:int16`; leading `ThrottleTimeMs:int32` from v1+ (ignorable; spec dflt 0, written + discarded); v3+ `Members[] { MemberId:string + GroupInstanceId:string(nullable) + ErrorCode:int16 }`; v4+ flexible. Inline v0-only `KafkaCodec` methods replaced with thin versioned delegates; `KafkaBroker.handleLeaveGroup` and `KafkaConsumer.leaveGroup` threaded to versioned facade. `LeaveGroupCodecTest`: 20 tests — round-trips all versions both directions, byte-for-byte v0/v3/v4 request + v0/v1/v3 response goldens (hand-built), per-version shape diffs, truncation + version guards, facade delegation. Full module suite 1128 → 1148 green.
 
 ### SyncGroup (API 14) — v0..v5
 

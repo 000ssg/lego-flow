@@ -845,6 +845,26 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 - **Sub-category**: **Consumer Groups 39/63** (OffsetCommit 10 + OffsetFetch 9 + FindCoordinator 5 + JoinGroup 10 + Heartbeat 5); next: LeaveGroup (API 13) v0–v5.
 
+## Commit: `ecdc712a` — LeaveGroup v0–v5 (Consumer Groups rows 299–305)
+
+- **LeaveGroup v0–v5 codec**: new dedicated `LeaveGroupCodec` — spec-correct LeaveGroup implementation (all 6 rows v0–v5, per the vendored LeaveGroupRequest.json / LeaveGroupResponse.json, frozen order tables in `doc/spec/order/LeaveGroup.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v5 is encoded/decoded in both directions. Request: v0–v2 base `GroupId:string + MemberId:string`; v3+ replaces the singular `MemberId` with the batch `Members[] { MemberId:string + GroupInstanceId:string(nullable) + Reason:string[5+](nullable, KIP-800) }` (KIP-343 — the model's single member is written as a one-entry batch); v4+ flexible (KIP-482: compact strings, varint N+1 lengths, top-level endTags sentinel — no tagged fields declared in the schema). Response: v0 `ErrorCode:int16`; leading `ThrottleTimeMs:int32` from v1+ (ignorable; spec dflt 0, written + discarded); v3+ `Members[] { MemberId:string + GroupInstanceId:string(nullable) + ErrorCode:int16 }` (per-member entries read + discarded); v4+ flexible. The old inline v0-only `KafkaCodec` request/response bodies are replaced with thin versioned delegates.
+- **KafkaCodec facade**: `encode/decodeLeaveGroupRequest` and `encode/decodeLeaveGroupResponse` now delegate to `LeaveGroupCodec` at an explicit `short version` (consistent with the other versioned APIs); the old inline v0-only bodies are removed.
+- **Wiring** (broker + consumer): `KafkaBroker.handleLeaveGroup(body, version)` threads the request-header version into both decode and encode; `KafkaConsumer.leaveGroup()` calls the versioned facade at `(short) 0` (client still pins v0 until ApiVersions negotiation is wired); `KafkaCodecTest` LeaveGroup cases updated to the versioned calls.
+- **Models** (unchanged — constructor arities preserved): `LeaveGroupRequest(groupId, memberId)` / `LeaveGroupResponse(errorCode)`; version-gated fields (request v3+ `Members[]` regrouping, response leading `ThrottleTimeMs` v1+, response v3+ `Members[]`) are written with their spec defaults on encode and read + discarded on decode (documented in the codec class javadoc).
+- **New tests**: `LeaveGroupCodecTest` (20 tests — round-trips all versions both directions, byte-for-byte v0/v3/v4 request + v0/v1/v3 response goldens (hand-built), per-version shape diffs, one-entry-batch round-trip, truncation, version guards, facade delegation).
+
+### Test Coverage
+- LeaveGroupCodecTest 20 tests; full module 1128 → 1148 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | KafkaCodec (facade) + KafkaBroker + KafkaConsumer + KafkaCodecTest |
+| Files added | 1 (LeaveGroupCodec) + 1 (LeaveGroupCodecTest) + 2 frozen order tables |
+| Tests added | 20 |
+
+- **Sub-category**: **Consumer Groups 44/63** (OffsetCommit 10 + OffsetFetch 9 + FindCoordinator 5 + JoinGroup 10 + Heartbeat 5 + LeaveGroup 5); next: SyncGroup (API 14) v0–v5.
+
 ## Document Maintenance
 
 - This document is append-only for commit sections
