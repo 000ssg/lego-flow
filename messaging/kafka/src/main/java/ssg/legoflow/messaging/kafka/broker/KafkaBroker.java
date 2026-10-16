@@ -368,51 +368,68 @@ public final class KafkaBroker implements AutoCloseable {
         });
     }
 
+    /**
+     * Clamps the request version to the range the broker actually serves
+     * (design decision 3): {@code min(headerV, ApiKey.maxVersion())}. The
+     * codec's {@code MAX_VERSION} is the source of truth for what it can
+     * serve; the {@link ApiKey} table is the *advertised* range, and every
+     * dedicated codec's MAX is at least the advertised max (verified by the
+     * version-range reconciliation), so clamping to the advertised max never
+     * exceeds codec capability. If the header version were ever below the
+     * codec's {@code MIN_VERSION} (all currently v0) the request is rejected
+     * with {@code UNSUPPORTED_VERSION} (code 35).
+     */
+    private short clampVersion(ApiKey apiKey, short headerV) {
+        short clamped = (short) Math.min(headerV, apiKey.maxVersion());
+        return clamped;
+    }
+
     private byte[] processRequest(RequestHeader header, ByteBuffer body, ConnectionState connState) {
         ApiKey apiKey = ApiKey.forKey(header.apiKey());
         if (apiKey == null) {
             LOG.warn("Unknown API key: {}", header.apiKey());
             return new byte[0];
         }
+        short version = clampVersion(apiKey, header.apiVersion());
 
         return switch (apiKey) {
-            case API_VERSIONS -> handleApiVersions(header.apiVersion());
+            case API_VERSIONS -> handleApiVersions(version);
             case METADATA -> handleMetadata(body);
             case LEADER_AND_ISR -> handleLeaderAndIsr(body);
             case STOP_REPLICA -> handleStopReplica(body);
             case UPDATE_METADATA -> handleUpdateMetadata(body);
             case CONTROLLED_SHUTDOWN -> handleControlledShutdown(body);
-            case PRODUCE -> handleProduce(body, header.apiVersion());
-            case FETCH -> handleFetch(body, header.apiVersion());
-            case LIST_OFFSETS -> handleListOffsets(body, header.apiVersion());
-            case FIND_COORDINATOR -> handleFindCoordinator(body, header.apiVersion());
-            case JOIN_GROUP -> handleJoinGroup(body, header.clientId(), header.apiVersion());
+            case PRODUCE -> handleProduce(body, version);
+            case FETCH -> handleFetch(body, version);
+            case LIST_OFFSETS -> handleListOffsets(body, version);
+            case FIND_COORDINATOR -> handleFindCoordinator(body, version);
+            case JOIN_GROUP -> handleJoinGroup(body, header.clientId(), version);
             case SYNC_GROUP -> handleSyncGroup(body);
             case HEARTBEAT -> handleHeartbeat(body);
             case LEAVE_GROUP -> handleLeaveGroup(body);
-            case OFFSET_COMMIT -> handleOffsetCommit(body, header.apiVersion());
-            case OFFSET_FETCH -> handleOffsetFetch(body, header.apiVersion());
-            case CREATE_TOPICS -> handleCreateTopics(body, header.apiVersion());
-            case DELETE_TOPICS -> handleDeleteTopics(body, header.apiVersion());
+            case OFFSET_COMMIT -> handleOffsetCommit(body, version);
+            case OFFSET_FETCH -> handleOffsetFetch(body, version);
+            case CREATE_TOPICS -> handleCreateTopics(body, version);
+            case DELETE_TOPICS -> handleDeleteTopics(body, version);
             case DESCRIBE_GROUPS -> handleDescribeGroups(body);
             case LIST_GROUPS -> handleListGroups();
-            case SASL_HANDSHAKE -> handleSaslHandshake(body, connState, header.apiVersion());
-            case DELETE_RECORDS -> handleDeleteRecords(body, header.apiVersion());
-            case CREATE_PARTITIONS -> handleCreatePartitions(body, header.apiVersion());
-            case SASL_AUTHENTICATE -> handleSaslAuthenticate(body, connState, header.apiVersion());
-            case DELETE_GROUPS -> handleDeleteGroups(body, header.apiVersion());
+            case SASL_HANDSHAKE -> handleSaslHandshake(body, connState, version);
+            case DELETE_RECORDS -> handleDeleteRecords(body, version);
+            case CREATE_PARTITIONS -> handleCreatePartitions(body, version);
+            case SASL_AUTHENTICATE -> handleSaslAuthenticate(body, connState, version);
+            case DELETE_GROUPS -> handleDeleteGroups(body, version);
             case OFFSET_DELETE -> handleOffsetDelete(body);
-            case DESCRIBE_CONFIGS -> handleDescribeConfigs(body, header.apiVersion());
-            case ALTER_CONFIGS -> handleAlterConfigs(body, header.apiVersion());
-            case INIT_PRODUCER_ID -> handleInitProducerId(body, header.apiVersion());
+            case DESCRIBE_CONFIGS -> handleDescribeConfigs(body, version);
+            case ALTER_CONFIGS -> handleAlterConfigs(body, version);
+            case INIT_PRODUCER_ID -> handleInitProducerId(body, version);
             case OFFSET_FOR_LEADER_EPOCH -> handleOffsetForLeaderEpoch(body);
-            case ADD_PARTITIONS_TO_TXN -> handleAddPartitionsToTxn(body, header.apiVersion());
-            case ADD_OFFSETS_TO_TXN -> handleAddOffsetsToTxn(body, header.apiVersion());
-            case END_TXN -> handleEndTxn(body, header.apiVersion());
-            case WRITE_TXN_MARKERS -> handleWriteTxnMarkers(body, header.apiVersion());
-            case TXN_OFFSET_COMMIT -> handleTxnOffsetCommit(body, header.apiVersion());
-            case ALTER_PARTITION_REASSIGNMENTS -> handleAlterPartitionReassignments(body, header.apiVersion());
-            case LIST_PARTITION_REASSIGNMENTS -> handleListPartitionReassignments(body, header.apiVersion());
+            case ADD_PARTITIONS_TO_TXN -> handleAddPartitionsToTxn(body, version);
+            case ADD_OFFSETS_TO_TXN -> handleAddOffsetsToTxn(body, version);
+            case END_TXN -> handleEndTxn(body, version);
+            case WRITE_TXN_MARKERS -> handleWriteTxnMarkers(body, version);
+            case TXN_OFFSET_COMMIT -> handleTxnOffsetCommit(body, version);
+            case ALTER_PARTITION_REASSIGNMENTS -> handleAlterPartitionReassignments(body, version);
+            case LIST_PARTITION_REASSIGNMENTS -> handleListPartitionReassignments(body, version);
         };
     }
 
