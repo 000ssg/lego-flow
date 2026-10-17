@@ -865,6 +865,26 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 - **Sub-category**: **Consumer Groups 44/63** (OffsetCommit 10 + OffsetFetch 9 + FindCoordinator 5 + JoinGroup 10 + Heartbeat 5 + LeaveGroup 5); next: SyncGroup (API 14) v0–v5.
 
+## Commit: `c123e328` — SyncGroup v0–v5 (Consumer Groups rows 312–317)
+
+- **SyncGroup v0–v5 codec**: new dedicated `SyncGroupCodec` — spec-correct SyncGroup implementation (all 6 rows v0–v5, per the vendored SyncGroupRequest.json / SyncGroupResponse.json, frozen order tables in `doc/spec/order/SyncGroup.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v5 is encoded/decoded in both directions. Request: v0–v2 base 4 fields `GroupId:string + GenerationId:int32 + MemberId:string + Assignments[] { MemberId:string + Assignment:bytes }` (non-nullable `Assignment:bytes` — null normalised to empty on encode, never null on decode, mirroring the `JoinGroupCodec` convention); v3+ nullable `GroupInstanceId:string` (KIP-345); v5+ `ProtocolType:string + ProtocolName:string` (both nullable, KIP-559); v5+ flexible (KIP-482: compact strings + compact arrays, varint N+1 counts, endTags sentinel — the schema declares no tagged fields). Response: v0 `ErrorCode:int16 + ProtocolType:string(nullable) + ProtocolName:string(nullable) + Assignment:bytes` (non-nullable — null normalised to empty); leading `ThrottleTimeMs:int32` from v1+ (ignorable; spec dflt 0, written + discarded); v3+ nullable `GroupInstanceId:string`; v5+ flexible. The old inline v0-only `KafkaCodec` request/response bodies are replaced with thin versioned delegates.
+- **KafkaCodec facade**: `encode/decodeSyncGroupRequest` and `encode/decodeSyncGroupResponse` now delegate to `SyncGroupCodec` at an explicit `short version` (consistent with the other versioned APIs); the old inline v0-only bodies are removed.
+- **Wiring** (broker + consumer): `KafkaBroker.handleSyncGroup(body, version)` threads the request-header version into both decode and encode; `KafkaConsumer.syncGroup()` calls the versioned facade at `(short) 0` (client still pins v0 until ApiVersions negotiation is wired).
+- **Models** (unchanged — constructor arities preserved): `SyncGroupRequest(groupId, generationId, memberId, assignments)` / `SyncGroupResponse(errorCode, protocolType, protocolName, assignment)`; version-gated fields (request v3+ `GroupInstanceId`, request v5+ `ProtocolType`/`ProtocolName`, response v1+ leading `ThrottleTimeMs`, response v3+ `GroupInstanceId`) are written with their spec defaults on encode and read + discarded on decode (documented in the codec class javadoc).
+- **New tests**: `SyncGroupCodecTest` (21 tests — round-trips all versions both directions, byte-for-byte v0/v3/v4/v5 request + v0/v1/v3/v4/v5 response goldens (hand-built), per-version shape diffs, null-`Assignment`→empty round-trip, truncation, version guards, facade delegation).
+
+### Test Coverage
+- SyncGroupCodecTest 21 tests; full module 1148 → 1169 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | KafkaCodec (facade) + KafkaBroker + KafkaConsumer |
+| Files added | 1 (SyncGroupCodec) + 1 (SyncGroupCodecTest) + 2 frozen order tables |
+| Tests added | 21 |
+
+- **Sub-category**: **Consumer Groups 49/63** (OffsetCommit 10 + OffsetFetch 9 + FindCoordinator 5 + JoinGroup 10 + Heartbeat 5 + LeaveGroup 5 + SyncGroup 5); next: DescribeGroups (API 15) v0–v5.
+
 ## Document Maintenance
 
 - This document is append-only for commit sections

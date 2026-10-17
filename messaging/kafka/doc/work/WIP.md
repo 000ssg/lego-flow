@@ -7,7 +7,7 @@ Any entry claiming DONE without a verifiable commit in `git log` is **void** —
 and redo the work. NEVER trust a SHA without `git cat-file -e <sha>`.
 Consensus is persisted in commits, not in this file alone — commit each completed API.
 
-## Consumer Groups sub-category (44/63) — ledger
+## Consumer Groups sub-category (49/63) — ledger
 
 | API | Versions | Codec file | Test file | Commit SHA (in git log) | Status |
 |---|---|---|---|---|---|
@@ -17,17 +17,18 @@ Consensus is persisted in commits, not in this file alone — commit each comple
 | JoinGroup (11) | v0–v9 | `JoinGroupCodec.java` | `JoinGroupCodecTest.java` (49) | `5aa5a7a4` | **DONE** — committed; 49 tests green, full module 1089 green (verified this session) |
 | Heartbeat (12) | v0–v4 | `HeartbeatCodec.java` | `HeartbeatCodecTest.java` (15) | `0521ca43` | **DONE** — committed; 15 tests green, full module 1128 green (verified this session) |
 | LeaveGroup (13) | v0–v5 | `LeaveGroupCodec.java` | `LeaveGroupCodecTest.java` (20) | `ecdc712a` | **DONE** — committed; 20 tests green, full module 1148 green (verified this session) |
-| SyncGroup (14) | v0–v5 | — | — | — | NOT STARTED |
+| SyncGroup (14) | v0–v5 | `SyncGroupCodec.java` | `SyncGroupCodecTest.java` (21) | `c123e328` | **DONE** — committed; 21 tests green, full module 1169 green (verified 2026-10-17) |
 | DescribeGroups (15) | v0–v5 | — | — | — | NOT STARTED |
 | ListGroups (16) | v0–v4 | — | — | — | NOT STARTED |
 | OffsetDelete (47) | v0 | — | — | — | NOT STARTED |
 
 ## Next sub-task
 
-SyncGroup (API 14) v0–v5 — spec in
-`doc/spec/message/SyncGroupRequest.json` / `SyncGroupResponse.json` (JSON5: Apache license header + inline comments).
-Request: v0 base (`GroupId:string + GenerationId:int32 + MemberId:string + Assignments[]Assignment{MemberId:string + Assignment:bytes}`); v3+ nullable `GroupInstanceId:string`; v5+ nullable `ProtocolType:string` + `ProtocolName:string` (KIP-559, ignorable); v4+ flexible.
-Response: v0 base (`ErrorCode:int16 + Assignment:bytes`); leading `ThrottleTimeMs:int32` from v1+; v5+ nullable `ProtocolType:string` + `ProtocolName:string` (KIP-559, ignorable); v4+ flexible.
+DescribeGroups (API 15) v0–v5 — spec in
+`doc/spec/message/DescribeGroupsRequest.json` / `DescribeGroupsResponse.json` (JSON5: Apache license header + inline comments).
+Request: v0–v2 `Groups:[]string` (non-nullable); v3+ `IncludeAuthorizedOperations:bool`; v5+ flexible.
+Response: leading `ThrottleTimeMs:int32[1+]`; v0+ `Groups[]DescribedGroup { ErrorCode:int16 + GroupId:string + GroupState:string + ProtocolType:string + ProtocolData:string + Members[]DescribedGroupMember { MemberId:string + GroupInstanceId:string[4+](nullable) + ClientId:string + ClientHost:string + MemberMetadata:bytes + MemberAssignment:bytes } + AuthorizedOperations:int32[3+](dflt -2147483648) }`; v5+ flexible.
+In-house model `DescribeGroupsRequest(groups)` / `DescribeGroupsResponse(describedGroups)` — facade pinned at v0; version-gated fields (IncludeAuthorizedOperations, GroupInstanceId, AuthorizedOperations) encoded/decoded with spec-default handling like sibling codecs. Models unchanged if possible.
 
 ## KNOWN GAP (RESOLVED 2026-10-16 — see "Unpin negotiated version" below)
 **Historical audit (was user-flagged UNACCEPTABLE): negotiated version ignored at runtime, not in the codecs.**
@@ -65,9 +66,9 @@ ApiVersions negotiation is wired (plumbing correct, negotiation not yet active).
   survives request-encode → broker-decode → response-encode → client-decode, including
   the broker-side clamp. 26 tests green.
 
-## Verified facts (2026-10-16, this branch cleanup-messaging)
-- Full `:lego-flow-kafka` module: **1148 tests, 0 failures** (1128 after Heartbeat +20 LeaveGroup), verified via surefire reports after `mvn test`.
-- `git log`: OffsetCommit code `f8cd4201`, docs backfill `eef4c02d`; OffsetFetch code `067d876e`, docs backfill `91f7fe78`; FindCoordinator code `e4db2c87` (28 new tests green), docs backfill `dbf5a371`; JoinGroup code `5aa5a7a4` (49 new tests green), docs backfill `c2c12030`; Heartbeat code `0521ca43` (15 new tests green; full module 1128); LeaveGroup code `ecdc712a` (20 new tests green; full module 1148), docs backfill follows.
+## Verified facts (2026-10-17, this branch cleanup-messaging)
+- Full `:lego-flow-kafka` module: **1169 tests, 0 failures** (1148 after LeaveGroup +21 SyncGroup), verified via surefire reports after `mvn test`.
+- `git log`: OffsetCommit code `f8cd4201`, docs backfill `eef4c02d`; OffsetFetch code `067d876e`, docs backfill `91f7fe78`; FindCoordinator code `e4db2c87` (28 new tests green), docs backfill `dbf5a371`; JoinGroup code `5aa5a7a4` (49 new tests green), docs backfill `c2c12030`; Heartbeat code `0521ca43` (15 new tests green; full module 1128); LeaveGroup code `ecdc712a` (20 new tests green; full module 1148), docs backfill `ca33ccb9`; SyncGroup code `c123e328` (21 new tests green; full module 1169), docs backfill follows.
 - Pattern per API: freeze `doc/spec/order/<Api>.{Request,Response}.txt` → dedicated `<Api>Codec` (all versions,
   both directions; flex = KIP-482 compact + varint N+1 + endTags) → replace inline `KafkaCodec` bodies with thin
   delegates → `<Api>CodecTest` (pinned + hand-built goldens + per-version Δ + round-trips + truncation/guards/facade)

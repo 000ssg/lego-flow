@@ -313,12 +313,14 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (6 fields): GroupId, GenerationId, MemberId, Assignments, MemberId, Assignment | ☐ | |
-| v1 | + ThrottleTimeMs:int32[1+] | ☐ | |
-| v2 | unchanged | ☐ | |
-| v3 | + GroupInstanceId:string[3+](null:3+) | ☐ | |
-| v4 | → flexible encoding | ☐ | |
-| v5 | + ProtocolType:string[5+](null:5+), ProtocolName:string[5+](null:5+), ProtocolType:string[5+](null:5+), ProtocolName:string[5+](null:5+) | ☐ | |
+| v0 | base (6 fields): GroupId:string, GenerationId:int32, MemberId:string, Assignments:[] { MemberId:string, Assignment:bytes(non-nullable) } | ✓ | `c123e328` |
+| v1 | unchanged (throttle is response-only) | ✓ | `c123e328` |
+| v2 | unchanged | ✓ | `c123e328` |
+| v3 | request: + GroupInstanceId:string[3+](null:3+); response unchanged | ✓ | `c123e328` |
+| v4 | → flexible encoding (KIP-482) | ✓ | `c123e328` |
+| v5 | request + response: + ProtocolType:string[5+](null:5+) + ProtocolName:string[5+](null:5+) (KIP-559, ignorable) | ✓ | `c123e328` |
+
+**DONE (v0–v5)** — New dedicated `SyncGroupCodec` (v0–v5, request + response, both directions). Request layout (frozen `doc/spec/order/SyncGroup.Request.txt`): v0–v2 `GroupId:string + GenerationId:int32 + MemberId:string + Assignments[] { MemberId:string + Assignment:bytes(non-nullable) }` (Assignments last on the wire); v3+ nullable `GroupInstanceId:string` (spec dflt null); v5+ nullable `ProtocolType:string` + `ProtocolName:string` (KIP-559, ignorable); v4+ flexible (KIP-482: compact strings, compact bytes, varint N+1 counts, per-assignment + top-level endTags sentinel — no tagged fields declared). Response layout (frozen `doc/spec/order/SyncGroup.Response.txt`): v0 `ErrorCode:int16 + Assignment:bytes(non-nullable)`; leading `ThrottleTimeMs:int32` from v1+ (spec dflt 0, written + discarded); v5+ nullable `ProtocolType:string` + `ProtocolName:string` (KIP-559, ignorable) before the non-nullable `Assignment`; v4+ flexible. v5 is NOT wire-identical to v4. The non-nullable `Assignment` bytes field is normalized null→empty by codec-local `writeCompactBytesNonNullable`/`readCompactBytesNonNullable` helpers (mirroring `JoinGroupCodec`). Inline v0-only `KafkaCodec` methods replaced with thin versioned delegates; `KafkaBroker.handleSyncGroup` + `KafkaConsumer.syncGroup` threaded to versioned facade. Models unchanged (`SyncGroupRequest` / `SyncGroupResponse` arities preserved). `SyncGroupCodecTest`: 21 tests — round-trips all versions both directions, v0/v3/v4/v5 request + v0/v1/v3/v4/v5 response byte-for-byte goldens (hand-built), per-version shape diffs, null-assignment→empty round-trip, truncation + version guards, facade delegation. Full module suite 1148 → 1169 green.
 
 ### DescribeGroups (API 15) — v0..v5
 
