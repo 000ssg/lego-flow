@@ -532,52 +532,52 @@ public final class KafkaCodec {
 
     // ===== SyncGroup (14) =====
 
-    public static byte[] encodeSyncGroupRequest(SyncGroupRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(8192);
-        writeString(buf, req.groupId());
-        buf.putInt(req.generationId());
-        writeString(buf, req.memberId());
-        buf.putInt(req.assignments().size());
-        for (var a : req.assignments()) {
-            writeString(buf, a.memberId());
-            buf.putInt(a.assignment().length);
-            buf.put(a.assignment());
-        }
-        buf.flip();
-        return toBytes(buf);
+    /**
+     * Encodes a SyncGroup request body at the given API version.
+     *
+     * @param version the API version (0–5)
+     * @param req     the request
+     * @return encoded body bytes
+     * @since 0.1.0
+     */
+    public static byte[] encodeSyncGroupRequest(short version, SyncGroupRequest req) {
+        return SyncGroupCodec.encodeRequest(version, req);
     }
 
-    public static SyncGroupRequest decodeSyncGroupRequest(ByteBuffer buf) {
-        String groupId = readString(buf);
-        int generationId = buf.getInt();
-        String memberId = readString(buf);
-        int assignCount = buf.getInt();
-        List<SyncGroupRequest.Assignment> assignments = new ArrayList<>(assignCount);
-        for (int i = 0; i < assignCount; i++) {
-            String mId = readString(buf);
-            int aLen = buf.getInt();
-            byte[] assignment = new byte[aLen];
-            buf.get(assignment);
-            assignments.add(new SyncGroupRequest.Assignment(mId, assignment));
-        }
-        return new SyncGroupRequest(groupId, generationId, memberId, assignments);
+    /**
+     * Decodes a SyncGroup request body at the given API version.
+     *
+     * @param version the API version (0–5)
+     * @param buf     the request body
+     * @return the decoded request
+     * @since 0.1.0
+     */
+    public static SyncGroupRequest decodeSyncGroupRequest(short version, ByteBuffer buf) {
+        return SyncGroupCodec.decodeRequest(version, buf);
     }
 
-    public static byte[] encodeSyncGroupResponse(SyncGroupResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putShort(resp.errorCode());
-        buf.putInt(resp.assignment() != null ? resp.assignment().length : 0);
-        if (resp.assignment() != null) buf.put(resp.assignment());
-        buf.flip();
-        return toBytes(buf);
+    /**
+     * Encodes a SyncGroup response body at the given API version.
+     *
+     * @param version the API version (0–5)
+     * @param resp    the response
+     * @return encoded body bytes
+     * @since 0.1.0
+     */
+    public static byte[] encodeSyncGroupResponse(short version, SyncGroupResponse resp) {
+        return SyncGroupCodec.encodeResponse(version, resp);
     }
 
-    public static SyncGroupResponse decodeSyncGroupResponse(ByteBuffer buf) {
-        short errorCode = buf.getShort();
-        int aLen = buf.getInt();
-        byte[] assignment = new byte[aLen];
-        if (aLen > 0) buf.get(assignment);
-        return new SyncGroupResponse(errorCode, assignment);
+    /**
+     * Decodes a SyncGroup response body at the given API version.
+     *
+     * @param version the API version (0–5)
+     * @param buf     the response body
+     * @return the decoded response
+     * @since 0.1.0
+     */
+    public static SyncGroupResponse decodeSyncGroupResponse(short version, ByteBuffer buf) {
+        return SyncGroupCodec.decodeResponse(version, buf);
     }
 
     // ===== Heartbeat (12) =====

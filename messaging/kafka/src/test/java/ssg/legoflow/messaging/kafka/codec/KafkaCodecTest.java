@@ -268,8 +268,8 @@ class KafkaCodecTest {
     void testSyncGroupRequest() {
         var req = new SyncGroupRequest("group1", 1, "member-1",
                 List.of(new SyncGroupRequest.Assignment("member-1", new byte[]{1, 2, 3})));
-        byte[] encoded = KafkaCodec.encodeSyncGroupRequest(req);
-        var decoded = KafkaCodec.decodeSyncGroupRequest(ByteBuffer.wrap(encoded));
+        byte[] encoded = KafkaCodec.encodeSyncGroupRequest((short) 0, req);
+        var decoded = KafkaCodec.decodeSyncGroupRequest((short) 0, ByteBuffer.wrap(encoded));
         assertThat(decoded.groupId()).isEqualTo("group1");
         assertThat(decoded.assignments()).hasSize(1);
         assertThat(decoded.assignments().getFirst().assignment()).isEqualTo(new byte[]{1, 2, 3});
@@ -278,8 +278,8 @@ class KafkaCodecTest {
     @Test
     void testSyncGroupResponse() {
         var resp = new SyncGroupResponse((short) 0, new byte[]{4, 5, 6});
-        byte[] encoded = KafkaCodec.encodeSyncGroupResponse(resp);
-        var decoded = KafkaCodec.decodeSyncGroupResponse(ByteBuffer.wrap(encoded));
+        byte[] encoded = KafkaCodec.encodeSyncGroupResponse((short) 0, resp);
+        var decoded = KafkaCodec.decodeSyncGroupResponse((short) 0, ByteBuffer.wrap(encoded));
         assertThat(decoded.errorCode()).isZero();
         assertThat(decoded.assignment()).isEqualTo(new byte[]{4, 5, 6});
     }

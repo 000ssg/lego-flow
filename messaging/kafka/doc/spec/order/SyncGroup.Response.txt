@@ -1,0 +1,19 @@
+SyncGroup Response — field processing order (binding; spec 3.6.1) — flexible encoding from v4
+wire order by layout (equal run = byte-identical field layout):
+  v0 -> ErrorCode:Assignment
+  v1-v2 -> ThrottleTimeMs?:ErrorCode:Assignment
+  v3 -> ThrottleTimeMs?:ErrorCode:Assignment
+  v4 -> ThrottleTimeMs?:ErrorCode:Assignment|flex
+  v5 -> ThrottleTimeMs?:ErrorCode:ProtocolType?:ProtocolName?:Assignment|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0:
+  v0: fixed: ErrorCode(int16), Assignment(bytes, non-nullable) || tagged: ∅
+  v1-v2:
+  v1: fixed: ThrottleTimeMs(int32), ErrorCode(int16), Assignment(bytes, non-nullable) || tagged: ∅
+  v2: fixed: ThrottleTimeMs(int32), ErrorCode(int16), Assignment(bytes, non-nullable) || tagged: ∅
+  v3:
+  v3: fixed: ThrottleTimeMs(int32), ErrorCode(int16), Assignment(bytes, non-nullable) || tagged: ∅
+  v4:
+  v4: fixed: ThrottleTimeMs(int32), ErrorCode(int16), Assignment(bytes, non-nullable) || tagged: ∅ (top-level)
+  v5:
+  v5: fixed: ThrottleTimeMs(int32), ErrorCode(int16), ProtocolType(string, nullable) [flex], ProtocolName(string, nullable) [flex], Assignment(bytes, non-nullable) || tagged: ∅ (top-level)

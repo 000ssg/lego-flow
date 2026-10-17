@@ -348,9 +348,9 @@ public final class KafkaConsumer implements AutoCloseable {
         }
 
         SyncGroupRequest request = new SyncGroupRequest(groupId, generationId, memberId, assignments);
-        byte[] payload = KafkaCodec.encodeSyncGroupRequest(request);
+        byte[] payload = KafkaCodec.encodeSyncGroupRequest((short) 0, request);
         ByteBuffer resp = connection.sendAndReceive(ApiKey.SYNC_GROUP.key(), (short) 0, payload);
-        SyncGroupResponse response = KafkaCodec.decodeSyncGroupResponse(resp);
+        SyncGroupResponse response = KafkaCodec.decodeSyncGroupResponse((short) 0, resp);
 
         if (response.errorCode() != KafkaErrors.NONE.code()) {
             throw new IOException("SyncGroup failed: " + KafkaErrors.forCode(response.errorCode()));
