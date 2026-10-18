@@ -862,72 +862,51 @@ public final class KafkaCodec {
 
     // ===== DescribeGroups (15) =====
 
-    public static byte[] encodeDescribeGroupsRequest(DescribeGroupsRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putInt(req.groups().size());
-        for (String g : req.groups()) writeString(buf, g);
-        buf.flip();
-        return toBytes(buf);
+    /**
+     * Encodes a DescribeGroups request body (pinned version; Groups[]string v0+,
+     * IncludeAuthorizedOperations v3+; see {@link DescribeGroupsCodec} for version-gated layout).
+     *
+     * @param version the API version
+     * @param req     the request
+     * @return the encoded bytes
+     */
+    public static byte[] encodeDescribeGroupsRequest(short version, DescribeGroupsRequest req) {
+        return DescribeGroupsCodec.encodeRequest(version, req);
     }
 
-    public static DescribeGroupsRequest decodeDescribeGroupsRequest(ByteBuffer buf) {
-        int count = buf.getInt();
-        List<String> groups = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) groups.add(readString(buf));
-        return new DescribeGroupsRequest(groups);
+    /**
+     * Decodes a DescribeGroups request body (pinned version).
+     *
+     * @param version the API version
+     * @param buf     the buffer
+     * @return the decoded request
+     */
+    public static DescribeGroupsRequest decodeDescribeGroupsRequest(short version, ByteBuffer buf) {
+        return DescribeGroupsCodec.decodeRequest(version, buf);
     }
 
-    public static byte[] encodeDescribeGroupsResponse(DescribeGroupsResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(16384);
-        buf.putInt(resp.groups().size());
-        for (var g : resp.groups()) {
-            buf.putShort(g.errorCode());
-            writeString(buf, g.groupId());
-            writeString(buf, g.state());
-            writeString(buf, g.protocolType());
-            writeString(buf, g.protocol());
-            buf.putInt(g.members().size());
-            for (var m : g.members()) {
-                writeString(buf, m.memberId());
-                writeString(buf, m.clientId());
-                writeString(buf, m.clientHost());
-                buf.putInt(m.memberMetadata() != null ? m.memberMetadata().length : 0);
-                if (m.memberMetadata() != null) buf.put(m.memberMetadata());
-                buf.putInt(m.memberAssignment() != null ? m.memberAssignment().length : 0);
-                if (m.memberAssignment() != null) buf.put(m.memberAssignment());
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+    /**
+     * Encodes a DescribeGroups response body (pinned version; ThrottleTimeMs v1+,
+     * AuthorizedOperations v3+, GroupInstanceId v4+; see {@link DescribeGroupsCodec}
+     * for version-gated layout).
+     *
+     * @param version the API version
+     * @param resp    the response
+     * @return the encoded bytes
+     */
+    public static byte[] encodeDescribeGroupsResponse(short version, DescribeGroupsResponse resp) {
+        return DescribeGroupsCodec.encodeResponse(version, resp);
     }
 
-    public static DescribeGroupsResponse decodeDescribeGroupsResponse(ByteBuffer buf) {
-        int count = buf.getInt();
-        List<DescribeGroupsResponse.GroupDescription> groups = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            short errorCode = buf.getShort();
-            String groupId = readString(buf);
-            String state = readString(buf);
-            String protocolType = readString(buf);
-            String protocol = readString(buf);
-            int memberCount = buf.getInt();
-            List<DescribeGroupsResponse.MemberDescription> members = new ArrayList<>(memberCount);
-            for (int j = 0; j < memberCount; j++) {
-                String mId = readString(buf);
-                String cId = readString(buf);
-                String cHost = readString(buf);
-                int metaLen = buf.getInt();
-                byte[] metadata = new byte[metaLen];
-                if (metaLen > 0) buf.get(metadata);
-                int assignLen = buf.getInt();
-                byte[] assignment = new byte[assignLen];
-                if (assignLen > 0) buf.get(assignment);
-                members.add(new DescribeGroupsResponse.MemberDescription(mId, cId, cHost, metadata, assignment));
-            }
-            groups.add(new DescribeGroupsResponse.GroupDescription(errorCode, groupId, state,
-                    protocolType, protocol, members));
-        }
-        return new DescribeGroupsResponse(groups);
+    /**
+     * Decodes a DescribeGroups response body (pinned version).
+     *
+     * @param version the API version
+     * @param buf     the buffer
+     * @return the decoded response
+     */
+    public static DescribeGroupsResponse decodeDescribeGroupsResponse(short version, ByteBuffer buf) {
+        return DescribeGroupsCodec.decodeResponse(version, buf);
     }
 
     // ===== InitProducerId (22) =====

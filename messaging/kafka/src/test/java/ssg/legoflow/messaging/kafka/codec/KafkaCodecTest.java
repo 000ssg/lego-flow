@@ -422,8 +422,8 @@ class KafkaCodecTest {
     @Test
     void testDescribeGroupsRequest() {
         var req = new DescribeGroupsRequest(List.of("g1", "g2"));
-        byte[] encoded = KafkaCodec.encodeDescribeGroupsRequest(req);
-        var decoded = KafkaCodec.decodeDescribeGroupsRequest(ByteBuffer.wrap(encoded));
+        byte[] encoded = KafkaCodec.encodeDescribeGroupsRequest(DescribeGroupsCodec.MIN_VERSION, req);
+        var decoded = KafkaCodec.decodeDescribeGroupsRequest(DescribeGroupsCodec.MIN_VERSION, ByteBuffer.wrap(encoded));
         assertThat(decoded.groups()).containsExactly("g1", "g2");
     }
 
@@ -435,8 +435,8 @@ class KafkaCodecTest {
                         List.of(new DescribeGroupsResponse.MemberDescription(
                                 "m1", "client-1", "/127.0.0.1",
                                 new byte[]{1}, new byte[]{2})))));
-        byte[] encoded = KafkaCodec.encodeDescribeGroupsResponse(resp);
-        var decoded = KafkaCodec.decodeDescribeGroupsResponse(ByteBuffer.wrap(encoded));
+        byte[] encoded = KafkaCodec.encodeDescribeGroupsResponse(DescribeGroupsCodec.MIN_VERSION, resp);
+        var decoded = KafkaCodec.decodeDescribeGroupsResponse(DescribeGroupsCodec.MIN_VERSION, ByteBuffer.wrap(encoded));
         assertThat(decoded.groups()).hasSize(1);
         assertThat(decoded.groups().getFirst().state()).isEqualTo("Stable");
         assertThat(decoded.groups().getFirst().members()).hasSize(1);

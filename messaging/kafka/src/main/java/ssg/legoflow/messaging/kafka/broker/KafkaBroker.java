@@ -411,7 +411,7 @@ public final class KafkaBroker implements AutoCloseable {
             case OFFSET_FETCH -> handleOffsetFetch(body, version);
             case CREATE_TOPICS -> handleCreateTopics(body, version);
             case DELETE_TOPICS -> handleDeleteTopics(body, version);
-            case DESCRIBE_GROUPS -> handleDescribeGroups(body);
+            case DESCRIBE_GROUPS -> handleDescribeGroups(body, version);
             case LIST_GROUPS -> handleListGroups();
             case SASL_HANDSHAKE -> handleSaslHandshake(body, connState, version);
             case DELETE_RECORDS -> handleDeleteRecords(body, version);
@@ -679,8 +679,8 @@ public final class KafkaBroker implements AutoCloseable {
         return KafkaCodec.encodeDeleteTopicsResponse(version, new DeleteTopicsResponse(results));
     }
 
-    private byte[] handleDescribeGroups(ByteBuffer body) {
-        DescribeGroupsRequest req = KafkaCodec.decodeDescribeGroupsRequest(body);
+    private byte[] handleDescribeGroups(ByteBuffer body, short version) {
+        DescribeGroupsRequest req = KafkaCodec.decodeDescribeGroupsRequest(version, body);
         List<DescribeGroupsResponse.GroupDescription> descriptions = new ArrayList<>();
         for (String groupId : req.groups()) {
             var group = groupCoordinator.describeGroup(groupId);
@@ -700,7 +700,7 @@ public final class KafkaBroker implements AutoCloseable {
                         group.protocolType, group.protocol, members));
             }
         }
-        return KafkaCodec.encodeDescribeGroupsResponse(new DescribeGroupsResponse(descriptions));
+        return KafkaCodec.encodeDescribeGroupsResponse(version, new DescribeGroupsResponse(descriptions));
     }
 
     private byte[] handleInitProducerId(ByteBuffer body, short version) {

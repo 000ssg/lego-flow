@@ -121,9 +121,9 @@ public final class KafkaAdminClient implements AutoCloseable {
      * @throws IOException if the request fails
      */
     public DescribeGroupsResponse describeGroups(List<String> groupIds) throws IOException {
-        byte[] payload = KafkaCodec.encodeDescribeGroupsRequest(new DescribeGroupsRequest(groupIds));
+        byte[] payload = KafkaCodec.encodeDescribeGroupsRequest((short) 0, new DescribeGroupsRequest(groupIds));
         ByteBuffer resp = connection.sendAndReceive(ApiKey.DESCRIBE_GROUPS.key(), (short) 0, payload);
-        return KafkaCodec.decodeDescribeGroupsResponse(resp);
+        return KafkaCodec.decodeDescribeGroupsResponse((short) 0, resp);
     }
 
     /**
