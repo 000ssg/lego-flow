@@ -339,11 +339,13 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (0 fields):  | ☐ | |
-| v1 | + ThrottleTimeMs:int32[1+] | ☐ | |
-| v2 | unchanged | ☐ | |
-| v3 | → flexible encoding | ☐ | |
-| v4 | + StatesFilter:[]string[4+], GroupState:string[4+] | ☐ | |
+| v0 | base (0 fields):  | ✓ | `bf6ac442` |
+| v1 | + ThrottleTimeMs:int32[1+] | ✓ | `bf6ac442` |
+| v2 | unchanged | ✓ | `bf6ac442` |
+| v3 | → flexible encoding | ✓ | `bf6ac442` |
+| v4 | + StatesFilter:[]string[4+], GroupState:string[4+] | ✓ | `bf6ac442` |
+
+**DONE (v0–v4)** — New dedicated `ListGroupsCodec` (v0–v4, request + response, both directions; client/broker exchange pinned at v0). Request layout (frozen `doc/spec/order/ListGroups.Request.txt`): v0–v2 empty body; v3 first flexible version (empty body + top-level endTag); v4 `StatesFilter:[]string` (KIP-518; spec dflt empty — if empty, all groups are listed; the in-house request model is empty, so it is written as an empty array and read + discarded on decode). Response layout (frozen `doc/spec/order/ListGroups.Response.txt`): v0 base `ErrorCode:int16 + Groups[]ListedGroup { GroupId:string + ProtocolType:string }`; leading `ThrottleTimeMs:int32` from v1+ (ignorable; spec dflt 0, written + discarded); v3 first flexible version (KIP-482: compact strings, varint N+1 counts, per-group + top-level endTags sentinel — no tagged fields declared); v4+ per-group `GroupState:string` (KIP-518, non-nullable; null at v0–v3). Inline v0-only `KafkaCodec` methods replaced with thin versioned delegates; `KafkaBroker.handleListGroups` + `KafkaAdminClient.listGroups` threaded to versioned facade. Models unchanged (`ListGroupsRequest()` / `ListGroupsResponse(errorCode, groups)` arities preserved). `ListGroupsCodecTest`: 13 tests — round-trips all versions both directions, v0/v3/v4 request + v0/v1/v2/v3/v4 response byte-for-byte goldens (hand-built), GroupState null at v0–v3 + round-trips at v4, per-version shape diffs, truncation + version guards, facade delegation. Full module suite 1183 → 1196 green.
 
 ### OffsetDelete (API 47) — v0..v0
 

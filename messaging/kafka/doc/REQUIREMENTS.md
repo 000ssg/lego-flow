@@ -905,6 +905,26 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 - **Sub-category**: **Consumer Groups 54/63** (OffsetCommit 10 + OffsetFetch 9 + FindCoordinator 5 + JoinGroup 10 + Heartbeat 5 + LeaveGroup 5 + SyncGroup 5 + DescribeGroups 5); next: ListGroups (API 16) v0–v4.
 
+## Commit: `bf6ac442` — ListGroups v0–v4 (Consumer Groups rows 338–343)
+
+- **ListGroups v0–v4 codec**: new dedicated `ListGroupsCodec` — spec-correct ListGroups implementation (all 5 rows v0–v4, per the vendored ListGroupsRequest.json / ListGroupsResponse.json, frozen order tables in `doc/spec/order/ListGroups.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v4 is encoded/decoded in both directions. Request: v0–v2 empty body; v3 first flexible version (empty body + top-level endTag); v4 `StatesFilter:[]string` (KIP-518; spec dflt empty — if empty, all groups are listed; the in-house request model is empty, so it is written as an empty array and read + discarded on decode). Response: v0 base `ErrorCode:int16 + Groups[]ListedGroup { GroupId:string + ProtocolType:string }`; leading `ThrottleTimeMs:int32` from v1+ (ignorable; spec dflt 0, written + discarded); v3 first flexible version (KIP-482: compact strings, varint N+1 counts, per-group + top-level endTags sentinel — the schema declares no tagged fields); v4+ per-group `GroupState:string` (KIP-518, non-nullable; null at v0–v3). The old inline v0-only `KafkaCodec` request/response bodies are replaced with thin versioned delegates.
+- **KafkaCodec facade**: `encode/decodeListGroupsRequest` and `encode/decodeListGroupsResponse` now delegate to `ListGroupsCodec` at an explicit `short version` (consistent with the other versioned APIs); the old inline v0-only bodies are removed.
+- **Wiring** (broker + admin client): `KafkaBroker.handleListGroups(body, version)` threads the request-header version into both decode and encode; `KafkaAdminClient.listGroups()` calls the versioned facade at `(short) 0` (client still pins v0 until ApiVersions negotiation is wired).
+- **Models** (unchanged — constructor arities preserved): `ListGroupsRequest()` / `ListGroupsResponse(errorCode, groups)`; version-gated fields (request v4+ `StatesFilter`, response v1+ leading `ThrottleTimeMs`, response v4+ per-group `GroupState`) are written with their spec defaults on encode and read + discarded on decode — `GroupState` round-trips at v4+ and is null at v0–v3 (documented in the codec class javadoc).
+- **New tests**: `ListGroupsCodecTest` (13 tests — round-trips all versions both directions, byte-for-byte v0/v3/v4 request + v0/v1/v2/v3/v4 response goldens (hand-built), GroupState null at v0–v3 + round-trips at v4, per-version shape diffs, truncation, version guards, facade delegation).
+
+### Test Coverage
+- ListGroupsCodecTest 13 tests; full module 1183 → 1196 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | KafkaCodec (facade) + KafkaBroker + KafkaAdminClient |
+| Files added | 1 (ListGroupsCodec) + 1 (ListGroupsCodecTest) + 2 frozen order tables |
+| Tests added | 13 |
+
+- **Sub-category**: **Consumer Groups 55/63** (OffsetCommit 10 + OffsetFetch 9 + FindCoordinator 5 + JoinGroup 10 + Heartbeat 5 + LeaveGroup 5 + SyncGroup 5 + DescribeGroups 5 + ListGroups 5); next: OffsetDelete (API 47) v0.
+
 ## Document Maintenance
 
 - This document is append-only for commit sections
