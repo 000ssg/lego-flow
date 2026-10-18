@@ -885,6 +885,26 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 - **Sub-category**: **Consumer Groups 49/63** (OffsetCommit 10 + OffsetFetch 9 + FindCoordinator 5 + JoinGroup 10 + Heartbeat 5 + LeaveGroup 5 + SyncGroup 5); next: DescribeGroups (API 15) v0–v5.
 
+## Commit: `e32d284d` — DescribeGroups v0–v5 (Consumer Groups rows 326–331)
+
+- **DescribeGroups v0–v5 codec**: new dedicated `DescribeGroupsCodec` — spec-correct DescribeGroups implementation (all 6 rows v0–v5, per the vendored DescribeGroupsRequest.json / DescribeGroupsResponse.json, frozen order tables in `doc/spec/order/DescribeGroups.{Request,Response}.txt`). Client/broker interaction is pinned at v0; the full range v0–v5 is encoded/decoded in both directions. Request: v0–v2 base 1 field `Groups:[]string`; v3+ `IncludeAuthorizedOperations:bool` (spec dflt false, written + discarded by the pinned-v0 facade); v5+ flexible (KIP-482: compact strings, varint N+1 counts, top-level endTags sentinel — the schema declares no tagged fields). Response: v0 `Groups[]DescribedGroup { ErrorCode:int16 + GroupId:string + GroupState:string + ProtocolType:string(nullable) + ProtocolData:string(nullable) + Members[]DescribedGroupMember { MemberId:string + ClientId:string + ClientHost:string + MemberMetadata:bytes + MemberAssignment:bytes } }`; leading `ThrottleTimeMs:int32` from v1+ (ignorable; spec dflt 0, written + discarded); v3+ per-group `AuthorizedOperations:int32`; v4+ per-member nullable `GroupInstanceId:string` (KIP-345); v5+ flexible (per-member + per-group + top-level endTags sentinel — no tagged fields declared). The old inline v0-only `KafkaCodec` request/response bodies are replaced with thin versioned delegates.
+- **KafkaCodec facade**: `encode/decodeDescribeGroupsRequest` and `encode/decodeDescribeGroupsResponse` now delegate to `DescribeGroupsCodec` at an explicit `short version` (consistent with the other versioned APIs); the old inline v0-only bodies are removed.
+- **Wiring** (broker + admin client): `KafkaBroker.handleDescribeGroups(body, version)` threads the request-header version into both decode and encode; `KafkaAdminClient.describeGroups()` calls the versioned facade at `(short) 0` (client still pins v0 until ApiVersions negotiation is wired).
+- **Models** (unchanged — constructor arities preserved): `DescribeGroupsRequest(groups)` / `DescribeGroupsResponse(groups)`; version-gated fields (request v3+ `IncludeAuthorizedOperations`, response v1+ leading `ThrottleTimeMs`, response v3+ per-group `AuthorizedOperations`, response v4+ per-member `GroupInstanceId`) are written with their spec defaults on encode and read + discarded on decode (documented in the codec class javadoc).
+- **New tests**: `DescribeGroupsCodecTest` (14 tests — round-trips all versions both directions, byte-for-byte v0/v3/v5 request + v0/v1/v2/v3/v4/v5 response goldens (hand-built), v5 flexible `IncludeAuthorizedOperations` varint(0) default, null protocol fields as varint(0), v4 `GroupInstanceId` null round-trip, truncation, version guards, facade delegation).
+
+### Test Coverage
+- DescribeGroupsCodecTest 14 tests; full module 1169 → 1183 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | KafkaCodec (facade) + KafkaBroker + KafkaAdminClient |
+| Files added | 1 (DescribeGroupsCodec) + 1 (DescribeGroupsCodecTest) + 2 frozen order tables |
+| Tests added | 14 |
+
+- **Sub-category**: **Consumer Groups 54/63** (OffsetCommit 10 + OffsetFetch 9 + FindCoordinator 5 + JoinGroup 10 + Heartbeat 5 + LeaveGroup 5 + SyncGroup 5 + DescribeGroups 5); next: ListGroups (API 16) v0–v4.
+
 ## Document Maintenance
 
 - This document is append-only for commit sections

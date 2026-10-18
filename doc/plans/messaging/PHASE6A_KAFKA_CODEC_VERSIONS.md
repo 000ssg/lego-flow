@@ -326,12 +326,14 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (1 fields): Groups | ☐ | |
-| v1 | + ThrottleTimeMs:int32[1+] | ☐ | |
-| v2 | unchanged | ☐ | |
-| v3 | + IncludeAuthorizedOperations:bool[3+], AuthorizedOperations:int32[3+] | ☐ | |
-| v4 | + GroupInstanceId:string[4+](null:4+) | ☐ | |
-| v5 | → flexible encoding | ☐ | |
+| v0 | base (1 field): Groups:[]string | ✓ | `e32d284d` |
+| v1 | response: + ThrottleTimeMs:int32[1+] (req unchanged) | ✓ | `e32d284d` |
+| v2 | unchanged | ✓ | `e32d284d` |
+| v3 | request: + IncludeAuthorizedOperations:bool[3+]; response: + Groups[*].AuthorizedOperations:int32[3+] | ✓ | `e32d284d` |
+| v4 | response: + Groups[*].Members[*].GroupInstanceId:string[4+](null:4+) | ✓ | `e32d284d` |
+| v5 | → flexible encoding (KIP-482) | ✓ | `e32d284d` |
+
+**DONE (v0–v5)** — New dedicated `DescribeGroupsCodec` (v0–v5, request + response, both directions; client/broker exchange pinned at v0). Request layout (frozen `doc/spec/order/DescribeGroups.Request.txt`): v0–v2 `Groups:[]string`; v3+ `IncludeAuthorizedOperations:bool` (spec dflt false); v5+ flexible (KIP-482: compact strings, varint N+1 counts, top-level endTags sentinel — no tagged fields declared). Response layout (frozen `doc/spec/order/DescribeGroups.Response.txt`): v0 `Groups[]DescribedGroup { ErrorCode:int16 + GroupId:string + GroupState:string + ProtocolType:string(nullable) + ProtocolData:string(nullable) + Members[]DescribedGroupMember { MemberId:string + ClientId:string + ClientHost:string + MemberMetadata:bytes + MemberAssignment:bytes } }`; leading `ThrottleTimeMs:int32` from v1+ (spec dflt 0, written + discarded); v3+ per-group `AuthorizedOperations:int32`; v4+ per-member nullable `GroupInstanceId:string` (KIP-345); v5+ flexible (per-member + per-group + top-level endTags sentinel — no tagged fields declared). Inline v0-only `KafkaCodec` methods replaced with thin versioned delegates; `KafkaBroker.handleDescribeGroups` + `KafkaAdminClient.describeGroups` threaded to versioned facade. Models unchanged (`DescribeGroupsRequest(groups)` / `DescribeGroupsResponse(groups)` arities preserved). `DescribeGroupsCodecTest`: 14 tests — round-trips all versions both directions, v0/v3/v5 request + v0/v1/v2/v3/v4/v5 response byte-for-byte goldens (hand-built), v5 flexible IncludeAuthorizedOperations varint(0) default, null protocol fields as varint(0), v4 GroupInstanceId null round-trip, truncation + version guards, facade delegation. Full module suite 1169 → 1183 green.
 
 ### ListGroups (API 16) — v0..v4
 
