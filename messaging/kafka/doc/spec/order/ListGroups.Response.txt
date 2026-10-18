@@ -1,0 +1,16 @@
+ListGroups Response — field processing order (binding; spec 3.6.1) — flexible encoding from v3
+wire order by layout (equal run = byte-identical field layout):
+  v0 -> ErrorCode:Groups
+  v1-v2 -> ThrottleTimeMs:ErrorCode:Groups
+  v3 -> ThrottleTimeMs:ErrorCode:Groups|flex
+  v4 -> ThrottleTimeMs:ErrorCode:Groups:Groups[*].GroupState|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0:
+  v0: fixed: ErrorCode(int16), Groups[]ListedGroup { GroupId(string), ProtocolType(string) } || tagged: ∅
+  v1-v2:
+  v1: fixed: ThrottleTimeMs(int32), ErrorCode(int16), Groups[]ListedGroup { GroupId(string), ProtocolType(string) } || tagged: ∅
+  v2: fixed: ThrottleTimeMs(int32), ErrorCode(int16), Groups[]ListedGroup { GroupId(string), ProtocolType(string) } || tagged: ∅
+  v3:
+  v3: fixed: ThrottleTimeMs(int32), ErrorCode(int16), Groups[]ListedGroup { GroupId(string) [flex], ProtocolType(string) [flex] } || tagged: ∅ (per-group + top-level)
+  v4:
+  v4: fixed: ThrottleTimeMs(int32), ErrorCode(int16), Groups[]ListedGroup { GroupId(string) [flex], ProtocolType(string) [flex], GroupState(string) [flex] } || tagged: ∅ (per-group + top-level)

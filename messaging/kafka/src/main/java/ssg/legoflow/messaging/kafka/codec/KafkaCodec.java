@@ -948,58 +948,50 @@ public final class KafkaCodec {
     // ===== ListGroups (16) =====
 
     /**
-     * Encodes a ListGroups request body.
+     * Encodes a ListGroups request body (pinned version; empty body v0–v2, flexible
+     * v3+, StatesFilter v4+; see {@link ListGroupsCodec} for version-gated layout).
      *
-     * @param req the request
+     * @param version the API version
+     * @param req     the request
      * @return the encoded bytes
      */
-    public static byte[] encodeListGroupsRequest(ListGroupsRequest req) {
-        return new byte[0];
+    public static byte[] encodeListGroupsRequest(short version, ListGroupsRequest req) {
+        return ListGroupsCodec.encodeRequest(version, req);
     }
 
     /**
-     * Decodes a ListGroups request body.
+     * Decodes a ListGroups request body (pinned version).
      *
-     * @param buf the buffer
+     * @param version the API version
+     * @param buf     the buffer
      * @return the decoded request
      */
-    public static ListGroupsRequest decodeListGroupsRequest(ByteBuffer buf) {
-        return new ListGroupsRequest();
+    public static ListGroupsRequest decodeListGroupsRequest(short version, ByteBuffer buf) {
+        return ListGroupsCodec.decodeRequest(version, buf);
     }
 
     /**
-     * Encodes a ListGroups response body.
+     * Encodes a ListGroups response body (pinned version; ThrottleTimeMs v1+,
+     * flexible v3+, GroupState v4+; see {@link ListGroupsCodec} for version-gated
+     * layout).
      *
-     * @param resp the response
+     * @param version the API version
+     * @param resp    the response
      * @return the encoded bytes
      */
-    public static byte[] encodeListGroupsResponse(ListGroupsResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putShort(resp.errorCode());
-        buf.putInt(resp.groups().size());
-        for (var g : resp.groups()) {
-            writeString(buf, g.groupId());
-            writeString(buf, g.protocolType());
-            writeString(buf, g.state());
-        }
-        buf.flip();
-        return toBytes(buf);
+    public static byte[] encodeListGroupsResponse(short version, ListGroupsResponse resp) {
+        return ListGroupsCodec.encodeResponse(version, resp);
     }
 
     /**
-     * Decodes a ListGroups response body.
+     * Decodes a ListGroups response body (pinned version).
      *
-     * @param buf the buffer
+     * @param version the API version
+     * @param buf     the buffer
      * @return the decoded response
      */
-    public static ListGroupsResponse decodeListGroupsResponse(ByteBuffer buf) {
-        short errorCode = buf.getShort();
-        int count = buf.getInt();
-        List<ListGroupsResponse.GroupListing> groups = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            groups.add(new ListGroupsResponse.GroupListing(readString(buf), readString(buf), readString(buf)));
-        }
-        return new ListGroupsResponse(errorCode, groups);
+    public static ListGroupsResponse decodeListGroupsResponse(short version, ByteBuffer buf) {
+        return ListGroupsCodec.decodeResponse(version, buf);
     }
 
     // ===== DeleteRecords (21) =====

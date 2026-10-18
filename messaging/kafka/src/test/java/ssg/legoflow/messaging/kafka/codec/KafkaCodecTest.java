@@ -525,8 +525,8 @@ class KafkaCodecTest {
     @Test
     void testListGroupsRequest() {
         var req = new ListGroupsRequest();
-        byte[] encoded = KafkaCodec.encodeListGroupsRequest(req);
-        ListGroupsRequest decoded = KafkaCodec.decodeListGroupsRequest(java.nio.ByteBuffer.wrap(encoded));
+        byte[] encoded = KafkaCodec.encodeListGroupsRequest(ListGroupsCodec.MIN_VERSION, req);
+        ListGroupsRequest decoded = KafkaCodec.decodeListGroupsRequest(ListGroupsCodec.MIN_VERSION, java.nio.ByteBuffer.wrap(encoded));
         assertThat(decoded).isNotNull();
     }
 
@@ -535,13 +535,13 @@ class KafkaCodecTest {
         var resp = new ListGroupsResponse((short) 0, List.of(
                 new ListGroupsResponse.GroupListing("group1", "consumer", "Stable"),
                 new ListGroupsResponse.GroupListing("group2", "consumer", "Empty")));
-        byte[] encoded = KafkaCodec.encodeListGroupsResponse(resp);
-        var decoded = KafkaCodec.decodeListGroupsResponse(java.nio.ByteBuffer.wrap(encoded));
+        byte[] encoded = KafkaCodec.encodeListGroupsResponse(ListGroupsCodec.MIN_VERSION, resp);
+        var decoded = KafkaCodec.decodeListGroupsResponse(ListGroupsCodec.MIN_VERSION, java.nio.ByteBuffer.wrap(encoded));
         assertThat(decoded.errorCode()).isZero();
         assertThat(decoded.groups()).hasSize(2);
         assertThat(decoded.groups().getFirst().groupId()).isEqualTo("group1");
         assertThat(decoded.groups().getFirst().protocolType()).isEqualTo("consumer");
-        assertThat(decoded.groups().getFirst().state()).isEqualTo("Stable");
+        assertThat(decoded.groups().getFirst().state()).isNull(); // GroupState is v4+ only
         assertThat(decoded.groups().get(1).groupId()).isEqualTo("group2");
     }
 

@@ -412,7 +412,7 @@ public final class KafkaBroker implements AutoCloseable {
             case CREATE_TOPICS -> handleCreateTopics(body, version);
             case DELETE_TOPICS -> handleDeleteTopics(body, version);
             case DESCRIBE_GROUPS -> handleDescribeGroups(body, version);
-            case LIST_GROUPS -> handleListGroups();
+            case LIST_GROUPS -> handleListGroups(body, version);
             case SASL_HANDSHAKE -> handleSaslHandshake(body, connState, version);
             case DELETE_RECORDS -> handleDeleteRecords(body, version);
             case CREATE_PARTITIONS -> handleCreatePartitions(body, version);
@@ -735,13 +735,15 @@ public final class KafkaBroker implements AutoCloseable {
         return KafkaCodec.encodeAddPartitionsToTxnResponse(version, new AddPartitionsToTxnResponse(responses));
     }
 
-    private byte[] handleListGroups() {
+    private byte[] handleListGroups(ByteBuffer body, short version) {
+        // The in-house model is empty; the request carries no fields to decode
+        // (StatesFilter is v4+ and read + discarded by the codec).
         var groups = groupCoordinator.listGroups();
         List<ListGroupsResponse.GroupListing> listings = new ArrayList<>();
         for (var g : groups) {
             listings.add(new ListGroupsResponse.GroupListing(g.groupId(), g.protocolType(), g.state()));
         }
-        return KafkaCodec.encodeListGroupsResponse(
+        return KafkaCodec.encodeListGroupsResponse(version,
                 new ListGroupsResponse(KafkaErrors.NONE.code(), listings));
     }
 
