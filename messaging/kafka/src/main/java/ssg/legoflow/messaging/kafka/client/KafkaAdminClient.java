@@ -219,7 +219,7 @@ public final class KafkaAdminClient implements AutoCloseable {
             throws IOException {
         byte[] payload = KafkaCodec.encodeOffsetDeleteRequest(new OffsetDeleteRequest(groupId, topics));
         ByteBuffer resp = connection.sendAndReceive(ApiKey.OFFSET_DELETE.key(), (short) 0, payload);
-        return KafkaCodec.decodeOffsetDeleteResponse(resp);
+        return KafkaCodec.decodeOffsetDeleteResponse((short) 0, resp);
     }
 
     /**

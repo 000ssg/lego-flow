@@ -1135,84 +1135,66 @@ public final class KafkaCodec {
      * @return the encoded bytes
      */
     public static byte[] encodeOffsetDeleteRequest(OffsetDeleteRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        writeString(buf, req.groupId());
-        buf.putInt(req.topics().size());
-        for (var t : req.topics()) {
-            writeString(buf, t.name());
-            buf.putInt(t.partitions().size());
-            for (var p : t.partitions()) {
-                buf.putInt(p.partitionIndex());
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+        return OffsetDeleteCodec.encodeRequest(OffsetDeleteCodec.MIN_VERSION, req);
     }
 
     /**
-     * Decodes an OffsetDelete request body.
+     * Decodes an OffsetDelete request body at the given API version.
+     *
+     * @param version the API version (0–2)
+     * @param buf     the buffer
+     * @return the decoded request
+     */
+    public static OffsetDeleteRequest decodeOffsetDeleteRequest(short version, ByteBuffer buf) {
+        return OffsetDeleteCodec.decodeRequest(version, buf);
+    }
+
+    /**
+     * Decodes an OffsetDelete request body (v0 baseline).
      *
      * @param buf the buffer
      * @return the decoded request
+     * @deprecated use {@link #decodeOffsetDeleteRequest(short, ByteBuffer)} with an explicit
+     *             version instead
      */
+    @Deprecated
     public static OffsetDeleteRequest decodeOffsetDeleteRequest(ByteBuffer buf) {
-        String groupId = readString(buf);
-        int topicCount = buf.getInt();
-        List<OffsetDeleteRequest.TopicData> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String name = readString(buf);
-            int partCount = buf.getInt();
-            List<OffsetDeleteRequest.PartitionData> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                parts.add(new OffsetDeleteRequest.PartitionData(buf.getInt()));
-            }
-            topics.add(new OffsetDeleteRequest.TopicData(name, parts));
-        }
-        return new OffsetDeleteRequest(groupId, topics);
+        return OffsetDeleteCodec.decodeRequest(OffsetDeleteCodec.MIN_VERSION, buf);
     }
 
     /**
-     * Encodes an OffsetDelete response body.
+     * Encodes an OffsetDelete response body at the given API version.
      *
-     * @param resp the response
+     * @param version the API version (0–2)
+     * @param resp    the response
      * @return the encoded bytes
      */
-    public static byte[] encodeOffsetDeleteResponse(OffsetDeleteResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putShort(resp.errorCode());
-        buf.putInt(resp.topics().size());
-        for (var t : resp.topics()) {
-            writeString(buf, t.name());
-            buf.putInt(t.partitions().size());
-            for (var p : t.partitions()) {
-                buf.putInt(p.partitionIndex());
-                buf.putShort(p.errorCode());
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+    public static byte[] encodeOffsetDeleteResponse(short version, OffsetDeleteResponse resp) {
+        return OffsetDeleteCodec.encodeResponse(version, resp);
     }
 
     /**
-     * Decodes an OffsetDelete response body.
+     * Decodes an OffsetDelete response body at the given API version.
+     *
+     * @param version the API version (0–2)
+     * @param buf     the buffer
+     * @return the decoded response
+     */
+    public static OffsetDeleteResponse decodeOffsetDeleteResponse(short version, ByteBuffer buf) {
+        return OffsetDeleteCodec.decodeResponse(version, buf);
+    }
+
+    /**
+     * Decodes an OffsetDelete response body (v0 baseline).
      *
      * @param buf the buffer
      * @return the decoded response
+     * @deprecated use {@link #decodeOffsetDeleteResponse(short, ByteBuffer)} with an explicit
+     *             version instead
      */
+    @Deprecated
     public static OffsetDeleteResponse decodeOffsetDeleteResponse(ByteBuffer buf) {
-        short errorCode = buf.getShort();
-        int topicCount = buf.getInt();
-        List<OffsetDeleteResponse.TopicData> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String name = readString(buf);
-            int partCount = buf.getInt();
-            List<OffsetDeleteResponse.PartitionData> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                parts.add(new OffsetDeleteResponse.PartitionData(buf.getInt(), buf.getShort()));
-            }
-            topics.add(new OffsetDeleteResponse.TopicData(name, parts));
-        }
-        return new OffsetDeleteResponse(errorCode, topics);
+        return OffsetDeleteCodec.decodeResponse(OffsetDeleteCodec.MIN_VERSION, buf);
     }
 
     // ===== DescribeConfigs (32) =====

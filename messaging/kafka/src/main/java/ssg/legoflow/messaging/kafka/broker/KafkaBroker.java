@@ -418,7 +418,7 @@ public final class KafkaBroker implements AutoCloseable {
             case CREATE_PARTITIONS -> handleCreatePartitions(body, version);
             case SASL_AUTHENTICATE -> handleSaslAuthenticate(body, connState, version);
             case DELETE_GROUPS -> handleDeleteGroups(body, version);
-            case OFFSET_DELETE -> handleOffsetDelete(body);
+            case OFFSET_DELETE -> handleOffsetDelete(body, version);
             case DESCRIBE_CONFIGS -> handleDescribeConfigs(body, version);
             case ALTER_CONFIGS -> handleAlterConfigs(body, version);
             case INIT_PRODUCER_ID -> handleInitProducerId(body, version);
@@ -806,8 +806,8 @@ public final class KafkaBroker implements AutoCloseable {
         return KafkaCodec.encodeDeleteGroupsResponse(version, new DeleteGroupsResponse(results));
     }
 
-    private byte[] handleOffsetDelete(ByteBuffer body) {
-        OffsetDeleteRequest req = KafkaCodec.decodeOffsetDeleteRequest(body);
+    private byte[] handleOffsetDelete(ByteBuffer body, short version) {
+        OffsetDeleteRequest req = KafkaCodec.decodeOffsetDeleteRequest(version, body);
         List<TopicPartition> partitions = new ArrayList<>();
         for (var t : req.topics()) {
             for (var p : t.partitions()) {
@@ -827,7 +827,7 @@ public final class KafkaBroker implements AutoCloseable {
         for (var entry : byTopic.entrySet()) {
             topics.add(new OffsetDeleteResponse.TopicData(entry.getKey(), entry.getValue()));
         }
-        return KafkaCodec.encodeOffsetDeleteResponse(
+        return KafkaCodec.encodeOffsetDeleteResponse(version,
                 new OffsetDeleteResponse(KafkaErrors.NONE.code(), topics));
     }
 

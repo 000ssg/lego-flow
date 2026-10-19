@@ -645,8 +645,8 @@ class KafkaCodecTest {
                 new OffsetDeleteResponse.TopicData("topic", List.of(
                         new OffsetDeleteResponse.PartitionData(0, (short) 0),
                         new OffsetDeleteResponse.PartitionData(1, (short) 0)))));
-        byte[] encoded = KafkaCodec.encodeOffsetDeleteResponse(resp);
-        var decoded = KafkaCodec.decodeOffsetDeleteResponse(java.nio.ByteBuffer.wrap(encoded));
+        byte[] encoded = KafkaCodec.encodeOffsetDeleteResponse((short) 0, resp);
+        var decoded = KafkaCodec.decodeOffsetDeleteResponse((short) 0, java.nio.ByteBuffer.wrap(encoded));
         assertThat(decoded.errorCode()).isZero();
         assertThat(decoded.topics()).hasSize(1);
         assertThat(decoded.topics().getFirst().partitions()).hasSize(2);
