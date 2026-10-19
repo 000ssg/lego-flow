@@ -7,7 +7,7 @@ Any entry claiming DONE without a verifiable commit in `git log` is **void** —
 and redo the work. NEVER trust a SHA without `git cat-file -e <sha>`.
 Consensus is persisted in commits, not in this file alone — commit each completed API.
 
-## Consumer Groups sub-category (56/63) — ledger
+## Consumer Groups sub-category (63/63 — COMPLETE, verified 2026-10-19 by source-level audit) — ledger
 
 | API | Versions | Codec file | Test file | Commit SHA (in git log) | Status |
 |---|---|---|---|---|---|
@@ -24,9 +24,60 @@ Consensus is persisted in commits, not in this file alone — commit each comple
 
 ## Next sub-task
 
-InitProducerId (API 22) v0–v4 — spec in
-`doc/spec/message/InitProducerIdRequest.json` / `InitProducerIdResponse.json`.
-Follow the established pattern: freeze `doc/spec/order/InitProducerId.{Request,Response}.txt` → dedicated `InitProducerIdCodec` (all versions, both directions; flex = KIP-482 compact + varint N+1 + endTags) → replace inline `KafkaCodec` bodies with thin versioned delegates → wire broker + client → `InitProducerIdCodecTest` (round-trips all versions, byte-for-byte goldens per version, per-version Δ, truncation/guards/facade) → docs backfill (PHASE6A, PROGRESS, REQUIREMENTS, WIP). Models unchanged if possible.
+**Metadata (API 3) v0–v12** — first API of the Metadata/Cluster sub-category (plan step 7,
+the only remaining one; 44 version rows, all ☐). Specs in `doc/spec/message/Metadata{Request,Response}.json`
+(request v0–v12, flex 9+; response flex 8+). Follow the established pattern: freeze
+`doc/spec/order/Metadata.{Request,Response}.txt` → dedicated `MetadataCodec` (all versions, both
+directions; flex = KIP-482 compact + varint N+1 + endTags) → replace inline `KafkaCodec` bodies with
+thin versioned delegates (facade methods currently take NO version param) → wire broker + client →
+`MetadataCodecTest` (round-trips all versions, byte-for-byte goldens per version, per-version Δ,
+truncation/guards/facade) → docs backfill (PHASE6A, PROGRESS, REQUIREMENTS, WIP). Models unchanged
+if possible — current `MetadataRequest` record has only `topics + allowAutoTopicCreation`; v0's
+`Name` and later versions' fields (Rack, ControllerId, IsInternal, ClusterId, ThrottleTimeMs,
+OfflineReplicas, LeaderEpoch, authorized operations, TopicId) need the model extended only if the
+versions actually demand it per the frozen Δ.
+
+## Source-level audit (2026-10-19, from the 2 trusted sources: spec + source code)
+
+Full cross-reference of all 37 spec APIs (`doc/spec/message/*.Request.json`) against the dedicated
+codec directory and `KafkaCodec.java` bodies:
+
+- **31 of 37 APIs fixed** — dedicated `<Api>Codec.java` exists AND all 31 are called from the
+  `KafkaCodec` facade (zero unused codec files; verified by grep of each codec class name in the
+  facade). These 31 span: Negotiation/Auth (ApiVersions, SaslHandshake, SaslAuthenticate), Record
+  I/O (Produce, Fetch, ListOffsets), Admin (CreateTopics, DeleteTopics, DeleteRecords,
+  DescribeConfigs, AlterConfigs, CreatePartitions, AlterPartitionReassignments,
+  ListPartitionReassignments, DeleteGroups), Transactions (InitProducerId v0–v4 `2a877ca5`,
+  AddPartitionsToTxn, AddOffsetsToTxn, EndTxn, WriteTxnMarkers, TxnOffsetCommit), Consumer Groups
+  (all 10: OffsetCommit, OffsetFetch, FindCoordinator, JoinGroup, Heartbeat, LeaveGroup, SyncGroup,
+  DescribeGroups, ListGroups, OffsetDelete).
+- **6 APIs still INLINE in `KafkaCodec.java`** (full inline encode/decode bodies, NOT thin
+  delegates; their facade methods take NO `short version` param) — for sure not fixed yet, in
+  plan step-7 (Metadata/Cluster) order:
+  1. **Metadata (API 3)** v0–v12 (flex 9+) — request + response inline
+  2. **LeaderAndIsr (API 4)** v0–v7 (flex 4+)
+  3. **StopReplica (API 5)** v0–v4 (flex 2+)
+  4. **UpdateMetadata (API 6)** v0–v8 (flex 6+)
+  5. **ControlledShutdown (API 7)** v0–v3 (flex 3+)
+  6. **OffsetForLeaderEpoch (API 23)** v0–v4 (flex 4+)
+- **Ledger corrections from this audit** (docs were stale, source won):
+  - InitProducerId (API 22) was already DONE in `2a877ca5` (Transactions sub-category) — the old
+    "Next sub-task" pointer to it was wrong; real next sub-task is Metadata (API 3) above.
+  - Consumer Groups sub-category is **63/63 complete**: all 63 version rows in the PHASE6A
+    Consumer Groups matrix carry commit SHAs (the old "56/63" header was stale).
+  - Metadata/Cluster matrix: **0 of 44 rows done** — verified against spec version counts
+    (Metadata 13, LeaderAndIsr 8, StopReplica 5, UpdateMetadata 9, ControlledShutdown 4,
+    OffsetForLeaderEpoch 5 = 44).
+- **Left to do (the 6 inline APIs above), in order:**
+  1. Metadata v0–v12 (13 rows)
+  2. LeaderAndIsr v0–v7 (8 rows)
+  3. StopReplica v0–v4 (5 rows)
+  4. UpdateMetadata v0–v8 (9 rows)
+  5. ControlledShutdown v0–v3 (4 rows)
+  6. OffsetForLeaderEpoch v0–v4 (5 rows)
+  Known spec notes: LeaderAndIsr/StopReplica/UpdateMetadata/ControlledShutdown v7/v4 have
+  `isKRaftController` (KRaft-only); LeaderAndIsr v0–v1 response has a 7-field request incl.
+  `LiveLeaders`/`HostName`/`Port` — check the frozen Δ before touching models.
 
 ## KNOWN GAP (RESOLVED 2026-10-16 — see "Unpin negotiated version" below)
 **Historical audit (was user-flagged UNACCEPTABLE): negotiated version ignored at runtime, not in the codecs.**
