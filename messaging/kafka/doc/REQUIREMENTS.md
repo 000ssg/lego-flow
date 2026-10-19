@@ -925,6 +925,26 @@ Part of the messaging compliance series (`doc/plans/messaging/`). Spec-verified 
 
 - **Sub-category**: **Consumer Groups 55/63** (OffsetCommit 10 + OffsetFetch 9 + FindCoordinator 5 + JoinGroup 10 + Heartbeat 5 + LeaveGroup 5 + SyncGroup 5 + DescribeGroups 5 + ListGroups 5); next: OffsetDelete (API 47) v0.
 
+## Commit: `70f56853` — OffsetDelete v0 (Consumer Groups row 354)
+
+- **OffsetDelete v0 codec**: new dedicated `OffsetDeleteCodec` — spec-correct OffsetDelete implementation, a single fixed-width v0 per the vendored OffsetDeleteRequest.json / OffsetDeleteResponse.json (`validVersions 0`, `flexibleVersions none`; versions 1+ rejected by `checkVersion`, frozen order tables in `doc/spec/order/OffsetDelete.{Request,Response}.txt`). Request: v0 base 5 fields `GroupId:string + Topics[] { Name:string + Partitions[] { PartitionIndex:int32 } }`. Response: v0 `ErrorCode:int16 + ThrottleTimeMs:int32 (leading, ignorable; spec dflt 0, written + discarded) + Topics[] { Name:string + Partitions[] { PartitionIndex:int32 + ErrorCode:int16 } }`. **Latent spec bug fixed**: the old inline facade response codec omitted the mandatory `ThrottleTimeMs`, misaligning every byte after `ErrorCode` — the old round-trip test only passed because both ends were consistently wrong. The old inline v0-only `KafkaCodec` request/response bodies are replaced with thin versioned delegates.
+- **KafkaCodec facade**: `encode/decodeOffsetDeleteRequest` and `encode/decodeOffsetDeleteResponse` now delegate to `OffsetDeleteCodec` at an explicit `short version`; the old inline v0-only bodies are removed.
+- **Wiring** (broker + admin client): `KafkaBroker.handleOffsetDelete(body, version)` threads the request-header version into both decode and encode; `KafkaAdminClient.offsetDelete()` calls the versioned facade at `(short) 0` (client still pins v0 until ApiVersions negotiation is wired).
+- **Models** (unchanged — constructor arities preserved): `OffsetDeleteRequest(groupId, topics)` / `OffsetDeleteResponse(errorCode, topics)`; the response `ThrottleTimeMs` is written with its spec default (0) on encode and read + discarded on decode — the in-house model carries no such field (documented in the codec class javadoc).
+- **New tests**: `OffsetDeleteCodecTest` (10 tests — round-trips both directions, byte-for-byte v0 request + response goldens hand-verified against a Python reference encoder built from the spec JSON, ThrottleTimeMs discard, empty + multi-topic round-trips, version gating, facade constants/delegation); `KafkaCodecTest`'s two OffsetDelete round-trips updated to the versioned facade signatures.
+
+### Test Coverage
+- OffsetDeleteCodecTest 10 tests; full module 1196 → 1206 green, 0 failures, 0 errors, 0 skipped
+
+### Cost Estimate
+| Metric | Value |
+|--------|-------|
+| Files modified | KafkaCodec (facade) + KafkaBroker + KafkaAdminClient + KafkaCodecTest |
+| Files added | 1 (OffsetDeleteCodec) + 1 (OffsetDeleteCodecTest) + 2 frozen order tables |
+| Tests added | 10 |
+
+- **Sub-category**: **Consumer Groups 56/63** (OffsetCommit 10 + OffsetFetch 9 + FindCoordinator 5 + JoinGroup 10 + Heartbeat 5 + LeaveGroup 5 + SyncGroup 5 + DescribeGroups 5 + ListGroups 5 + OffsetDelete 1); next: InitProducerId (API 22) v0–v4.
+
 ## Document Maintenance
 
 - This document is append-only for commit sections

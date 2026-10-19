@@ -351,7 +351,9 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (5 fields): GroupId, Topics, Name, Partitions, PartitionIndex | ☐ | |
+| v0 | base (5 fields): GroupId, Topics, Name, Partitions, PartitionIndex | ✓ | `70f56853` |
+
+**DONE (v0)** — New dedicated `OffsetDeleteCodec` (single fixed-width v0; spec `validVersions 0`, `flexibleVersions none` — no flexible paths, versions 1+ rejected). Request layout (frozen `doc/spec/order/OffsetDelete.Request.txt`): `GroupId:string + Topics[] { Name:string + Partitions[] { PartitionIndex:int32 } }`. Response layout (frozen `doc/spec/order/OffsetDelete.Response.txt`): `ErrorCode:int16 + ThrottleTimeMs:int32 (ignorable) + Topics[] { Name:string + Partitions[] { PartitionIndex:int32 + ErrorCode:int16 } }` — ThrottleTimeMs written 0 and read + discarded (in-house model carries no such field). Fixes a latent spec bug: the old inline facade response codec omitted ThrottleTimeMs, misaligning every byte after ErrorCode (the old round-trip only passed because both ends were consistently wrong). Inline v0-only `KafkaCodec` methods replaced with thin versioned delegates; `KafkaBroker.handleOffsetDelete` + `KafkaAdminClient.offsetDelete` threaded to the versioned facade (pinned v0 end-to-end). Models unchanged (`OffsetDeleteRequest(groupId, topics)` / `OffsetDeleteResponse(errorCode, topics)` arities preserved). `OffsetDeleteCodecTest`: 10 tests — round-trips both directions, v0 request + response byte-for-byte goldens (hand-verified against a Python reference encoder built from the spec JSON), ThrottleTimeMs discard, empty + multi-topic round-trips, version gating, facade constants. `KafkaCodecTest` two OffsetDelete round-trips updated to versioned signatures. Full module suite 1196 → 1206 green.
 
 ## Transactions
 

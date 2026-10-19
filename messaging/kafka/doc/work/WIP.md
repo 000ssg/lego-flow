@@ -7,7 +7,7 @@ Any entry claiming DONE without a verifiable commit in `git log` is **void** —
 and redo the work. NEVER trust a SHA without `git cat-file -e <sha>`.
 Consensus is persisted in commits, not in this file alone — commit each completed API.
 
-## Consumer Groups sub-category (55/63) — ledger
+## Consumer Groups sub-category (56/63) — ledger
 
 | API | Versions | Codec file | Test file | Commit SHA (in git log) | Status |
 |---|---|---|---|---|---|
@@ -20,15 +20,13 @@ Consensus is persisted in commits, not in this file alone — commit each comple
 | SyncGroup (14) | v0–v5 | `SyncGroupCodec.java` | `SyncGroupCodecTest.java` (21) | `c123e328` | **DONE** — committed; 21 tests green, full module 1169 green (verified 2026-10-17) |
 | DescribeGroups (15) | v0–v5 | `DescribeGroupsCodec.java` | `DescribeGroupsCodecTest.java` (14) | `e32d284d` | **DONE** — committed; 14 tests green, full module 1183 green (verified 2026-10-18) |
 | ListGroups (16) | v0–v4 | `ListGroupsCodec.java` | `ListGroupsCodecTest.java` (13) | `bf6ac442` | **DONE** — committed; 13 tests green, full module 1196 green (verified 2026-10-18) |
-| OffsetDelete (47) | v0 | — | — | — | NOT STARTED |
+| OffsetDelete (47) | v0 | `OffsetDeleteCodec.java` | `OffsetDeleteCodecTest.java` (10) | `70f56853` | **DONE** — committed; 10 tests green, full module 1206 green (verified 2026-10-19); fixes latent spec bug — old inline response codec omitted ThrottleTimeMs |
 
 ## Next sub-task
 
-OffsetDelete (API 47) v0 — spec in
-`doc/spec/message/OffsetDeleteRequest.json` / `OffsetDeleteResponse.json` (JSON5: Apache license header + inline comments).
-Request: v0 base 2 fields `GroupId:string + Topics[] { Name:string + Partitions[] { PartitionIndex:int32 + CommittedOffset:int64 } }` (note: the matrix row abbreviates this as "5 fields: GroupId, Topics, Name, Partitions, PartitionIndex" — the nesting is Topic.Partition).
-Response: v0 `ErrorCode:int16 + ThrottleTimeMs:int32 (ignorable) + Topics[] { Name:string + Partitions[] { PartitionIndex:int32 + ErrorCode:int16 } }` (note: leading top-level ErrorCode, distinct from the per-partition ErrorCode).
-In-house model `OffsetDeleteRequest(groupId, topics)` / `OffsetDeleteResponse(errorCode, topics)` — facade pinned at v0. Single version, no flexible encoding, no version-gated fields. Models unchanged if possible.
+InitProducerId (API 22) v0–v4 — spec in
+`doc/spec/message/InitProducerIdRequest.json` / `InitProducerIdResponse.json`.
+Follow the established pattern: freeze `doc/spec/order/InitProducerId.{Request,Response}.txt` → dedicated `InitProducerIdCodec` (all versions, both directions; flex = KIP-482 compact + varint N+1 + endTags) → replace inline `KafkaCodec` bodies with thin versioned delegates → wire broker + client → `InitProducerIdCodecTest` (round-trips all versions, byte-for-byte goldens per version, per-version Δ, truncation/guards/facade) → docs backfill (PHASE6A, PROGRESS, REQUIREMENTS, WIP). Models unchanged if possible.
 
 ## KNOWN GAP (RESOLVED 2026-10-16 — see "Unpin negotiated version" below)
 **Historical audit (was user-flagged UNACCEPTABLE): negotiated version ignored at runtime, not in the codecs.**
@@ -66,9 +64,9 @@ ApiVersions negotiation is wired (plumbing correct, negotiation not yet active).
   survives request-encode → broker-decode → response-encode → client-decode, including
   the broker-side clamp. 26 tests green.
 
-## Verified facts (2026-10-18, this branch cleanup-messaging)
-- Full `:lego-flow-kafka` module: **1196 tests, 0 failures** (1169 after SyncGroup +14 DescribeGroups +13 ListGroups), verified via surefire reports after `gradle :lego-flow-kafka:test`.
-- `git log`: OffsetCommit code `f8cd4201`, docs backfill `eef4c02d`; OffsetFetch code `067d876e`, docs backfill `91f7fe78`; FindCoordinator code `e4db2c87` (28 new tests green), docs backfill `dbf5a371`; JoinGroup code `5aa5a7a4` (49 new tests green), docs backfill `c2c12030`; Heartbeat code `0521ca43` (15 new tests green; full module 1128); LeaveGroup code `ecdc712a` (20 new tests green; full module 1148), docs backfill `ca33ccb9`; SyncGroup code `c123e328` (21 new tests green; full module 1169), docs backfill `5a5ca008`; DescribeGroups code `e32d284d` (14 new tests green; full module 1183), docs backfill `98370f3d`; ListGroups code `bf6ac442` (13 new tests green; full module 1196), docs backfill follows.
+## Verified facts (2026-10-19, this branch cleanup-messaging)
+- Full `:lego-flow-kafka` module: **1206 tests, 0 failures** (1196 after ListGroups +10 OffsetDelete), verified via surefire reports after `gradle :lego-flow-kafka:test`.
+- `git log`: OffsetCommit code `f8cd4201`, docs backfill `eef4c02d`; OffsetFetch code `067d876e`, docs backfill `91f7fe78`; FindCoordinator code `e4db2c87` (28 new tests green), docs backfill `dbf5a371`; JoinGroup code `5aa5a7a4` (49 new tests green), docs backfill `c2c12030`; Heartbeat code `0521ca43` (15 new tests green; full module 1128); LeaveGroup code `ecdc712a` (20 new tests green; full module 1148), docs backfill `ca33ccb9`; SyncGroup code `c123e328` (21 new tests green; full module 1169), docs backfill `5a5ca008`; DescribeGroups code `e32d284d` (14 new tests green; full module 1183), docs backfill `98370f3d`; ListGroups code `bf6ac442` (13 new tests green; full module 1196), docs backfill `ce8d4e39`; OffsetDelete code `70f56853` (10 new tests green; full module 1206), docs backfill follows.
 - Pattern per API: freeze `doc/spec/order/<Api>.{Request,Response}.txt` → dedicated `<Api>Codec` (all versions,
   both directions; flex = KIP-482 compact + varint N+1 + endTags) → replace inline `KafkaCodec` bodies with thin
   delegates → `<Api>CodecTest` (pinned + hand-built goldens + per-version Δ + round-trips + truncation/guards/facade)
