@@ -77,20 +77,25 @@ class KafkaCodecTest {
     }
 
     // ===== Metadata (3) =====
+    // Phase 6a: moved to MetadataCodec + MetadataCodecTest (per-sub-category test mirror).
+    // These facade-level round-trips pin v0 through the façade; byte-level conformance
+    // lives in MetadataCodecTest.
 
     @Test
     void testMetadataRequestAllTopics() {
         var req = new MetadataRequest();
-        byte[] encoded = KafkaCodec.encodeMetadataRequest(req);
-        var decoded = KafkaCodec.decodeMetadataRequest(ByteBuffer.wrap(encoded));
+        byte[] encoded = KafkaCodec.encodeMetadataRequest((short) 0, req);
+        var decoded = KafkaCodec.decodeMetadataRequest((short) 0, ByteBuffer.wrap(encoded));
+        // v0: null topics encodes as the empty array (count 0 = all topics per spec),
+        // which decodes back to the null (all-topics) marker
         assertThat(decoded.topics()).isNull();
     }
 
     @Test
     void testMetadataRequestSpecificTopics() {
         var req = new MetadataRequest(List.of("topic1", "topic2"));
-        byte[] encoded = KafkaCodec.encodeMetadataRequest(req);
-        var decoded = KafkaCodec.decodeMetadataRequest(ByteBuffer.wrap(encoded));
+        byte[] encoded = KafkaCodec.encodeMetadataRequest((short) 0, req);
+        var decoded = KafkaCodec.decodeMetadataRequest((short) 0, ByteBuffer.wrap(encoded));
         assertThat(decoded.topics()).containsExactly("topic1", "topic2");
     }
 
@@ -101,8 +106,8 @@ class KafkaCodecTest {
                 List.of(new MetadataResponse.TopicMetadata((short) 0, "test",
                         List.of(new MetadataResponse.PartitionMetadata((short) 0, 0, 0,
                                 List.of(0), List.of(0))))));
-        byte[] encoded = KafkaCodec.encodeMetadataResponse(resp);
-        var decoded = KafkaCodec.decodeMetadataResponse(ByteBuffer.wrap(encoded));
+        byte[] encoded = KafkaCodec.encodeMetadataResponse((short) 0, resp);
+        var decoded = KafkaCodec.decodeMetadataResponse((short) 0, ByteBuffer.wrap(encoded));
         assertThat(decoded.brokers()).hasSize(1);
         assertThat(decoded.brokers().getFirst().host()).isEqualTo("localhost");
         assertThat(decoded.topics()).hasSize(1);
@@ -1037,8 +1042,8 @@ class KafkaCodecTest {
                         new MetadataResponse.BrokerMetadata(1, "host2", 9093),
                         new MetadataResponse.BrokerMetadata(2, "host3", 9094)),
                 List.of());
-        byte[] encoded = KafkaCodec.encodeMetadataResponse(resp);
-        var decoded = KafkaCodec.decodeMetadataResponse(ByteBuffer.wrap(encoded));
+        byte[] encoded = KafkaCodec.encodeMetadataResponse((short) 0, resp);
+        var decoded = KafkaCodec.decodeMetadataResponse((short) 0, ByteBuffer.wrap(encoded));
         assertThat(decoded.brokers()).hasSize(3);
     }
 

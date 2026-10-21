@@ -1,6 +1,7 @@
 package ssg.legoflow.messaging.kafka.client;
 
 import ssg.legoflow.messaging.kafka.codec.KafkaCodec;
+import ssg.legoflow.messaging.kafka.codec.MetadataCodec;
 import ssg.legoflow.messaging.kafka.common.*;
 import ssg.legoflow.messaging.kafka.broker.ConsumerGroupCoordinator;
 import ssg.legoflow.messaging.kafka.broker.PartitionAssigner;
@@ -413,9 +414,9 @@ public final class KafkaConsumer implements AutoCloseable {
 
     private List<SyncGroupRequest.Assignment> assignPartitions(JoinGroupResponse joinResponse) throws IOException {
         // Fetch metadata for subscribed topics
-        byte[] metaPayload = KafkaCodec.encodeMetadataRequest(new MetadataRequest(subscribedTopics));
+        byte[] metaPayload = KafkaCodec.encodeMetadataRequest(MetadataCodec.MIN_VERSION, new MetadataRequest(subscribedTopics));
         ByteBuffer metaResp = connection.sendAndReceive(ApiKey.METADATA.key(), (short) 0, metaPayload);
-        MetadataResponse metadata = KafkaCodec.decodeMetadataResponse(metaResp);
+        MetadataResponse metadata = KafkaCodec.decodeMetadataResponse(MetadataCodec.MIN_VERSION, metaResp);
 
         // Collect all topic-partitions
         List<TopicPartition> allPartitions = new ArrayList<>();

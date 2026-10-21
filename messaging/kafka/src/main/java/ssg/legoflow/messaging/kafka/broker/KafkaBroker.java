@@ -394,7 +394,7 @@ public final class KafkaBroker implements AutoCloseable {
 
         return switch (apiKey) {
             case API_VERSIONS -> handleApiVersions(version);
-            case METADATA -> handleMetadata(body);
+            case METADATA -> handleMetadata(body, version);
             case LEADER_AND_ISR -> handleLeaderAndIsr(body);
             case STOP_REPLICA -> handleStopReplica(body);
             case UPDATE_METADATA -> handleUpdateMetadata(body);
@@ -447,8 +447,8 @@ public final class KafkaBroker implements AutoCloseable {
                 new ApiVersionsResponse(KafkaErrors.NONE.code(), versions));
     }
 
-    private byte[] handleMetadata(ByteBuffer body) {
-        MetadataRequest req = KafkaCodec.decodeMetadataRequest(body);
+    private byte[] handleMetadata(ByteBuffer body, short version) {
+        MetadataRequest req = KafkaCodec.decodeMetadataRequest(version, body);
         List<MetadataResponse.BrokerMetadata> brokers = List.of(
                 new MetadataResponse.BrokerMetadata(brokerId, host, boundPort));
 
@@ -469,7 +469,7 @@ public final class KafkaBroker implements AutoCloseable {
             }
             topicMetas.add(new MetadataResponse.TopicMetadata(KafkaErrors.NONE.code(), topic, partMetas));
         }
-        return KafkaCodec.encodeMetadataResponse(new MetadataResponse(brokers, topicMetas));
+        return KafkaCodec.encodeMetadataResponse(version, new MetadataResponse(brokers, topicMetas));
     }
 
     private byte[] handleProduce(ByteBuffer body, short version) {

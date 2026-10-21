@@ -1,6 +1,7 @@
 package ssg.legoflow.messaging.kafka.client;
 
 import ssg.legoflow.messaging.kafka.codec.KafkaCodec;
+import ssg.legoflow.messaging.kafka.codec.MetadataCodec;
 import ssg.legoflow.messaging.kafka.common.*;
 import ssg.legoflow.messaging.kafka.protocol.*;
 import ssg.legoflow.messaging.kafka.transport.KafkaTransport;
@@ -67,9 +68,9 @@ public final class KafkaAdminClient implements AutoCloseable {
      * @throws IOException if the request fails
      */
     public MetadataResponse metadata(List<String> topics) throws IOException {
-        byte[] payload = KafkaCodec.encodeMetadataRequest(new MetadataRequest(topics));
+        byte[] payload = KafkaCodec.encodeMetadataRequest(MetadataCodec.MIN_VERSION, new MetadataRequest(topics));
         ByteBuffer resp = connection.sendAndReceive(ApiKey.METADATA.key(), (short) 0, payload);
-        return KafkaCodec.decodeMetadataResponse(resp);
+        return KafkaCodec.decodeMetadataResponse(MetadataCodec.MIN_VERSION, resp);
     }
 
     /**

@@ -381,6 +381,38 @@ final class KafkaCodecNegotiatedVersionTest {
     }
 
     @Test
+    @DisplayName("Metadata round-trips at negotiated versions")
+    void metadataRoundTrip() {
+        MetadataRequest req = new MetadataRequest(List.of("topic-1", "topic-2"));
+        MetadataResponse resp = new MetadataResponse(
+                List.of(new MetadataResponse.BrokerMetadata(0, "host1", 9092)),
+                List.of(new MetadataResponse.TopicMetadata((short) 0, "topic-1",
+                        List.of(new MetadataResponse.PartitionMetadata((short) 0, 0, 0,
+                                List.of(0, 1), List.of(0))))));
+        // v0
+        byte[] reqBody0 = KafkaCodec.encodeMetadataRequest((short) 0, req);
+        MetadataRequest reqDec0 = KafkaCodec.decodeMetadataRequest((short) 0, ByteBuffer.wrap(reqBody0));
+        assertArrayEquals(reqBody0, KafkaCodec.encodeMetadataRequest((short) 0, reqDec0), "v0 req re-encode");
+        byte[] respBody0 = KafkaCodec.encodeMetadataResponse((short) 0, resp);
+        MetadataResponse respDec0 = KafkaCodec.decodeMetadataResponse((short) 0, ByteBuffer.wrap(respBody0));
+        assertArrayEquals(respBody0, KafkaCodec.encodeMetadataResponse((short) 0, respDec0), "v0 resp re-encode");
+        // v5 (legacy, OfflineReplicas present)
+        byte[] reqBody5 = KafkaCodec.encodeMetadataRequest((short) 5, req);
+        MetadataRequest reqDec5 = KafkaCodec.decodeMetadataRequest((short) 5, ByteBuffer.wrap(reqBody5));
+        assertArrayEquals(reqBody5, KafkaCodec.encodeMetadataRequest((short) 5, reqDec5), "v5 req re-encode");
+        byte[] respBody5 = KafkaCodec.encodeMetadataResponse((short) 5, resp);
+        MetadataResponse respDec5 = KafkaCodec.decodeMetadataResponse((short) 5, ByteBuffer.wrap(respBody5));
+        assertArrayEquals(respBody5, KafkaCodec.encodeMetadataResponse((short) 5, respDec5), "v5 resp re-encode");
+        // v12 (flexible, TopicId present, no cluster auth)
+        byte[] reqBody12 = KafkaCodec.encodeMetadataRequest((short) 12, req);
+        MetadataRequest reqDec12 = KafkaCodec.decodeMetadataRequest((short) 12, ByteBuffer.wrap(reqBody12));
+        assertArrayEquals(reqBody12, KafkaCodec.encodeMetadataRequest((short) 12, reqDec12), "v12 req re-encode");
+        byte[] respBody12 = KafkaCodec.encodeMetadataResponse((short) 12, resp);
+        MetadataResponse respDec12 = KafkaCodec.decodeMetadataResponse((short) 12, ByteBuffer.wrap(respBody12));
+        assertArrayEquals(respBody12, KafkaCodec.encodeMetadataResponse((short) 12, respDec12), "v12 resp re-encode");
+    }
+
+    @Test
     @DisplayName("OffsetCommit round-trips at negotiated versions")
     void offsetCommitRoundTrip() {
         OffsetCommitRequest req = new OffsetCommitRequest("grp-1", 5, "member-1",

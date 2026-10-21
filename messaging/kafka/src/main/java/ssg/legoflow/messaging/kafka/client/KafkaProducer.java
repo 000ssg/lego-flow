@@ -1,6 +1,7 @@
 package ssg.legoflow.messaging.kafka.client;
 
 import ssg.legoflow.messaging.kafka.codec.KafkaCodec;
+import ssg.legoflow.messaging.kafka.codec.MetadataCodec;
 import ssg.legoflow.messaging.kafka.common.*;
 import ssg.legoflow.messaging.kafka.protocol.*;
 import ssg.legoflow.messaging.kafka.record.Compression;
@@ -345,9 +346,9 @@ public final class KafkaProducer implements AutoCloseable {
      * @throws IOException if the request fails
      */
     public void refreshMetadata(String topic) throws IOException {
-        byte[] payload = KafkaCodec.encodeMetadataRequest(new MetadataRequest(List.of(topic)));
+        byte[] payload = KafkaCodec.encodeMetadataRequest(MetadataCodec.MIN_VERSION, new MetadataRequest(List.of(topic)));
         ByteBuffer resp = connection.sendAndReceive(ApiKey.METADATA.key(), (short) 0, payload);
-        MetadataResponse response = KafkaCodec.decodeMetadataResponse(resp);
+        MetadataResponse response = KafkaCodec.decodeMetadataResponse(MetadataCodec.MIN_VERSION, resp);
 
         for (var t : response.topics()) {
             if (t.errorCode() == KafkaErrors.NONE.code()) {

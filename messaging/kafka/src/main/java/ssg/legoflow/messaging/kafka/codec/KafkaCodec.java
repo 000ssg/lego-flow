@@ -192,102 +192,52 @@ public final class KafkaCodec {
 
     // ===== Metadata (3) =====
 
-    public static byte[] encodeMetadataRequest(MetadataRequest req) {
-        if (req.topics() == null) {
-            ByteBuffer buf = BufferPool.getBuffer(4);
-            buf.putInt(-1); // null array = all topics
-            buf.flip();
-            return toBytes(buf);
-        }
-        int size = 4;
-        List<byte[]> topicBytes = new ArrayList<>();
-        for (String topic : req.topics()) {
-            byte[] tb = topic.getBytes(StandardCharsets.UTF_8);
-            topicBytes.add(tb);
-            size += 2 + tb.length;
-        }
-        ByteBuffer buf = BufferPool.getBuffer(size);
-        buf.putInt(req.topics().size());
-        for (byte[] tb : topicBytes) {
-            buf.putShort((short) tb.length);
-            buf.put(tb);
-        }
-        buf.flip();
-        return toBytes(buf);
+    /**
+     * Encodes a Metadata request body at the given API version.
+     *
+     * @param version the API version (0–12)
+     * @param req     the request
+     * @return encoded body bytes
+     * @since 0.1.0
+     */
+    public static byte[] encodeMetadataRequest(short version, MetadataRequest req) {
+        return MetadataCodec.encodeRequest(version, req);
     }
 
-    public static MetadataRequest decodeMetadataRequest(ByteBuffer buf) {
-        int topicCount = buf.getInt();
-        if (topicCount < 0) return new MetadataRequest(null, false);
-        List<String> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            topics.add(readString(buf));
-        }
-        return new MetadataRequest(topics, false);
+    /**
+     * Decodes a Metadata request body at the given API version.
+     *
+     * @param version the API version (0–12)
+     * @param buf     the request body
+     * @return the decoded request
+     * @since 0.1.0
+     */
+    public static MetadataRequest decodeMetadataRequest(short version, ByteBuffer buf) {
+        return MetadataCodec.decodeRequest(version, buf);
     }
 
-    public static byte[] encodeMetadataResponse(MetadataResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(16384);
-        // Brokers
-        buf.putInt(resp.brokers().size());
-        for (var b : resp.brokers()) {
-            buf.putInt(b.nodeId());
-            writeString(buf, b.host());
-            buf.putInt(b.port());
-        }
-        // Topics
-        buf.putInt(resp.topics().size());
-        for (var t : resp.topics()) {
-            buf.putShort(t.errorCode());
-            writeString(buf, t.name());
-            buf.putInt(t.partitions().size());
-            for (var p : t.partitions()) {
-                buf.putShort(p.errorCode());
-                buf.putInt(p.partitionIndex());
-                buf.putInt(p.leaderId());
-                // Replicas
-                buf.putInt(p.replicaIds().size());
-                for (int r : p.replicaIds()) buf.putInt(r);
-                // ISR
-                buf.putInt(p.isrIds().size());
-                for (int r : p.isrIds()) buf.putInt(r);
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+    /**
+     * Encodes a Metadata response body at the given API version.
+     *
+     * @param version the API version (0–12)
+     * @param resp    the response
+     * @return encoded body bytes
+     * @since 0.1.0
+     */
+    public static byte[] encodeMetadataResponse(short version, MetadataResponse resp) {
+        return MetadataCodec.encodeResponse(version, resp);
     }
 
-    public static MetadataResponse decodeMetadataResponse(ByteBuffer buf) {
-        int brokerCount = buf.getInt();
-        List<MetadataResponse.BrokerMetadata> brokers = new ArrayList<>(brokerCount);
-        for (int i = 0; i < brokerCount; i++) {
-            int nodeId = buf.getInt();
-            String host = readString(buf);
-            int port = buf.getInt();
-            brokers.add(new MetadataResponse.BrokerMetadata(nodeId, host, port));
-        }
-        int topicCount = buf.getInt();
-        List<MetadataResponse.TopicMetadata> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            short errorCode = buf.getShort();
-            String name = readString(buf);
-            int partCount = buf.getInt();
-            List<MetadataResponse.PartitionMetadata> partitions = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                short pError = buf.getShort();
-                int pIdx = buf.getInt();
-                int leader = buf.getInt();
-                int repCount = buf.getInt();
-                List<Integer> replicas = new ArrayList<>(repCount);
-                for (int k = 0; k < repCount; k++) replicas.add(buf.getInt());
-                int isrCount = buf.getInt();
-                List<Integer> isrs = new ArrayList<>(isrCount);
-                for (int k = 0; k < isrCount; k++) isrs.add(buf.getInt());
-                partitions.add(new MetadataResponse.PartitionMetadata(pError, pIdx, leader, replicas, isrs));
-            }
-            topics.add(new MetadataResponse.TopicMetadata(errorCode, name, partitions));
-        }
-        return new MetadataResponse(brokers, topics);
+    /**
+     * Decodes a Metadata response body at the given API version.
+     *
+     * @param version the API version (0–12)
+     * @param buf     the response body
+     * @return the decoded response
+     * @since 0.1.0
+     */
+    public static MetadataResponse decodeMetadataResponse(short version, ByteBuffer buf) {
+        return MetadataCodec.decodeResponse(version, buf);
     }
 
     // ===== Produce (0) =====
