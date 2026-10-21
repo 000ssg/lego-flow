@@ -154,19 +154,21 @@ Status: ☐ pending · ▶ in progress · ✓ committed (commit hash) · ⊘ sup
 
 | Version | Δ vs previous (name:type, per schema) | Status | Commit |
 |---------|----------------------------------------|--------|--------|
-| v0 | base (2 fields): Topics, Name | ☐ | |
-| v1 | + Rack:string[1+](null:1+), ControllerId:int32[1+], IsInternal:bool[1+] | ☐ | |
-| v2 | + ClusterId:string[2+](null:2+) | ☐ | |
-| v3 | + ThrottleTimeMs:int32[3+] | ☐ | |
-| v4 | + AllowAutoTopicCreation:bool[4+] | ☐ | |
-| v5 | + OfflineReplicas:[]int32[5+] | ☐ | |
-| v6 | unchanged | ☐ | |
-| v7 | + LeaderEpoch:int32[7+] | ☐ | |
-| v8 | + IncludeClusterAuthorizedOperations:bool[8-10], IncludeTopicAuthorizedOperations:bool[8+], TopicAuthorizedOperations:int32[8+], ClusterAuthorizedOperations:int32[8-10] | ☐ | |
-| v9 | → flexible encoding | ☐ | |
-| v10 | + TopicId:uuid[10+], TopicId:uuid[10+] | ☐ | |
-| v11 | − IncludeClusterAuthorizedOperations:bool[8-10], ClusterAuthorizedOperations:int32[8-10] | ☐ | |
-| v12 | unchanged | ☐ | |
+| v0 | base (2 fields): Topics, Name | ✓ | `d4765c92` |
+| v1 | + Rack:string[1+](null:1+), ControllerId:int32[1+], IsInternal:bool[1+] | ✓ | `d4765c92` |
+| v2 | + ClusterId:string[2+](null:2+) | ✓ | `d4765c92` |
+| v3 | + ThrottleTimeMs:int32[3+] | ✓ | `d4765c92` |
+| v4 | + AllowAutoTopicCreation:bool[4+] | ✓ | `d4765c92` |
+| v5 | + OfflineReplicas:[]int32[5+] | ✓ | `d4765c92` |
+| v6 | unchanged | ✓ | `d4765c92` |
+| v7 | + LeaderEpoch:int32[7+] | ✓ | `d4765c92` |
+| v8 | + IncludeClusterAuthorizedOperations:bool[8-10], IncludeTopicAuthorizedOperations:bool[8+], TopicAuthorizedOperations:int32[8+], ClusterAuthorizedOperations:int32[8-10] | ✓ | `d4765c92` |
+| v9 | → flexible encoding | ✓ | `d4765c92` |
+| v10 | + TopicId:uuid[10+], TopicId:uuid[10+] | ✓ | `d4765c92` |
+| v11 | − IncludeClusterAuthorizedOperations:bool[8-10], ClusterAuthorizedOperations:int32[8-10] | ✓ | `d4765c92` |
+| v12 | unchanged | ✓ | `d4765c92` |
+
+**DONE (v0–v12)** — New dedicated `MetadataCodec` (v0–v12, request + response, both directions; client/broker exchange pinned at v0). Request layout (frozen `doc/spec/order/Metadata.Request.txt`): `Topics[] { Name:string }`, nullable from v1+ (null = all topics); v4+ `AllowAutoTopicCreation:bool`; v8+ `IncludeClusterAuthorizedOperations` + `IncludeTopicAuthorizedOperations` (cluster dropped at v11+); v9+ KIP-482 flexible (compact strings, N+1 varint counts, per-topic + top-level endTags); v10+ per-topic `TopicId:uuid` (16 bytes, zero UUID written, discarded). Response layout (frozen `doc/spec/order/Metadata.Response.txt`): `Brokers[] { NodeId:int32, Host:string, Port:int32 }` + `Topics[] { ErrorCode:int16, Name:string, Partitions[] { ErrorCode:int16, PartitionIndex:int32, LeaderId:int32, ReplicaNodes[]int32, IsrNodes[]int32 } }`; v1+ per-broker `Rack` (nullable) + `ControllerId` + per-topic `IsInternal`; v2+ nullable `ClusterId`; v3+ leading `ThrottleTimeMs`; v5+ per-partition `OfflineReplicas`; v7+ per-partition `LeaderEpoch`; v8+ `TopicAuthorizedOperations` + trailing `ClusterAuthorizedOperations` (latter dropped at v11+); v9+ flexible (five endTags trailers: per-broker, per-partition, per-topic, top-level — in that wire order); v10+ per-topic `TopicId:uuid`. Non-model fields (ThrottleTimeMs, Rack, ClusterId, ControllerId, IsInternal, OfflineReplicas, LeaderEpoch, TopicId, authorized ops, Include* booleans) are written with their spec defaults on encode and read + discarded on decode — models unchanged. Old inline v0-only facade bodies replaced with thin versioned delegates; `KafkaBroker.handleMetadata` + 3 client call sites threaded to the versioned facade (pinned v0 end-to-end). `MetadataCodecTest`: 17 tests — round-trips all 13 versions both directions, byte-for-byte goldens for every version (26 constants from the Python reference encoder `doc/work/metadata_golden.py`, which itself was cross-verified against the frozen tables — it caught 2 of its own bugs during verification: `allow` default and the missing per-broker endTags at v9+), null-topics goldens per version run (v0 count 0 / v1+ int32(-1) / v9+ varint(0)), per-version size deltas, truncation + version guards, facade constants; `KafkaCodecTest`'s 4 Metadata round-trips updated to the versioned facade signatures; `KafkaCodecNegotiatedVersionTest` gains `metadataRoundTrip()` (v0/v5/v12). Full module 1206 → 1224 green.
 
 ### LeaderAndIsr (API 4) — v0..v7
 

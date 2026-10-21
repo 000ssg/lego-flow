@@ -22,59 +22,60 @@ Consensus is persisted in commits, not in this file alone — commit each comple
 | ListGroups (16) | v0–v4 | `ListGroupsCodec.java` | `ListGroupsCodecTest.java` (13) | `bf6ac442` | **DONE** — committed; 13 tests green, full module 1196 green (verified 2026-10-18) |
 | OffsetDelete (47) | v0 | `OffsetDeleteCodec.java` | `OffsetDeleteCodecTest.java` (10) | `70f56853` | **DONE** — committed; 10 tests green, full module 1206 green (verified 2026-10-19); fixes latent spec bug — old inline response codec omitted ThrottleTimeMs |
 
+## Metadata/Cluster sub-category (13/44 version rows, 1/6 APIs) — ledger
+
+| API | Versions | Codec file | Test file | Commit SHA (in git log) | Status |
+|---|---|---|---|---|---|
+| Metadata (3) | v0–v12 | `MetadataCodec.java` | `MetadataCodecTest.java` (17) | `d4765c92` | **DONE** — committed; 17 tests green, full module 1224 green (verified 2026-10-20); all 13 version rows v0–v12 both directions, flex from v9; goldens machine-generated via `doc/work/metadata_golden.py` (reference verified against frozen tables — caught 2 reference bugs + 3 hand-transcription errors); models unchanged |
+
 ## Next sub-task
 
-**Metadata (API 3) v0–v12** — first API of the Metadata/Cluster sub-category (plan step 7,
-the only remaining one; 44 version rows, all ☐). Specs in `doc/spec/message/Metadata{Request,Response}.json`
-(request v0–v12, flex 9+; response flex 8+). Follow the established pattern: freeze
-`doc/spec/order/Metadata.{Request,Response}.txt` → dedicated `MetadataCodec` (all versions, both
-directions; flex = KIP-482 compact + varint N+1 + endTags) → replace inline `KafkaCodec` bodies with
-thin versioned delegates (facade methods currently take NO version param) → wire broker + client →
-`MetadataCodecTest` (round-trips all versions, byte-for-byte goldens per version, per-version Δ,
-truncation/guards/facade) → docs backfill (PHASE6A, PROGRESS, REQUIREMENTS, WIP). Models unchanged
-if possible — current `MetadataRequest` record has only `topics + allowAutoTopicCreation`; v0's
-`Name` and later versions' fields (Rack, ControllerId, IsInternal, ClusterId, ThrottleTimeMs,
-OfflineReplicas, LeaderEpoch, authorized operations, TopicId) need the model extended only if the
-versions actually demand it per the frozen Δ.
+**LeaderAndIsr (API 4) v0–v7** — second API of the Metadata/Cluster sub-category (plan step 7;
+31 version rows remaining). Specs in `doc/spec/message/LeaderAndIsr{Request,Response}.json`.
+Follow the established pattern: freeze `doc/spec/order/LeaderAndIsr.{Request,Response}.txt` →
+dedicated `LeaderAndIsrCodec` (all versions, both directions; flex = KIP-482 compact + varint N+1 +
+endTags) → replace inline `KafkaCodec` bodies with thin versioned delegates (facade methods
+currently take NO version param) → wire broker + client → `LeaderAndIsrCodecTest` → docs backfill
+(PHASE6A, PROGRESS, REQUIREMENTS, WIP). Models unchanged if possible — check the frozen Δ first:
+v0–v1 response has the 7-field request incl. `LiveLeaders`/`HostName`/`Port`; v7 adds
+`isKRaftController`.
 
 ## Source-level audit (2026-10-19, from the 2 trusted sources: spec + source code)
 
 Full cross-reference of all 37 spec APIs (`doc/spec/message/*.Request.json`) against the dedicated
 codec directory and `KafkaCodec.java` bodies:
 
-- **31 of 37 APIs fixed** — dedicated `<Api>Codec.java` exists AND all 31 are called from the
+- **32 of 37 APIs fixed** — dedicated `<Api>Codec.java` exists AND all 32 are called from the
   `KafkaCodec` facade (zero unused codec files; verified by grep of each codec class name in the
-  facade). These 31 span: Negotiation/Auth (ApiVersions, SaslHandshake, SaslAuthenticate), Record
+  facade). These 32 span: Negotiation/Auth (ApiVersions, SaslHandshake, SaslAuthenticate), Record
   I/O (Produce, Fetch, ListOffsets), Admin (CreateTopics, DeleteTopics, DeleteRecords,
   DescribeConfigs, AlterConfigs, CreatePartitions, AlterPartitionReassignments,
   ListPartitionReassignments, DeleteGroups), Transactions (InitProducerId v0–v4 `2a877ca5`,
   AddPartitionsToTxn, AddOffsetsToTxn, EndTxn, WriteTxnMarkers, TxnOffsetCommit), Consumer Groups
   (all 10: OffsetCommit, OffsetFetch, FindCoordinator, JoinGroup, Heartbeat, LeaveGroup, SyncGroup,
-  DescribeGroups, ListGroups, OffsetDelete).
-- **6 APIs still INLINE in `KafkaCodec.java`** (full inline encode/decode bodies, NOT thin
+  DescribeGroups, ListGroups, OffsetDelete), Metadata/Cluster (Metadata `d4765c92`).
+- **5 APIs still INLINE in `KafkaCodec.java`** (full inline encode/decode bodies, NOT thin
   delegates; their facade methods take NO `short version` param) — for sure not fixed yet, in
   plan step-7 (Metadata/Cluster) order:
-  1. **Metadata (API 3)** v0–v12 (flex 9+) — request + response inline
-  2. **LeaderAndIsr (API 4)** v0–v7 (flex 4+)
-  3. **StopReplica (API 5)** v0–v4 (flex 2+)
-  4. **UpdateMetadata (API 6)** v0–v8 (flex 6+)
-  5. **ControlledShutdown (API 7)** v0–v3 (flex 3+)
-  6. **OffsetForLeaderEpoch (API 23)** v0–v4 (flex 4+)
+  1. **LeaderAndIsr (API 4)** v0–v7 (flex 4+)
+  2. **StopReplica (API 5)** v0–v4 (flex 2+)
+  3. **UpdateMetadata (API 6)** v0–v8 (flex 6+)
+  4. **ControlledShutdown (API 7)** v0–v3 (flex 3+)
+  5. **OffsetForLeaderEpoch (API 23)** v0–v4 (flex 4+)
 - **Ledger corrections from this audit** (docs were stale, source won):
   - InitProducerId (API 22) was already DONE in `2a877ca5` (Transactions sub-category) — the old
-    "Next sub-task" pointer to it was wrong; real next sub-task is Metadata (API 3) above.
+    "Next sub-task" pointer to it was wrong; real next sub-task was Metadata (API 3).
   - Consumer Groups sub-category is **63/63 complete**: all 63 version rows in the PHASE6A
     Consumer Groups matrix carry commit SHAs (the old "56/63" header was stale).
-  - Metadata/Cluster matrix: **0 of 44 rows done** — verified against spec version counts
-    (Metadata 13, LeaderAndIsr 8, StopReplica 5, UpdateMetadata 9, ControlledShutdown 4,
-    OffsetForLeaderEpoch 5 = 44).
-- **Left to do (the 6 inline APIs above), in order:**
-  1. Metadata v0–v12 (13 rows)
-  2. LeaderAndIsr v0–v7 (8 rows)
-  3. StopReplica v0–v4 (5 rows)
-  4. UpdateMetadata v0–v8 (9 rows)
-  5. ControlledShutdown v0–v3 (4 rows)
-  6. OffsetForLeaderEpoch v0–v4 (5 rows)
+  - Metadata/Cluster matrix: **13 of 44 rows done** (Metadata v0–v12, `d4765c92`, 2026-10-20) —
+    verified against spec version counts (Metadata 13, LeaderAndIsr 8, StopReplica 5,
+    UpdateMetadata 9, ControlledShutdown 4, OffsetForLeaderEpoch 5 = 44).
+- **Left to do (the 5 inline APIs above), in order:**
+  1. LeaderAndIsr v0–v7 (8 rows)
+  2. StopReplica v0–v4 (5 rows)
+  3. UpdateMetadata v0–v8 (9 rows)
+  4. ControlledShutdown v0–v3 (4 rows)
+  5. OffsetForLeaderEpoch v0–v4 (5 rows)
   Known spec notes: LeaderAndIsr/StopReplica/UpdateMetadata/ControlledShutdown v7/v4 have
   `isKRaftController` (KRaft-only); LeaderAndIsr v0–v1 response has a 7-field request incl.
   `LiveLeaders`/`HostName`/`Port` — check the frozen Δ before touching models.
@@ -115,9 +116,10 @@ ApiVersions negotiation is wired (plumbing correct, negotiation not yet active).
   survives request-encode → broker-decode → response-encode → client-decode, including
   the broker-side clamp. 26 tests green.
 
-## Verified facts (2026-10-19, this branch cleanup-messaging)
-- Full `:lego-flow-kafka` module: **1206 tests, 0 failures** (1196 after ListGroups +10 OffsetDelete), verified via surefire reports after `gradle :lego-flow-kafka:test`.
-- `git log`: OffsetCommit code `f8cd4201`, docs backfill `eef4c02d`; OffsetFetch code `067d876e`, docs backfill `91f7fe78`; FindCoordinator code `e4db2c87` (28 new tests green), docs backfill `dbf5a371`; JoinGroup code `5aa5a7a4` (49 new tests green), docs backfill `c2c12030`; Heartbeat code `0521ca43` (15 new tests green; full module 1128); LeaveGroup code `ecdc712a` (20 new tests green; full module 1148), docs backfill `ca33ccb9`; SyncGroup code `c123e328` (21 new tests green; full module 1169), docs backfill `5a5ca008`; DescribeGroups code `e32d284d` (14 new tests green; full module 1183), docs backfill `98370f3d`; ListGroups code `bf6ac442` (13 new tests green; full module 1196), docs backfill `ce8d4e39`; OffsetDelete code `70f56853` (10 new tests green; full module 1206), docs backfill follows.
+## Verified facts (2026-10-20, this branch cleanup-messaging)
+- Full `:lego-flow-kafka` module: **1224 tests, 0 failures** (1206 + 17 MetadataCodecTest + 1
+  KafkaCodecNegotiatedVersionTest.metadataRoundTrip), verified via surefire reports after `mvn test`.
+- `git log`: OffsetCommit code `f8cd4201`, docs backfill `eef4c02d`; OffsetFetch code `067d876e`, docs backfill `91f7fe78`; FindCoordinator code `e4db2c87` (28 new tests green), docs backfill `dbf5a371`; JoinGroup code `5aa5a7a4` (49 new tests green), docs backfill `c2c12030`; Heartbeat code `0521ca43` (15 new tests green; full module 1128); LeaveGroup code `ecdc712a` (20 new tests green; full module 1148), docs backfill `ca33ccb9`; SyncGroup code `c123e328` (21 new tests green; full module 1169), docs backfill `5a5ca008`; DescribeGroups code `e32d284d` (14 new tests green; full module 1183), docs backfill `98370f3d`; ListGroups code `bf6ac442` (13 new tests green; full module 1196), docs backfill `ce8d4e39`; OffsetDelete code `70f56853` (10 new tests green; full module 1206), docs backfill `c52ca435`; Metadata code `d4765c92` (17 new tests green; full module 1224), docs backfill follows.
 - Pattern per API: freeze `doc/spec/order/<Api>.{Request,Response}.txt` → dedicated `<Api>Codec` (all versions,
   both directions; flex = KIP-482 compact + varint N+1 + endTags) → replace inline `KafkaCodec` bodies with thin
   delegates → `<Api>CodecTest` (pinned + hand-built goldens + per-version Δ + round-trips + truncation/guards/facade)
