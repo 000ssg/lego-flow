@@ -50,6 +50,7 @@ Consensus is persisted in commits, not in this file alone — commit each comple
 - **Negotiation/Auth sub-category: COMPLETE** (3 APIs, tested in NegotiationAuthCodecTest)
 - **All 37 Kafka APIs have dedicated codecs** — zero inline implementations remain
 - **37 dedicated test files** + NegotiationAuthCodecTest (covers ApiVersions, SaslHandshake, SaslAuthenticate)
+- **52 SASL authentication tests** — 4 PlainSaslServer + 6 ScramSha256Server + 5 CredentialStore + 37 NegotiationAuthCodec
 - **15 integration tests** — broker ↔ client round-trips via InMemoryKafka (Produce, Admin, ErrorHandling, Stress)
 - **7 BrokerCluster tests** — leader election, reassignment, controlled shutdown
 - **34 transaction tests** — 31 TransactionManagerTest + 3 KafkaProducerTest transaction tests
@@ -61,7 +62,7 @@ Consensus is persisted in commits, not in this file alone — commit each comple
 1. ~~**Integration tests** — broker ↔ client round-trips for produce/fetch~~ ✅ COMPLETE (15 tests)
 2. ~~**Multi-broker simulation** — BrokerCluster tests for leader election, reassignment~~ ✅ COMPLETE (7 tests)
 3. ~~**Transaction tests** — end-to-end transactional produce/consume~~ ✅ COMPLETE (3 producer + 31 manager tests)
-4. **SASL authentication** — PLAIN and SCRAM-SHA-256 integration tests
+4. ~~**SASL authentication** — PLAIN and SCRAM-SHA-256 integration tests~~ ✅ COMPLETE (52 auth tests)
 5. **Performance benchmarks** — throughput/latency measurements
 
 ## Source-level audit (2026-10-19, from the 2 trusted sources: spec + source code)
