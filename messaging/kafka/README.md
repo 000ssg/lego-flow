@@ -3,7 +3,7 @@
 [![Java](https://img.shields.io/badge/Java-25+-orange.svg)](https://www.oracle.com/java/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](../LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-1272-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-1284-brightgreen.svg)]()
 [![Version](https://img.shields.io/badge/Version-0.2.0-SNAPSHOT-blue.svg)]()
 
 Apache Kafka wire protocol module for the Lego Flow framework, providing a single-node broker (with multi-broker simulation), producer, consumer, and admin client.
