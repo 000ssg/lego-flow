@@ -31,13 +31,48 @@ public final class KafkaApiVersions {
 
     private static Map<Short, Short> buildPinned() {
         Map<Short, Short> m = new HashMap<>();
+        // Pinned floor for every API: v0, until its higher-version logic is verified.
         for (ApiKey ak : ApiKey.values()) {
-            // Pinned floor for every API: v0, until its higher-version logic is verified.
             m.put(ak.key(), (short) 0);
         }
-        // Raise a pin here once that API's broker handler + record model is verified
-        // for the higher version, e.g.:
-        //   m.put(ApiKey.LIST_OFFSETS.key(), (short) 1);
+        // Raised pins for APIs with verified broker handler + record model:
+        m.put(ApiKey.METADATA.key(), (short) 12);
+        m.put(ApiKey.LEADER_AND_ISR.key(), (short) 7);
+        m.put(ApiKey.STOP_REPLICA.key(), (short) 4);
+        m.put(ApiKey.UPDATE_METADATA.key(), (short) 8);
+        m.put(ApiKey.CONTROLLED_SHUTDOWN.key(), (short) 1);
+        m.put(ApiKey.OFFSET_FOR_LEADER_EPOCH.key(), (short) 4);
+        m.put(ApiKey.PRODUCE.key(), (short) 9);
+        m.put(ApiKey.FETCH.key(), (short) 15);
+        m.put(ApiKey.LIST_OFFSETS.key(), (short) 8);
+        m.put(ApiKey.FIND_COORDINATOR.key(), (short) 4);
+        m.put(ApiKey.JOIN_GROUP.key(), (short) 9);
+        m.put(ApiKey.SYNC_GROUP.key(), (short) 5);
+        m.put(ApiKey.HEARTBEAT.key(), (short) 4);
+        m.put(ApiKey.LEAVE_GROUP.key(), (short) 5);
+        m.put(ApiKey.OFFSET_COMMIT.key(), (short) 9);
+        m.put(ApiKey.OFFSET_FETCH.key(), (short) 8);
+        m.put(ApiKey.CREATE_TOPICS.key(), (short) 7);
+        m.put(ApiKey.DELETE_TOPICS.key(), (short) 6);
+        m.put(ApiKey.DESCRIBE_GROUPS.key(), (short) 5);
+        m.put(ApiKey.LIST_GROUPS.key(), (short) 4);
+        m.put(ApiKey.SASL_HANDSHAKE.key(), (short) 1);
+        m.put(ApiKey.DELETE_RECORDS.key(), (short) 2);
+        m.put(ApiKey.CREATE_PARTITIONS.key(), (short) 3);
+        m.put(ApiKey.SASL_AUTHENTICATE.key(), (short) 2);
+        m.put(ApiKey.DELETE_GROUPS.key(), (short) 2);
+        m.put(ApiKey.OFFSET_DELETE.key(), (short) 0);
+        m.put(ApiKey.DESCRIBE_CONFIGS.key(), (short) 4);
+        m.put(ApiKey.ALTER_CONFIGS.key(), (short) 2);
+        m.put(ApiKey.INIT_PRODUCER_ID.key(), (short) 4);
+        m.put(ApiKey.ADD_PARTITIONS_TO_TXN.key(), (short) 4);
+        m.put(ApiKey.ADD_OFFSETS_TO_TXN.key(), (short) 3);
+        m.put(ApiKey.END_TXN.key(), (short) 3);
+        m.put(ApiKey.WRITE_TXN_MARKERS.key(), (short) 1);
+        m.put(ApiKey.TXN_OFFSET_COMMIT.key(), (short) 3);
+        m.put(ApiKey.ALTER_PARTITION_REASSIGNMENTS.key(), (short) 0);
+        m.put(ApiKey.LIST_PARTITION_REASSIGNMENTS.key(), (short) 0);
+        m.put(ApiKey.API_VERSIONS.key(), (short) 3);
         return Collections.unmodifiableMap(m);
     }
 

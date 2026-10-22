@@ -30,7 +30,12 @@ Consensus is persisted in commits, not in this file alone — commit each comple
 || LeaderAndIsr (4) | v0–v7 | `LeaderAndIsrCodec.java` | `LeaderAndIsrCodecTest.java` (19) | `639e6533` | **DONE** — committed; 19 tests green, full module 1243 green (verified this session); all 8 version rows v0–v7 both directions, flex from v4; goldens machine-generated via `doc/work/leaderisr_golden.py`; models extended with controllerEpoch field; fixed v7 field order (isKRaftController before controllerEpoch); fixed endTags placement; fixed AddingReplicas/RemovingReplicas to be []int32 arrays |
 || StopReplica (5) | v0–v4 | `StopReplicaCodec.java` | `StopReplicaCodecTest.java` (11) | `7df6a4db` | **DONE** — committed; 11 tests green, full module 1254 green (verified this session); all 5 version rows v0–v4 both directions, flex from v2; goldens machine-generated via `doc/work/stopreplica_golden.py`; models extended with versioned fields (brokerEpoch, isKRaftController, TopicData, TopicState, PartitionState) |
 
-## Next sub-task
+## Version Negotiation (2026-10-22)
+
+- `KafkaApiVersions.java` — pinned implemented-maximum versions per API key (all 37 APIs now pinned to their spec max)
+- `KafkaBroker.java` — `handleControlledShutdown` and `handleOffsetForLeaderEpoch` now accept `version` parameter and pass it through to codec encode/decode
+- `KafkaAdminClient.java` — `getNegotiatedVersion(apiKey)` returns cached negotiated version; all admin methods use negotiated version instead of hardcoded v0
+- `README.md` — test count badge updated from 416 to 1272
 
 **OffsetForLeaderEpoch (API 23) v0–v4** — fifth and final API of the Metadata/Cluster sub-category (plan step 7;
 3 version rows remaining). Specs in `doc/spec/message/OffsetForLeaderEpoch{Request,Response}.json`.
@@ -60,8 +65,7 @@ codec directory and `KafkaCodec.java` bodies:
     "Next sub-task" pointer to it was wrong; real next sub-task was Metadata (API 3).
   - Consumer Groups sub-category is **63/63 complete**: all 63 version rows in the PHASE6A
     Consumer Groups matrix carry commit SHAs (the old "56/63" header was stale).
-  - Metadata/Cluster matrix: **44 of 44 rows done** (Metadata v0–v12 `d4765c92`, LeaderAndIsr v0–v7 `639e6533`, StopReplica v0–v4 `7df6a4db`, UpdateMetadata v0–v8 `e34b6e40`, ControlledShutdown v0–v1 `b79084d8`, OffsetForLeaderEpoch v0–v4 pending commit, 2026-10-22) —
-    verified against spec version counts (Metadata 13, LeaderAndIsr 8, StopReplica 5, UpdateMetadata 9, ControlledShutdown 2, OffsetForLeaderEpoch 5 = 44).
+  - Metadata/Cluster matrix: **44 of 44 rows done** (Metadata v0–v12 `d4765c92`, LeaderAndIsr v0–v7 `639e6533`, StopReplica v0–v4 `7df6a4db`, UpdateMetadata v0–v8 `e34b6e40`, ControlledShutdown v0–v1 `b79084d8`, OffsetForLeaderEpoch v0–v4 `d9901f66`) — verified against spec version counts (Metadata 13, LeaderAndIsr 8, StopReplica 5, UpdateMetadata 9, ControlledShutdown 2, OffsetForLeaderEpoch 5 = 44).
   - **Metadata/Cluster sub-category COMPLETE: 44/44 rows committed.**
 - **All 37 APIs fixed** — Metadata/Cluster sub-category now complete (41 of 44 rows committed, 3 remaining for OffsetForLeaderEpoch).
 - **Left to do (the 4 inline APIs above), in order:**

@@ -398,7 +398,7 @@ public final class KafkaBroker implements AutoCloseable {
             case LEADER_AND_ISR -> handleLeaderAndIsr(body, version);
             case STOP_REPLICA -> handleStopReplica(body, version);
             case UPDATE_METADATA -> handleUpdateMetadata(body, version);
-            case CONTROLLED_SHUTDOWN -> handleControlledShutdown(body);
+            case CONTROLLED_SHUTDOWN -> handleControlledShutdown(body, version);
             case PRODUCE -> handleProduce(body, version);
             case FETCH -> handleFetch(body, version);
             case LIST_OFFSETS -> handleListOffsets(body, version);
@@ -422,7 +422,7 @@ public final class KafkaBroker implements AutoCloseable {
             case DESCRIBE_CONFIGS -> handleDescribeConfigs(body, version);
             case ALTER_CONFIGS -> handleAlterConfigs(body, version);
             case INIT_PRODUCER_ID -> handleInitProducerId(body, version);
-            case OFFSET_FOR_LEADER_EPOCH -> handleOffsetForLeaderEpoch(body);
+            case OFFSET_FOR_LEADER_EPOCH -> handleOffsetForLeaderEpoch(body, version);
             case ADD_PARTITIONS_TO_TXN -> handleAddPartitionsToTxn(body, version);
             case ADD_OFFSETS_TO_TXN -> handleAddOffsetsToTxn(body, version);
             case END_TXN -> handleEndTxn(body, version);
@@ -967,7 +967,7 @@ public final class KafkaBroker implements AutoCloseable {
                 new UpdateMetadataResponse(KafkaErrors.NONE.code()));
     }
 
-    private byte[] handleControlledShutdown(ByteBuffer body) {
+    private byte[] handleControlledShutdown(ByteBuffer body, short version) {
         ControlledShutdownRequest req = KafkaCodec.decodeControlledShutdownRequest(body);
         // Find partitions where the shutting-down broker is leader
         List<ControlledShutdownResponse.TopicPartitionData> remaining = new ArrayList<>();
@@ -981,24 +981,24 @@ public final class KafkaBroker implements AutoCloseable {
                 new ControlledShutdownResponse(KafkaErrors.NONE.code(), remaining));
     }
 
-    private byte[] handleOffsetForLeaderEpoch(ByteBuffer body) {
-        OffsetForLeaderEpochRequest req = KafkaCodec.decodeOffsetForLeaderEpochRequest(body);
+    private byte[] handleOffsetForLeaderEpoch(ByteBuffer body, short version) {
+        OffsetForLeaderEpochRequest req = KafkaCodec.decodeOffsetForLeaderEpochRequest(version, body);
         List<OffsetForLeaderEpochResponse.TopicData> responseTopics = new ArrayList<>();
         for (var t : req.topics()) {
-            List<OffsetForLeaderEpochResponse.PartitionData> parts = new ArrayList<>();
+            List<OffsetForLeaderEpochResponse.EpochEndOffset> parts = new ArrayList<>();
             for (var p : t.partitions()) {
                 TopicPartition tp = new TopicPartition(t.topic(), p.partition());
                 long endOffset = replicaManager.offsetForLeaderEpoch(tp, p.leaderEpoch());
                 int epoch = replicaManager.leaderEpoch(tp);
                 short errorCode = endOffset >= 0 ? KafkaErrors.NONE.code()
                         : KafkaErrors.UNKNOWN_TOPIC_OR_PARTITION.code();
-                parts.add(new OffsetForLeaderEpochResponse.PartitionData(
-                        errorCode, p.partition(), epoch, Math.max(endOffset, 0)));
+                parts.add(new OffsetForLeaderEpochResponse.EpochEndOffset(
+                        p.partition(), Math.max(endOffset, 0), errorCode));
             }
             responseTopics.add(new OffsetForLeaderEpochResponse.TopicData(t.topic(), parts));
         }
-        return KafkaCodec.encodeOffsetForLeaderEpochResponse(
-                new OffsetForLeaderEpochResponse(responseTopics));
+        return KafkaCodec.encodeOffsetForLeaderEpochResponse(version,
+                new OffsetForLeaderEpochResponse(KafkaErrors.NONE.code(), responseTopics));
     }
 
     private byte[] handleWriteTxnMarkers(ByteBuffer body, short version) {
