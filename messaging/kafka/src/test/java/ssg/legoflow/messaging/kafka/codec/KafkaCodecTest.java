@@ -872,11 +872,18 @@ class KafkaCodecTest {
 
     @Test
     void testStopReplicaRequest() {
-        var req = new StopReplicaRequest(0, 1, true, List.of(
+        var req = new StopReplicaRequest(
+            0, 1, StopReplicaRequest.DEFAULT_BROKER_EPOCH,
+            StopReplicaRequest.DEFAULT_IS_KRAFT_CONTROLLER,
+            true,
+            List.of(
                 new StopReplicaRequest.TopicPartitionData("topic1", 0),
-                new StopReplicaRequest.TopicPartitionData("topic1", 1)));
-        byte[] encoded = KafkaCodec.encodeStopReplicaRequest(req);
-        var decoded = KafkaCodec.decodeStopReplicaRequest(ByteBuffer.wrap(encoded));
+                new StopReplicaRequest.TopicPartitionData("topic1", 1)),
+            List.of(), List.of());
+        byte[] encoded = KafkaCodec.encodeStopReplicaRequest(
+            StopReplicaCodec.PINNED_VERSION, req);
+        var decoded = KafkaCodec.decodeStopReplicaRequest(
+            StopReplicaCodec.PINNED_VERSION, ByteBuffer.wrap(encoded));
         assertThat(decoded.controllerId()).isZero();
         assertThat(decoded.controllerEpoch()).isEqualTo(1);
         assertThat(decoded.deletePartitions()).isTrue();
@@ -887,8 +894,10 @@ class KafkaCodecTest {
     void testStopReplicaResponse() {
         var resp = new StopReplicaResponse((short) 0, List.of(
                 new StopReplicaResponse.PartitionResult("topic1", 0, (short) 0)));
-        byte[] encoded = KafkaCodec.encodeStopReplicaResponse(resp);
-        var decoded = KafkaCodec.decodeStopReplicaResponse(ByteBuffer.wrap(encoded));
+        byte[] encoded = KafkaCodec.encodeStopReplicaResponse(
+            StopReplicaCodec.PINNED_VERSION, resp);
+        var decoded = KafkaCodec.decodeStopReplicaResponse(
+            StopReplicaCodec.PINNED_VERSION, ByteBuffer.wrap(encoded));
         assertThat(decoded.errorCode()).isZero();
         assertThat(decoded.partitions()).hasSize(1);
     }

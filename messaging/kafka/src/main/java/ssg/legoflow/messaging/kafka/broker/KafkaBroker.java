@@ -396,7 +396,7 @@ public final class KafkaBroker implements AutoCloseable {
             case API_VERSIONS -> handleApiVersions(version);
             case METADATA -> handleMetadata(body, version);
             case LEADER_AND_ISR -> handleLeaderAndIsr(body, version);
-            case STOP_REPLICA -> handleStopReplica(body);
+            case STOP_REPLICA -> handleStopReplica(body, version);
             case UPDATE_METADATA -> handleUpdateMetadata(body);
             case CONTROLLED_SHUTDOWN -> handleControlledShutdown(body);
             case PRODUCE -> handleProduce(body, version);
@@ -936,8 +936,8 @@ public final class KafkaBroker implements AutoCloseable {
                 new LeaderAndIsrResponse(KafkaErrors.NONE.code(), results, List.of()));
     }
 
-    private byte[] handleStopReplica(ByteBuffer body) {
-        StopReplicaRequest req = KafkaCodec.decodeStopReplicaRequest(body);
+    private byte[] handleStopReplica(ByteBuffer body, short version) {
+        StopReplicaRequest req = KafkaCodec.decodeStopReplicaRequest(version, body);
         List<StopReplicaResponse.PartitionResult> results = new ArrayList<>();
         for (var p : req.partitions()) {
             TopicPartition tp = new TopicPartition(p.topic(), p.partition());
@@ -947,7 +947,7 @@ public final class KafkaBroker implements AutoCloseable {
             }
             results.add(new StopReplicaResponse.PartitionResult(p.topic(), p.partition(), KafkaErrors.NONE.code()));
         }
-        return KafkaCodec.encodeStopReplicaResponse(
+        return KafkaCodec.encodeStopReplicaResponse(version,
                 new StopReplicaResponse(KafkaErrors.NONE.code(), results));
     }
 

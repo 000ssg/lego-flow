@@ -1504,60 +1504,47 @@ public final class KafkaCodec {
     // ===== StopReplica (5) =====
 
     /**
-     * Encodes a StopReplica request body.
+     * Encodes a StopReplica request body (versioned).
      *
-     * @param req the request
+     * @param version the protocol version
+     * @param req     the request
      * @return the encoded bytes
      */
-    public static byte[] encodeStopReplicaRequest(StopReplicaRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putInt(req.controllerId());
-        buf.putInt(req.controllerEpoch());
-        buf.put((byte) (req.deletePartitions() ? 1 : 0));
-        buf.putInt(req.partitions().size());
-        for (var p : req.partitions()) {
-            writeString(buf, p.topic());
-            buf.putInt(p.partition());
-        }
-        buf.flip();
-        return toBytes(buf);
+    public static byte[] encodeStopReplicaRequest(short version, StopReplicaRequest req) {
+        return StopReplicaCodec.encodeRequest(version, req);
     }
 
     /**
-     * Decodes a StopReplica request body.
+     * Decodes a StopReplica request body (versioned).
      *
-     * @param buf the buffer
+     * @param version the protocol version
+     * @param buf     the buffer
      * @return the decoded request
      */
-    public static StopReplicaRequest decodeStopReplicaRequest(ByteBuffer buf) {
-        int controllerId = buf.getInt();
-        int controllerEpoch = buf.getInt();
-        boolean deletePartitions = buf.get() == 1;
-        int count = buf.getInt();
-        List<StopReplicaRequest.TopicPartitionData> partitions = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            partitions.add(new StopReplicaRequest.TopicPartitionData(readString(buf), buf.getInt()));
-        }
-        return new StopReplicaRequest(controllerId, controllerEpoch, deletePartitions, partitions);
+    public static StopReplicaRequest decodeStopReplicaRequest(short version, ByteBuffer buf) {
+        return StopReplicaCodec.decodeRequest(version, buf);
     }
 
     /**
-     * Encodes a StopReplica response body.
+     * Encodes a StopReplica response body (versioned).
      *
-     * @param resp the response
+     * @param version the protocol version
+     * @param resp    the response
      * @return the encoded bytes
      */
-    public static byte[] encodeStopReplicaResponse(StopReplicaResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putShort(resp.errorCode());
-        buf.putInt(resp.partitions().size());
-        for (var pr : resp.partitions()) {
-            writeString(buf, pr.topic());
-            buf.putInt(pr.partition());
-            buf.putShort(pr.errorCode());
-        }
-        buf.flip();
-        return toBytes(buf);
+    public static byte[] encodeStopReplicaResponse(short version, StopReplicaResponse resp) {
+        return StopReplicaCodec.encodeResponse(version, resp);
+    }
+
+    /**
+     * Decodes a StopReplica response body (versioned).
+     *
+     * @param version the protocol version
+     * @param buf     the buffer
+     * @return the decoded response
+     */
+    public static StopReplicaResponse decodeStopReplicaResponse(short version, ByteBuffer buf) {
+        return StopReplicaCodec.decodeResponse(version, buf);
     }
 
     /**
