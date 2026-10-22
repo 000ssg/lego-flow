@@ -1566,89 +1566,47 @@ public final class KafkaCodec {
     // ===== UpdateMetadata (6) =====
 
     /**
-     * Encodes an UpdateMetadata request body.
+     * Encodes an UpdateMetadata request body (versioned).
      *
-     * @param req the request
+     * @param version the protocol version
+     * @param req     the request
      * @return the encoded bytes
      */
-    public static byte[] encodeUpdateMetadataRequest(UpdateMetadataRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(16384);
-        buf.putInt(req.controllerId());
-        buf.putInt(req.controllerEpoch());
-        buf.putInt(req.liveBrokers().size());
-        for (var b : req.liveBrokers()) {
-            buf.putInt(b.brokerId());
-            writeString(buf, b.host());
-            buf.putInt(b.port());
-        }
-        buf.putInt(req.partitionStates().size());
-        for (var ps : req.partitionStates()) {
-            writeString(buf, ps.topic());
-            buf.putInt(ps.partition());
-            buf.putInt(ps.leader());
-            buf.putInt(ps.leaderEpoch());
-            buf.putInt(ps.isr().size());
-            for (int r : ps.isr()) buf.putInt(r);
-            buf.putInt(ps.replicas().size());
-            for (int r : ps.replicas()) buf.putInt(r);
-        }
-        buf.flip();
-        return toBytes(buf);
+    public static byte[] encodeUpdateMetadataRequest(short version, UpdateMetadataRequest req) {
+        return UpdateMetadataCodec.encodeRequest(version, req);
     }
 
     /**
-     * Decodes an UpdateMetadata request body.
+     * Decodes an UpdateMetadata request body (versioned).
      *
-     * @param buf the buffer
+     * @param version the protocol version
+     * @param buf     the buffer
      * @return the decoded request
      */
-    public static UpdateMetadataRequest decodeUpdateMetadataRequest(ByteBuffer buf) {
-        int controllerId = buf.getInt();
-        int controllerEpoch = buf.getInt();
-        int brokerCount = buf.getInt();
-        List<UpdateMetadataRequest.BrokerState> brokers = new ArrayList<>(brokerCount);
-        for (int i = 0; i < brokerCount; i++) {
-            brokers.add(new UpdateMetadataRequest.BrokerState(buf.getInt(), readString(buf), buf.getInt()));
-        }
-        int partCount = buf.getInt();
-        List<UpdateMetadataRequest.PartitionState> partitions = new ArrayList<>(partCount);
-        for (int i = 0; i < partCount; i++) {
-            String topic = readString(buf);
-            int partition = buf.getInt();
-            int leader = buf.getInt();
-            int leaderEpoch = buf.getInt();
-            int isrCount = buf.getInt();
-            List<Integer> isr = new ArrayList<>(isrCount);
-            for (int j = 0; j < isrCount; j++) isr.add(buf.getInt());
-            int repCount = buf.getInt();
-            List<Integer> replicas = new ArrayList<>(repCount);
-            for (int j = 0; j < repCount; j++) replicas.add(buf.getInt());
-            partitions.add(new UpdateMetadataRequest.PartitionState(topic, partition, leader, leaderEpoch, isr, replicas));
-        }
-        return new UpdateMetadataRequest(controllerId, controllerEpoch, brokers, partitions);
+    public static UpdateMetadataRequest decodeUpdateMetadataRequest(short version, ByteBuffer buf) {
+        return UpdateMetadataCodec.decodeRequest(version, buf);
     }
 
     /**
-     * Encodes an UpdateMetadata response body.
+     * Encodes an UpdateMetadata response body (versioned).
      *
-     * @param resp the response
+     * @param version the protocol version
+     * @param resp    the response
      * @return the encoded bytes
      */
-    public static byte[] encodeUpdateMetadataResponse(UpdateMetadataResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(2);
-        buf.putShort(resp.errorCode());
-        buf.flip();
-        return toBytes(buf);
+    public static byte[] encodeUpdateMetadataResponse(short version, UpdateMetadataResponse resp) {
+        return UpdateMetadataCodec.encodeResponse(version, resp);
     }
 
     /**
-     * Decodes an UpdateMetadata response body.
+     * Decodes an UpdateMetadata response body (versioned).
      *
-     * @param buf the buffer
+     * @param version the protocol version
+     * @param buf     the buffer
      * @return the decoded response
      */
-    public static UpdateMetadataResponse decodeUpdateMetadataResponse(ByteBuffer buf) {
-        return new UpdateMetadataResponse(buf.getShort());
+    public static UpdateMetadataResponse decodeUpdateMetadataResponse(short version, ByteBuffer buf) {
+        return UpdateMetadataCodec.decodeResponse(version, buf);
     }
 
     // ===== ControlledShutdown (7) =====

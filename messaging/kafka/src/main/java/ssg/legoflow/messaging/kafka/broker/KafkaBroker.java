@@ -397,7 +397,7 @@ public final class KafkaBroker implements AutoCloseable {
             case METADATA -> handleMetadata(body, version);
             case LEADER_AND_ISR -> handleLeaderAndIsr(body, version);
             case STOP_REPLICA -> handleStopReplica(body, version);
-            case UPDATE_METADATA -> handleUpdateMetadata(body);
+            case UPDATE_METADATA -> handleUpdateMetadata(body, version);
             case CONTROLLED_SHUTDOWN -> handleControlledShutdown(body);
             case PRODUCE -> handleProduce(body, version);
             case FETCH -> handleFetch(body, version);
@@ -951,8 +951,8 @@ public final class KafkaBroker implements AutoCloseable {
                 new StopReplicaResponse(KafkaErrors.NONE.code(), results));
     }
 
-    private byte[] handleUpdateMetadata(ByteBuffer body) {
-        UpdateMetadataRequest req = KafkaCodec.decodeUpdateMetadataRequest(body);
+    private byte[] handleUpdateMetadata(ByteBuffer body, short version) {
+        UpdateMetadataRequest req = KafkaCodec.decodeUpdateMetadataRequest(version, body);
         List<Node> liveBrokers = new ArrayList<>();
         for (var b : req.liveBrokers()) {
             liveBrokers.add(new Node(b.brokerId(), b.host(), b.port()));
@@ -963,7 +963,7 @@ public final class KafkaBroker implements AutoCloseable {
             assignments.put(tp, ps.replicas().stream().mapToInt(Integer::intValue).toArray());
         }
         clusterMetadata = new ClusterMetadata(liveBrokers, assignments);
-        return KafkaCodec.encodeUpdateMetadataResponse(
+        return KafkaCodec.encodeUpdateMetadataResponse(version,
                 new UpdateMetadataResponse(KafkaErrors.NONE.code()));
     }
 

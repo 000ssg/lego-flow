@@ -27,16 +27,17 @@ Consensus is persisted in commits, not in this file alone — commit each comple
 | API | Versions | Codec file | Test file | Commit SHA (in git log) | Status |
 |---|---|---|---|---|---|
 | Metadata (3) | v0–v12 | `MetadataCodec.java` | `MetadataCodecTest.java` (17) | `d4765c92` | **DONE** — committed; 17 tests green, full module 1224 green (verified 2026-10-20); all 13 version rows v0–v12 both directions, flex from v9; goldens machine-generated via `doc/work/metadata_golden.py` (reference verified against frozen tables — caught 2 reference bugs + 3 hand-transcription errors); models unchanged |
-|| LeaderAndIsr (4) | v0–v7 | `LeaderAndIsrCodec.java` | `LeaderAndIsrCodecTest.java` (19) | `e1f2a3b4` | **DONE** — committed; 19 tests green, full module 1243 green (verified this session); all 8 version rows v0–v7 both directions, flex from v4; goldens machine-generated via `doc/work/leaderisr_golden.py`; models extended with controllerEpoch field; fixed v7 field order (isKRaftController before controllerEpoch); fixed endTags placement; fixed AddingReplicas/RemovingReplicas to be []int32 arrays |
+|| LeaderAndIsr (4) | v0–v7 | `LeaderAndIsrCodec.java` | `LeaderAndIsrCodecTest.java` (19) | `639e6533` | **DONE** — committed; 19 tests green, full module 1243 green (verified this session); all 8 version rows v0–v7 both directions, flex from v4; goldens machine-generated via `doc/work/leaderisr_golden.py`; models extended with controllerEpoch field; fixed v7 field order (isKRaftController before controllerEpoch); fixed endTags placement; fixed AddingReplicas/RemovingReplicas to be []int32 arrays |
+|| StopReplica (5) | v0–v4 | `StopReplicaCodec.java` | `StopReplicaCodecTest.java` (11) | `7df6a4db` | **DONE** — committed; 11 tests green, full module 1254 green (verified this session); all 5 version rows v0–v4 both directions, flex from v2; goldens machine-generated via `doc/work/stopreplica_golden.py`; models extended with versioned fields (brokerEpoch, isKRaftController, TopicData, TopicState, PartitionState) |
 
 ## Next sub-task
 
-**StopReplica (API 5) v0–v4** — third API of the Metadata/Cluster sub-category (plan step 7;
-23 version rows remaining). Specs in `doc/spec/message/StopReplica{Request,Response}.json`.
-Follow the established pattern: freeze `doc/spec/order/StopReplica.{Request,Response}.txt` →
-dedicated `StopReplicaCodec` (all versions, both directions; flex = KIP-482 compact + varint N+1 +
+**UpdateMetadata (API 6) v0–v8** — fourth API of the Metadata/Cluster sub-category (plan step 7;
+18 version rows remaining). Specs in `doc/spec/message/UpdateMetadata{Request,Response}.json`.
+Follow the established pattern: freeze `doc/spec/order/UpdateMetadata.{Request,Response}.txt` →
+dedicated `UpdateMetadataCodec` (all versions, both directions; flex = KIP-482 compact + varint N+1 +
 endTags) → replace inline `KafkaCodec` bodies with thin versioned delegates (facade methods
-currently take NO version param) → wire broker + client → `StopReplicaCodecTest` → docs backfill
+currently take NO version param) → wire broker + client → `UpdateMetadataCodecTest` → docs backfill
 (PHASE6A, PROGRESS, REQUIREMENTS, WIP).
 
 ## Source-level audit (2026-10-19, from the 2 trusted sources: spec + source code)

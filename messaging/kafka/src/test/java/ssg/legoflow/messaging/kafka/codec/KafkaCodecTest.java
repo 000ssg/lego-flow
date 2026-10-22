@@ -906,25 +906,36 @@ class KafkaCodecTest {
 
     @Test
     void testUpdateMetadataRequest() {
-        var req = new UpdateMetadataRequest(0, 1,
-                List.of(new UpdateMetadataRequest.BrokerState(0, "host1", 9092),
-                        new UpdateMetadataRequest.BrokerState(1, "host2", 9093)),
-                List.of(new UpdateMetadataRequest.PartitionState("topic1", 0, 0, 1,
-                        List.of(0, 1), List.of(0, 1, 2))));
-        byte[] encoded = KafkaCodec.encodeUpdateMetadataRequest(req);
-        var decoded = KafkaCodec.decodeUpdateMetadataRequest(ByteBuffer.wrap(encoded));
+        var req = new UpdateMetadataRequest(
+            0, 1, UpdateMetadataRequest.DEFAULT_BROKER_EPOCH,
+            UpdateMetadataRequest.DEFAULT_IS_KRAFT_CONTROLLER,
+            UpdateMetadataRequest.DEFAULT_TYPE,
+            List.of(new UpdateMetadataRequest.PartitionState(
+                "topic1", 0, 1, 0, 1,
+                List.of(0, 1),
+                UpdateMetadataRequest.PartitionState.DEFAULT_ZK_VERSION,
+                List.of(0, 1), null)),
+            List.of(),
+            List.of(new UpdateMetadataRequest.BrokerState(0, "host1", 9092),
+                    new UpdateMetadataRequest.BrokerState(1, "host2", 9093)));
+        byte[] encoded = KafkaCodec.encodeUpdateMetadataRequest(
+            UpdateMetadataCodec.PINNED_VERSION, req);
+        var decoded = KafkaCodec.decodeUpdateMetadataRequest(
+            UpdateMetadataCodec.PINNED_VERSION, ByteBuffer.wrap(encoded));
         assertThat(decoded.controllerId()).isZero();
         assertThat(decoded.liveBrokers()).hasSize(2);
         assertThat(decoded.liveBrokers().getFirst().host()).isEqualTo("host1");
         assertThat(decoded.partitionStates()).hasSize(1);
-        assertThat(decoded.partitionStates().getFirst().replicas()).containsExactly(0, 1, 2);
+        assertThat(decoded.partitionStates().getFirst().replicas()).containsExactly(0, 1);
     }
 
     @Test
     void testUpdateMetadataResponse() {
         var resp = new UpdateMetadataResponse((short) 0);
-        byte[] encoded = KafkaCodec.encodeUpdateMetadataResponse(resp);
-        var decoded = KafkaCodec.decodeUpdateMetadataResponse(ByteBuffer.wrap(encoded));
+        byte[] encoded = KafkaCodec.encodeUpdateMetadataResponse(
+            UpdateMetadataCodec.PINNED_VERSION, resp);
+        var decoded = KafkaCodec.decodeUpdateMetadataResponse(
+            UpdateMetadataCodec.PINNED_VERSION, ByteBuffer.wrap(encoded));
         assertThat(decoded.errorCode()).isZero();
     }
 

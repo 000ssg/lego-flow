@@ -1,0 +1,23 @@
+UpdateMetadata Request — field processing order (binding; spec 3.6.1) — flexible encoding from v6
+wire order by layout (equal run = byte-identical field layout):
+  v0-v4: ControllerId:ControllerEpoch:UngroupedPartitionStates[]:LiveBrokers[]
+  v5:    ControllerId:ControllerEpoch:BrokerEpoch:TopicStates[]:LiveBrokers[]
+  v6-v7: ControllerId:ControllerEpoch:BrokerEpoch:TopicStates[]:LiveBrokers[]
+  v8:    ControllerId:isKRaftController:Type:ControllerEpoch:BrokerEpoch:TopicStates[]:LiveBrokers[]
+
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0-v4:
+  v0: fixed: ControllerId(int32), ControllerEpoch(int32), UngroupedPartitionStates([]UpdateMetadataPartitionState) { TopicName(string, nullable), PartitionIndex(int32), ControllerEpoch(int32), Leader(int32), LeaderEpoch(int32), Isr(int32[]), ZkVersion(int32), Replicas(int32[]) }, LiveBrokers([]UpdateMetadataBroker) { BrokerId(int32), Host(string), Port(int32) } || tagged: ∅
+  v1-v3: same as v0 (PartitionState structure unchanged)
+  v4: fixed: ControllerId(int32), ControllerEpoch(int32), UngroupedPartitionStates([]UpdateMetadataPartitionState) { TopicName(string, nullable), PartitionIndex(int32), ControllerEpoch(int32), Leader(int32), LeaderEpoch(int32), Isr(int32[]), ZkVersion(int32), Replicas(int32[]), OfflineReplicas(int32[], nullable) }, LiveBrokers([]UpdateMetadataBroker) { BrokerId(int32), Host(string), Port(int32) } || tagged: ∅
+  v5-v7:
+  v5: fixed: ControllerId(int32), ControllerEpoch(int32), BrokerEpoch(int64), TopicStates([]UpdateMetadataTopicState) { TopicName(string), PartitionStates([]UpdateMetadataPartitionState) { PartitionIndex(int32), ControllerEpoch(int32), Leader(int32), LeaderEpoch(int32), Isr(int32[]), ZkVersion(int32), Replicas(int32[]) } }, LiveBrokers([]UpdateMetadataBroker) { BrokerId(int32), Host(string), Port(int32) } || tagged: ∅
+  v6-v7: same as v5 (TopicState structure unchanged)
+  v8:
+  v8: fixed: ControllerId(int32), isKRaftController(bool), Type(int8), ControllerEpoch(int32), BrokerEpoch(int64), TopicStates([]UpdateMetadataTopicState) [flex] { TopicName(string), PartitionStates([]UpdateMetadataPartitionState) { PartitionIndex(int32), ControllerEpoch(int32), Leader(int32), LeaderEpoch(int32), Isr(int32[]), ZkVersion(int32), Replicas(int32[]), OfflineReplicas(int32[], nullable) } } || tagged: ∅ (per-topic + top-level)
+
+notes:
+- v0-v4: UngroupedPartitionStates used (partition-level, topic name repeated)
+- v5+: TopicStates used (topic-level, partitions grouped)
+- OfflineReplicas: int32 array, null = -1 count (v4+)
+- flexible (v6+): strings use KIP-482 compact encoding, arrays use N+1 varint, endTags block at end
