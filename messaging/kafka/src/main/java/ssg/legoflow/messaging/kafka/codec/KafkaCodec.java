@@ -1458,85 +1458,47 @@ public final class KafkaCodec {
     // ===== LeaderAndIsr (4) =====
 
     /**
-     * Encodes a LeaderAndIsr request body.
+     * Encodes a LeaderAndIsr request body (versioned).
      *
-     * @param req the request
+     * @param version the protocol version
+     * @param req     the request
      * @return the encoded bytes
      */
-    public static byte[] encodeLeaderAndIsrRequest(LeaderAndIsrRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(16384);
-        buf.putInt(req.controllerId());
-        buf.putInt(req.controllerEpoch());
-        buf.putInt(req.partitionStates().size());
-        for (var ps : req.partitionStates()) {
-            writeString(buf, ps.topic());
-            buf.putInt(ps.partition());
-            buf.putInt(ps.leader());
-            buf.putInt(ps.leaderEpoch());
-            buf.putInt(ps.isr().size());
-            for (int r : ps.isr()) buf.putInt(r);
-        }
-        buf.flip();
-        return toBytes(buf);
+    public static byte[] encodeLeaderAndIsrRequest(short version, LeaderAndIsrRequest req) {
+        return LeaderAndIsrCodec.encodeRequest(version, req);
     }
 
     /**
-     * Decodes a LeaderAndIsr request body.
+     * Decodes a LeaderAndIsr request body (versioned).
      *
-     * @param buf the buffer
+     * @param version the protocol version
+     * @param buf     the buffer
      * @return the decoded request
      */
-    public static LeaderAndIsrRequest decodeLeaderAndIsrRequest(ByteBuffer buf) {
-        int controllerId = buf.getInt();
-        int controllerEpoch = buf.getInt();
-        int count = buf.getInt();
-        List<LeaderAndIsrRequest.PartitionState> states = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            String topic = readString(buf);
-            int partition = buf.getInt();
-            int leader = buf.getInt();
-            int leaderEpoch = buf.getInt();
-            int isrCount = buf.getInt();
-            List<Integer> isr = new ArrayList<>(isrCount);
-            for (int j = 0; j < isrCount; j++) isr.add(buf.getInt());
-            states.add(new LeaderAndIsrRequest.PartitionState(topic, partition, leader, leaderEpoch, isr));
-        }
-        return new LeaderAndIsrRequest(controllerId, controllerEpoch, states);
+    public static LeaderAndIsrRequest decodeLeaderAndIsrRequest(short version, ByteBuffer buf) {
+        return LeaderAndIsrCodec.decodeRequest(version, buf);
     }
 
     /**
-     * Encodes a LeaderAndIsr response body.
+     * Encodes a LeaderAndIsr response body (versioned).
      *
-     * @param resp the response
+     * @param version the protocol version
+     * @param resp    the response
      * @return the encoded bytes
      */
-    public static byte[] encodeLeaderAndIsrResponse(LeaderAndIsrResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putShort(resp.errorCode());
-        buf.putInt(resp.partitions().size());
-        for (var pr : resp.partitions()) {
-            writeString(buf, pr.topic());
-            buf.putInt(pr.partition());
-            buf.putShort(pr.errorCode());
-        }
-        buf.flip();
-        return toBytes(buf);
+    public static byte[] encodeLeaderAndIsrResponse(short version, LeaderAndIsrResponse resp) {
+        return LeaderAndIsrCodec.encodeResponse(version, resp);
     }
 
     /**
-     * Decodes a LeaderAndIsr response body.
+     * Decodes a LeaderAndIsr response body (versioned).
      *
-     * @param buf the buffer
+     * @param version the protocol version
+     * @param buf     the buffer
      * @return the decoded response
      */
-    public static LeaderAndIsrResponse decodeLeaderAndIsrResponse(ByteBuffer buf) {
-        short errorCode = buf.getShort();
-        int count = buf.getInt();
-        List<LeaderAndIsrResponse.PartitionResult> partitions = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            partitions.add(new LeaderAndIsrResponse.PartitionResult(readString(buf), buf.getInt(), buf.getShort()));
-        }
-        return new LeaderAndIsrResponse(errorCode, partitions);
+    public static LeaderAndIsrResponse decodeLeaderAndIsrResponse(short version, ByteBuffer buf) {
+        return LeaderAndIsrCodec.decodeResponse(version, buf);
     }
 
     // ===== StopReplica (5) =====

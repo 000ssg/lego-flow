@@ -395,7 +395,7 @@ public final class KafkaBroker implements AutoCloseable {
         return switch (apiKey) {
             case API_VERSIONS -> handleApiVersions(version);
             case METADATA -> handleMetadata(body, version);
-            case LEADER_AND_ISR -> handleLeaderAndIsr(body);
+            case LEADER_AND_ISR -> handleLeaderAndIsr(body, version);
             case STOP_REPLICA -> handleStopReplica(body);
             case UPDATE_METADATA -> handleUpdateMetadata(body);
             case CONTROLLED_SHUTDOWN -> handleControlledShutdown(body);
@@ -913,9 +913,9 @@ public final class KafkaBroker implements AutoCloseable {
         return KafkaCodec.encodeTxnOffsetCommitResponse(version, new TxnOffsetCommitResponse(responseTopics));
     }
 
-    private byte[] handleLeaderAndIsr(ByteBuffer body) {
-        LeaderAndIsrRequest req = KafkaCodec.decodeLeaderAndIsrRequest(body);
-        List<LeaderAndIsrResponse.PartitionResult> results = new ArrayList<>();
+    private byte[] handleLeaderAndIsr(ByteBuffer body, short version) {
+        LeaderAndIsrRequest req = KafkaCodec.decodeLeaderAndIsrRequest(version, body);
+        List<LeaderAndIsrResponse.PartitionError> results = new ArrayList<>();
         for (var ps : req.partitionStates()) {
             TopicPartition tp = new TopicPartition(ps.topic(), ps.partition());
             replicaManager.updateLeaderAndIsr(tp, ps.leader(), ps.leaderEpoch(), ps.isr());
@@ -930,10 +930,10 @@ public final class KafkaBroker implements AutoCloseable {
                             storageFactory.create(ps.topic(), ps.partition())));
                 }
             }
-            results.add(new LeaderAndIsrResponse.PartitionResult(ps.topic(), ps.partition(), KafkaErrors.NONE.code()));
+            results.add(new LeaderAndIsrResponse.PartitionError(ps.topic(), ps.partition(), KafkaErrors.NONE.code()));
         }
-        return KafkaCodec.encodeLeaderAndIsrResponse(
-                new LeaderAndIsrResponse(KafkaErrors.NONE.code(), results));
+        return KafkaCodec.encodeLeaderAndIsrResponse(version,
+                new LeaderAndIsrResponse(KafkaErrors.NONE.code(), results, List.of()));
     }
 
     private byte[] handleStopReplica(ByteBuffer body) {

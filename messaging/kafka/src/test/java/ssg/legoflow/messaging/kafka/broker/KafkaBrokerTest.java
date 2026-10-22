@@ -2,6 +2,7 @@ package ssg.legoflow.messaging.kafka.broker;
 
 import ssg.legoflow.messaging.kafka.codec.AlterPartitionReassignmentsCodec;
 import ssg.legoflow.messaging.kafka.codec.KafkaCodec;
+import ssg.legoflow.messaging.kafka.codec.LeaderAndIsrCodec;
 import ssg.legoflow.messaging.kafka.codec.ListPartitionReassignmentsCodec;
 import ssg.legoflow.messaging.kafka.codec.ProduceCodec;
 import ssg.legoflow.messaging.kafka.common.ApiKey;
@@ -301,15 +302,28 @@ class KafkaBrokerTest {
             broker.start();
             var ch = inMemoryPair(broker);
 
-            var req = new LeaderAndIsrRequest(0, 1, List.of(
-                    new LeaderAndIsrRequest.PartitionState("test-topic", 0, 0, 1, List.of(0, 1))));
-            byte[] payload = KafkaCodec.encodeLeaderAndIsrRequest(req);
+            var req = new LeaderAndIsrRequest(
+                    0, 1, LeaderAndIsrRequest.DEFAULT_BROKER_EPOCH,
+                    LeaderAndIsrRequest.DEFAULT_IS_KRAFT_CONTROLLER,
+                    LeaderAndIsrRequest.DEFAULT_TYPE,
+                    List.of(
+                            new LeaderAndIsrRequest.PartitionState("test-topic", 0, 1, 0, 1,
+                                    List.of(0, 1),
+                                    LeaderAndIsrRequest.PartitionState.DEFAULT_PARTITION_EPOCH,
+                                    List.of(0, 1),
+                                    LeaderAndIsrRequest.PartitionState.DEFAULT_IS_NEW,
+                                    List.of(), List.of(),
+                                    LeaderAndIsrRequest.PartitionState.DEFAULT_LEADER_RECOVERY_STATE)),
+                    List.of(), List.of());
+            byte[] payload = KafkaCodec.encodeLeaderAndIsrRequest(
+                    LeaderAndIsrCodec.PINNED_VERSION, req);
             ByteBuffer resp = sendAndReceive(ch, ApiKey.LEADER_AND_ISR.key(), payload);
 
-            var leaderResp = KafkaCodec.decodeLeaderAndIsrResponse(resp);
+            var leaderResp = KafkaCodec.decodeLeaderAndIsrResponse(
+                    LeaderAndIsrCodec.PINNED_VERSION, resp);
             assertThat(leaderResp.errorCode()).isEqualTo(KafkaErrors.NONE.code());
-            assertThat(leaderResp.partitions()).hasSize(1);
-            assertThat(leaderResp.partitions().getFirst().errorCode()).isEqualTo(KafkaErrors.NONE.code());
+            assertThat(leaderResp.partitionErrors()).hasSize(1);
+            assertThat(leaderResp.partitionErrors().getFirst().errorCode()).isEqualTo(KafkaErrors.NONE.code());
 
             // Verify replica manager was updated
             var state = broker.replicaManager().getReplicaState(new TopicPartition("test-topic", 0));

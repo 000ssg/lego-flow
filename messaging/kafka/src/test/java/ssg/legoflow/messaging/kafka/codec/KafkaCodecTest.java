@@ -821,11 +821,30 @@ class KafkaCodecTest {
 
     @Test
     void testLeaderAndIsrRequest() {
-        var req = new LeaderAndIsrRequest(0, 1, List.of(
-                new LeaderAndIsrRequest.PartitionState("topic1", 0, 0, 1, List.of(0, 1, 2)),
-                new LeaderAndIsrRequest.PartitionState("topic1", 1, 1, 1, List.of(0, 1))));
-        byte[] encoded = KafkaCodec.encodeLeaderAndIsrRequest(req);
-        var decoded = KafkaCodec.decodeLeaderAndIsrRequest(ByteBuffer.wrap(encoded));
+        var req = new LeaderAndIsrRequest(
+                0, 1, LeaderAndIsrRequest.DEFAULT_BROKER_EPOCH,
+                LeaderAndIsrRequest.DEFAULT_IS_KRAFT_CONTROLLER,
+                LeaderAndIsrRequest.DEFAULT_TYPE,
+                List.of(
+                        new LeaderAndIsrRequest.PartitionState("topic1", 0, 1, 0, 1,
+                                List.of(0, 1, 2),
+                                LeaderAndIsrRequest.PartitionState.DEFAULT_PARTITION_EPOCH,
+                                List.of(0, 1),
+                                LeaderAndIsrRequest.PartitionState.DEFAULT_IS_NEW,
+                                List.of(), List.of(),
+                                LeaderAndIsrRequest.PartitionState.DEFAULT_LEADER_RECOVERY_STATE),
+                        new LeaderAndIsrRequest.PartitionState("topic1", 1, 1, 1, 1,
+                                List.of(0, 1),
+                                LeaderAndIsrRequest.PartitionState.DEFAULT_PARTITION_EPOCH,
+                                List.of(0, 1),
+                                LeaderAndIsrRequest.PartitionState.DEFAULT_IS_NEW,
+                                List.of(), List.of(),
+                                LeaderAndIsrRequest.PartitionState.DEFAULT_LEADER_RECOVERY_STATE)),
+                List.of(), List.of());
+        byte[] encoded = KafkaCodec.encodeLeaderAndIsrRequest(
+                LeaderAndIsrCodec.PINNED_VERSION, req);
+        var decoded = KafkaCodec.decodeLeaderAndIsrRequest(
+                LeaderAndIsrCodec.PINNED_VERSION, ByteBuffer.wrap(encoded));
         assertThat(decoded.controllerId()).isZero();
         assertThat(decoded.controllerEpoch()).isEqualTo(1);
         assertThat(decoded.partitionStates()).hasSize(2);
@@ -837,13 +856,16 @@ class KafkaCodecTest {
     @Test
     void testLeaderAndIsrResponse() {
         var resp = new LeaderAndIsrResponse((short) 0, List.of(
-                new LeaderAndIsrResponse.PartitionResult("topic1", 0, (short) 0),
-                new LeaderAndIsrResponse.PartitionResult("topic1", 1, (short) 0)));
-        byte[] encoded = KafkaCodec.encodeLeaderAndIsrResponse(resp);
-        var decoded = KafkaCodec.decodeLeaderAndIsrResponse(ByteBuffer.wrap(encoded));
+                new LeaderAndIsrResponse.PartitionError("topic1", 0, (short) 0),
+                new LeaderAndIsrResponse.PartitionError("topic1", 1, (short) 0)),
+                List.of());
+        byte[] encoded = KafkaCodec.encodeLeaderAndIsrResponse(
+                LeaderAndIsrCodec.PINNED_VERSION, resp);
+        var decoded = KafkaCodec.decodeLeaderAndIsrResponse(
+                LeaderAndIsrCodec.PINNED_VERSION, ByteBuffer.wrap(encoded));
         assertThat(decoded.errorCode()).isZero();
-        assertThat(decoded.partitions()).hasSize(2);
-        assertThat(decoded.partitions().getFirst().errorCode()).isZero();
+        assertThat(decoded.partitionErrors()).hasSize(2);
+        assertThat(decoded.partitionErrors().getFirst().errorCode()).isZero();
     }
 
     // ===== StopReplica (5) =====
