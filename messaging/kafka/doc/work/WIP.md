@@ -52,6 +52,7 @@ Consensus is persisted in commits, not in this file alone — commit each comple
 - **37 dedicated test files** + NegotiationAuthCodecTest (covers ApiVersions, SaslHandshake, SaslAuthenticate)
 - **15 integration tests** — broker ↔ client round-trips via InMemoryKafka (Produce, Admin, ErrorHandling, Stress)
 - **7 BrokerCluster tests** — leader election, reassignment, controlled shutdown
+- **34 transaction tests** — 31 TransactionManagerTest + 3 KafkaProducerTest transaction tests
 - **Total module tests: 1284, all green**
 - **Version negotiation working end-to-end**: broker advertises correct min/max, client uses negotiated version
 
@@ -59,7 +60,7 @@ Consensus is persisted in commits, not in this file alone — commit each comple
 
 1. ~~**Integration tests** — broker ↔ client round-trips for produce/fetch~~ ✅ COMPLETE (15 tests)
 2. ~~**Multi-broker simulation** — BrokerCluster tests for leader election, reassignment~~ ✅ COMPLETE (7 tests)
-3. **Transaction tests** — end-to-end transactional produce/consume
+3. ~~**Transaction tests** — end-to-end transactional produce/consume~~ ✅ COMPLETE (3 producer + 31 manager tests)
 4. **SASL authentication** — PLAIN and SCRAM-SHA-256 integration tests
 5. **Performance benchmarks** — throughput/latency measurements
 
