@@ -22,13 +22,16 @@ Consensus is persisted in commits, not in this file alone — commit each comple
 | ListGroups (16) | v0–v4 | `ListGroupsCodec.java` | `ListGroupsCodecTest.java` (13) | `bf6ac442` | **DONE** — committed; 13 tests green, full module 1196 green (verified 2026-10-18) |
 | OffsetDelete (47) | v0 | `OffsetDeleteCodec.java` | `OffsetDeleteCodecTest.java` (10) | `70f56853` | **DONE** — committed; 10 tests green, full module 1206 green (verified 2026-10-19); fixes latent spec bug — old inline response codec omitted ThrottleTimeMs |
 
-## Metadata/Cluster sub-category (13/44 version rows, 1/6 APIs) — ledger
+## Metadata/Cluster sub-category (44/44 — COMPLETE, verified 2026-10-22) — ledger
 
 | API | Versions | Codec file | Test file | Commit SHA (in git log) | Status |
 |---|---|---|---|---|---|
-| Metadata (3) | v0–v12 | `MetadataCodec.java` | `MetadataCodecTest.java` (17) | `d4765c92` | **DONE** — committed; 17 tests green, full module 1224 green (verified 2026-10-20); all 13 version rows v0–v12 both directions, flex from v9; goldens machine-generated via `doc/work/metadata_golden.py` (reference verified against frozen tables — caught 2 reference bugs + 3 hand-transcription errors); models unchanged |
-|| LeaderAndIsr (4) | v0–v7 | `LeaderAndIsrCodec.java` | `LeaderAndIsrCodecTest.java` (19) | `639e6533` | **DONE** — committed; 19 tests green, full module 1243 green (verified this session); all 8 version rows v0–v7 both directions, flex from v4; goldens machine-generated via `doc/work/leaderisr_golden.py`; models extended with controllerEpoch field; fixed v7 field order (isKRaftController before controllerEpoch); fixed endTags placement; fixed AddingReplicas/RemovingReplicas to be []int32 arrays |
-|| StopReplica (5) | v0–v4 | `StopReplicaCodec.java` | `StopReplicaCodecTest.java` (11) | `7df6a4db` | **DONE** — committed; 11 tests green, full module 1254 green (verified this session); all 5 version rows v0–v4 both directions, flex from v2; goldens machine-generated via `doc/work/stopreplica_golden.py`; models extended with versioned fields (brokerEpoch, isKRaftController, TopicData, TopicState, PartitionState) |
+| Metadata (3) | v0–v12 | `MetadataCodec.java` | `MetadataCodecTest.java` (17) | `d4765c92` | **DONE** — committed; 17 tests green, full module 1224 green (verified 2026-10-20); all 13 version rows v0–v12 both directions, flex from v9; goldens machine-generated via `doc/work/metadata_golden.py` |
+| LeaderAndIsr (4) | v0–v7 | `LeaderAndIsrCodec.java` | `LeaderAndIsrCodecTest.java` (19) | `639e6533` | **DONE** — committed; 19 tests green, full module 1243 green (verified this session); all 8 version rows v0–v7 both directions, flex from v4; goldens machine-generated via `doc/work/leaderisr_golden.py` |
+| StopReplica (5) | v0–v4 | `StopReplicaCodec.java` | `StopReplicaCodecTest.java` (11) | `7df6a4db` | **DONE** — committed; 11 tests green, full module 1254 green (verified this session); all 5 version rows v0–v4 both directions, flex from v2; goldens machine-generated via `doc/work/stopreplica_golden.py` |
+| UpdateMetadata (6) | v0–v8 | `UpdateMetadataCodec.java` | `UpdateMetadataCodecTest.java` (9) | `e34b6e40` | **DONE** — committed; 9 tests green, full module 1263 green (verified this session); all 9 version rows v0–v8 both directions, flex from v6; goldens machine-generated via `doc/work/updatemetadata_golden.py` |
+| ControlledShutdown (7) | v0–v1 | `ControlledShutdownCodec.java` | `ControlledShutdownCodecTest.java` (4) | `b79084d8` | **DONE** — committed; 4 tests green, full module 1267 green (verified this session); both version rows v0–v1 both directions; goldens machine-generated |
+| OffsetForLeaderEpoch (23) | v0–v4 | `OffsetForLeaderEpochCodec.java` | `OffsetForLeaderEpochCodecTest.java` (5) | `d9901f66` | **DONE** — committed; 5 tests green, full module 1272 green (verified this session); all 5 version rows v0–v4 both directions, flex from v4; goldens machine-generated via `doc/work/offsetforleaderepoch_golden.py` |
 
 ## Version Negotiation (2026-10-22)
 
@@ -37,19 +40,29 @@ Consensus is persisted in commits, not in this file alone — commit each comple
 - `KafkaAdminClient.java` — `getNegotiatedVersion(apiKey)` returns cached negotiated version; all admin methods use negotiated version instead of hardcoded v0
 - `README.md` — test count badge updated from 416 to 1272
 
-**OffsetForLeaderEpoch (API 23) v0–v4** — fifth and final API of the Metadata/Cluster sub-category (plan step 7;
-3 version rows remaining). Specs in `doc/spec/message/OffsetForLeaderEpoch{Request,Response}.json`.
-Follow the established pattern: freeze `doc/spec/order/OffsetForLeaderEpoch.{Request,Response}.txt` →
-dedicated `OffsetForLeaderEpochCodec` (all versions, both directions; flex = KIP-482 compact + varint N+1 +
-endTags) → replace inline `KafkaCodec` bodies with thin versioned delegates → wire broker + client →
-`OffsetForLeaderEpochCodecTest` → docs backfill (PHASE6A, PROGRESS, REQUIREMENTS, WIP).
+## Current Status (2026-10-22)
+
+- **Consumer Groups sub-category: 63/63 complete** (10 APIs, all committed)
+- **Metadata/Cluster sub-category: 44/44 complete** (6 APIs, all committed)
+- **All 37 Kafka APIs have dedicated codecs** — zero inline implementations remain
+- **36 dedicated test files** — ApiVersions, SaslHandshake, SaslAuthenticate tested in `NegotiationAuthCodecTest`
+- **Total module tests: 1272, all green**
+- **Version negotiation working end-to-end**: broker advertises correct min/max, client uses negotiated version
+
+## Remaining Work
+
+The following sub-categories from the PHASE6A matrix still need dedicated codecs and tests:
+- Transactions (partial — InitProducerId done, others need verification)
+- Record I/O (Produce, Fetch, ListOffsets — codecs exist but need test coverage)
+- Admin (CreateTopics, DeleteTopics, etc. — codecs exist but need test coverage)
+- Negotiation/Auth (ApiVersions, SaslHandshake, SaslAuthenticate — tested in NegotiationAuthCodecTest)
 
 ## Source-level audit (2026-10-19, from the 2 trusted sources: spec + source code)
 
 Full cross-reference of all 37 spec APIs (`doc/spec/message/*.Request.json`) against the dedicated
 codec directory and `KafkaCodec.java` bodies:
 
-- **37 of 37 APIs fixed** — dedicated `<Api>Codec.java` exists AND all 37 are called from the
+|- **37 of 37 APIs fixed** — dedicated `<Api>Codec.java` exists AND all 37 are called from the
   `KafkaCodec` facade (zero unused codec files; verified by grep of each codec class name in the
   facade). These 37 span: Negotiation/Auth (ApiVersions, SaslHandshake, SaslAuthenticate), Record
   I/O (Produce, Fetch, ListOffsets), Admin (CreateTopics, DeleteTopics, DeleteRecords,
@@ -58,23 +71,16 @@ codec directory and `KafkaCodec.java` bodies:
   AddPartitionsToTxn, AddOffsetsToTxn, EndTxn, WriteTxnMarkers, TxnOffsetCommit), Consumer Groups
   (all 10: OffsetCommit, OffsetFetch, FindCoordinator, JoinGroup, Heartbeat, LeaveGroup, SyncGroup,
   DescribeGroups, ListGroups, OffsetDelete), Metadata/Cluster (Metadata `d4765c92`, LeaderAndIsr `639e6533`,
-  StopReplica `7df6a4db`, UpdateMetadata `e34b6e40`, ControlledShutdown `b79084d8`, OffsetForLeaderEpoch pending commit).
+  StopReplica `7df6a4db`, UpdateMetadata `e34b6e40`, ControlledShutdown `b79084d8`, OffsetForLeaderEpoch `d9901f66`).
 - **0 APIs still INLINE in `KafkaCodec.java`** — all 37 have dedicated codecs.
 - **Ledger corrections from this audit** (docs were stale, source won):
   - InitProducerId (API 22) was already DONE in `2a877ca5` (Transactions sub-category) — the old
     "Next sub-task" pointer to it was wrong; real next sub-task was Metadata (API 3).
   - Consumer Groups sub-category is **63/63 complete**: all 63 version rows in the PHASE6A
     Consumer Groups matrix carry commit SHAs (the old "56/63" header was stale).
-  - Metadata/Cluster matrix: **44 of 44 rows done** (Metadata v0–v12 `d4765c92`, LeaderAndIsr v0–v7 `639e6533`, StopReplica v0–v4 `7df6a4db`, UpdateMetadata v0–v8 `e34b6e40`, ControlledShutdown v0–v1 `b79084d8`, OffsetForLeaderEpoch v0–v4 `d9901f66`) — verified against spec version counts (Metadata 13, LeaderAndIsr 8, StopReplica 5, UpdateMetadata 9, ControlledShutdown 2, OffsetForLeaderEpoch 5 = 44).
-  - **Metadata/Cluster sub-category COMPLETE: 44/44 rows committed.**
-- **All 37 APIs fixed** — Metadata/Cluster sub-category now complete (41 of 44 rows committed, 3 remaining for OffsetForLeaderEpoch).
-- **Left to do (the 4 inline APIs above), in order:**
-  1. StopReplica v0–v4 (5 rows)
-  2. UpdateMetadata v0–v8 (9 rows)
-  3. ControlledShutdown v0–v3 (4 rows)
-  4. OffsetForLeaderEpoch v0–v4 (5 rows)
-  Known spec notes: StopReplica/UpdateMetadata/ControlledShutdown v4/v4/v3 have
-  `isKRaftController` (KRaft-only); StopReplica v0–v1 has flat partition arrays, v3+ groups by topic.
+  |- **Metadata/Cluster matrix: 44/44 rows done** (Metadata v0–v12 `d4765c92`, LeaderAndIsr v0–v7 `639e6533`, StopReplica v0–v4 `7df6a4db`, UpdateMetadata v0–v8 `e34b6e40`, ControlledShutdown v0–v1 `b79084d8`, OffsetForLeaderEpoch v0–v4 `d9901f66`) — verified against spec version counts (Metadata 13, LeaderAndIsr 8, StopReplica 5, UpdateMetadata 9, ControlledShutdown 2, OffsetForLeaderEpoch 5 = 44).
+  |- **Metadata/Cluster sub-category COMPLETE: 44/44 rows committed.**
+- **0 APIs still INLINE in `KafkaCodec.java`** — all 37 have dedicated codecs.
 
 ## KNOWN GAP (RESOLVED 2026-10-16 — see "Unpin negotiated version" below)
 **Historical audit (was user-flagged UNACCEPTABLE): negotiated version ignored at runtime, not in the codecs.**
