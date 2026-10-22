@@ -1671,90 +1671,47 @@ public final class KafkaCodec {
     // ===== OffsetForLeaderEpoch (23) =====
 
     /**
-     * Encodes an OffsetForLeaderEpoch request body.
+     * Encodes an OffsetForLeaderEpoch request body (versioned).
      *
-     * @param req the request
+     * @param version the protocol version
+     * @param req     the request
      * @return the encoded bytes
      */
-    public static byte[] encodeOffsetForLeaderEpochRequest(OffsetForLeaderEpochRequest req) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putInt(req.topics().size());
-        for (var t : req.topics()) {
-            writeString(buf, t.topic());
-            buf.putInt(t.partitions().size());
-            for (var p : t.partitions()) {
-                buf.putInt(p.partition());
-                buf.putInt(p.leaderEpoch());
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+    public static byte[] encodeOffsetForLeaderEpochRequest(short version, OffsetForLeaderEpochRequest req) {
+        return OffsetForLeaderEpochCodec.encodeRequest(version, req);
     }
 
     /**
      * Decodes an OffsetForLeaderEpoch request body.
      *
-     * @param buf the buffer
+     * @param version the protocol version
+     * @param buf     the buffer
      * @return the decoded request
      */
-    public static OffsetForLeaderEpochRequest decodeOffsetForLeaderEpochRequest(ByteBuffer buf) {
-        int topicCount = buf.getInt();
-        List<OffsetForLeaderEpochRequest.TopicData> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String topic = readString(buf);
-            int partCount = buf.getInt();
-            List<OffsetForLeaderEpochRequest.PartitionData> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                parts.add(new OffsetForLeaderEpochRequest.PartitionData(buf.getInt(), buf.getInt()));
-            }
-            topics.add(new OffsetForLeaderEpochRequest.TopicData(topic, parts));
-        }
-        return new OffsetForLeaderEpochRequest(topics);
+    public static OffsetForLeaderEpochRequest decodeOffsetForLeaderEpochRequest(short version, ByteBuffer buf) {
+        return OffsetForLeaderEpochCodec.decodeRequest(version, buf);
     }
 
     /**
-     * Encodes an OffsetForLeaderEpoch response body.
+     * Encodes an OffsetForLeaderEpoch response body (versioned).
      *
-     * @param resp the response
+     * @param version the protocol version
+     * @param resp    the response
      * @return the encoded bytes
      */
-    public static byte[] encodeOffsetForLeaderEpochResponse(OffsetForLeaderEpochResponse resp) {
-        ByteBuffer buf = BufferPool.getBuffer(4096);
-        buf.putInt(resp.topics().size());
-        for (var t : resp.topics()) {
-            writeString(buf, t.topic());
-            buf.putInt(t.partitions().size());
-            for (var p : t.partitions()) {
-                buf.putShort(p.errorCode());
-                buf.putInt(p.partition());
-                buf.putInt(p.leaderEpoch());
-                buf.putLong(p.endOffset());
-            }
-        }
-        buf.flip();
-        return toBytes(buf);
+    public static byte[] encodeOffsetForLeaderEpochResponse(short version, OffsetForLeaderEpochResponse resp) {
+        return OffsetForLeaderEpochCodec.encodeResponse(version, resp);
     }
 
     /**
      * Decodes an OffsetForLeaderEpoch response body.
      *
-     * @param buf the buffer
+     * @param version the protocol version
+     * @param buf     the buffer
      * @return the decoded response
      */
-    public static OffsetForLeaderEpochResponse decodeOffsetForLeaderEpochResponse(ByteBuffer buf) {
-        int topicCount = buf.getInt();
-        List<OffsetForLeaderEpochResponse.TopicData> topics = new ArrayList<>(topicCount);
-        for (int i = 0; i < topicCount; i++) {
-            String topic = readString(buf);
-            int partCount = buf.getInt();
-            List<OffsetForLeaderEpochResponse.PartitionData> parts = new ArrayList<>(partCount);
-            for (int j = 0; j < partCount; j++) {
-                parts.add(new OffsetForLeaderEpochResponse.PartitionData(
-                        buf.getShort(), buf.getInt(), buf.getInt(), buf.getLong()));
-            }
-            topics.add(new OffsetForLeaderEpochResponse.TopicData(topic, parts));
-        }
-        return new OffsetForLeaderEpochResponse(topics);
+    public static OffsetForLeaderEpochResponse decodeOffsetForLeaderEpochResponse(short version, ByteBuffer buf) {
+        return OffsetForLeaderEpochCodec.decodeResponse(version, buf);
     }
 
     // ===== WriteTxnMarkers (27) =====

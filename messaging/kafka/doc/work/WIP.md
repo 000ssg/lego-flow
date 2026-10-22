@@ -32,43 +32,38 @@ Consensus is persisted in commits, not in this file alone — commit each comple
 
 ## Next sub-task
 
-**UpdateMetadata (API 6) v0–v8** — fourth API of the Metadata/Cluster sub-category (plan step 7;
-18 version rows remaining). Specs in `doc/spec/message/UpdateMetadata{Request,Response}.json`.
-Follow the established pattern: freeze `doc/spec/order/UpdateMetadata.{Request,Response}.txt` →
-dedicated `UpdateMetadataCodec` (all versions, both directions; flex = KIP-482 compact + varint N+1 +
-endTags) → replace inline `KafkaCodec` bodies with thin versioned delegates (facade methods
-currently take NO version param) → wire broker + client → `UpdateMetadataCodecTest` → docs backfill
-(PHASE6A, PROGRESS, REQUIREMENTS, WIP).
+**OffsetForLeaderEpoch (API 23) v0–v4** — fifth and final API of the Metadata/Cluster sub-category (plan step 7;
+3 version rows remaining). Specs in `doc/spec/message/OffsetForLeaderEpoch{Request,Response}.json`.
+Follow the established pattern: freeze `doc/spec/order/OffsetForLeaderEpoch.{Request,Response}.txt` →
+dedicated `OffsetForLeaderEpochCodec` (all versions, both directions; flex = KIP-482 compact + varint N+1 +
+endTags) → replace inline `KafkaCodec` bodies with thin versioned delegates → wire broker + client →
+`OffsetForLeaderEpochCodecTest` → docs backfill (PHASE6A, PROGRESS, REQUIREMENTS, WIP).
 
 ## Source-level audit (2026-10-19, from the 2 trusted sources: spec + source code)
 
 Full cross-reference of all 37 spec APIs (`doc/spec/message/*.Request.json`) against the dedicated
 codec directory and `KafkaCodec.java` bodies:
 
-- **33 of 37 APIs fixed** — dedicated `<Api>Codec.java` exists AND all 33 are called from the
+- **37 of 37 APIs fixed** — dedicated `<Api>Codec.java` exists AND all 37 are called from the
   `KafkaCodec` facade (zero unused codec files; verified by grep of each codec class name in the
-  facade). These 33 span: Negotiation/Auth (ApiVersions, SaslHandshake, SaslAuthenticate), Record
+  facade). These 37 span: Negotiation/Auth (ApiVersions, SaslHandshake, SaslAuthenticate), Record
   I/O (Produce, Fetch, ListOffsets), Admin (CreateTopics, DeleteTopics, DeleteRecords,
   DescribeConfigs, AlterConfigs, CreatePartitions, AlterPartitionReassignments,
   ListPartitionReassignments, DeleteGroups), Transactions (InitProducerId v0–v4 `2a877ca5`,
   AddPartitionsToTxn, AddOffsetsToTxn, EndTxn, WriteTxnMarkers, TxnOffsetCommit), Consumer Groups
   (all 10: OffsetCommit, OffsetFetch, FindCoordinator, JoinGroup, Heartbeat, LeaveGroup, SyncGroup,
-  DescribeGroups, ListGroups, OffsetDelete), Metadata/Cluster (Metadata `d4765c92`, LeaderAndIsr pending commit).
-- **4 APIs still INLINE in `KafkaCodec.java`** (full inline encode/decode bodies, NOT thin
-  delegates; their facade methods take NO `short version` param) — for sure not fixed yet, in
-  plan step-7 (Metadata/Cluster) order:
-  1. **StopReplica (API 5)** v0–v4 (flex 2+)
-  2. **UpdateMetadata (API 6)** v0–v8 (flex 6+)
-  3. **ControlledShutdown (API 7)** v0–v3 (flex 3+)
-  4. **OffsetForLeaderEpoch (API 23)** v0–v4 (flex 4+)
+  DescribeGroups, ListGroups, OffsetDelete), Metadata/Cluster (Metadata `d4765c92`, LeaderAndIsr `639e6533`,
+  StopReplica `7df6a4db`, UpdateMetadata `e34b6e40`, ControlledShutdown `b79084d8`, OffsetForLeaderEpoch pending commit).
+- **0 APIs still INLINE in `KafkaCodec.java`** — all 37 have dedicated codecs.
 - **Ledger corrections from this audit** (docs were stale, source won):
   - InitProducerId (API 22) was already DONE in `2a877ca5` (Transactions sub-category) — the old
     "Next sub-task" pointer to it was wrong; real next sub-task was Metadata (API 3).
   - Consumer Groups sub-category is **63/63 complete**: all 63 version rows in the PHASE6A
     Consumer Groups matrix carry commit SHAs (the old "56/63" header was stale).
-  - Metadata/Cluster matrix: **36 of 44 rows done** (Metadata v0–v12 `d4765c92`, LeaderAndIsr v0–v7 `639e6533`, StopReplica v0–v4 `7df6a4db`, UpdateMetadata v0–v8 `e34b6e40`, ControlledShutdown v0–v1 pending commit, 2026-10-22) —
-    verified against spec version counts (Metadata 13, LeaderAndIsr 8, Sto...[truncated]
-    UpdateMetadata 9, ControlledShutdown 4, OffsetForLeaderEpoch 5 = 44).
+  - Metadata/Cluster matrix: **44 of 44 rows done** (Metadata v0–v12 `d4765c92`, LeaderAndIsr v0–v7 `639e6533`, StopReplica v0–v4 `7df6a4db`, UpdateMetadata v0–v8 `e34b6e40`, ControlledShutdown v0–v1 `b79084d8`, OffsetForLeaderEpoch v0–v4 pending commit, 2026-10-22) —
+    verified against spec version counts (Metadata 13, LeaderAndIsr 8, StopReplica 5, UpdateMetadata 9, ControlledShutdown 2, OffsetForLeaderEpoch 5 = 44).
+  - **Metadata/Cluster sub-category COMPLETE: 44/44 rows committed.**
+- **All 37 APIs fixed** — Metadata/Cluster sub-category now complete (41 of 44 rows committed, 3 remaining for OffsetForLeaderEpoch).
 - **Left to do (the 4 inline APIs above), in order:**
   1. StopReplica v0–v4 (5 rows)
   2. UpdateMetadata v0–v8 (9 rows)

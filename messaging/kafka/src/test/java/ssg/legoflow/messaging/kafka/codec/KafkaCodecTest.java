@@ -965,12 +965,14 @@ class KafkaCodecTest {
 
     @Test
     void testOffsetForLeaderEpochRequest() {
-        var req = new OffsetForLeaderEpochRequest(List.of(
+        var req = new OffsetForLeaderEpochRequest(null, List.of(
                 new OffsetForLeaderEpochRequest.TopicData("topic1", List.of(
                         new OffsetForLeaderEpochRequest.PartitionData(0, 5),
                         new OffsetForLeaderEpochRequest.PartitionData(1, 3)))));
-        byte[] encoded = KafkaCodec.encodeOffsetForLeaderEpochRequest(req);
-        var decoded = KafkaCodec.decodeOffsetForLeaderEpochRequest(ByteBuffer.wrap(encoded));
+        byte[] encoded = KafkaCodec.encodeOffsetForLeaderEpochRequest(
+            OffsetForLeaderEpochCodec.PINNED_VERSION, req);
+        var decoded = KafkaCodec.decodeOffsetForLeaderEpochRequest(
+            OffsetForLeaderEpochCodec.PINNED_VERSION, ByteBuffer.wrap(encoded));
         assertThat(decoded.topics()).hasSize(1);
         assertThat(decoded.topics().getFirst().partitions()).hasSize(2);
         assertThat(decoded.topics().getFirst().partitions().getFirst().leaderEpoch()).isEqualTo(5);
@@ -978,14 +980,16 @@ class KafkaCodecTest {
 
     @Test
     void testOffsetForLeaderEpochResponse() {
-        var resp = new OffsetForLeaderEpochResponse(List.of(
+        var resp = new OffsetForLeaderEpochResponse((short) 0, List.of(
                 new OffsetForLeaderEpochResponse.TopicData("topic1", List.of(
-                        new OffsetForLeaderEpochResponse.PartitionData((short) 0, 0, 5, 1000L)))));
-        byte[] encoded = KafkaCodec.encodeOffsetForLeaderEpochResponse(resp);
-        var decoded = KafkaCodec.decodeOffsetForLeaderEpochResponse(ByteBuffer.wrap(encoded));
+                        new OffsetForLeaderEpochResponse.EpochEndOffset(0, 1000L, (short) 0)))));
+        byte[] encoded = KafkaCodec.encodeOffsetForLeaderEpochResponse(
+            OffsetForLeaderEpochCodec.PINNED_VERSION, resp);
+        var decoded = KafkaCodec.decodeOffsetForLeaderEpochResponse(
+            OffsetForLeaderEpochCodec.PINNED_VERSION, ByteBuffer.wrap(encoded));
         assertThat(decoded.topics()).hasSize(1);
-        assertThat(decoded.topics().getFirst().partitions().getFirst().endOffset()).isEqualTo(1000L);
-        assertThat(decoded.topics().getFirst().partitions().getFirst().leaderEpoch()).isEqualTo(5);
+        assertThat(decoded.topics().getFirst().epochEndOffsets().getFirst().endOffset()).isEqualTo(1000L);
+        assertThat(decoded.topics().getFirst().epochEndOffsets().getFirst().partition()).isEqualTo(0);
     }
 
     // ===== WriteTxnMarkers (27) =====
