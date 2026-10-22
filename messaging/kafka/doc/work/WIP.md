@@ -66,8 +66,8 @@ codec directory and `KafkaCodec.java` bodies:
     "Next sub-task" pointer to it was wrong; real next sub-task was Metadata (API 3).
   - Consumer Groups sub-category is **63/63 complete**: all 63 version rows in the PHASE6A
     Consumer Groups matrix carry commit SHAs (the old "56/63" header was stale).
-  - Metadata/Cluster matrix: **34 of 44 rows done** (Metadata v0–v12 `d4765c92`, LeaderAndIsr v0–v7 `639e6533`, StopReplica v0–v4 pending commit, 2026-10-22) —
-    verified against spec version counts (Metadata 13, LeaderAndIsr 8, StopReplica 5,
+  - Metadata/Cluster matrix: **36 of 44 rows done** (Metadata v0–v12 `d4765c92`, LeaderAndIsr v0–v7 `639e6533`, StopReplica v0–v4 `7df6a4db`, UpdateMetadata v0–v8 `e34b6e40`, ControlledShutdown v0–v1 pending commit, 2026-10-22) —
+    verified against spec version counts (Metadata 13, LeaderAndIsr 8, Sto...[truncated]
     UpdateMetadata 9, ControlledShutdown 4, OffsetForLeaderEpoch 5 = 44).
 - **Left to do (the 4 inline APIs above), in order:**
   1. StopReplica v0–v4 (5 rows)
