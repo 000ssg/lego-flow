@@ -94,9 +94,11 @@
 
 ### Phase 6 — Kafka + WAMP composite interop
 - [x] Kafka: trivial (ApiVersions + CreateTopics + Metadata + Produce/Fetch round-trip) — `KafkaKRaftInteropTest` (4 tests)
-- [ ] Kafka: multi-partition streaming (keyed produce, per-partition offset tracking)
-- [ ] Kafka: transactions (InitProducerId, AddPartitionsToTxn, Produce, EndTxn commit/abort)
-- [ ] **Gated on Phase 6a** — the client versions the codec negotiates must be spec-accurate first. ✅ GATE PASSED
+- [x] Kafka: multi-partition streaming (keyed produce, per-partition offset tracking)
+- [x] Kafka: transactions (InitProducerId, AddPartitionsToTxn, Produce, EndTxn commit/abort)
+- [ ] WAMP: trivial → multi-realm → distributed procedure executors → sharding
+- [ ] Green vs real brokers
+- [ ] Commit Phase 6
 - [ ] **WAMP** (group 3): trivial (HELLO/WELCOME + pub/sub) → **multi-realm** routing →
       **distributed procedure executors** (REGISTER/CALL across realms) → **sharding**
       (procedure distribution by key across multiple routers/realms)
