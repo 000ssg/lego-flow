@@ -2179,6 +2179,32 @@ class FetchCodecTest {
                     "forgotten TopicId uuid round-trip");
             assertEquals(List.of(0, 1), ft0.partitions(), "forgotten partitions round-trip");
         }
+
+        @Test
+        @DisplayName("v14 request is wire-identical to v13 (no field change)")
+        void v14IsV13() {
+            var req = FetchRequest.builder()
+                    .replicaId(2).maxWaitMs(500).minBytes(1).maxBytes(1048576).isolationLevel(1)
+                    .sessionId(11).sessionEpoch(3)
+                    .topics(List.of(new FetchRequest.TopicFetch("topic", topicIdBytes(),
+                            List.of(FetchRequest.PartitionFetch.builder()
+                                    .partition(0).currentLeaderEpoch(5).fetchOffset(10L)
+                                    .lastFetchedEpoch(7).logStartOffset(42L)
+                                    .partitionMaxBytes(65536)
+                                    .build()))))
+                    .rackId("rack1")
+                    .clusterId("cluster-1")
+                    .build();
+
+            byte[] v13 = FetchCodec.encodeRequest((short) 13, req);
+            byte[] v14 = FetchCodec.encodeRequest((short) 14, req);
+            assertArrayEquals(v13, v14, "v14 is wire-identical to v13");
+
+            var decoded = FetchCodec.decodeRequest((short) 14, ByteBuffer.wrap(v14));
+            assertEquals(2, decoded.replicaId(), "replicaId round-trip");
+            assertEquals("rack1", decoded.rackId(), "rackId round-trip");
+            assertEquals("cluster-1", decoded.clusterId(), "clusterId round-trip");
+        }
     }
 
     @Nested

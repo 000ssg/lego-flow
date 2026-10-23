@@ -172,6 +172,21 @@ class CreateTopicsCodecTest {
             byte[] b = CreateTopicsCodec.encodeRequest((short) 4, req(30000));
             assertEquals(CreateTopicsCodec.encodeRequest((short) 1, req(30000)).length, b.length);
         }
+
+        @Test
+        @DisplayName("v3 = v0 layout + validateOnly byte (same as v1)")
+        void v3() {
+            byte[] b = CreateTopicsCodec.encodeRequest((short) 3, req(30000));
+            assertEquals(CreateTopicsCodec.encodeRequest((short) 1, req(30000)).length, b.length);
+        }
+
+        @Test
+        @DisplayName("v6 uses flexible encoding (same as v5)")
+        void v6() {
+            byte[] b = CreateTopicsCodec.encodeRequest((short) 6, req(30000));
+            byte[] v5 = CreateTopicsCodec.encodeRequest((short) 5, req(30000));
+            assertEquals(v5.length, b.length, "v6 is same length as v5 (flexible encoding)");
+        }
     }
 
     // ── Flexible request (KIP-482, v5–v7) ──────────────────────────────

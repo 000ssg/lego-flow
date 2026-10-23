@@ -132,6 +132,28 @@ class DeleteTopicsCodecTest {
         }
 
         @Test
+        @DisplayName("v2 request round-trips (identical to v0)")
+        void v2() {
+            byte[] v0 = DeleteTopicsCodec.encodeRequest((short) 0, req(30000));
+            byte[] v2 = DeleteTopicsCodec.encodeRequest((short) 2, req(30000));
+            assertArrayEquals(v0, v2, "v2 must match v0");
+            DeleteTopicsRequest decoded = DeleteTopicsCodec.decodeRequest((short) 2,
+                    ByteBuffer.wrap(v2));
+            assertEquals(req(30000), decoded);
+        }
+
+        @Test
+        @DisplayName("v3 request round-trips (identical to v0)")
+        void v3() {
+            byte[] v0 = DeleteTopicsCodec.encodeRequest((short) 0, req(30000));
+            byte[] v3 = DeleteTopicsCodec.encodeRequest((short) 3, req(30000));
+            assertArrayEquals(v0, v3, "v3 must match v0");
+            DeleteTopicsRequest decoded = DeleteTopicsCodec.decodeRequest((short) 3,
+                    ByteBuffer.wrap(v3));
+            assertEquals(req(30000), decoded);
+        }
+
+        @Test
         @DisplayName("empty name list round-trip")
         void emptyNames() {
             DeleteTopicsRequest decoded = roundTripReq((short) 0, new DeleteTopicsRequest(List.of(), 5000));

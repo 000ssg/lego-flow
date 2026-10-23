@@ -2,6 +2,7 @@ package ssg.legoflow.messaging.kafka.codec;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
@@ -82,20 +83,40 @@ class SyncGroupCodecTest {
         }
 
         @Test
-        void v3_golden_legacy_withGroupInstanceId() {
-            // v3 adds nullable GroupInstanceId (string16, -1 null) after MemberId
+        void v0_golden() {
+            // GroupId(string16 "group-a") + GenerationId(int32 1) + MemberId(string16 "member-1")
+            // + Assignments count(int32 1) + entry { MemberId "member-1", Assignment {1,2,3} }
             byte[] golden = fromHex(
                     "000767726f75702d61" +   // "group-a"
                     "00000001" +             // GenerationId
                     "00086d656d6265722d31" + // "member-1"
-                    "ffff" +                 // GroupInstanceId null (int16 -1)
                     "00000001" +             // Assignments count = 1
                     "00086d656d6265722d31" + // entry MemberId "member-1"
                     "00000003010203");       // Assignment bytes {1,2,3}
-            assertThat(SyncGroupCodec.encodeRequest((short) 3, REQUEST))
+            assertThat(SyncGroupCodec.encodeRequest((short) 0, REQUEST))
                     .isEqualTo(golden);
             assertRequestEquals(REQUEST,
-                    SyncGroupCodec.decodeRequest((short) 3, ByteBuffer.wrap(golden)));
+                    SyncGroupCodec.decodeRequest((short) 0, ByteBuffer.wrap(golden)));
+        }
+
+        @Test
+        void v1_golden() {
+            // v1 is byte-identical to v0 (no field changes)
+            byte[] v0 = SyncGroupCodec.encodeRequest((short) 0, REQUEST);
+            byte[] v1 = SyncGroupCodec.encodeRequest((short) 1, REQUEST);
+            assertArrayEquals(v0, v1, "v1 must match v0");
+            assertRequestEquals(REQUEST,
+                    SyncGroupCodec.decodeRequest((short) 1, ByteBuffer.wrap(v1)));
+        }
+
+        @Test
+        void v2_golden() {
+            // v2 is byte-identical to v0 (no field changes)
+            byte[] v0 = SyncGroupCodec.encodeRequest((short) 0, REQUEST);
+            byte[] v2 = SyncGroupCodec.encodeRequest((short) 2, REQUEST);
+            assertArrayEquals(v0, v2, "v2 must match v0");
+            assertRequestEquals(REQUEST,
+                    SyncGroupCodec.decodeRequest((short) 2, ByteBuffer.wrap(v2)));
         }
 
         @Test

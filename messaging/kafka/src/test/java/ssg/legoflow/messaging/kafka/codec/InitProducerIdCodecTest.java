@@ -121,6 +121,14 @@ class InitProducerIdCodecTest {
     }
 
     @Test
+    @DisplayName("v1 request round-trips: identical to v0 (no field change)")
+    void roundTripRequestV1() {
+        InitProducerIdRequest r = roundTripReq((short) 1, req());
+        assertEquals("prod-txn", r.transactionalId());
+        assertEquals(60_000, r.transactionTimeoutMs());
+    }
+
+    @Test
     @DisplayName("v3 request round-trips: v3+ ProducerId/ProducerEpoch read + discarded")
     void roundTripRequestV3() {
         InitProducerIdRequest r = roundTripReq((short) 3, req());

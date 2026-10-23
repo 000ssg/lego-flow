@@ -29,7 +29,7 @@ Consensus is persisted in commits, not in this file alone — commit each comple
 | Metadata (3) | v0–v12 | `MetadataCodec.java` | `MetadataCodecTest.java` (17) | `d4765c92` | **DONE** — committed; 17 tests green, full module 1224 green (verified 2026-10-20); all 13 version rows v0–v12 both directions, flex from v9; goldens machine-generated via `doc/work/metadata_golden.py` |
 | LeaderAndIsr (4) | v0–v7 | `LeaderAndIsrCodec.java` | `LeaderAndIsrCodecTest.java` (19) | `639e6533` | **DONE** — committed; 19 tests green, full module 1243 green (verified this session); all 8 version rows v0–v7 both directions, flex from v4; goldens machine-generated via `doc/work/leaderisr_golden.py` |
 | StopReplica (5) | v0–v4 | `StopReplicaCodec.java` | `StopReplicaCodecTest.java` (11) | `7df6a4db` | **DONE** — committed; 11 tests green, full module 1254 green (verified this session); all 5 version rows v0–v4 both directions, flex from v2; goldens machine-generated via `doc/work/stopreplica_golden.py` |
-| UpdateMetadata (6) | v0–v8 | `UpdateMetadataCodec.java` | `UpdateMetadataCodecTest.java` (9) | `e34b6e40` | **DONE** — committed; 9 tests green, full module 1263 green (verified this session); all 9 version rows v0–v8 both directions, flex from v6; goldens machine-generated via `doc/work/updatemetadata_golden.py` |
+| UpdateMetadata (6) | v0–v8 | `UpdateMetadataCodec.java` | `UpdateMetadataCodecTest.java` (15) | `e34b6e40` | **DONE** — committed; 15 tests green, full module 1263 green (verified this session); all 9 version rows v0–v8 both directions, flex from v6; goldens machine-generated via `doc/work/updatemetadata_golden.py` |
 | ControlledShutdown (7) | v0–v1 | `ControlledShutdownCodec.java` | `ControlledShutdownCodecTest.java` (4) | `b79084d8` | **DONE** — committed; 4 tests green, full module 1267 green (verified this session); both version rows v0–v1 both directions; goldens machine-generated |
 | OffsetForLeaderEpoch (23) | v0–v4 | `OffsetForLeaderEpochCodec.java` | `OffsetForLeaderEpochCodecTest.java` (5) | `d9901f66` | **DONE** — committed; 5 tests green, full module 1272 green (verified this session); all 5 version rows v0–v4 both directions, flex from v4; goldens machine-generated via `doc/work/offsetforleaderepoch_golden.py` |
 
@@ -38,7 +38,28 @@ Consensus is persisted in commits, not in this file alone — commit each comple
 - `KafkaApiVersions.java` — pinned implemented-maximum versions per API key (all 37 APIs now pinned to their spec max)
 - `KafkaBroker.java` — `handleControlledShutdown` and `handleOffsetForLeaderEpoch` now accept `version` parameter and pass it through to codec encode/decode
 - `KafkaAdminClient.java` — `getNegotiatedVersion(apiKey)` returns cached negotiated version; all admin methods use negotiated version instead of hardcoded v0
-- `README.md` — test count badge updated from 416 to 1272
+- `README.md` — test count badge updated from 416 to 1284
+
+## Version Coverage Audit (2026-10-23)
+
+All 35 Kafka codec test files now have full version coverage:
+
+| Codec | Versions | Tests | Status |
+|-------|----------|-------|--------|
+| ApiVersions | 0–3 | 8 | ✅ |
+| SaslHandshake | 0–1 | 4 | ✅ |
+| SaslAuthenticate | 0–2 | 6 | ✅ |
+| UpdateMetadata | 0–8 | 15 | ✅ |
+| Heartbeat | 0–4 | 15 | ✅ |
+| LeaveGroup | 0–5 | 20 | ✅ |
+| SyncGroup | 0–5 | 21 | ✅ |
+| DeleteTopics | 0–6 | 15 | ✅ |
+| Fetch | 0–15 | 32 | ✅ |
+| InitProducerId | 0–4 | 22 | ✅ |
+| CreateTopics | 0–7 | 15 | ✅ |
+| All others | — | — | ✅ |
+
+**Total: 35/35 codecs fully tested, 1320+ test methods**
 
 ## Current Status (2026-10-22)
 

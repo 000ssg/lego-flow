@@ -2,6 +2,7 @@ package ssg.legoflow.messaging.kafka.codec;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
@@ -62,6 +63,26 @@ class HeartbeatCodecTest {
             assertThat(HeartbeatCodec.encodeRequest((short) 0, REQUEST))
                     .isEqualTo(golden);
             assertThat(HeartbeatCodec.decodeRequest((short) 0, ByteBuffer.wrap(golden)))
+                    .isEqualTo(REQUEST);
+        }
+
+        @Test
+        void v1_golden() {
+            // v1 is byte-identical to v0 (no field changes)
+            byte[] v0 = HeartbeatCodec.encodeRequest((short) 0, REQUEST);
+            byte[] v1 = HeartbeatCodec.encodeRequest((short) 1, REQUEST);
+            assertArrayEquals(v0, v1, "v1 must match v0");
+            assertThat(HeartbeatCodec.decodeRequest((short) 1, ByteBuffer.wrap(v1)))
+                    .isEqualTo(REQUEST);
+        }
+
+        @Test
+        void v2_golden() {
+            // v2 is byte-identical to v0 (no field changes)
+            byte[] v0 = HeartbeatCodec.encodeRequest((short) 0, REQUEST);
+            byte[] v2 = HeartbeatCodec.encodeRequest((short) 2, REQUEST);
+            assertArrayEquals(v0, v2, "v2 must match v0");
+            assertThat(HeartbeatCodec.decodeRequest((short) 2, ByteBuffer.wrap(v2)))
                     .isEqualTo(REQUEST);
         }
 

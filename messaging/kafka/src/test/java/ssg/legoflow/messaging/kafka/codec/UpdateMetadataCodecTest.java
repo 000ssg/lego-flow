@@ -50,6 +50,57 @@ class UpdateMetadataCodecTest {
     }
 
     @Test
+    void requestRoundTrip_v1() {
+        // v1 is identical to v0 (no field changes)
+        var req = new UpdateMetadataRequest(
+            0, 1, UpdateMetadataRequest.DEFAULT_BROKER_EPOCH,
+            UpdateMetadataRequest.DEFAULT_IS_KRAFT_CONTROLLER,
+            UpdateMetadataRequest.DEFAULT_TYPE,
+            List.of(
+                new UpdateMetadataRequest.PartitionState("topic1", 0, 1, 0, 1, List.of(0, 1, 2), 0, List.of(0, 1), null),
+                new UpdateMetadataRequest.PartitionState("topic1", 1, 1, 1, 1, List.of(0, 1), 0, List.of(0, 1), null)),
+            List.of(),
+            List.of(new UpdateMetadataRequest.BrokerState(0, "host1", 9092)));
+        byte[] bytes = UpdateMetadataCodec.encodeRequest((short) 1, req);
+        UpdateMetadataRequest decoded = UpdateMetadataCodec.decodeRequest((short) 1, ByteBuffer.wrap(bytes));
+        assertThat(decoded).isEqualTo(req);
+    }
+
+    @Test
+    void requestRoundTrip_v2() {
+        // v2 is identical to v0 (no field changes)
+        var req = new UpdateMetadataRequest(
+            0, 1, UpdateMetadataRequest.DEFAULT_BROKER_EPOCH,
+            UpdateMetadataRequest.DEFAULT_IS_KRAFT_CONTROLLER,
+            UpdateMetadataRequest.DEFAULT_TYPE,
+            List.of(
+                new UpdateMetadataRequest.PartitionState("topic1", 0, 1, 0, 1, List.of(0, 1, 2), 0, List.of(0, 1), null),
+                new UpdateMetadataRequest.PartitionState("topic1", 1, 1, 1, 1, List.of(0, 1), 0, List.of(0, 1), null)),
+            List.of(),
+            List.of(new UpdateMetadataRequest.BrokerState(0, "host1", 9092)));
+        byte[] bytes = UpdateMetadataCodec.encodeRequest((short) 2, req);
+        UpdateMetadataRequest decoded = UpdateMetadataCodec.decodeRequest((short) 2, ByteBuffer.wrap(bytes));
+        assertThat(decoded).isEqualTo(req);
+    }
+
+    @Test
+    void requestRoundTrip_v3() {
+        // v3 is identical to v0 (no field changes)
+        var req = new UpdateMetadataRequest(
+            0, 1, UpdateMetadataRequest.DEFAULT_BROKER_EPOCH,
+            UpdateMetadataRequest.DEFAULT_IS_KRAFT_CONTROLLER,
+            UpdateMetadataRequest.DEFAULT_TYPE,
+            List.of(
+                new UpdateMetadataRequest.PartitionState("topic1", 0, 1, 0, 1, List.of(0, 1, 2), 0, List.of(0, 1), null),
+                new UpdateMetadataRequest.PartitionState("topic1", 1, 1, 1, 1, List.of(0, 1), 0, List.of(0, 1), null)),
+            List.of(),
+            List.of(new UpdateMetadataRequest.BrokerState(0, "host1", 9092)));
+        byte[] bytes = UpdateMetadataCodec.encodeRequest((short) 3, req);
+        UpdateMetadataRequest decoded = UpdateMetadataCodec.decodeRequest((short) 3, ByteBuffer.wrap(bytes));
+        assertThat(decoded).isEqualTo(req);
+    }
+
+    @Test
     void requestRoundTrip_v4() {
         var req = new UpdateMetadataRequest(
             0, 1, UpdateMetadataRequest.DEFAULT_BROKER_EPOCH,
@@ -87,6 +138,38 @@ class UpdateMetadataCodecTest {
         assertRoundTrip(req, REQ_V8, (short) 8);
     }
 
+    @Test
+    void requestRoundTrip_v6() {
+        // v6 uses flexible encoding (same structure as v5)
+        var req = new UpdateMetadataRequest(
+            0, 1, 0x3039L,
+            UpdateMetadataRequest.DEFAULT_IS_KRAFT_CONTROLLER,
+            UpdateMetadataRequest.DEFAULT_TYPE,
+            List.of(),
+            List.of(new UpdateMetadataRequest.TopicState("topic1",
+                List.of(new UpdateMetadataRequest.PartitionState(null, 0, 1, 0, 1, List.of(0, 1, 2), 0, List.of(0, 1), null)))),
+            List.of(new UpdateMetadataRequest.BrokerState(0, "host1", 9092)));
+        byte[] bytes = UpdateMetadataCodec.encodeRequest((short) 6, req);
+        UpdateMetadataRequest decoded = UpdateMetadataCodec.decodeRequest((short) 6, ByteBuffer.wrap(bytes));
+        assertThat(decoded).isEqualTo(req);
+    }
+
+    @Test
+    void requestRoundTrip_v7() {
+        // v7 uses flexible encoding (same structure as v5)
+        var req = new UpdateMetadataRequest(
+            0, 1, 0x3039L,
+            UpdateMetadataRequest.DEFAULT_IS_KRAFT_CONTROLLER,
+            UpdateMetadataRequest.DEFAULT_TYPE,
+            List.of(),
+            List.of(new UpdateMetadataRequest.TopicState("topic1",
+                List.of(new UpdateMetadataRequest.PartitionState(null, 0, 1, 0, 1, List.of(0, 1, 2), 0, List.of(0, 1), null)))),
+            List.of(new UpdateMetadataRequest.BrokerState(0, "host1", 9092)));
+        byte[] bytes = UpdateMetadataCodec.encodeRequest((short) 7, req);
+        UpdateMetadataRequest decoded = UpdateMetadataCodec.decodeRequest((short) 7, ByteBuffer.wrap(bytes));
+        assertThat(decoded).isEqualTo(req);
+    }
+
     // ── Response round-trip tests ────────────────────────────────────────────
 
     @Test
@@ -111,6 +194,22 @@ class UpdateMetadataCodecTest {
     void responseRoundTrip_v8() {
         var resp = new UpdateMetadataResponse((short) 0);
         assertRoundTrip(resp, RESP_V8, (short) 8);
+    }
+
+    @Test
+    void responseRoundTrip_v6() {
+        var resp = new UpdateMetadataResponse((short) 0);
+        byte[] bytes = UpdateMetadataCodec.encodeResponse((short) 6, resp);
+        UpdateMetadataResponse decoded = UpdateMetadataCodec.decodeResponse((short) 6, ByteBuffer.wrap(bytes));
+        assertThat(decoded).isEqualTo(resp);
+    }
+
+    @Test
+    void responseRoundTrip_v7() {
+        var resp = new UpdateMetadataResponse((short) 0);
+        byte[] bytes = UpdateMetadataCodec.encodeResponse((short) 7, resp);
+        UpdateMetadataResponse decoded = UpdateMetadataCodec.decodeResponse((short) 7, ByteBuffer.wrap(bytes));
+        assertThat(decoded).isEqualTo(resp);
     }
 
     // ── Version constraint tests ─────────────────────────────────────────────
