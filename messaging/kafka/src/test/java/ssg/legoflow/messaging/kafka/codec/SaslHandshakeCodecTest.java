@@ -1,6 +1,7 @@
 package ssg.legoflow.messaging.kafka.codec;
 
 import java.nio.ByteBuffer;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.messaging.kafka.protocol.SaslHandshakeRequest;
 import ssg.legoflow.messaging.kafka.protocol.SaslHandshakeResponse;

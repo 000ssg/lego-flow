@@ -66,24 +66,6 @@ class SyncGroupCodecTest {
 
         @Test
         void v0_golden() {
-            // GroupId(string16 "group-a") + GenerationId(int32 1) + MemberId
-            // (string16 "member-1") + Assignments count(int32 1) + entry:
-            // MemberId(string16 "member-1") + Assignment(bytes3 {1,2,3})
-            byte[] golden = fromHex(
-                    "000767726f75702d61" +   // "group-a"
-                    "00000001" +             // GenerationId
-                    "00086d656d6265722d31" + // "member-1"
-                    "00000001" +             // Assignments count = 1
-                    "00086d656d6265722d31" + // entry MemberId "member-1"
-                    "00000003010203");       // Assignment bytes {1,2,3}
-            assertThat(SyncGroupCodec.encodeRequest((short) 0, REQUEST))
-                    .isEqualTo(golden);
-            assertRequestEquals(REQUEST,
-                    SyncGroupCodec.decodeRequest((short) 0, ByteBuffer.wrap(golden)));
-        }
-
-        @Test
-        void v0_golden() {
             // GroupId(string16 "group-a") + GenerationId(int32 1) + MemberId(string16 "member-1")
             // + Assignments count(int32 1) + entry { MemberId "member-1", Assignment {1,2,3} }
             byte[] golden = fromHex(
