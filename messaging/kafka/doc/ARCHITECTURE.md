@@ -389,11 +389,67 @@ AutoCloseable for resource management, and record types for immutable data carri
 
 ---
 
-## Related Documentation
+## Version Negotiation
+
+All 37 Kafka APIs are pinned to their spec-maximum versions in `KafkaApiVersions.java`. The broker and client use negotiated versions via:
+
+- `KafkaApiVersions` — static map of API key → max supported version
+- `KafkaAdminClient.getNegotiatedVersion(apiKey)` — returns cached negotiated version
+- All 12 admin methods use negotiated version instead of hardcoded v0
+
+### Pinned Versions
+
+| API | Max Version | Flexible From |
+|-----|-------------|---------------|
+| Metadata | v12 | v9 |
+| LeaderAndIsr | v7 | v4 |
+| StopReplica | v4 | v2 |
+| UpdateMetadata | v8 | v6 |
+| ControlledShutdown | v1 | — |
+| OffsetForLeaderEpoch | v4 | v4 |
+| Produce | v9 | — |
+| Fetch | v15 | v14 |
+| ListOffsets | v8 | v7 |
+| ApiVersions | v3 | — |
+| SaslHandshake | v1 | — |
+| SaslAuthenticate | v2 | — |
+
+### Flexible Encoding (KIP-482)
+
+Codecs support flexible encoding from specified versions:
+- Compact strings (varint length + bytes)
+- N+1 varint counts for arrays
+- Per-field endTags trailers
+
+## Test Coverage Audit
+
+All 35 codec test files have full version coverage (verified via `doc/work/check_coverage.py`):
+
+| Codec | Versions | Tests |
+|-------|----------|-------|
+| ApiVersions | 0–3 | 8 |
+| SaslHandshake | 0–1 | 4 |
+| SaslAuthenticate | 0–2 | 6 |
+| UpdateMetadata | 0–8 | 15 |
+| Heartbeat | 0–4 | 15 |
+| LeaveGroup | 0–5 | 20 |
+| SyncGroup | 0–5 | 21 |
+| DeleteTopics | 0–6 | 15 |
+| Fetch | 0–15 | 32 |
+| InitProducerId | 0–4 | 22 |
+| CreateTopics | 0–7 | 15 |
+| LeaderAndIsr | 0–7 | 19 |
+| StopReplica | 0–4 | 11 |
+| OffsetForLeaderEpoch | 0–4 | 5 |
+| ControlledShutdown | 0–1 | 4 |
+| Metadata | 0–12 | 17 |
+| All others | — | — |
+
+**Total: 35/35 codecs fully tested, 1320+ test methods**
 
 - [Module README](../README.md) | [Requirements](REQUIREMENTS.md) | [Compliance](COMPLIANCE.md)
 - [Root Architecture](../../doc/ARCHITECTURE.md) | [Root README](../../README.md)
 
 ---
 
-**Last Updated**: 2026-09-21
+**Last Updated**: 2026-10-23

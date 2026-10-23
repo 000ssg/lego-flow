@@ -3,7 +3,7 @@
 ## Timeline Overview
 
 - **Module Added**: June 2026
-- **Tests**: 218
+| **Tests**: 1320+ |
 - **Dependencies**: blocks (DP/DF), service (TCP transport)
 - **Standards**: Apache Kafka Wire Protocol (v2 record batch format)
 
@@ -15,7 +15,7 @@
 1. Encode and decode request/response frames with 4-byte length prefix
 2. Encode/decode request headers: apiKey (int16), apiVersion (int16), correlationId (int32), clientId (nullable string)
 3. Encode/decode response headers: correlationId (int32)
-4. Support all 18 API types: Produce (0), Fetch (1), ListOffsets (2), Metadata (3), OffsetCommit (8), OffsetFetch (9), FindCoordinator (10), JoinGroup (11), Heartbeat (12), LeaveGroup (13), SyncGroup (14), DescribeGroups (15), ApiVersions (18), CreateTopics (19), DeleteTopics (20), InitProducerId (22), AddPartitionsToTxn (24), EndTxn (26)
+4. Support all 37 API types: Produce (0), Fetch (1), ListOffsets (2), Metadata (3), LeaderAndIsr (4), StopReplica (5), UpdateMetadata (6), ControlledShutdown (7), OffsetCommit (8), OffsetFetch (9), FindCoordinator (10), JoinGroup (11), Heartbeat (12), LeaveGroup (13), SyncGroup (14), DescribeGroups (15), ListGroups (16), SaslHandshake (17), ApiVersions (18), CreateTopics (19), DeleteTopics (20), DeleteRecords (21), InitProducerId (22), OffsetForLeaderEpoch (23), AddPartitionsToTxn (24), AddOffsetsToTxn (25), EndTxn (26), WriteTxnMarkers (27), TxnOffsetCommit (28), DescribeConfigs (32), AlterConfigs (33), SaslAuthenticate (36), CreatePartitions (37), DeleteGroups (42), AlterPartitionReassignments (45), ListPartitionReassignments (46), OffsetDelete (47)
 5. Use Kafka string encoding: 2-byte length prefix, -1 for null
 6. Use Kafka array encoding: 4-byte count prefix, -1 for null
 
