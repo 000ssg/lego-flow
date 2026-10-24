@@ -152,11 +152,11 @@ class WampInteropTest {
 
         // Wait for RESULT
         assertThat(callLatch.await(5, TimeUnit.SECONDS)).isTrue();
-        WampMessage.RESULT result = (WampMessage.RESULT) resultRef.get();
-        assertThat(result.arguments()).containsExactly(30);
+        WampMessage.Result result = (WampMessage.Result) resultRef.get();
+        assertThat(result.args()).containsExactly(30);
 
         // Unregister
-        client.unregister(((WampMessage.REGISTERED) regAckRef.get()).registrationId());
+        client.unregister(((WampMessage.Registered) regAckRef.get()).registrationId());
 
         client.close();
     }

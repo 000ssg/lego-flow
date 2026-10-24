@@ -55,7 +55,7 @@ public class WampWebSocketClient {
         AtomicReference<Throwable> errorRef = new AtomicReference<>();
 
         CompletionStage<WebSocket> wsStage = client.newWebSocketBuilder()
-                .subprotocols(List.of(WAMP_SUBPROTOCOL))
+                .subprotocols(WAMP_SUBPROTOCOL)
                 .buildAsync(wsUri, new WebSocket.Listener() {
                     @Override
                     public void onOpen(WebSocket ws) {
@@ -214,7 +214,7 @@ public class WampWebSocketClient {
         if (webSocket != null) {
             try {
                 webSocket.sendText(serializer.serialize(new WampMessage.Goodbye(Map.of(), "wamp.error.goodbye")), true);
-                webSocket.close(1000);
+                webSocket.close();
             } catch (Exception e) {
                 LOG.warn("Error closing WebSocket", e);
             }
