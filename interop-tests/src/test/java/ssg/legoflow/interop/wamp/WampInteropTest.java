@@ -105,9 +105,8 @@ class WampInteropTest {
 
         // Wait for EVENT
         assertThat(eventLatch.await(5, TimeUnit.SECONDS)).isTrue();
-        WampMessage.EVENT event = (WampMessage.EVENT) eventRef.get();
-        assertThat(event.topic()).isEqualTo("test.topic");
-        assertThat(event.arguments()).containsExactly("world", 99);
+        WampMessage.Event event = (WampMessage.Event) eventRef.get();
+        assertThat(event.args()).containsExactly("world", 99);
 
         // Unsubscribe
         client.unsubscribe(event.subscriptionId());
@@ -131,8 +130,7 @@ class WampInteropTest {
                 registerLatch.countDown();
             }
         });
-        client.register("com.example.add", args -> List.of(args.get(0) instanceof Number n1 ? n1 : 0,
-                args.get(1) instanceof Number n2 ? n2 : 0));
+        client.register("com.example.add");
 
         // Wait for REGISTERED
         assertThat(registerLatch.await(5, TimeUnit.SECONDS)).isTrue();

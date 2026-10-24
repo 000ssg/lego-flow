@@ -65,7 +65,7 @@ public class WampWebSocketClient {
                     }
 
                     @Override
-                    public void onMessage(WebSocket ws, CharSequence text, CompletionStage<?> ack) {
+                    public CompletionStage<?> onText(WebSocket ws, CharSequence text, boolean last) {
                         try {
                             String json = text.toString();
                             WampMessage msg = serializer.deserialize(json);
@@ -77,13 +77,13 @@ public class WampWebSocketClient {
                         } catch (Exception e) {
                             LOG.error("Failed to deserialize WAMP message: {}", text, e);
                         }
-                        ack.thenAccept(v -> ws.request(1));
+                        ws.request(1);
+                        return null;
                     }
 
                     @Override
-                    public void onError(WebSocket ws, Throwable error) {
-                        errorRef.set(error);
-                        connectLatch.countDown();
+                    public CompletionStage<?> onClose(WebSocket ws, int statusCode, String reason) {
+                        return null;
                     }
                 });
 
