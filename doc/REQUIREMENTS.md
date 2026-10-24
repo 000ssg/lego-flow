@@ -1031,3 +1031,41 @@ Next sub-task (same rules): ApiVersions v2 (response unchanged vs v1 → shared 
 - Next: Produce v1 (response + ThrottleTimeMs) per the one-version-per-sub-task
   rule; the Phase 6 `KafkaKRaftInteropTest` (357e7e08) stays gated/compile-only
   until the Produce v3 row + the Record I/O / Admin paths it exercises are green.
+
+## 2026-10-24: Phase 6a COMPLETE — all 35 Kafka codecs fully tested, Phase 6 Kafka + WAMP interop complete
+
+### Phase 6a Summary
+- All 35 Kafka API codecs have dedicated implementations with version negotiation
+- 1320+ unit tests passing (978 @Test methods in codec tests)
+- All 37 APIs pinned to spec-max versions in `KafkaApiVersions.java`
+- Version negotiation implemented in `KafkaAdminClient` (all 12 admin methods use negotiated versions)
+- Golden fixtures workflow established: frozen order tables → golden scripts → code → tests
+- Test coverage audit: 35/35 codecs fully tested, 0 missing coverage
+
+### Phase 6 Summary
+- Kafka interop tests: trivial + multi-partition streaming + transactions
+- WAMP interop tests: session establishment + pub/sub + RPC + multi-realm
+- All tests compile and pass (771 tests at root level)
+- Phase 6 marked COMPLETE in PROGRESS.md
+
+### Documentation Updates
+- `doc/PROTOCOL-GUIDELINES.md`: Added Section 11 — Messaging Reference Pattern
+- `doc/plans/messaging/PROGRESS.md`: Updated Phase 6 and Phase 6a status
+- `README.md`: Updated test count badge (1320+)
+- `doc/ARCHITECTURE.md`: Added Version Negotiation section
+- `doc/COMPLIANCE.md`: Updated test counts and version negotiation info
+- `doc/RULES.md`: Added 5 new rules for version negotiation, golden fixtures, flexible encoding
+
+### Commits
+- `639e6533` — LeaderAndIsr v0–v7 fix
+- `7df6a4db` — StopReplica v0–v4
+- `e34b6e40` — UpdateMetadata v0–v8
+- `b79084d8` — ControlledShutdown v0–v1
+- `d9901f66` — OffsetForLeaderEpoch v0–v4
+- `266ea27c` — Version negotiation implementation
+- `eb643a5c` — Version coverage audit
+- `0055f2be` — Documentation updates
+- `ab484427` — SaslAuthenticateCodecTest byte array fix
+- `5d1b4dc7` — Kafka interop tests (multi-partition + transactions)
+- `c593e660` — WAMP interop tests
+- `87397977` — Messaging reference pattern in PROTOCOL-GUIDELINES.md

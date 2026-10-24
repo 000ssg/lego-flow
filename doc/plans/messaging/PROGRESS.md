@@ -109,8 +109,8 @@
 - [ ] Commit Phase 6
 
 ### Phase 7 — Guidelines + final docs
-- [ ] Refine `doc/PROTOCOL-GUIDELINES.md` (messaging reference pattern section)
-- [ ] Module docs for nats/xmpp/kafka
+- [x] Refine `doc/PROTOCOL-GUIDELINES.md` (messaging reference pattern section)
+- [x] Module docs for nats/xmpp/kafka (README.md already complete)
 - [ ] Root `doc/REQUIREMENTS.md` append
 - [ ] Full verification (unit + coverage + interop groups 1–3)
 - [ ] Commit Phase 7
