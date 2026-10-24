@@ -214,7 +214,7 @@ public class WampWebSocketClient {
         if (webSocket != null) {
             try {
                 webSocket.sendText(serializer.serialize(new WampMessage.Goodbye(Map.of(), "wamp.error.goodbye")), true);
-                webSocket.close();
+                webSocket.sendClose(1000, "Normal closure");
             } catch (Exception e) {
                 LOG.warn("Error closing WebSocket", e);
             }
