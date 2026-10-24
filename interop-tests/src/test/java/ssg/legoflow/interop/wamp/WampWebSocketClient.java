@@ -77,8 +77,7 @@ public class WampWebSocketClient {
                         } catch (Exception e) {
                             LOG.error("Failed to deserialize WAMP message: {}", text, e);
                         }
-                        ack.complete(null);
-                        ws.request(1);
+                        ack.thenAccept(v -> ws.request(1));
                     }
 
                     @Override
@@ -164,7 +163,7 @@ public class WampWebSocketClient {
      * @param args the event arguments
      */
     public void publish(String topic, List<Object> args) {
-        WampMessage.Publish publish = new WampMessage.Publish(topic, args, Map.of());
+        WampMessage.Publish publish = new WampMessage.Publish(nextRequestId++, Map.of(), topic, args);
         send(publish);
     }
 
@@ -175,7 +174,7 @@ public class WampWebSocketClient {
      * @param args the procedure arguments
      */
     public void call(String procedure, List<Object> args) {
-        WampMessage.Call call = new WampMessage.Call(nextRequestId++, procedure, args, Map.of());
+        WampMessage.Call call = new WampMessage.Call(nextRequestId++, Map.of(), procedure, args);
         send(call);
     }
 
