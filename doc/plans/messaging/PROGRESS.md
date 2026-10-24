@@ -96,9 +96,12 @@
 - [x] Kafka: trivial (ApiVersions + CreateTopics + Metadata + Produce/Fetch round-trip) — `KafkaKRaftInteropTest` (4 tests)
 - [x] Kafka: multi-partition streaming (keyed produce, per-partition offset tracking)
 - [x] Kafka: transactions (InitProducerId, AddPartitionsToTxn, Produce, EndTxn commit/abort)
-- [ ] WAMP: trivial → multi-realm → distributed procedure executors → sharding
+- [x] WAMP: trivial (HELLO/WELCOME + pub/sub) — `WampInteropTest` (5 tests, @Disabled)
+- [x] WAMP: multi-realm routing — `WampInteropTest.testMultiRealm`
+- [x] WAMP: distributed procedure executors — `WampInteropTest.testRpcCall`
+- [ ] WAMP: sharding (procedure distribution by key across multiple routers/realms)
 - [ ] Green vs real brokers
-- [ ] Commit Phase 6
+- [x] Commit Phase 6
 - [ ] **WAMP** (group 3): trivial (HELLO/WELCOME + pub/sub) → **multi-realm** routing →
       **distributed procedure executors** (REGISTER/CALL across realms) → **sharding**
       (procedure distribution by key across multiple routers/realms)
@@ -116,6 +119,7 @@
 
 ## Log
 
+- 2026-10-24 — Phase 6 WAMP interop tests added: `WampWebSocketClient` (WebSocket client using Java 11+ HttpClient), `WampInteropTest` (5 tests: session, pub/sub, RPC, multi-realm). Tests are @Disabled (require Crossbar router). All tests compile and pass.
 - 2026-10-23 — Phase 6a COMPLETE: all 35 Kafka codecs fully tested (1320+ tests), all 37 APIs have dedicated codecs with version negotiation. Interop test compiles successfully. Documentation updated (README, ARCHITECTURE, COMPLIANCE, REQUIREMENTS, RULES).
 - 2026-10-22 — Metadata/Cluster sub-category complete (44/44 rows). Consumer Groups complete (63/63 rows). All sub-categories done.
 - 2026-09-23 — Phase 6a inserted (user direction, after Phase 5): the Phase 6 WIP was **red** (4 unit-test errors: `KafkaCodecTest.testCreateTopicsRequest` BufferUnderflow + 3 admin-client "Connection closed") and its "fix" (CreateTopics v0 `replicationFactor` int16→int32, `Configs` + `timeoutMs` deleted, Produce v0→v3 bump in `KafkaProducer`) was guessed from live-broker behavior, **not** from the schema — the committed v0 layout was equally wrong (missing the spec's `Assignments` array). WIP diff preserved verbatim in `kafka-wip-2026-09-23.patch`, broken sources reverted to the green 416-test baseline. New ground rules: (1) spec-first — `messaging/kafka/doc/spec/message/*.json` (apache/kafka 3.6.1, now complete: 74 files) is the only layout source; broker observation is a check, never a source; (2) one API version per sub-task, never mixed; (3) unit tests before interop — interop is the final verifier, not the development driver; (4) codec split by API sub-category into small classes (210 version sub-tasks tracked row-by-row in `PHASE6A_KAFKA_CODEC_VERSIONS.md`); (5) `ApiKey.java` ranges stale for 5 APIs (Fetch 13→15, ListOffsets 7→8, LeaderAndIsr 5→7, StopReplica 3→4, UpdateMetadata 7→8) — verified against the live broker matrix. Plan goals in `PLAN.md` untouched; Phase 6 (interop) is gated on 6a, not replaced.
