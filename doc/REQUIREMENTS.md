@@ -1069,3 +1069,28 @@ Next sub-task (same rules): ApiVersions v2 (response unchanged vs v1 → shared 
 - `5d1b4dc7` — Kafka interop tests (multi-partition + transactions)
 - `c593e660` — WAMP interop tests
 - `87397977` — Messaging reference pattern in PROTOCOL-GUIDELINES.md
+
+## 2026-10-26: KafkaConnection compile fix — correct ApiKey import + ApiVersionsResponse accessor (version negotiation)
+
+### Problem
+`KafkaConnection` (added in `88b0ff68`/`9374bf4c` for version negotiation) did not compile:
+- imported `ssg.legoflow.messaging.kafka.protocol.ApiKey` — the enum lives in `ssg.legoflow.messaging.kafka.common.ApiKey`
+- called `response.apiVersions()` — the `ApiVersionsResponse` record accessor is `apiKeys()`
+- checked `entry.errorCode()` per `ApiVersion` entry — the error code is a field of the
+  `ApiVersionsResponse` itself, not of each `ApiVersion` entry
+
+### Fix
+- Import `ssg.legoflow.messaging.kafka.common.ApiKey` (and keep `KafkaErrors` from `common`)
+- Iterate `response.apiKeys()`; guard the whole loop with
+  `response.errorCode() == KafkaErrors.NONE.code()` (spec: a non-zero response error code
+  means the apiKeys list is empty/meaningless)
+- `setNegotiatedVersion(entry.apiKey(), entry.maxVersion())` unchanged
+
+### Verification
+- `mvn compile -DskipTests -pl '!benchmarks'` — full repo green
+- `mvn test -pl messaging/kafka` — **1320 tests, 0 failures, 0 errors**
+- No remaining references to `messaging.kafka.protocol.ApiKey` or `.apiVersions()` in the repo
+
+### Commits
+- `9374bf4c` — fix: add missing imports to KafkaConnection (incomplete — wrong package + wrong accessor)
+- this commit — completes the fix

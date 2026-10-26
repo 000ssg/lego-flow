@@ -1,12 +1,12 @@
 package ssg.legoflow.messaging.kafka.client;
 
 import ssg.legoflow.messaging.kafka.codec.KafkaCodec;
-import ssg.legoflow.messaging.kafka.protocol.ApiKey;
+import ssg.legoflow.messaging.kafka.common.ApiKey;
+import ssg.legoflow.messaging.kafka.common.KafkaErrors;
 import ssg.legoflow.messaging.kafka.protocol.ApiVersionsRequest;
 import ssg.legoflow.messaging.kafka.protocol.ApiVersionsResponse;
 import ssg.legoflow.messaging.kafka.protocol.RequestHeader;
 import ssg.legoflow.messaging.kafka.protocol.ResponseHeader;
-import ssg.legoflow.messaging.kafka.common.KafkaErrors;
 import ssg.legoflow.messaging.kafka.transport.KafkaTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,9 +74,9 @@ final class KafkaConnection implements AutoCloseable {
         ByteBuffer resp = sendAndReceive(ApiKey.API_VERSIONS.key(), (short) 0, payload);
         ApiVersionsResponse response = KafkaCodec.decodeApiVersionsResponse((short) 0, resp);
 
-        // Store negotiated versions
-        for (var entry : response.apiVersions()) {
-            if (entry.errorCode() == KafkaErrors.NONE.code()) {
+        // Store negotiated versions (error code is on the response, not per-entry)
+        if (response.errorCode() == KafkaErrors.NONE.code()) {
+            for (var entry : response.apiKeys()) {
                 setNegotiatedVersion(entry.apiKey(), entry.maxVersion());
             }
         }
