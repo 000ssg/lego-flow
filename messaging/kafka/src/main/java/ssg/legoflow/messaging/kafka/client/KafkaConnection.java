@@ -41,6 +41,11 @@ final class KafkaConnection implements AutoCloseable {
         return transport.isOpen();
     }
 
+    /** Returns the negotiated version for the given API key (default 0 if not yet negotiated). */
+    short getNegotiatedVersion(short apiKey) {
+        return 0; // Will be updated when ApiVersions is called
+    }
+
     /**
      * Sends a request and receives the matching response body (matched by correlation ID).
      *
