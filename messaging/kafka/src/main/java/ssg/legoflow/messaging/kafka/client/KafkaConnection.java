@@ -1,8 +1,12 @@
 package ssg.legoflow.messaging.kafka.client;
 
 import ssg.legoflow.messaging.kafka.codec.KafkaCodec;
+import ssg.legoflow.messaging.kafka.protocol.ApiKey;
+import ssg.legoflow.messaging.kafka.protocol.ApiVersionsRequest;
+import ssg.legoflow.messaging.kafka.protocol.ApiVersionsResponse;
 import ssg.legoflow.messaging.kafka.protocol.RequestHeader;
 import ssg.legoflow.messaging.kafka.protocol.ResponseHeader;
+import ssg.legoflow.messaging.kafka.common.KafkaErrors;
 import ssg.legoflow.messaging.kafka.transport.KafkaTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
