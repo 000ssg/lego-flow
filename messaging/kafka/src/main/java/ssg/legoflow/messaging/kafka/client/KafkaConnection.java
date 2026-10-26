@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 /**
@@ -28,6 +30,7 @@ final class KafkaConnection implements AutoCloseable {
     private final String clientId;
     private final AtomicInteger correlationIdCounter = new AtomicInteger(0);
     private final KafkaTransport transport;
+    private final Map<Short, Short> negotiatedVersions = new ConcurrentHashMap<>();
 
     KafkaConnection(KafkaTransport transport, String clientId) {
         if (transport == null) {
@@ -43,7 +46,39 @@ final class KafkaConnection implements AutoCloseable {
 
     /** Returns the negotiated version for the given API key (default 0 if not yet negotiated). */
     short getNegotiatedVersion(short apiKey) {
-        return 0; // Will be updated when ApiVersions is called
+        return negotiatedVersions.getOrDefault(apiKey, (short) 0);
+    }
+
+    /**
+     * Updates the negotiated version for the given API key.
+     *
+     * @param apiKey the API key
+     * @param version the negotiated version
+     */
+    void setNegotiatedVersion(short apiKey, short version) {
+        negotiatedVersions.put(apiKey, version);
+    }
+
+    /**
+     * Negotiates API versions with the broker by sending an ApiVersions request.
+     *
+     * @return the ApiVersions response
+     * @throws IOException if the request fails
+     */
+    ApiVersionsResponse negotiateVersions() throws IOException {
+        byte[] payload = KafkaCodec.encodeApiVersionsRequest((short) 0, new ApiVersionsRequest());
+        ByteBuffer resp = sendAndReceive(ApiKey.API_VERSIONS.key(), (short) 0, payload);
+        ApiVersionsResponse response = KafkaCodec.decodeApiVersionsResponse((short) 0, resp);
+
+        // Store negotiated versions
+        for (var entry : response.apiVersions()) {
+            if (entry.errorCode() == KafkaErrors.NONE.code()) {
+                setNegotiatedVersion(entry.apiKey(), entry.maxVersion());
+            }
+        }
+
+        LOG.info("Negotiated API versions: {}", negotiatedVersions);
+        return response;
     }
 
     /**
