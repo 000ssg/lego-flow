@@ -215,7 +215,8 @@ jobs:
     name: "Interop (${{ matrix.group }})"
     runs-on: ubuntu-latest
     needs: build
-    if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-interop') }}
+    # Run by default; can be skipped with 'skip-interop' label on PR
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-interop') }}
     strategy:
       fail-fast: false
       matrix:
