@@ -244,7 +244,7 @@ public final class KafkaConsumer implements AutoCloseable {
         }
 
         OffsetCommitRequest request = new OffsetCommitRequest(groupId, generationId, memberId, topics);
-        short offsetCommitVersion = connection.getAdminClient().getNegotiatedVersion(ApiKey.OFFSET_COMMIT.key());
+        short offsetCommitVersion = connection.getNegotiatedVersion(ApiKey.OFFSET_COMMIT.key());
         byte[] payload = KafkaCodec.encodeOffsetCommitRequest(offsetCommitVersion, request);
         connection.sendAndReceive(ApiKey.OFFSET_COMMIT.key(), offsetCommitVersion, payload);
         lastCommitTime = System.currentTimeMillis();
@@ -474,7 +474,7 @@ public final class KafkaConsumer implements AutoCloseable {
         }
 
         OffsetFetchRequest request = new OffsetFetchRequest(groupId, topics);
-        short offsetFetchVersion = connection.getAdminClient().getNegotiatedVersion(ApiKey.OFFSET_FETCH.key());
+        short offsetFetchVersion = connection.getNegotiatedVersion(ApiKey.OFFSET_FETCH.key());
         byte[] payload = KafkaCodec.encodeOffsetFetchRequest(offsetFetchVersion, request);
         ByteBuffer resp = connection.sendAndReceive(ApiKey.OFFSET_FETCH.key(), offsetFetchVersion, payload);
         OffsetFetchResponse response = KafkaCodec.decodeOffsetFetchResponse((short) 0, resp);
