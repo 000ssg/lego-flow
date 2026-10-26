@@ -308,6 +308,12 @@ public final class KafkaConsumer implements AutoCloseable {
     // --- Group protocol ---
 
     private void joinGroup() throws IOException {
+        // Find the group coordinator first
+        FindCoordinatorResponse coordResp = findCoordinator(groupId, FindCoordinatorRequest.KEY_TYPE_GROUP);
+        if (coordResp.errorCode() != KafkaErrors.NONE.code()) {
+            throw new IOException("FindCoordinator failed: " + KafkaErrors.forCode(coordResp.errorCode()));
+        }
+
         // Encode subscription metadata
         byte[] metadata = ConsumerGroupCoordinator.encodeSubscription(subscribedTopics);
 
@@ -536,5 +542,11 @@ public final class KafkaConsumer implements AutoCloseable {
             }
             connection.close();
         }
+    }
+
+    private FindCoordinatorResponse findCoordinator(String key, byte keyType) throws IOException {
+        byte[] payload = KafkaCodec.encodeFindCoordinatorRequest((short) 0, new FindCoordinatorRequest(key, keyType));
+        ByteBuffer resp = connection.sendAndReceive(ApiKey.FIND_COORDINATOR.key(), (short) 0, payload);
+        return KafkaCodec.decodeFindCoordinatorResponse((short) 0, resp);
     }
 }

@@ -116,7 +116,15 @@ public final class KafkaProducer implements AutoCloseable {
     }
 
     private void initProducerId() throws IOException {
-        byte[] payload = KafkaCodec.encodeInitProducerIdRequest((short) 0, 
+        // Find the transaction coordinator first (only for transactional producers)
+        if (transactionalId != null) {
+            FindCoordinatorResponse coordResp = findCoordinator(transactionalId, FindCoordinatorRequest.KEY_TYPE_TRANSACTION);
+            if (coordResp.errorCode() != KafkaErrors.NONE.code()) {
+                throw new IOException("FindCoordinator failed: " + KafkaErrors.forCode(coordResp.errorCode()));
+            }
+        }
+
+        byte[] payload = KafkaCodec.encodeInitProducerIdRequest((short) 0,
                 new InitProducerIdRequest(transactionalId, 60000));
         ByteBuffer resp = connection.sendAndReceive(ApiKey.INIT_PRODUCER_ID.key(), (short) 0, payload);
         InitProducerIdResponse response = KafkaCodec.decodeInitProducerIdResponse((short) 0, resp);
@@ -127,6 +135,12 @@ public final class KafkaProducer implements AutoCloseable {
         this.producerId = response.producerId();
         this.producerEpoch = response.producerEpoch();
         LOG.info("Initialized producer: id={}, epoch={}", producerId, producerEpoch);
+    }
+
+    private FindCoordinatorResponse findCoordinator(String key, byte keyType) throws IOException {
+        byte[] payload = KafkaCodec.encodeFindCoordinatorRequest((short) 0, new FindCoordinatorRequest(key, keyType));
+        ByteBuffer resp = connection.sendAndReceive(ApiKey.FIND_COORDINATOR.key(), (short) 0, payload);
+        return KafkaCodec.decodeFindCoordinatorResponse((short) 0, resp);
     }
 
     /**
