@@ -4,10 +4,11 @@ import ssg.legoflow.messaging.stomp.core.StompCodec;
 import ssg.legoflow.messaging.stomp.core.StompFrame;
 import ssg.legoflow.messaging.stomp.core.StompProtocolException;
 import java.io.ByteArrayOutputStream;
+import ssg.legoflow.service.channel.ByteTransport;
 import java.nio.ByteBuffer;
 
 /**
- * Frame-level codec that sits on top of a byte-level {@link StompTransport}.
+ * Frame-level codec that sits on top of a byte-level {@link ByteTransport}.
  *
  * <p>Handles frame encoding/decoding using {@link StompCodec} and provides
  * frame-level {@code send(StompFrame)} / {@code receive()} convenience methods.
@@ -32,21 +33,21 @@ public final class StompFrameCodec {
     private static final int READ_SIZE = 65536;
     private static final int MAX_ACCUMULATOR = 8 * 1024 * 1024;
 
-    private final StompTransport transport;
+    private final ByteTransport transport;
     private final boolean strictNull;
     private final ByteArrayOutputStream accumulator = new ByteArrayOutputStream(8192);
     private final ByteBuffer readBuffer = ByteBuffer.allocate(READ_SIZE);
 
-    public StompFrameCodec(StompTransport transport) {
+    public StompFrameCodec(ByteTransport transport) {
         this(transport, true);
     }
 
-    public StompFrameCodec(StompTransport transport, boolean strictNull) {
+    public StompFrameCodec(ByteTransport transport, boolean strictNull) {
         this.transport = transport;
         this.strictNull = strictNull;
     }
 
-    public StompTransport getTransport() {
+    public ByteTransport getTransport() {
         return transport;
     }
 

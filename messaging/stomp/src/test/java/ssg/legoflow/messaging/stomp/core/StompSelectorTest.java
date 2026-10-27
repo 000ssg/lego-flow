@@ -3,7 +3,7 @@ package ssg.legoflow.messaging.stomp.core;
 import org.junit.jupiter.api.*;
 import ssg.legoflow.messaging.stomp.core.transport.InMemoryStompTransport;
 import ssg.legoflow.messaging.stomp.transport.StompFrameCodec;
-import ssg.legoflow.messaging.stomp.transport.StompTransport;
+import ssg.legoflow.service.channel.ByteTransport;
 import java.util.concurrent.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import static org.assertj.core.api.Assertions.*;

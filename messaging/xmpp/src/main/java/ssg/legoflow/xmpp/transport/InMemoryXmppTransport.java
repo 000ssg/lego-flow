@@ -1,13 +1,14 @@
 package ssg.legoflow.xmpp.transport;
 
 import ssg.legoflow.service.channel.InMemoryByteHeadBuffer;
+import ssg.legoflow.service.channel.ByteTransport;
 
 /**
- * In-memory {@link XmppTransport} pair for testing the XMPP protocol without TCP sockets.
+ * In-memory {@link ByteTransport} pair for testing the XMPP protocol without TCP sockets.
  *
  * @since 0.1.0
  */
-public final class InMemoryXmppTransport extends InMemoryByteHeadBuffer implements XmppTransport {
+public final class InMemoryXmppTransport extends InMemoryByteHeadBuffer implements ByteTransport {
 
     public InMemoryXmppTransport(java.util.concurrent.BlockingQueue<java.nio.ByteBuffer> inbound,
                                  java.util.concurrent.BlockingQueue<java.nio.ByteBuffer> outbound) {

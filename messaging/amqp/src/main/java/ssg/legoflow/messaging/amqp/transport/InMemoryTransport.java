@@ -1,13 +1,14 @@
 package ssg.legoflow.messaging.amqp.transport;
 
 import ssg.legoflow.service.channel.InMemoryByteTransport;
+import ssg.legoflow.service.channel.ByteTransport;
 
 /**
  * In-memory transport for testing the AMQP protocol without TCP sockets.
  *
  * @since 0.1.0
  */
-public final class InMemoryTransport extends InMemoryByteTransport implements AmqpTransport {
+public final class InMemoryTransport extends InMemoryByteTransport implements ByteTransport {
 
     public InMemoryTransport(java.util.concurrent.BlockingQueue<java.nio.ByteBuffer> inbound,
                              java.util.concurrent.BlockingQueue<java.nio.ByteBuffer> outbound) {

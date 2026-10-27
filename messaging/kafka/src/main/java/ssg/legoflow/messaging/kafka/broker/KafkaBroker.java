@@ -6,7 +6,7 @@ import ssg.legoflow.messaging.kafka.codec.KafkaCodec;
 import ssg.legoflow.messaging.kafka.common.*;
 import ssg.legoflow.messaging.kafka.protocol.*;
 import ssg.legoflow.messaging.kafka.record.RecordBatch;
-import ssg.legoflow.messaging.kafka.transport.KafkaTransport;
+import ssg.legoflow.service.channel.ByteTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -48,7 +48,7 @@ public final class KafkaBroker implements AutoCloseable {
     private final ReplicaManager replicaManager;
     private final Map<TopicPartition, List<Integer>> reassignments = new ConcurrentHashMap<>();
     private final Set<String> enabledMechanisms = Set.of("PLAIN", "SCRAM-SHA-256");
-    private final Set<KafkaTransport> activeConnections = ConcurrentHashMap.newKeySet();
+    private final Set<ByteTransport> activeConnections = ConcurrentHashMap.newKeySet();
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
     private final AtomicBoolean running = new AtomicBoolean(false);
 
@@ -110,7 +110,7 @@ public final class KafkaBroker implements AutoCloseable {
      * Starts the headless broker core.
      *
      * <p>The broker binds <b>no socket</b>: connections arrive via
-     * {@link #handleConnection(KafkaTransport)} (driven by the service layer / an in-memory
+     * {@link #handleConnection(ByteTransport)} (driven by the service layer / an in-memory
      * pair in tests). This method only starts the coordinator wiring and marks the broker
      * running.
      */
@@ -301,13 +301,13 @@ public final class KafkaBroker implements AutoCloseable {
 
     /**
      * Handles one connection until EOF. Called by the service layer for each accepted
-     * connection; the {@link KafkaTransport} is supplied by the caller (a
+     * connection; the {@link ByteTransport} is supplied by the caller (a
      * {@code PipelineKafkaTransport} in production, an {@code InMemoryKafkaTransport} end in
      * tests). The core talks only to the transport — <b>no sockets</b>.
      *
      * @param transport the connection transport
      */
-    public void handleConnection(KafkaTransport transport) {
+    public void handleConnection(ByteTransport transport) {
         // Run the connection loop on the broker's virtual-thread executor (non-blocking
         // for the caller — the service layer / a test just hands over a transport).
         executor.submit(() -> {

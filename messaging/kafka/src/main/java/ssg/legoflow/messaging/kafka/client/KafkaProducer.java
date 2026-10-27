@@ -7,7 +7,7 @@ import ssg.legoflow.messaging.kafka.protocol.*;
 import ssg.legoflow.messaging.kafka.record.Compression;
 import ssg.legoflow.messaging.kafka.record.Record;
 import ssg.legoflow.messaging.kafka.record.RecordBatch;
-import ssg.legoflow.messaging.kafka.transport.KafkaTransport;
+import ssg.legoflow.service.channel.ByteTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -70,7 +70,7 @@ public final class KafkaProducer implements AutoCloseable {
      * @param idempotent      whether to enable idempotent mode
      * @param transactionalId the transactional ID (null for non-transactional)
      */
-    public KafkaProducer(KafkaTransport transport, String clientId, Partitioner partitioner,
+    public KafkaProducer(ByteTransport transport, String clientId, Partitioner partitioner,
                          short acks, int retries, long retryBackoffMs, Compression compression,
                          boolean idempotent, String transactionalId) {
         this.connection = new KafkaConnection(transport, clientId);
@@ -90,7 +90,7 @@ public final class KafkaProducer implements AutoCloseable {
      * @param transport  the connection transport
      * @param clientId   the client ID
      */
-    public KafkaProducer(KafkaTransport transport, String clientId) {
+    public KafkaProducer(ByteTransport transport, String clientId) {
         this(transport, clientId, null, (short) 1, 3, 100, Compression.NONE, false, null);
     }
 

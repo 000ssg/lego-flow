@@ -1,6 +1,7 @@
 package ssg.legoflow.messaging.mqtt.transport;
 
 import ssg.legoflow.service.channel.DataChannel;
+import ssg.legoflow.service.channel.ByteTransport;
 import ssg.legoflow.service.channel.InMemoryByteTransport;
 
 /**

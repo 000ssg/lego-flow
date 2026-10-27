@@ -12,7 +12,7 @@ import ssg.legoflow.messaging.kafka.protocol.*;
 import ssg.legoflow.messaging.kafka.record.Compression;
 import ssg.legoflow.messaging.kafka.record.Record;
 import ssg.legoflow.messaging.kafka.record.RecordBatch;
-import ssg.legoflow.messaging.kafka.transport.KafkaTransport;
+import ssg.legoflow.service.channel.ByteTransport;
 import ssg.legoflow.messaging.kafka.client.InMemoryKafka;
 import org.junit.jupiter.api.Test;
 import java.io.IOException;
@@ -445,7 +445,7 @@ class KafkaBrokerTest {
      * Reads one length-prefixed response with reassembly across partial reads, then decodes it
      * as a PRODUCE response. Returns null on timeout/closed (test asserts non-null).
      */
-    private ProduceResponse readProduceResponse(KafkaTransport ch) throws IOException {
+    private ProduceResponse readProduceResponse(ByteTransport ch) throws IOException {
         ByteBuffer lenBuf = ByteBuffer.allocate(4);
         while (lenBuf.hasRemaining()) {
             int n = ch.receiveWithTimeout(lenBuf, 10, java.util.concurrent.TimeUnit.SECONDS);
@@ -542,7 +542,7 @@ class KafkaBrokerTest {
      * production service layer uses), and returns the client end so the test can send
      * requests over it.
      */
-    private KafkaTransport inMemoryPair(KafkaBroker broker) {
+    private ByteTransport inMemoryPair(KafkaBroker broker) {
         return InMemoryKafka.pair(broker)[1];
     }
 
@@ -550,7 +550,7 @@ class KafkaBrokerTest {
      * Sends a length-prefixed request over the transport and reads the full response back,
      * reassembling across partial reads. Verifies the correlation id round-trips.
      */
-    private ByteBuffer sendAndReceive(KafkaTransport ch, short apiKey, byte[] payload) throws IOException {
+    private ByteBuffer sendAndReceive(ByteTransport ch, short apiKey, byte[] payload) throws IOException {
         int correlationId = corrId.getAndIncrement();
         var header = new RequestHeader(apiKey, (short) 0, correlationId, "test");
         ByteBuffer request = KafkaCodec.encodeRequest(header, payload);

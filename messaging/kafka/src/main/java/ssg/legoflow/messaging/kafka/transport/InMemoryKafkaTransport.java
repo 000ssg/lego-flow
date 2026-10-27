@@ -1,13 +1,15 @@
 package ssg.legoflow.messaging.kafka.transport;
 
+import ssg.legoflow.service.channel.DataChannel;
 import ssg.legoflow.service.channel.InMemoryByteHeadBuffer;
+import ssg.legoflow.service.channel.ByteTransport;
 
 /**
- * In-memory {@link KafkaTransport} pair for testing the Kafka protocol without TCP sockets.
+ * In-memory {@link ByteTransport} pair for testing the Kafka protocol without TCP sockets.
  *
  * @since 0.1.0
  */
-public final class InMemoryKafkaTransport extends InMemoryByteHeadBuffer implements KafkaTransport {
+public final class InMemoryKafkaTransport extends InMemoryByteHeadBuffer implements ByteTransport {
 
     public InMemoryKafkaTransport(java.util.concurrent.BlockingQueue<java.nio.ByteBuffer> inbound,
                                   java.util.concurrent.BlockingQueue<java.nio.ByteBuffer> outbound) {

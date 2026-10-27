@@ -1,11 +1,12 @@
 package ssg.legoflow.messaging.stomp.transport;
 
 import ssg.legoflow.service.channel.InMemoryByteTransport;
+import ssg.legoflow.service.channel.ByteTransport;
 
 /**
  * In-memory transport for testing the STOMP protocol without TCP sockets.
  */
-public final class InMemoryTransport extends InMemoryByteTransport implements StompTransport {
+public final class InMemoryTransport extends InMemoryByteTransport implements ByteTransport {
 
     public InMemoryTransport(java.util.concurrent.BlockingQueue<java.nio.ByteBuffer> inbound,
                              java.util.concurrent.BlockingQueue<java.nio.ByteBuffer> outbound) {

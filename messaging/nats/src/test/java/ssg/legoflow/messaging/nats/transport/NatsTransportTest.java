@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * Tests for the byte-level {@link NatsTransport} SPI: {@link InMemoryNatsTransport} pair
+ * Tests for the byte-level {@link ByteTransport} SPI: {@link InMemoryNatsTransport} pair
  * semantics (in main) and {@link PipelineNatsTransport} ring/queue behavior over a
  * mock {@link DataChannel} (mirrors the STOMP {@code PipelineTransportTest} reference form).
  */
@@ -24,7 +24,7 @@ class NatsTransportTest {
         return ByteBuffer.wrap(s.getBytes(StandardCharsets.UTF_8));
     }
 
-    private static String readLine(NatsTransport t) {
+    private static String readLine(ByteTransport t) {
         StringBuilder sb = new StringBuilder();
         var buf = new byte[1];
         while (true) {

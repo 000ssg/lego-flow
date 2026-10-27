@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import ssg.legoflow.service.channel.ByteTransport;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -36,13 +37,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  * send messages, and receive messages. Supports SASL authentication and
  * multiple delivery semantics.
  *
- * <p><b>Transport-agnostic:</b> this class uses only the {@link AmqpTransport}
+ * <p><b>Transport-agnostic:</b> this class uses only the {@link ByteTransport}
  * interface. TCP infrastructure belongs in the service layer.
  *
  * <p><b>Single-reader architecture:</b> there is no background read loop.
  * All frame reading happens synchronously on the calling thread:
  * <ol>
- *   <li>{@link #connect(AmqpTransport)} reads handshake frames (SASL, OPEN)</li>
+ *   <li>{@link #connect(ByteTransport)} reads handshake frames (SASL, OPEN)</li>
  *   <li>{@link #createSession()} reads BEGIN response</li>
  *   <li>{@link #createSender(AmqpSession, String, String)} and
  *       {@link #createReceiver(AmqpSession, String, String)} read ATTACH response</li>
@@ -64,7 +65,7 @@ public final class AmqpClient implements AutoCloseable {
     private final Map<Integer, AmqpSession> sessions = new ConcurrentHashMap<>();
     private final AtomicInteger nextChannel = new AtomicInteger(0);
 
-    private volatile AmqpTransport transport;
+    private volatile ByteTransport transport;
     private volatile ConnectionState state = ConnectionState.START;
     private volatile int maxFrameSize = AmqpConstants.DEFAULT_MAX_FRAME_SIZE;
 
@@ -88,7 +89,7 @@ public final class AmqpClient implements AutoCloseable {
      * @param transport the transport to use
      * @throws IOException if the connection fails
      */
-    public void connect(AmqpTransport transport) throws IOException {
+    public void connect(ByteTransport transport) throws IOException {
         if (transport == null) {
             throw new IllegalArgumentException("Transport must not be null");
         }

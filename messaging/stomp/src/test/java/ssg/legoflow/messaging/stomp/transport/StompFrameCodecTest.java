@@ -1,5 +1,6 @@
 package ssg.legoflow.messaging.stomp.transport;
 
+import ssg.legoflow.service.channel.ByteTransport;
 import org.junit.jupiter.api.*;
 import static org.assertj.core.api.Assertions.*;
 import ssg.legoflow.messaging.stomp.core.StompCommand;
@@ -128,7 +129,7 @@ class StompFrameCodecTest {
      * A transport that delivers exactly the chunks injected via
      * {@link #deliver(String)} — one chunk per read, like a TCP read.
      */
-    static final class FrameChunkTransport implements StompTransport {
+    static final class FrameChunkTransport implements ByteTransport {
         final LinkedBlockingQueue<ByteBuffer> chunks = new LinkedBlockingQueue<>();
         volatile boolean open = true;
         volatile long receiveTimeoutMs = 5000;

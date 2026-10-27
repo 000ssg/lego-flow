@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * Tests for the byte-level {@link KafkaTransport} SPI: {@link InMemoryKafkaTransport}
+ * Tests for the byte-level {@link ByteTransport} SPI: {@link InMemoryKafkaTransport}
  * pair semantics (in main) and {@link PipelineKafkaTransport} ring/queue behavior over a
  * mock {@link DataChannel} (mirrors the NATS {@code NatsTransportTest} reference form).
  *

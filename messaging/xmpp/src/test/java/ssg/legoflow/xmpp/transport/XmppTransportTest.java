@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * Tests for the byte-level {@link XmppTransport} SPI: {@link InMemoryXmppTransport} pair
+ * Tests for the byte-level {@link ByteTransport} SPI: {@link InMemoryXmppTransport} pair
  * semantics (in main), {@link PipelineXmppTransport} ring/queue behavior over a mock
  * {@link DataChannel}, and a protocol round-trip (headless {@code XmppServer} core + client
  * stream) over an in-memory pair — mirroring the NATS {@code NatsTransportTest} reference form.

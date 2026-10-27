@@ -3,7 +3,7 @@ package ssg.legoflow.messaging.nats.server;
 import ssg.legoflow.messaging.nats.jetstream.JetStreamManager;
 import ssg.legoflow.messaging.nats.protocol.*;
 import ssg.legoflow.messaging.nats.server.auth.Authenticator;
-import ssg.legoflow.messaging.nats.transport.NatsTransport;
+import ssg.legoflow.service.channel.ByteTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Map;
@@ -13,13 +13,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * NATS server core — connection-agnostic, driven through the {@link NatsTransport} SPI.
+ * NATS server core — connection-agnostic, driven through the {@link ByteTransport} SPI.
  *
  * <p>Handles the NATS text protocol for each client connection, manages subscriptions and
  * message routing, supports authentication, queue groups, and JetStream persistent streaming.
  *
  * <p><b>Transport-agnostic:</b> the core opens <b>no sockets</b> and has <b>no accept loop</b>.
- * Accepted connections are handed in via {@link #handleConnection(NatsTransport)} — in
+ * Accepted connections are handed in via {@link #handleConnection(ByteTransport)} — in
  * production the {@code SelectableChannelManager} (through {@code NatsServerService}) calls it
  * with a {@code PipelineNatsTransport} per accepted channel; in tests a
  * {@code InMemoryNatsTransport} is injected. This mirrors the STOMP {@code StompBroker.accept}
@@ -124,7 +124,7 @@ public final class NatsServer implements AutoCloseable {
      *
      * @param transport the client's byte-level transport
      */
-    public void handleConnection(NatsTransport transport) {
+    public void handleConnection(ByteTransport transport) {
         if (!running.get()) {
             running.set(true);
         }

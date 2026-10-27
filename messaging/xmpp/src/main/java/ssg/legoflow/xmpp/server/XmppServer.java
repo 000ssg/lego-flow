@@ -2,7 +2,7 @@ package ssg.legoflow.xmpp.server;
 
 import ssg.legoflow.xmpp.core.Stanza;
 import ssg.legoflow.xmpp.stream.XmppCodec;
-import ssg.legoflow.xmpp.transport.XmppTransport;
+import ssg.legoflow.service.channel.ByteTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.nio.ByteBuffer;
@@ -17,10 +17,10 @@ import java.util.function.Consumer;
 import java.util.Objects;
 
 /**
- * XMPP server core — connection-agnostic, driven through the {@link XmppTransport} SPI.
+ * XMPP server core — connection-agnostic, driven through the {@link ByteTransport} SPI.
  *
  * <p><b>Transport-agnostic:</b> the core opens <b>no sockets</b> and has <b>no accept loop</b>.
- * Accepted connections are handed in via {@link #handleConnection(XmppTransport)} — in
+ * Accepted connections are handed in via {@link #handleConnection(ByteTransport)} — in
  * production the {@code SelectableChannelManager} (through {@code XmppServerService}) calls it
  * with a {@code PipelineXmppTransport} per accepted channel; in tests an
  * {@code InMemoryXmppTransport} is injected. This mirrors the NATS {@code NatsServer} and the
@@ -43,7 +43,7 @@ public final class XmppServer implements AutoCloseable {
 
     private final int port;
     private final Map<String, Consumer<Stanza>> handlers = new ConcurrentHashMap<>();
-    private final Map<Long, XmppTransport> connections = new ConcurrentHashMap<>();
+    private final Map<Long, ByteTransport> connections = new ConcurrentHashMap<>();
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final AtomicLong clientIdCounter = new AtomicLong(0);
@@ -84,7 +84,7 @@ public final class XmppServer implements AutoCloseable {
      *
      * @param transport the client's byte-level transport
      */
-    public void handleConnection(XmppTransport transport) {
+    public void handleConnection(ByteTransport transport) {
         Objects.requireNonNull(transport);
         if (!running.get()) {
             running.set(true);

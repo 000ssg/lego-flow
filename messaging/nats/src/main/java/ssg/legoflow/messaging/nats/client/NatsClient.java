@@ -1,7 +1,7 @@
 package ssg.legoflow.messaging.nats.client;
 
 import ssg.legoflow.messaging.nats.protocol.*;
-import ssg.legoflow.messaging.nats.transport.NatsTransport;
+import ssg.legoflow.service.channel.ByteTransport;
 import ssg.legoflow.messaging.nats.transport.TransportStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +22,7 @@ import java.util.function.Consumer;
  * manages subscriptions, publishes messages, and supports the request/reply
  * pattern with automatic inbox management.
  *
- * <p><b>Transport-agnostic:</b> this client talks only to the {@link NatsTransport} SPI —
+ * <p><b>Transport-agnostic:</b> this client talks only to the {@link ByteTransport} SPI —
  * it never touches sockets or the wire. A transport is injected at construction:
  * {@code InMemoryNatsTransport} in unit tests, {@code PipelineNatsTransport} (driven by the
  * {@code SelectableChannelManager} in the service layer) in production. See
@@ -36,7 +36,7 @@ public final class NatsClient implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(NatsClient.class);
 
-    private final NatsTransport transport;
+    private final ByteTransport transport;
     private final ConnectOptions connectOptions;
     private final InboxManager inboxManager = new InboxManager();
     private final Map<String, Subscription> subscriptions = new ConcurrentHashMap<>();
@@ -54,7 +54,7 @@ public final class NatsClient implements AutoCloseable {
      * @param transport   the byte-level transport (no socket)
      * @param options     the connect options
      */
-    public NatsClient(NatsTransport transport, ConnectOptions options) {
+    public NatsClient(ByteTransport transport, ConnectOptions options) {
         this.transport = Objects.requireNonNull(transport);
         this.connectOptions = Objects.requireNonNull(options);
     }
@@ -64,7 +64,7 @@ public final class NatsClient implements AutoCloseable {
      *
      * @param transport the byte-level transport (no socket)
      */
-    public NatsClient(NatsTransport transport) {
+    public NatsClient(ByteTransport transport) {
         this(transport, ConnectOptions.withDefaults("lego-flow-client"));
     }
 
@@ -280,7 +280,7 @@ public final class NatsClient implements AutoCloseable {
      *
      * @return the transport
      */
-    public NatsTransport transport() {
+    public ByteTransport transport() {
         return transport;
     }
 

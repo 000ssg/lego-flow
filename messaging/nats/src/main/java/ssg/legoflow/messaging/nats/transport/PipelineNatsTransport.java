@@ -2,11 +2,12 @@ package ssg.legoflow.messaging.nats.transport;
 
 import ssg.legoflow.service.channel.DataChannel;
 import ssg.legoflow.service.channel.PipelineByteTransport;
+import ssg.legoflow.service.channel.ByteTransport;
 
 /**
- * {@link NatsTransport} implementation backed by a {@link DataChannel} in the service pipeline.
+ * {@link ByteTransport} implementation backed by a {@link DataChannel} in the service pipeline.
  */
-public final class PipelineNatsTransport extends PipelineByteTransport implements NatsTransport {
+public final class PipelineNatsTransport extends PipelineByteTransport implements ByteTransport {
 
     public PipelineNatsTransport(DataChannel channel) {
         super(channel);

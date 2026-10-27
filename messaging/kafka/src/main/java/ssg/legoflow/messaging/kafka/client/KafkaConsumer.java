@@ -9,7 +9,7 @@ import ssg.legoflow.messaging.kafka.broker.RangeAssigner;
 import ssg.legoflow.messaging.kafka.broker.StickyAssigner;
 import ssg.legoflow.messaging.kafka.protocol.*;
 import ssg.legoflow.messaging.kafka.record.RecordBatch;
-import ssg.legoflow.messaging.kafka.transport.KafkaTransport;
+import ssg.legoflow.service.channel.ByteTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -79,7 +79,7 @@ public final class KafkaConsumer implements AutoCloseable {
      * @param sessionTimeoutMs    the session timeout
      * @param maxPollRecords      the max records per poll
      */
-    public KafkaConsumer(KafkaTransport transport, String clientId, String groupId,
+    public KafkaConsumer(ByteTransport transport, String clientId, String groupId,
                          boolean autoCommit, long autoCommitIntervalMs,
                          int sessionTimeoutMs, int maxPollRecords) {
         this.connection = new KafkaConnection(transport, clientId);
@@ -97,7 +97,7 @@ public final class KafkaConsumer implements AutoCloseable {
      * @param clientId   the client ID
      * @param groupId    the consumer group ID
      */
-    public KafkaConsumer(KafkaTransport transport, String clientId, String groupId) {
+    public KafkaConsumer(ByteTransport transport, String clientId, String groupId) {
         this(transport, clientId, groupId, true, 5000, 10000, 500);
     }
 

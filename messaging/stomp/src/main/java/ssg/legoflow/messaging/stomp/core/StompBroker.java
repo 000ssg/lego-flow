@@ -3,7 +3,7 @@ package ssg.legoflow.messaging.stomp.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ssg.legoflow.messaging.stomp.transport.StompFrameCodec;
-import ssg.legoflow.messaging.stomp.transport.StompTransport;
+import ssg.legoflow.service.channel.ByteTransport;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  *
  * <p>Manages destination routing, subscription management, transactions,
  * receipts, acknowledgment modes, and heart-beat negotiation. Transport-agnostic:
- * accepts connections via {@link StompTransport} and processes frames on virtual threads.
+ * accepts connections via {@link ByteTransport} and processes frames on virtual threads.
  *
  * <p>Acknowledgment modes:
  * <ul>
@@ -131,7 +131,7 @@ public class StompBroker implements AutoCloseable {
      *
      * @param transport the byte-level transport for this connection
      */
-    public void accept(StompTransport transport) {
+    public void accept(ByteTransport transport) {
         var codec = new StompFrameCodec(transport);
         Thread.startVirtualThread(() -> handleConnection(codec));
     }

@@ -1,14 +1,14 @@
 package ssg.legoflow.messaging.stomp.core.transport;
 
 import ssg.legoflow.messaging.stomp.core.StompFrame;
-import ssg.legoflow.messaging.stomp.transport.StompTransport;
+import ssg.legoflow.service.channel.ByteTransport;
 import java.nio.ByteBuffer;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class InMemoryStompTransport implements StompTransport {
+public class InMemoryStompTransport implements ByteTransport {
 
     private final BlockingQueue<ByteBuffer> sendQueue;
     private final BlockingQueue<ByteBuffer> receiveQueue;

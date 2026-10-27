@@ -4,7 +4,7 @@ import ssg.legoflow.messaging.kafka.codec.KafkaCodec;
 import ssg.legoflow.messaging.kafka.codec.MetadataCodec;
 import ssg.legoflow.messaging.kafka.common.*;
 import ssg.legoflow.messaging.kafka.protocol.*;
-import ssg.legoflow.messaging.kafka.transport.KafkaTransport;
+import ssg.legoflow.service.channel.ByteTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -28,7 +28,7 @@ public final class KafkaAdminClient implements AutoCloseable {
      * @param transport  the connection transport (service layer or in-memory for tests)
      * @param clientId   the client identifier
      */
-    public KafkaAdminClient(KafkaTransport transport, String clientId) {
+    public KafkaAdminClient(ByteTransport transport, String clientId) {
         this.connection = new KafkaConnection(transport, clientId);
         this.negotiatedVersions = new HashMap<>();
     }

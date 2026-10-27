@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
+import ssg.legoflow.service.channel.ByteTransport;
 import java.util.function.BiConsumer;
 
 /**
@@ -30,8 +31,8 @@ import java.util.function.BiConsumer;
  *
  * <p>Acts as a broker: handles connections, sessions, and links.
  *
- * <p><b>Transport-agnostic:</b> this class accepts {@link AmqpTransport} instances
- * via {@link #handleConnection(AmqpTransport)}. TCP server infrastructure belongs
+ * <p><b>Transport-agnostic:</b> this class accepts {@link ByteTransport} instances
+ * via {@link #handleConnection(ByteTransport)}. TCP server infrastructure belongs
  * in the service layer.
  *
  * @since 0.1.0
@@ -127,7 +128,7 @@ public final class AmqpContainer implements AutoCloseable {
 
     /**
      * Starts the container. The service layer is responsible for calling
-     * {@link #handleConnection(AmqpTransport)} for each accepted client connection.
+     * {@link #handleConnection(ByteTransport)} for each accepted client connection.
      */
     public void start() {
         if (!running.compareAndSet(false, true)) return;
@@ -180,7 +181,7 @@ public final class AmqpContainer implements AutoCloseable {
      *
      * @param transport the transport for this connection (already open)
      */
-    public void handleConnection(AmqpTransport transport) {
+    public void handleConnection(ByteTransport transport) {
         String connId = UUID.randomUUID().toString().substring(0, 8);
         var ctx = new ConnectionContext(connId, transport);
         connections.put(connId, ctx);
@@ -196,7 +197,7 @@ public final class AmqpContainer implements AutoCloseable {
      *
      * @param transport the transport for this connection (already open)
      */
-    public void handleConnectionSync(AmqpTransport transport) {
+    public void handleConnectionSync(ByteTransport transport) {
         String connId = UUID.randomUUID().toString().substring(0, 8);
         var ctx = new ConnectionContext(connId, transport);
         connections.put(connId, ctx);
@@ -250,7 +251,7 @@ public final class AmqpContainer implements AutoCloseable {
     }
 
     /** Reads an 8-byte protocol header. */
-    private byte[] readHeader(AmqpTransport transport) {
+    private byte[] readHeader(ByteTransport transport) {
         ByteBuffer buf = ByteBuffer.allocate(8);
         readFully(transport, buf);
         buf.flip();
@@ -266,7 +267,7 @@ public final class AmqpContainer implements AutoCloseable {
     }
 
     /** Performs SASL negotiation: send mechanisms → read init → send outcome. */
-    private void doSaslExchange(ConnectionContext ctx, AmqpTransport transport) {
+    private void doSaslExchange(ConnectionContext ctx, ByteTransport transport) {
         // Send SASL mechanisms frame
         var mechanisms = SaslCodec.encodeMechanisms(authenticator.mechanisms());
         var mechFrame = new AmqpFrame(0, AmqpConstants.FRAME_TYPE_SASL, mechanisms);
@@ -655,7 +656,7 @@ public final class AmqpContainer implements AutoCloseable {
         return FrameCodec.decode(frameBuf);
     }
 
-    private void readFully(AmqpTransport transport, ByteBuffer buf) {
+    private void readFully(ByteTransport transport, ByteBuffer buf) {
         while (buf.hasRemaining()) {
             int n = transport.receive(buf);
             if (n < 0) {
@@ -692,7 +693,7 @@ public final class AmqpContainer implements AutoCloseable {
     /** Internal connection context. */
     public static final class ConnectionContext {
         final String id;
-        final AmqpTransport transport;
+        final ByteTransport transport;
         final AtomicLong lastActivity = new AtomicLong(System.currentTimeMillis());
         volatile ConnectionState state = ConnectionState.START;
         volatile String remoteContainerId;
@@ -703,7 +704,7 @@ public final class AmqpContainer implements AutoCloseable {
         final Map<Integer, Integer> remoteToLocalChannel = new ConcurrentHashMap<>();
         final List<IncomingMessage> pendingMessages = Collections.synchronizedList(new ArrayList<>());
 
-        ConnectionContext(String id, AmqpTransport transport) {
+        ConnectionContext(String id, ByteTransport transport) {
             this.id = id;
             this.transport = transport;
         }

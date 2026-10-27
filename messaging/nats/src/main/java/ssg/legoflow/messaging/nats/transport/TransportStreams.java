@@ -5,10 +5,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import ssg.legoflow.service.channel.ByteTransport;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Adapts a byte-level {@link NatsTransport} to the character {@link InputStream}/{@link OutputStream}
+ * Adapts a byte-level {@link ByteTransport} to the character {@link InputStream}/{@link OutputStream}
  * pair the (line/text-framed) NATS codec and protocol core already use via
  * {@code BufferedReader}/{@code BufferedWriter}.
  *
@@ -17,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  * touching sockets.
  *
  * <p><b>Blocking reads:</b> {@link TransportInputStream#read(byte[], int, int)} keeps calling
- * {@link NatsTransport#receiveWithTimeout} until at least one byte is available. A read
+ * {@link ByteTransport#receiveWithTimeout} until at least one byte is available. A read
  * timeout (a silent broker) is retried, so it never surfaces as a spurious EOF; the stream
  * returns {@code -1} only when the transport is actually closed. This is what lets
  * {@code BufferedReader.readLine()} block correctly on the NATS handshake and PING/PONG.
@@ -29,11 +30,11 @@ public final class TransportStreams implements AutoCloseable {
     /** Internal polling interval; never surfaced to the caller as EOF. */
     static final long READ_TIMEOUT_MILLIS = 5_000;
 
-    private final NatsTransport transport;
+    private final ByteTransport transport;
     private final TransportInputStream in;
     private final TransportOutputStream out;
 
-    public TransportStreams(NatsTransport transport) {
+    public TransportStreams(ByteTransport transport) {
         this.transport = transport;
         this.in = new TransportInputStream();
         this.out = new TransportOutputStream();
@@ -47,7 +48,7 @@ public final class TransportStreams implements AutoCloseable {
         return out;
     }
 
-    public NatsTransport transport() {
+    public ByteTransport transport() {
         return transport;
     }
 

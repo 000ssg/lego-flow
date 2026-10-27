@@ -7,7 +7,7 @@ import ssg.legoflow.messaging.kafka.protocol.ApiVersionsRequest;
 import ssg.legoflow.messaging.kafka.protocol.ApiVersionsResponse;
 import ssg.legoflow.messaging.kafka.protocol.RequestHeader;
 import ssg.legoflow.messaging.kafka.protocol.ResponseHeader;
-import ssg.legoflow.messaging.kafka.transport.KafkaTransport;
+import ssg.legoflow.service.channel.ByteTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Low-level connection to a Kafka broker.
  *
  * <p>Handles frame-level send/receive with correlation IDs. All I/O flows through an
- * injected {@link KafkaTransport} — this class <b>never touches a socket directly</b>
+ * injected {@link ByteTransport} — this class <b>never touches a socket directly</b>
  * (the lego-flow "protocol core is headless" rule; see DECISIONS D7/D11). The transport
  * is provided by the service layer (a {@code PipelineKafkaTransport} driven by the
  * {@code SelectableChannelManager}) or, in tests, an {@code InMemoryKafkaTransport}.
@@ -33,10 +33,10 @@ final class KafkaConnection implements AutoCloseable {
 
     private final String clientId;
     private final AtomicInteger correlationIdCounter = new AtomicInteger(0);
-    private final KafkaTransport transport;
+    private final ByteTransport transport;
     private final Map<Short, Short> negotiatedVersions = new ConcurrentHashMap<>();
 
-    KafkaConnection(KafkaTransport transport, String clientId) {
+    KafkaConnection(ByteTransport transport, String clientId) {
         if (transport == null) {
             throw new IllegalArgumentException("transport must not be null");
         }

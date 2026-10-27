@@ -4,7 +4,7 @@ import ssg.legoflow.http.websocket.WebSocketFrame;
 import ssg.legoflow.http.websocket.WebSocketSession;
 import ssg.legoflow.messaging.stomp.core.StompCodec;
 import ssg.legoflow.messaging.stomp.core.StompFrame;
-import ssg.legoflow.messaging.stomp.transport.StompTransport;
+import ssg.legoflow.service.channel.ByteTransport;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.BlockingQueue;
@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * STOMP transport over WebSocket text frames.
  *
- * <p>Implements byte-level {@link StompTransport} backed by WebSocket text frames.
+ * <p>Implements byte-level {@link ByteTransport} backed by WebSocket text frames.
  * Each WebSocket text frame carries raw STOMP frame bytes. The caller (broker/client)
  * uses {@link ssg.legoflow.messaging.stomp.transport.StompFrameCodec} on top for
  * frame-level operations.
@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>WebSocket provides message boundaries, so the NULL terminator is optional.
  * Use {@link StompFrameCodec} with {@code strictNull=false} when using this transport.
  */
-public class WebSocketStompTransport implements StompTransport {
+public class WebSocketStompTransport implements ByteTransport {
 
     private final WebSocketSession session;
     private final BlockingQueue<ByteBuffer> incomingQueue = new LinkedBlockingQueue<>();

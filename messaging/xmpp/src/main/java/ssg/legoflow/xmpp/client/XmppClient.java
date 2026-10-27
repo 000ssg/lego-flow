@@ -9,7 +9,7 @@ import ssg.legoflow.xmpp.presence.PresenceManager;
 import ssg.legoflow.xmpp.roster.Roster;
 import ssg.legoflow.xmpp.stream.XmppCodec;
 import ssg.legoflow.xmpp.stream.XmppStream;
-import ssg.legoflow.xmpp.transport.XmppTransport;
+import ssg.legoflow.service.channel.ByteTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.nio.ByteBuffer;
@@ -46,7 +46,7 @@ public class XmppClient implements AutoCloseable {
     private JID localJid;
     private volatile boolean connected;
     private volatile boolean authenticated;
-    private volatile XmppTransport transport;
+    private volatile ByteTransport transport;
     private volatile Thread readThread;
     private final Object ioLock = new Object();
 
@@ -74,7 +74,7 @@ public class XmppClient implements AutoCloseable {
      * @param transport the client's byte-level transport (e.g. {@code PipelineXmppTransport}
      *                  in production, {@code InMemoryXmppTransport} in tests)
      */
-    public XmppClient(XmppTransport transport) {
+    public XmppClient(ByteTransport transport) {
         this();
         this.transport = Objects.requireNonNull(transport, "transport must not be null");
     }
@@ -210,7 +210,7 @@ public class XmppClient implements AutoCloseable {
      *
      * @return the transport, or null
      */
-    public XmppTransport getTransport() {
+    public ByteTransport getTransport() {
         return transport;
     }
 

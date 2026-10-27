@@ -3,7 +3,7 @@ package ssg.legoflow.messaging.stomp.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ssg.legoflow.messaging.stomp.transport.StompFrameCodec;
-import ssg.legoflow.messaging.stomp.transport.StompTransport;
+import ssg.legoflow.service.channel.ByteTransport;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
@@ -44,7 +44,7 @@ public class StompClient implements AutoCloseable {
      *
      * @param transport the byte-level transport to use
      */
-    public StompClient(StompTransport transport) {
+    public StompClient(ByteTransport transport) {
         this.codec = new StompFrameCodec(transport);
         this.session = new StompSession("client-" + System.nanoTime());
     }

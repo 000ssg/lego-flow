@@ -2,7 +2,7 @@ package ssg.legoflow.messaging.nats.server;
 
 import ssg.legoflow.messaging.nats.protocol.*;
 import ssg.legoflow.messaging.nats.server.auth.Authenticator;
-import ssg.legoflow.messaging.nats.transport.NatsTransport;
+import ssg.legoflow.service.channel.ByteTransport;
 import ssg.legoflow.messaging.nats.transport.TransportStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Manages the client lifecycle: INFO/CONNECT handshake, authentication,
  * PUB/SUB/UNSUB processing, PING/PONG keep-alive, and graceful shutdown.
  *
- * <p><b>Transport-agnostic:</b> reads/writes over a {@link NatsTransport} — never a raw socket.
+ * <p><b>Transport-agnostic:</b> reads/writes over a {@link ByteTransport} — never a raw socket.
  *
  * @since 0.1.0
  */
@@ -28,7 +28,7 @@ public final class ClientConnection implements AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(ClientConnection.class);
 
     private final long id;
-    private final NatsTransport transport;
+    private final ByteTransport transport;
     private final NatsServer server;
     private final BufferedReader reader;
     private final Map<String, SubscriptionEntry> subscriptions = new ConcurrentHashMap<>();
@@ -46,7 +46,7 @@ public final class ClientConnection implements AutoCloseable {
      * @param transport the client's byte-level transport (no raw socket)
      * @param server    the owning server
      */
-    public ClientConnection(long id, NatsTransport transport, NatsServer server) {
+    public ClientConnection(long id, ByteTransport transport, NatsServer server) {
         this.id = id;
         this.transport = transport;
         this.server = server;
@@ -68,7 +68,7 @@ public final class ClientConnection implements AutoCloseable {
      *
      * @return the transport
      */
-    public NatsTransport transport() {
+    public ByteTransport transport() {
         return transport;
     }
 
