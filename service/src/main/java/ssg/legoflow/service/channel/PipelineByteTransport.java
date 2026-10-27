@@ -156,16 +156,39 @@ public class PipelineByteTransport implements ByteTransport {
     @Override
     public int receiveWithTimeout(ByteBuffer buffer, long timeout, TimeUnit unit) {
         if (!open.get()) return -1;
-        if (count > 0) {
-            return fetch(buffer);
+
+        long deadline = System.currentTimeMillis() + unit.toMillis(timeout);
+        int fetched = 0;
+
+        while (buffer.hasRemaining()) {
+            long remainingMs = deadline - System.currentTimeMillis();
+            if (remainingMs <= 0) return fetched > 0 ? fetched : -1;
+
+            // Fast path: data already in buffer
+            if (peek() >= buffer.remaining()) {
+                int n = fetch(buffer);
+                fetched += n;
+                if (n == 0) break;
+                continue;
+            }
+
+            // Wait for more data
+            try {
+                if (!available.tryAcquire(1, remainingMs, TimeUnit.MILLISECONDS)) {
+                    return fetched > 0 ? fetched : -1;
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return fetched > 0 ? fetched : -1;
+            }
+
+            // Data arrived — fetch it
+            int n = fetch(buffer);
+            fetched += n;
+            if (n == 0) continue; // semaphore false positive — retry
         }
-        try {
-            if (!available.tryAcquire(timeout, unit)) return -1;
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return -1;
-        }
-        return fetch(buffer);
+
+        return fetched;
     }
 
     @Override
