@@ -1,6 +1,6 @@
 package ssg.legoflow.messaging.stomp.demo;
 
-import ssg.legoflow.messaging.stomp.transport.StompTransport;
+import ssg.legoflow.service.channel.ByteTransport;
 import java.nio.ByteBuffer;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @since 0.1.0
  */
-public final class InMemoryStompTransport implements StompTransport {
+public final class InMemoryStompTransport implements ByteTransport {
 
     private final BlockingQueue<ByteBuffer> inbound;
     private final BlockingQueue<ByteBuffer> outbound;

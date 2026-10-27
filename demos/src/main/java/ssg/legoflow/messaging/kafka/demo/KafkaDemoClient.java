@@ -3,7 +3,7 @@ package ssg.legoflow.messaging.kafka.demo;
 import ssg.legoflow.messaging.kafka.broker.KafkaBroker;
 import ssg.legoflow.messaging.kafka.service.KafkaClientService;
 import ssg.legoflow.messaging.kafka.transport.InMemoryKafkaTransport;
-import ssg.legoflow.messaging.kafka.transport.KafkaTransport;
+import ssg.legoflow.service.channel.ByteTransport;
 import ssg.legoflow.service.DefaultServiceContext;
 import ssg.legoflow.service.ServiceContext;
 import ssg.legoflow.service.manager.SelectableChannelManager;
@@ -39,12 +39,12 @@ final class KafkaDemoClient implements AutoCloseable {
         KafkaDemoClient open() throws IOException;
     }
 
-    private final KafkaTransport transport;
+    private final ByteTransport transport;
     private final KafkaClientService clientService; // non-null only in TCP mode
     private final SelectableChannelManager manager; // non-null only in TCP mode
     private final ServiceContext ctx;               // non-null only in TCP mode
 
-    private KafkaDemoClient(KafkaTransport transport, KafkaClientService clientService,
+    private KafkaDemoClient(ByteTransport transport, KafkaClientService clientService,
                             SelectableChannelManager manager, ServiceContext ctx) {
         this.transport = transport;
         this.clientService = clientService;
@@ -83,7 +83,7 @@ final class KafkaDemoClient implements AutoCloseable {
     }
 
     /** The open transport to construct a client over. */
-    KafkaTransport transport() { return transport; }
+    ByteTransport transport() { return transport; }
 
     @Override
     public void close() {

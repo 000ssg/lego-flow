@@ -38,7 +38,8 @@ public class PipelineByteTransport implements ByteTransport {
     private int start;
     private int end;
     private volatile int count;
-    private final Semaphore available = new Semaphore(0);
+    /** Protected so subclasses can override receiveWithTimeout with their own semantics. */
+    protected final Semaphore available = new Semaphore(0);
 
     // Outbound queue
     private final LinkedBlockingQueue<ByteBuffer> outboundQueue = new LinkedBlockingQueue<>();
