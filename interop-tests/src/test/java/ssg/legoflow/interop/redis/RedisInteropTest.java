@@ -5,10 +5,12 @@ import ssg.legoflow.database.redis.client.RedisClient;
 import ssg.legoflow.database.redis.protocol.RespType;
 import java.io.IOException;
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Disabled;
 /**
  * Interoperability test: Lego Flow Redis client ↔ real Redis server.
  */
     @Tag("interop-rest")
+@Disabled("Requires external Redis: docker compose -f interop-tests/docker-compose.core.yml up -d redis")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RedisInteropTest {
 

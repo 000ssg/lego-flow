@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 0.2.0
  */
     @Tag("interop-rest")
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Disabled("Requires external Telnet server: docker compose -f interop-tests/docker-compose.core.yml up -d telnet")
 class TelnetClientInteropTest {
 
     private static final int TELNET_PORT = Integer.parseInt(

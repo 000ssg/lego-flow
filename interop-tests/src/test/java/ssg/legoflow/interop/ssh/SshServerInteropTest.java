@@ -10,6 +10,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.Disabled;
 /**
  * Interoperability test: Lego Flow SSH client ↔ OpenSSH sshd.
  *
@@ -30,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @since 0.2.0
  */
     @Tag("interop-rest")
+@Disabled("Requires external SSH server: docker compose -f interop-tests/docker-compose.core.yml up -d sshd")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SshServerInteropTest {
 

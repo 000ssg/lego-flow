@@ -5,10 +5,12 @@ import ssg.legoflow.database.postgresql.client.PgClient;
 import ssg.legoflow.database.postgresql.client.PgResult;
 import java.io.IOException;
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Disabled;
 /**
  * Interoperability test: Lego Flow PostgreSQL client ↔ real PostgreSQL server.
  */
     @Tag("interop-rest")
+@Disabled("Requires external PostgreSQL: docker compose -f interop-tests/docker-compose.core.yml up -d postgres")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PostgresqlInteropTest {
 

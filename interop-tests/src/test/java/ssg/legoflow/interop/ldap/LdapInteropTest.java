@@ -8,6 +8,7 @@ import ssg.legoflow.network.ldap.protocol.LdapResultCode;
 import ssg.legoflow.network.ldap.protocol.SearchScope;
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Disabled;
 
 /**
  * Interoperability test: Lego Flow LDAP client ↔ real LDAP server.
@@ -29,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   mvn verify -Dinterop.ldap.host=localhost -DskipInteropTests=false
  */
     @Tag("interop-rest")
+@Disabled("Requires external LDAP: docker compose -f interop-tests/docker-compose.core.yml up -d ldap")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class LdapInteropTest {
 

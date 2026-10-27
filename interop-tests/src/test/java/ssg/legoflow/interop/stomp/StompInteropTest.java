@@ -11,6 +11,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Disabled;
 
 /**
  * Interoperability test: Lego Flow STOMP client → RabbitMQ STOMP plugin.
@@ -22,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   interop.stomp.passcode (default: guest)
  */
 @Tag("interop-messaging-core")
+@Disabled("Requires external RabbitMQ broker: docker compose -f interop-tests/docker-compose.core.yml up -d rabbitmq")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class StompInteropTest {
 

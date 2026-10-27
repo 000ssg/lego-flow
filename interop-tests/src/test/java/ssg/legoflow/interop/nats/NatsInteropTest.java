@@ -13,6 +13,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Disabled;
 
 /**
  * Interoperability test: Lego Flow NATS client to real NATS server.
@@ -34,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   mvn verify -Dinterop.nats.host=localhost -DskipInteropTests=false
  */
     @Tag("interop-rest")
+@Disabled("Requires external NATS server: docker run -p 4222:4222 nats:latest")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class NatsInteropTest {
 
