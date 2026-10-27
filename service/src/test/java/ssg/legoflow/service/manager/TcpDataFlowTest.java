@@ -172,7 +172,11 @@ class TcpDataFlowTest {
             // Mimic production transports: no outbound queue — stop watching writability.
             var key = channel.getSelectionKey();
             if (key != null) {
-                key.interestOps(SelectionKey.OP_READ);
+                try {
+                    key.interestOps(SelectionKey.OP_READ);
+                } catch (Exception e) {
+                    // Channel may be closed during teardown — ignore
+                }
             }
         }
 
