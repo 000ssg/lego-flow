@@ -1,6 +1,7 @@
 package ssg.legoflow.messaging.nats.transport;
 
 import org.junit.jupiter.api.Test;
+import ssg.legoflow.service.channel.ByteTransport;
 import ssg.legoflow.service.channel.DataChannel;
 import java.io.IOException;
 import java.nio.ByteBuffer;
