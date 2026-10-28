@@ -246,24 +246,27 @@ class KafkaTransportTest {
     }
 
     @Test
-    void testPipelineSendImmediateWrite() {
+    void testPipelineSendEnqueues() {
         var channel = new MockChannel(1024);
         var transport = new PipelineKafkaTransport(channel);
         transport.send(bytes("direct"));
-        assertThat(channel.written()).isEqualTo("direct");
+        // Enqueue-only: nothing written yet, data sits in the outbound queue.
+        assertThat(channel.written()).isEmpty();
         assertThat(transport.isOpen()).isTrue();
+        // onWrite drains the queue.
+        transport.onWrite(channel);
+        assertThat(channel.written()).isEqualTo("direct");
     }
 
     @Test
-    void testPipelineSendEnqueuesRemainderThenOnWriteDrains() {
-        // writeLimit=3 -> first send writes 3 bytes immediately, enqueues the rest.
+    void testPipelineSendEnqueuesThenOnWriteDrains() {
+        // writeLimit=3 -> send enqueues all 8 bytes; onWrite drains in chunks.
         var channel = new MockChannel(3);
         var transport = new PipelineKafkaTransport(channel);
         transport.send(bytes("12345678"));
-        // Immediate write path handled the first 3 bytes; the remainder waits in the queue.
-        assertThat(channel.written()).isEqualTo("123");
-        // onWrite drains in writeLimit-sized chunks — the selector fires repeated writable
-        // events until the queue is empty, so we loop the same way.
+        // All data enqueued; nothing written yet.
+        assertThat(channel.written()).isEmpty();
+        // onWrite drains in writeLimit-sized chunks.
         int guard = 0;
         while (channel.written().length() < 8 && guard++ < 10) {
             transport.onWrite(channel);
