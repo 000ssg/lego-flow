@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import ssg.legoflow.service.DefaultServiceContext;
 import ssg.legoflow.service.manager.SelectableChannelManager;
 import ssg.legoflow.service.user.ServiceUser;
+import ssg.legoflow.messaging.nats.transport.PipelineNatsTransport;
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -62,12 +63,20 @@ class NatsServiceIntegrationTest {
         // Pub/sub over real TCP.
         var latch = new CountDownLatch(1);
         var got = new AtomicReference<String>();
+        var subLatch = new CountDownLatch(1);
         client.subscribe("test.topic", msg -> {
             got.set(msg.dataAsString());
             latch.countDown();
         });
-        // Give the SUB a moment to reach the server, then publish.
-        Thread.sleep(100);
+        // Wait for the SUB to be fully processed by the server before publishing.
+        // With enqueue-only transport, the SUB must be written and processed before
+        // the PUB arrives; poll until the outbound queue is drained (SUB written).
+        long subDeadline = System.currentTimeMillis() + 2_000;
+        while (System.currentTimeMillis() < subDeadline) {
+            var transport = client.getClient().transport();
+            if (transport instanceof PipelineNatsTransport pnt && pnt.getOutboundQueueSize() == 0) break;
+            Thread.sleep(50);
+        }
         client.getClient().publish("test.topic", "hello-tcp");
 
         assertThat(latch.await(5, TimeUnit.SECONDS)).as("message should arrive over TCP").isTrue();

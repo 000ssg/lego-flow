@@ -139,12 +139,16 @@ public class PipelineByteTransport implements ByteTransport {
     @Override
     public void send(ByteBuffer data) {
         if (!open.get()) return;
-        // Enqueue and let the selector thread perform the write (OP_WRITE).
-        // We must NOT write to the channel from the calling thread — it is owned by the
-        // SelectableChannelManager's selector thread, and a concurrent write here races with
-        // its read/write and causes message loss (the STOMP/AMQP/MQTT/NATS rule).
+        // Consume bytes from the caller's buffer: advance position to limit.
+        // We duplicate to preserve the original position/limit for the queue,
+        // then advance the caller's position so repeated sends drain the buffer.
+        int pos = data.position();
+        int lim = data.limit();
         var dup = data.duplicate();
+        dup.position(pos);
+        dup.limit(lim);
         outboundQueue.offer(dup);
+        data.position(lim);
         registerOps();
     }
 
@@ -204,5 +208,14 @@ public class PipelineByteTransport implements ByteTransport {
 
     public DataChannel getChannel() {
         return channel;
+    }
+
+    /**
+     * Returns the number of buffers currently queued for outbound write.
+     * Used by tests to verify enqueue-only behavior and by integration tests
+     * to poll until the transport has drained its queue.
+     */
+    public int getOutboundQueueSize() {
+        return outboundQueue.size();
     }
 }
