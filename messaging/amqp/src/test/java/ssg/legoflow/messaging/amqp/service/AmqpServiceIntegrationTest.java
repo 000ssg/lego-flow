@@ -79,6 +79,15 @@ class AmqpServiceIntegrationTest {
                 .build();
         client.connect(ctx);
 
+        // Wait for the client's handshake data to be flushed to the server
+        // (PipelineByteTransport is enqueue-only; wait for outbound queue to drain)
+        var transport = client.getTransport();
+        long deadline = System.currentTimeMillis() + 2_000;
+        while (System.currentTimeMillis() < deadline) {
+            if (transport.getOutboundQueueSize() == 0) break;
+            Thread.sleep(50);
+        }
+
         assertThat(client.isConnected()).isTrue();
         assertThat(client.getClient()).isNotNull();
 
@@ -141,6 +150,15 @@ class AmqpServiceIntegrationTest {
                 .build();
         client.connect(ctx);
 
+        // Wait for the client's handshake data to be flushed to the server
+        // (PipelineByteTransport is enqueue-only; wait for outbound queue to drain)
+        var transport = client.getTransport();
+        long deadline = System.currentTimeMillis() + 2_000;
+        while (System.currentTimeMillis() < deadline) {
+            if (transport.getOutboundQueueSize() == 0) break;
+            Thread.sleep(50);
+        }
+
         try {
             AmqpClient amqpClient = client.getClient();
             assertThat(amqpClient).isNotNull();
@@ -177,6 +195,15 @@ class AmqpServiceIntegrationTest {
                     .containerId("client-" + i)
                     .build();
             clients[i].connect(ctx);
+
+            // Wait for each client's handshake data to be flushed
+            var t = clients[i].getTransport();
+            long d = System.currentTimeMillis() + 2_000;
+            while (System.currentTimeMillis() < d) {
+                if (t.getOutboundQueueSize() == 0) break;
+                Thread.sleep(50);
+            }
+
             assertThat(clients[i].getClient())
                     .as("Client " + i + " should be connected")
                     .isNotNull();

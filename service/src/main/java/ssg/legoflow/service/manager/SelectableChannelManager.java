@@ -14,6 +14,7 @@ import java.nio.ByteBuffer;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.channels.ClosedSelectorException;
+import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.Map;
@@ -261,90 +262,97 @@ public class SelectableChannelManager extends AbstractServicesManager {
         var channel = reg.channel;
         var pipeline = reg.pipeline;
 
-        // OP_CONNECT: TCP lifecycle — finish the connection, switch to READ|WRITE, notify pipeline.
-        if (key.isConnectable()) {
-            try {
-                ((TcpDataChannel) channel).getSocketChannel().finishConnect();
-                key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-                pipeline.fireConnect(channel);
-            } catch (IOException e) {
-                LOG.error("finishConnect failed for {}", channel, e);
-                key.cancel();
-                pipeline.fireDisconnect(channel);
-            }
-        }
-
-        if (key.isReadable()) {
-            if (channel instanceof TcpDataChannel) {
-                var buf = reg.tcpBuf;
+        // Wrap all key operations in try-catch to handle race conditions where the key
+        // is cancelled between selection and this code running (e.g., during teardown).
+        try {
+            // OP_CONNECT: TCP lifecycle — finish the connection, switch to READ|WRITE, notify pipeline.
+            if (key.isConnectable()) {
                 try {
-                    // 1. Flush remainder from the previous cycle first (relative-position buffer).
-                    //    A flag (not position) marks pending data: a handler that consumed zero
-                    //    bytes leaves position at 0, indistinguishable from a fresh buffer.
-                    if (reg.tcpBufHasData) {
-                        pipeline.fireRead(channel, buf);
-                        reg.tcpBufHasData = buf.hasRemaining(); // handler may consume 0..all bytes
+                    ((TcpDataChannel) channel).getSocketChannel().finishConnect();
+                    key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+                    pipeline.fireConnect(channel);
+                } catch (IOException e) {
+                    LOG.error("finishConnect failed for {}", channel, e);
+                    key.cancel();
+                    pipeline.fireDisconnect(channel);
+                }
+            }
+
+            if (key.isReadable()) {
+                if (channel instanceof TcpDataChannel) {
+                    var buf = reg.tcpBuf;
+                    try {
+                        // 1. Flush remainder from the previous cycle first (relative-position buffer).
+                        //    A flag (not position) marks pending data: a handler that consumed zero
+                        //    bytes leaves position at 0, indistinguishable from a fresh buffer.
                         if (reg.tcpBufHasData) {
-                            return; // protocol still holding data — no new TCP read (backpressure)
+                            pipeline.fireRead(channel, buf);
+                            reg.tcpBufHasData = buf.hasRemaining(); // handler may consume 0..all bytes
+                            if (reg.tcpBufHasData) {
+                                return; // protocol still holding data — no new TCP read (backpressure)
+                            }
                         }
-                    }
-                    // 2. Read new TCP data only when the previous flush was fully consumed
-                    buf.clear();
-                    int n = channel.read(buf);
-                    if (n < 0) {
-                        // TCP closed — transport error. We only reach the read with tcpBufHasData
-                        // false, i.e. every byte previously read has been delivered to the pipeline.
-                        // Data buffered deeper in the protocol layer is its responsibility to
-                        // process after the disconnect event.
-                        LOG.debug("TCP EOF on {}", channel);
+                        // 2. Read new TCP data only when the previous flush was fully consumed
+                        buf.clear();
+                        int n = channel.read(buf);
+                        if (n < 0) {
+                            // TCP closed — transport error. We only reach the read with tcpBufHasData
+                            // false, i.e. every byte previously read has been delivered to the pipeline.
+                            // Data buffered deeper in the protocol layer is its responsibility to
+                            // process after the disconnect event.
+                            LOG.debug("TCP EOF on {}", channel);
+                            key.cancel();
+                            pipeline.fireDisconnect(channel);
+                            return;
+                        }
+                        if (n > 0) {
+                            buf.flip();
+                            pipeline.fireRead(channel, buf);
+                            // Any remainder stays in tcpBuf — flushed on the next cycle (backpressure).
+                            reg.tcpBufHasData = buf.hasRemaining();
+                        }
+                    } catch (IOException e) {
+                        LOG.debug("Read error on {}: {}", channel, e.getMessage());
                         key.cancel();
+                        try { channel.close(); } catch (IOException ignored) {}
                         pipeline.fireDisconnect(channel);
-                        return;
                     }
-                    if (n > 0) {
-                        buf.flip();
-                        pipeline.fireRead(channel, buf);
-                        // Any remainder stays in tcpBuf — flushed on the next cycle (backpressure).
-                        reg.tcpBufHasData = buf.hasRemaining();
-                    }
-                } catch (IOException e) {
-                    LOG.debug("Read error on {}: {}", channel, e.getMessage());
-                    key.cancel();
-                    try { channel.close(); } catch (IOException ignored) {}
-                    pipeline.fireDisconnect(channel);
-                }
-            } else {
-                // Non-TCP (e.g. UDP): fresh buffer per read — datagram boundary semantics,
-                // no remainder carried across cycles.
-                var buf = ByteBuffer.allocate(bufferSize);
-                try {
-                    int n = channel.read(buf);
-                    if (n < 0) {
+                } else {
+                    // Non-TCP (e.g. UDP): fresh buffer per read — datagram boundary semantics,
+                    // no remainder carried across cycles.
+                    var buf = ByteBuffer.allocate(bufferSize);
+                    try {
+                        int n = channel.read(buf);
+                        if (n < 0) {
+                            key.cancel();
+                            pipeline.fireDisconnect(channel);
+                            return;
+                        }
+                        if (n > 0) {
+                            buf.flip();
+                            pipeline.fireRead(channel, buf);
+                        }
+                    } catch (IOException e) {
                         key.cancel();
+                        try { channel.close(); } catch (IOException ignored) {}
                         pipeline.fireDisconnect(channel);
-                        return;
                     }
-                    if (n > 0) {
-                        buf.flip();
-                        pipeline.fireRead(channel, buf);
-                    }
-                } catch (IOException e) {
-                    key.cancel();
-                    try { channel.close(); } catch (IOException ignored) {}
-                    pipeline.fireDisconnect(channel);
                 }
             }
-        }
 
-        // OP_WRITE: first retry flushing any TCP remainder the protocol may have consumed since
-        // the last attempt (the protocol drains its ring buffer while producing writes),
-        // then fire the write async — the handler drains its outbound queue in order.
-        if (key.isWritable()) {
-            if (channel instanceof TcpDataChannel && reg.tcpBufHasData) {
-                pipeline.fireRead(channel, reg.tcpBuf); // retry flush; no new TCP read — not readable
-                reg.tcpBufHasData = reg.tcpBuf.hasRemaining();
+            // OP_WRITE: first retry flushing any TCP remainder the protocol may have consumed since
+            // the last attempt (the protocol drains its ring buffer while producing writes),
+            // then fire the write async — the handler drains its outbound queue in order.
+            if (key.isWritable()) {
+                if (channel instanceof TcpDataChannel && reg.tcpBufHasData) {
+                    pipeline.fireRead(channel, reg.tcpBuf); // retry flush; no new TCP read — not readable
+                    reg.tcpBufHasData = reg.tcpBuf.hasRemaining();
+                }
+                processingPool.submit(() -> pipeline.fireWrite(channel));
             }
-            processingPool.submit(() -> pipeline.fireWrite(channel));
+        } catch (CancelledKeyException e) {
+            // Key was cancelled between selection and this code running — ignore.
+            LOG.debug("CancelledKeyException during dispatch for {}", channel);
         }
     }
     private void handleAccept(ServerChannelRegistration srvReg) {
