@@ -139,18 +139,12 @@ public class PipelineByteTransport implements ByteTransport {
     @Override
     public void send(ByteBuffer data) {
         if (!open.get()) return;
-        var slice = data.slice();
-        // Try immediate write first — avoids waking selector for the common case
-        try {
-            int written = channel.write(slice);
-            if (written == slice.remaining()) {
-                return; // All data written immediately
-            }
-        } catch (IOException e) {
-            LOG.debug("Immediate write failed: {}", e.getMessage());
-        }
-        // Enqueue remaining data — never drops frames
-        outboundQueue.offer(slice);
+        // Enqueue and let the selector thread perform the write (OP_WRITE).
+        // We must NOT write to the channel from the calling thread — it is owned by the
+        // SelectableChannelManager's selector thread, and a concurrent write here races with
+        // its read/write and causes message loss (the STOMP/AMQP/MQTT/NATS rule).
+        var dup = data.duplicate();
+        outboundQueue.offer(dup);
         registerOps();
     }
 
