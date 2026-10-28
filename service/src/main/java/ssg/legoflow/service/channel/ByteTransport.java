@@ -28,10 +28,14 @@ public interface ByteTransport {
     /**
      * Sends raw bytes through this transport.
      *
+     * <p><b>Contract:</b> This method MUST advance the caller's buffer position to limit,
+     * consuming all bytes in the buffer. Implementations should duplicate the buffer
+     * (preserving position/limit) before enqueuing, then advance the caller's position.
+     *
      * <p>Non-blocking with respect to the caller: bytes are queued and flushed by the
      * transport's I/O. Never blocks on the wire for a long time.
      *
-     * @param data the bytes to send
+     * @param data the bytes to send (will be consumed — position advanced to limit)
      */
     void send(ByteBuffer data);
 
