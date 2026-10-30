@@ -77,11 +77,19 @@ class NatsServiceIntegrationTest {
             got.set(msg.dataAsString());
             latch.countDown();
         });
-        // Give the SUB a moment to reach the server, then publish.
-        Thread.sleep(100);
+        // Wait for the SUB to be fully processed by the server before publishing.
+        // With enqueue-only transport, the SUB must be written and processed before
+        // the PUB arrives; poll until the outbound queue is drained (SUB written).
+        long subDeadline = System.currentTimeMillis() + 2_000;
+        while (System.currentTimeMillis() < subDeadline) {
+            var transport = client.getClient().transport();
+            if (transport instanceof PipelineNatsTransport pnt && pnt.getOutboundQueueSize() == 0) break;
+            Thread.sleep(50);
+        }
         client.getClient().publish("test.topic", "hello-tcp");
 
-        assertThat(latch.await(5, TimeUnit.SECONDS)).as("message should arrive over TCP").isTrue();
+        // Use 10-second timeout to account for TCP round-trip latency
+        assertThat(latch.await(10, TimeUnit.SECONDS)).as("message should arrive over TCP").isTrue();
         assertThat(got.get()).isEqualTo("hello-tcp");
 
         client.disconnect(ctx);
