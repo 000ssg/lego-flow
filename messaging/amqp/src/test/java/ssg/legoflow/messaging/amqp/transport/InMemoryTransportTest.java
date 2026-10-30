@@ -1,6 +1,7 @@
 package ssg.legoflow.messaging.amqp.transport;
 
 import org.junit.jupiter.api.Test;
+import ssg.legoflow.service.channel.InMemoryByteTransport.TcpSemantics;
 import java.nio.ByteBuffer;
 import static org.assertj.core.api.Assertions.*;
 /**
@@ -31,6 +32,8 @@ class InMemoryTransportTest {
 
     @Test void testBidirectional() {
         var pair = InMemoryTransport.createPair();
+        pair[0].withTcpSemantics(TcpSemantics.NONE);
+        pair[1].withTcpSemantics(TcpSemantics.NONE);
         pair[0].send(ByteBuffer.wrap(new byte[]{1, 2}));
         pair[1].send(ByteBuffer.wrap(new byte[]{3, 4}));
 
@@ -65,6 +68,8 @@ class InMemoryTransportTest {
 
     @Test void testMultipleSends() {
         var pair = InMemoryTransport.createPair();
+        pair[0].withTcpSemantics(TcpSemantics.NONE);
+        pair[1].withTcpSemantics(TcpSemantics.NONE);
         pair[0].send(ByteBuffer.wrap(new byte[]{1}));
         pair[0].send(ByteBuffer.wrap(new byte[]{2}));
         pair[0].send(ByteBuffer.wrap(new byte[]{3}));

@@ -5,6 +5,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * In-memory {@link ByteTransport} pair for testing protocol implementations without TCP sockets.
@@ -18,10 +19,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * reader (mirroring a socket close where the peer sees EOF).
  *
  * <p><b>TCP semantics (optional):</b> {@link #withTcpSemantics(TcpSemantics)} enables
- * configurable simulation of TCP-like behavior: chunked delivery, coalescing, and backpressure.
- * Enabled by default — each {@code send()} is split into chunks (max 256 bytes) to simulate
- * TCP segmentation, and {@code receive()} delivers one chunk at a time to simulate partial reads.
- * Disable with {@link TcpSemantics#NONE} for raw synchronous queue semantics.
+ * configurable simulation of TCP-like behavior: chunked delivery, coalescing, backpressure,
+ * and async delivery via background daemon threads that move data from outbound to inbound
+ * queues (simulating TCP's async send/receive).
  *
  * @since 0.2.0
  */
@@ -30,8 +30,10 @@ public class InMemoryByteTransport implements ByteTransport {
     private final BlockingQueue<ByteBuffer> inbound;
     private final BlockingQueue<ByteBuffer> outbound;
     private final AtomicBoolean open = new AtomicBoolean(true);
-    private volatile InMemoryByteTransport peerRef;
+    protected volatile InMemoryByteTransport peerRef;
     private volatile TcpSemantics semantics = TcpSemantics.DEFAULT;
+    private volatile Thread deliveryThread;
+    private final AtomicInteger outboundQueueSize = new AtomicInteger(0);
 
     protected InMemoryByteTransport(BlockingQueue<ByteBuffer> inbound, BlockingQueue<ByteBuffer> outbound) {
         this.inbound = inbound;
@@ -72,18 +74,42 @@ public class InMemoryByteTransport implements ByteTransport {
         return semantics;
     }
 
+    /**
+     * Returns the current number of chunks in the outbound queue waiting for delivery.
+     * Useful for testing async delivery timing.
+     */
+    public int getOutboundQueueSize() {
+        return outboundQueueSize.get();
+    }
+
+    /**
+     * Waits until all data sent via {@link #send(ByteBuffer)} has been delivered to the peer's
+     * inbound queue. Only meaningful with async delivery semantics ({@link TcpSemantics#DEFAULT},
+     * {@link TcpSemantics#COALESCING}, {@link TcpSemantics#BACKPRESSURE}).
+     *
+     * @param timeout maximum time to wait
+     * @param unit time unit
+     * @throws InterruptedException if interrupted while waiting
+     */
+    public void waitForDelivery(long timeout, TimeUnit unit) throws InterruptedException {
+        long deadline = System.nanoTime() + unit.toNanos(timeout);
+        while (outboundQueueSize.get() > 0) {
+            long remaining = deadline - System.nanoTime();
+            if (remaining <= 0) throw new InterruptedException("Timed out waiting for delivery");
+            Thread.sleep(Math.min(10, TimeUnit.MILLISECONDS.convert(remaining, TimeUnit.NANOSECONDS)));
+        }
+    }
+
     @Override
     public void send(ByteBuffer data) {
         if (!open.get()) return;
         if (semantics == TcpSemantics.NONE) {
-            // Raw synchronous semantics: enqueue the entire buffer
-            var copy = ByteBuffer.allocate(data.remaining());
-            copy.put(data);
-            copy.flip();
-            outbound.offer(copy);
+            // Raw synchronous semantics: enqueue directly to peer's inbound
+            enqueueToPeer(data);
             return;
         }
-        // TCP-like semantics: split into chunks to simulate segmentation
+        // TCP-like semantics: split into chunks and enqueue to outbound queue
+        // Background delivery thread will move them to peer's inbound asynchronously
         int maxChunkSize = semantics.chunkSize();
         int remaining = data.remaining();
         int chunks = Math.max(1, (remaining + maxChunkSize - 1) / maxChunkSize);
@@ -92,8 +118,49 @@ public class InMemoryByteTransport implements ByteTransport {
             byte[] chunk = new byte[chunkSize];
             data.get(chunk);
             outbound.offer(ByteBuffer.wrap(chunk));
+            outboundQueueSize.incrementAndGet();
             remaining -= chunkSize;
         }
+        // Start delivery thread if not already running (async semantics)
+        if (semantics.asyncDelivery() && deliveryThread == null) {
+            startDeliveryThread();
+        }
+    }
+
+    /**
+     * Enqueues data directly to peer's inbound queue (synchronous delivery).
+     */
+    private void enqueueToPeer(ByteBuffer data) {
+        var p = peerRef;
+        if (p != null) {
+            p.inbound.offer(data);
+        }
+    }
+
+    /**
+     * Starts a daemon thread to asynchronously deliver data from outbound to peer's inbound.
+     */
+    private synchronized void startDeliveryThread() {
+        if (deliveryThread != null) return;
+        Thread t = new Thread(() -> {
+            try {
+                while (open.get()) {
+                    ByteBuffer chunk = outbound.poll(100, TimeUnit.MILLISECONDS);
+                    if (chunk != null) {
+                        var p = peerRef;
+                        if (p != null) {
+                            p.inbound.offer(chunk);
+                        }
+                        outboundQueueSize.decrementAndGet();
+                    }
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }, "inmemory-delivery-" + System.identityHashCode(this));
+        t.setDaemon(true);
+        t.start();
+        deliveryThread = t;
     }
 
     @Override
@@ -139,6 +206,23 @@ public class InMemoryByteTransport implements ByteTransport {
                 p.open.set(false);
                 p.inbound.offer(ByteBuffer.allocate(0));
             }
+            // Stop delivery thread if running
+            stopDeliveryThread();
+        }
+    }
+
+    /**
+     * Stops the async delivery thread.
+     */
+    private synchronized void stopDeliveryThread() {
+        if (deliveryThread != null) {
+            deliveryThread.interrupt();
+            try {
+                deliveryThread.join(500);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            deliveryThread = null;
         }
     }
 
@@ -150,29 +234,32 @@ public class InMemoryByteTransport implements ByteTransport {
     /**
      * TCP-like semantics configuration for in-memory transport.
      *
-     * <p>Enables configurable simulation of TCP segmentation, partial reads, and backpressure.
+     * <p>Enables configurable simulation of TCP segmentation, partial reads, backpressure,
+     * and async delivery via background threads.
      */
     public static final class TcpSemantics {
         /** No TCP semantics: raw synchronous queue behavior. */
-        public static final TcpSemantics NONE = new TcpSemantics(0, Integer.MAX_VALUE, false);
+        public static final TcpSemantics NONE = new TcpSemantics(0, Integer.MAX_VALUE, false, false);
 
-        /** Default TCP semantics: chunked delivery (256-byte chunks), no coalescing, no backpressure. */
-        public static final TcpSemantics DEFAULT = new TcpSemantics(256, Integer.MAX_VALUE, false);
+        /** Default TCP semantics: chunked delivery (256-byte chunks), async delivery. */
+        public static final TcpSemantics DEFAULT = new TcpSemantics(256, Integer.MAX_VALUE, false, true);
 
-        /** Simulates TCP coalescing: up to 16KB per chunk. */
-        public static final TcpSemantics COALESCING = new TcpSemantics(16384, Integer.MAX_VALUE, false);
+        /** Simulates TCP coalescing: up to 16KB per chunk, async delivery. */
+        public static final TcpSemantics COALESCING = new TcpSemantics(16384, Integer.MAX_VALUE, false, true);
 
-        /** Simulates backpressure: bounded queue of 4KB, send blocks when full. */
-        public static final TcpSemantics BACKPRESSURE = new TcpSemantics(256, 4096, true);
+        /** Simulates backpressure: bounded queue of 4KB, send blocks when full, async delivery. */
+        public static final TcpSemantics BACKPRESSURE = new TcpSemantics(256, 4096, true, true);
 
         private final int chunkSize;
         private final int maxQueueSize;
         private final boolean backpressure;
+        private final boolean asyncDelivery;
 
-        TcpSemantics(int chunkSize, int maxQueueSize, boolean backpressure) {
+        TcpSemantics(int chunkSize, int maxQueueSize, boolean backpressure, boolean asyncDelivery) {
             this.chunkSize = chunkSize;
             this.maxQueueSize = maxQueueSize;
             this.backpressure = backpressure;
+            this.asyncDelivery = asyncDelivery;
         }
 
         /** Returns the maximum chunk size for segmentation. */
@@ -188,6 +275,11 @@ public class InMemoryByteTransport implements ByteTransport {
         /** Returns whether backpressure is enabled. */
         public boolean backpressure() {
             return backpressure;
+        }
+
+        /** Returns whether async delivery via background thread is enabled. */
+        public boolean asyncDelivery() {
+            return asyncDelivery;
         }
     }
 }

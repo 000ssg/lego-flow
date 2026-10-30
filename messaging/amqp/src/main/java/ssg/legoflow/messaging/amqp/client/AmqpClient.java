@@ -135,8 +135,11 @@ public final class AmqpClient implements AutoCloseable {
             headerBuf.get(serverHeader);
 
             if (Arrays.equals(serverHeader, AmqpConstants.SASL_HEADER)) {
+                // Server echoes SASL_HEADER, then sends SASL mechanisms frame.
+                // The SASL exchange must be done before any AMQP framing begins.
                 LOG.debug("Server supports SASL-first, proceeding with negotiation");
                 doSaslNegotiation(mechanism);
+                // After SASL completes, send AMQP_HEADER and wait for echo.
                 transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
                 headerBuf.clear();
                 readFully(headerBuf);
@@ -176,7 +179,9 @@ public final class AmqpClient implements AutoCloseable {
     }
 
     private void doSaslNegotiation(SaslMechanism mechanism) throws IOException {
-        // Read sasl-mechanisms frame from server
+        // Read sasl-mechanisms frame from server.
+        // After SASL-first header exchange, the server sends the SASL mechanisms
+        // frame directly (no intermediate AMQP framing header).
         AmqpFrame mechFrame = readFrame();
         if (mechFrame == null || mechFrame.type() != AmqpConstants.FRAME_TYPE_SASL) {
             throw new AmqpException(AmqpError.FRAMING_ERROR,

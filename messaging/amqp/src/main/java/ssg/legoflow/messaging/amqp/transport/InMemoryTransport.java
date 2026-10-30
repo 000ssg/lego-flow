@@ -24,9 +24,10 @@ public final class InMemoryTransport extends InMemoryByteTransport implements By
     public static InMemoryTransport[] createPair() {
         var q1 = new java.util.concurrent.LinkedBlockingQueue<java.nio.ByteBuffer>();
         var q2 = new java.util.concurrent.LinkedBlockingQueue<java.nio.ByteBuffer>();
-        return new InMemoryTransport[]{
-                new InMemoryTransport(q1, q2),
-                new InMemoryTransport(q2, q1)
-        };
+        var a = new InMemoryTransport(q1, q2);
+        var b = new InMemoryTransport(q2, q1);
+        a.peerRef = b;
+        b.peerRef = a;
+        return new InMemoryTransport[]{a, b};
     }
 }

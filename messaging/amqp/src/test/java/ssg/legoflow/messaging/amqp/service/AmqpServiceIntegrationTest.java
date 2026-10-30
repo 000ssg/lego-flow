@@ -86,14 +86,9 @@ class AmqpServiceIntegrationTest {
                 .build();
         client.connect(ctx);
 
-        // Wait for the client's handshake data to be flushed to the server
-        // (PipelineByteTransport is enqueue-only; wait for outbound queue to drain)
-        var transport = client.getTransport();
-        long deadline = System.currentTimeMillis() + 2_000;
-        while (System.currentTimeMillis() < deadline) {
-            if (transport.getOutboundQueueSize() == 0) break;
-            Thread.sleep(50);
-        }
+        // Wait for the client's handshake data to be delivered to the server
+        // (allow selector thread to process the outbound queue)
+        Thread.sleep(100);
 
         assertThat(client.isConnected()).isTrue();
         assertThat(client.getClient()).isNotNull();
@@ -164,14 +159,9 @@ class AmqpServiceIntegrationTest {
                 .build();
         client.connect(ctx);
 
-        // Wait for the client's handshake data to be flushed to the server
-        // (PipelineByteTransport is enqueue-only; wait for outbound queue to drain)
-        var transport = client.getTransport();
-        long deadline = System.currentTimeMillis() + 2_000;
-        while (System.currentTimeMillis() < deadline) {
-            if (transport.getOutboundQueueSize() == 0) break;
-            Thread.sleep(50);
-        }
+        // Wait for the client's handshake data to be delivered to the server
+        // (allow selector thread to process the outbound queue)
+        Thread.sleep(100);
 
         try {
             AmqpClient amqpClient = client.getClient();
@@ -217,13 +207,9 @@ class AmqpServiceIntegrationTest {
                     .build();
             clients[i].connect(ctx);
 
-            // Wait for each client's handshake data to be flushed
-            var t = clients[i].getTransport();
-            long d = System.currentTimeMillis() + 2_000;
-            while (System.currentTimeMillis() < d) {
-                if (t.getOutboundQueueSize() == 0) break;
-                Thread.sleep(50);
-            }
+            // Wait for each client's handshake data to be delivered to the server
+            // (allow selector thread to process the outbound queue)
+            Thread.sleep(100);
 
             // Small delay between clients to avoid race conditions
             Thread.sleep(50);
