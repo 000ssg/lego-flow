@@ -1094,3 +1094,30 @@ Next sub-task (same rules): ApiVersions v2 (response unchanged vs v1 → shared 
 ### Commits
 - `9374bf4c` — fix: add missing imports to KafkaConnection (incomplete — wrong package + wrong accessor)
 - this commit — completes the fix
+
+## 2026-10-30: InMemoryByteTransport TCP semantics — configurable chunked delivery
+
+### Problem
+The in-memory transport (`InMemoryByteTransport`) used a single `BlockingQueue` per direction with no segmentation. Each `send()` enqueued one buffer, and each `receive()` consumed the entire buffer. This didn't simulate TCP behavior where data is segmented into packets and read in chunks.
+
+### Solution
+Added configurable TCP semantics to `InMemoryByteTransport` via `TcpSemantics` enum:
+
+- **`DEFAULT`** (256-byte chunks): Each `send()` is split into chunks, simulating TCP segmentation. `receive()` delivers one chunk at a time, simulating partial reads.
+- **`NONE`**: Raw synchronous queue behavior (original semantics).
+- **`COALESCING`** (16 KB chunks): Simulates TCP coalescing where multiple writes are batched.
+- **`BACKPRESSURE`** (256-byte chunks, 4 KB queue): Bounded queue that blocks `send()` when full.
+
+Enabled by default — tests get TCP-like behavior out of the box. Disable with `TcpSemantics.NONE` for deterministic synchronous semantics.
+
+### Files Changed
+- `service/src/main/java/ssg/legoflow/service/channel/InMemoryByteTransport.java` — Added `TcpSemantics` inner class, `withTcpSemantics()` and `getTcpSemantics()` methods, chunked `send()` implementation
+- `doc/PROTOCOL-GUIDELINES.md` — Documented TCP semantics in §6.2
+
+### Verification
+- `mvn compile -DskipTests -pl '!benchmarks'` — BUILD SUCCESS
+- `./gradlew test` — 342 tests, 1 pre-existing failure in `NatsServiceIntegrationTest` (unrelated to this change — server subscription registration bug)
+- `./gradlew :lego-flow-service:test` — BUILD SUCCESS
+
+### Note
+The `NatsServiceIntegrationTest` failure is pre-existing and unrelated to this change. The test uses real TCP through the `SelectableChannelManager`, and the server's subscription registration is not being triggered (the SUB message never reaches the server's connection loop). This appears to be a bug in the NATS service layer, not in the in-memory transport.

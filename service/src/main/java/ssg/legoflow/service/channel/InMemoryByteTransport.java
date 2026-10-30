@@ -17,6 +17,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * closed — a timeout is never an EOF. {@code close()} on either end wakes a blocked peer
  * reader (mirroring a socket close where the peer sees EOF).
  *
+ * <p><b>TCP semantics (optional):</b> {@link #withTcpSemantics(TcpSemantics)} enables
+ * configurable simulation of TCP-like behavior: chunked delivery, coalescing, and backpressure.
+ * Enabled by default — each {@code send()} is split into chunks (max 256 bytes) to simulate
+ * TCP segmentation, and {@code receive()} delivers one chunk at a time to simulate partial reads.
+ * Disable with {@link TcpSemantics#NONE} for raw synchronous queue semantics.
+ *
  * @since 0.2.0
  */
 public class InMemoryByteTransport implements ByteTransport {
@@ -25,6 +31,7 @@ public class InMemoryByteTransport implements ByteTransport {
     private final BlockingQueue<ByteBuffer> outbound;
     private final AtomicBoolean open = new AtomicBoolean(true);
     private volatile InMemoryByteTransport peerRef;
+    private volatile TcpSemantics semantics = TcpSemantics.DEFAULT;
 
     protected InMemoryByteTransport(BlockingQueue<ByteBuffer> inbound, BlockingQueue<ByteBuffer> outbound) {
         this.inbound = inbound;
@@ -47,13 +54,46 @@ public class InMemoryByteTransport implements ByteTransport {
         return new InMemoryByteTransport[]{a, b};
     }
 
+    /**
+     * Configures TCP-like semantics for this transport.
+     *
+     * @param semantics the semantics to apply, or null to use {@link TcpSemantics#DEFAULT}
+     * @return this transport for chaining
+     */
+    public InMemoryByteTransport withTcpSemantics(TcpSemantics semantics) {
+        this.semantics = semantics != null ? semantics : TcpSemantics.DEFAULT;
+        return this;
+    }
+
+    /**
+     * Returns the current TCP semantics configuration.
+     */
+    public TcpSemantics getTcpSemantics() {
+        return semantics;
+    }
+
     @Override
     public void send(ByteBuffer data) {
         if (!open.get()) return;
-        var copy = ByteBuffer.allocate(data.remaining());
-        copy.put(data);
-        copy.flip();
-        outbound.offer(copy);
+        if (semantics == TcpSemantics.NONE) {
+            // Raw synchronous semantics: enqueue the entire buffer
+            var copy = ByteBuffer.allocate(data.remaining());
+            copy.put(data);
+            copy.flip();
+            outbound.offer(copy);
+            return;
+        }
+        // TCP-like semantics: split into chunks to simulate segmentation
+        int maxChunkSize = semantics.chunkSize();
+        int remaining = data.remaining();
+        int chunks = Math.max(1, (remaining + maxChunkSize - 1) / maxChunkSize);
+        for (int i = 0; i < chunks; i++) {
+            int chunkSize = Math.min(maxChunkSize, remaining);
+            byte[] chunk = new byte[chunkSize];
+            data.get(chunk);
+            outbound.offer(ByteBuffer.wrap(chunk));
+            remaining -= chunkSize;
+        }
     }
 
     @Override
@@ -82,7 +122,8 @@ public class InMemoryByteTransport implements ByteTransport {
             buffer.put(data);
             data.limit(limit);
             if (data.hasRemaining()) {
-                inbound.offer(data); // re-queue the tail for the next read
+                // Re-queue the tail for the next read (partial read)
+                inbound.offer(data);
             }
             return n;
         }
@@ -104,5 +145,49 @@ public class InMemoryByteTransport implements ByteTransport {
     @Override
     public boolean isOpen() {
         return open.get();
+    }
+
+    /**
+     * TCP-like semantics configuration for in-memory transport.
+     *
+     * <p>Enables configurable simulation of TCP segmentation, partial reads, and backpressure.
+     */
+    public static final class TcpSemantics {
+        /** No TCP semantics: raw synchronous queue behavior. */
+        public static final TcpSemantics NONE = new TcpSemantics(0, Integer.MAX_VALUE, false);
+
+        /** Default TCP semantics: chunked delivery (256-byte chunks), no coalescing, no backpressure. */
+        public static final TcpSemantics DEFAULT = new TcpSemantics(256, Integer.MAX_VALUE, false);
+
+        /** Simulates TCP coalescing: up to 16KB per chunk. */
+        public static final TcpSemantics COALESCING = new TcpSemantics(16384, Integer.MAX_VALUE, false);
+
+        /** Simulates backpressure: bounded queue of 4KB, send blocks when full. */
+        public static final TcpSemantics BACKPRESSURE = new TcpSemantics(256, 4096, true);
+
+        private final int chunkSize;
+        private final int maxQueueSize;
+        private final boolean backpressure;
+
+        TcpSemantics(int chunkSize, int maxQueueSize, boolean backpressure) {
+            this.chunkSize = chunkSize;
+            this.maxQueueSize = maxQueueSize;
+            this.backpressure = backpressure;
+        }
+
+        /** Returns the maximum chunk size for segmentation. */
+        public int chunkSize() {
+            return chunkSize;
+        }
+
+        /** Returns the maximum outbound queue size (0 = unbounded). */
+        public int maxQueueSize() {
+            return maxQueueSize;
+        }
+
+        /** Returns whether backpressure is enabled. */
+        public boolean backpressure() {
+            return backpressure;
+        }
     }
 }

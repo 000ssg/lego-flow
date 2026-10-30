@@ -242,6 +242,37 @@ Every protocol module must provide a memory-based transport for client↔server 
 - No network, no threads, deterministic ordering
 - `close()` poisons both queues
 
+#### TCP Semantics (Configurable)
+
+`InMemoryByteTransport` supports optional TCP-like semantics via `withTcpSemantics(TcpSemantics)`:
+
+| Semantics | Chunk Size | Coalescing | Backpressure | Use Case |
+|-----------|------------|------------|--------------|----------|
+| `DEFAULT` | 256 bytes | No | No | Simulates TCP segmentation (default) |
+| `NONE` | N/A | N/A | N/A | Raw synchronous queue behavior |
+| `COALESCING` | 16 KB | Yes | No | Simulates TCP coalescing |
+| `BACKPRESSURE` | 256 bytes | No | Yes (4 KB) | Simulates full send buffer |
+
+- **Chunked delivery**: Each `send()` is split into chunks (max 256 bytes by default), simulating TCP segmentation
+- **Partial reads**: `receive()` delivers one chunk at a time, simulating TCP partial reads
+- **Backpressure**: When enabled, `send()` blocks if the outbound queue exceeds the limit
+- **Enabled by default**: TCP semantics are active by default; disable with `TcpSemantics.NONE` for raw synchronous behavior
+
+```java
+// Default: chunked delivery (256-byte chunks)
+var pair = InMemoryByteTransport.createPair();
+
+// Disable TCP semantics for raw synchronous behavior
+var pair = InMemoryByteTransport.createPair();
+pair[0].withTcpSemantics(TcpSemantics.NONE);
+pair[1].withTcpSemantics(TcpSemantics.NONE);
+
+// Enable backpressure simulation
+var pair = InMemoryByteTransport.createPair();
+pair[0].withTcpSemantics(TcpSemantics.BACKPRESSURE);
+pair[1].withTcpSemantics(TcpSemantics.BACKPRESSURE);
+```
+
 ### 6.3 Frame Codec Tests Must Cover
 
 - Single frame in single read

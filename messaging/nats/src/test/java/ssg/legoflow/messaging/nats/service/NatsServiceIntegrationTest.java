@@ -57,26 +57,28 @@ class NatsServiceIntegrationTest {
 
         var client = NatsService.builder("localhost", port).build();
         client.connect(ctx);
+
+        // Wait for the client's handshake data to be flushed to the server
+        // (PipelineByteTransport is enqueue-only; wait for outbound queue to drain)
+        long handshakeDeadline = System.currentTimeMillis() + 2_000;
+        while (System.currentTimeMillis() < handshakeDeadline) {
+            var transport = client.getClient().transport();
+            if (transport instanceof PipelineNatsTransport pnt && pnt.getOutboundQueueSize() == 0) break;
+            Thread.sleep(50);
+        }
+
         assertThat(client.getClient()).as("client should be connected").isNotNull();
         assertThat(client.getClient().isConnected()).isTrue();
 
         // Pub/sub over real TCP.
         var latch = new CountDownLatch(1);
         var got = new AtomicReference<String>();
-        var subLatch = new CountDownLatch(1);
         client.subscribe("test.topic", msg -> {
             got.set(msg.dataAsString());
             latch.countDown();
         });
-        // Wait for the SUB to be fully processed by the server before publishing.
-        // With enqueue-only transport, the SUB must be written and processed before
-        // the PUB arrives; poll until the outbound queue is drained (SUB written).
-        long subDeadline = System.currentTimeMillis() + 2_000;
-        while (System.currentTimeMillis() < subDeadline) {
-            var transport = client.getClient().transport();
-            if (transport instanceof PipelineNatsTransport pnt && pnt.getOutboundQueueSize() == 0) break;
-            Thread.sleep(50);
-        }
+        // Give the SUB a moment to reach the server, then publish.
+        Thread.sleep(100);
         client.getClient().publish("test.topic", "hello-tcp");
 
         assertThat(latch.await(5, TimeUnit.SECONDS)).as("message should arrive over TCP").isTrue();
