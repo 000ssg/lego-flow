@@ -3,8 +3,8 @@
 ## Timeline Overview
 
 - **Module Added**: June 2026
-- **Tests**: 271
-- **Dependencies**: blocks (DP/DF), service (TCP transport)
+- **Tests**: 343
+- **Dependencies**: blocks (DP/DF), service (channel lifecycle via SelectableChannelManager)
 - **Standards**: NATS Protocol (text-based), JetStream
 
 ---
@@ -37,7 +37,7 @@
 5. Thread-safe concurrent routing with ConcurrentHashMap and CopyOnWriteArrayList
 
 ### Server
-1. Accept TCP connections with ServerSocket and virtual thread per client
+1. Headless core — no socket, no accept loop; connections arrive via `handleConnection(NatsTransport)`
 2. Send INFO with server capabilities on client connect
 3. Process CONNECT with authentication validation
 4. Handle PUB/HPUB: route messages to matching subscribers, intercept for JetStream
@@ -46,10 +46,10 @@
 7. Handle PING/PONG: respond to client keep-alive
 8. Verbose mode: send +OK after each successful operation when enabled
 9. Track connected clients with ConcurrentHashMap, clean up subscriptions on disconnect
-10. Support configurable port (0 for ephemeral)
+10. Service layer (`NatsServerService`) owns the non-blocking `ServerSocketChannel` and wires accepted connections through `PipelineNatsTransport` into `handleConnection`
 
 ### Client
-1. Establish TCP connection with configurable host and port
+1. Transport-injected: `NatsClient(NatsTransport, ...)` — no socket in the core; the service layer (`NatsService`) connects over a non-blocking channel via `PipelineNatsTransport`
 2. Perform INFO/CONNECT handshake followed by PING/PONG confirmation
 3. Publish messages with optional reply-to subject
 4. Publish messages with headers (HPUB)

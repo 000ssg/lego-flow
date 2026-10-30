@@ -1,6 +1,7 @@
 package ssg.legoflow.messaging.kafka.client;
 
 import ssg.legoflow.messaging.kafka.codec.KafkaCodec;
+import ssg.legoflow.messaging.kafka.codec.MetadataCodec;
 import ssg.legoflow.messaging.kafka.common.*;
 import ssg.legoflow.messaging.kafka.broker.ConsumerGroupCoordinator;
 import ssg.legoflow.messaging.kafka.broker.PartitionAssigner;
@@ -8,6 +9,7 @@ import ssg.legoflow.messaging.kafka.broker.RangeAssigner;
 import ssg.legoflow.messaging.kafka.broker.StickyAssigner;
 import ssg.legoflow.messaging.kafka.protocol.*;
 import ssg.legoflow.messaging.kafka.record.RecordBatch;
+import ssg.legoflow.service.channel.ByteTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -67,21 +69,20 @@ public final class KafkaConsumer implements AutoCloseable {
     private volatile RebalanceListener rebalanceListener;
 
     /**
-     * Creates a new Kafka consumer.
+     * Creates a new Kafka consumer over an injected transport.
      *
-     * @param host                  the broker host
-     * @param port                  the broker port
-     * @param clientId              the client ID
-     * @param groupId               the consumer group ID
-     * @param autoCommit            whether to auto-commit offsets
+     * @param transport           the connection transport (service layer or in-memory pair)
+     * @param clientId            the client ID
+     * @param groupId             the consumer group ID
+     * @param autoCommit          whether to auto-commit offsets
      * @param autoCommitIntervalMs  the auto-commit interval
-     * @param sessionTimeoutMs      the session timeout
-     * @param maxPollRecords        the max records per poll
+     * @param sessionTimeoutMs    the session timeout
+     * @param maxPollRecords      the max records per poll
      */
-    public KafkaConsumer(String host, int port, String clientId, String groupId,
+    public KafkaConsumer(ByteTransport transport, String clientId, String groupId,
                          boolean autoCommit, long autoCommitIntervalMs,
                          int sessionTimeoutMs, int maxPollRecords) {
-        this.connection = new KafkaConnection(host, port, clientId);
+        this.connection = new KafkaConnection(transport, clientId);
         this.groupId = groupId;
         this.autoCommit = autoCommit;
         this.autoCommitIntervalMs = autoCommitIntervalMs;
@@ -92,13 +93,17 @@ public final class KafkaConsumer implements AutoCloseable {
     /**
      * Creates a consumer with defaults.
      *
-     * @param host     the broker host
-     * @param port     the broker port
-     * @param clientId the client ID
-     * @param groupId  the consumer group ID
+     * @param transport  the connection transport
+     * @param clientId   the client ID
+     * @param groupId    the consumer group ID
      */
-    public KafkaConsumer(String host, int port, String clientId, String groupId) {
-        this(host, port, clientId, groupId, true, 5000, 10000, 500);
+    public KafkaConsumer(ByteTransport transport, String clientId, String groupId) {
+        this(transport, clientId, groupId, true, 5000, 10000, 500);
+    }
+
+    /** Exposes the underlying connection (for tests). */
+    KafkaConnection connection() {
+        return connection;
     }
 
     /**
@@ -143,7 +148,9 @@ public final class KafkaConsumer implements AutoCloseable {
      * @throws IOException if subscription fails
      */
     public void subscribe(List<String> topics) throws IOException {
-        connection.connect();
+        if (!connection.isConnected()) {
+            throw new IOException("Connection not open");
+        }
         subscribedTopics.clear();
         subscribedTopics.addAll(topics);
         joinGroup();
@@ -181,9 +188,9 @@ public final class KafkaConsumer implements AutoCloseable {
         }
 
         FetchRequest request = new FetchRequest((int) timeoutMs, 1, 10485760, topics);
-        byte[] payload = KafkaCodec.encodeFetchRequest(request);
+        byte[] payload = KafkaCodec.encodeFetchRequest((short) 0, request);
         ByteBuffer resp = connection.sendAndReceive(ApiKey.FETCH.key(), (short) 0, payload);
-        FetchResponse response = KafkaCodec.decodeFetchResponse(resp);
+        FetchResponse response = KafkaCodec.decodeFetchResponse((short) 0, resp);
 
         List<ConsumerRecord> records = new ArrayList<>();
         for (var tr : response.topics()) {
@@ -237,8 +244,9 @@ public final class KafkaConsumer implements AutoCloseable {
         }
 
         OffsetCommitRequest request = new OffsetCommitRequest(groupId, generationId, memberId, topics);
-        byte[] payload = KafkaCodec.encodeOffsetCommitRequest(request);
-        connection.sendAndReceive(ApiKey.OFFSET_COMMIT.key(), (short) 0, payload);
+        short offsetCommitVersion = connection.getNegotiatedVersion(ApiKey.OFFSET_COMMIT.key());
+        byte[] payload = KafkaCodec.encodeOffsetCommitRequest(offsetCommitVersion, request);
+        connection.sendAndReceive(ApiKey.OFFSET_COMMIT.key(), offsetCommitVersion, payload);
         lastCommitTime = System.currentTimeMillis();
     }
 
@@ -301,6 +309,12 @@ public final class KafkaConsumer implements AutoCloseable {
     // --- Group protocol ---
 
     private void joinGroup() throws IOException {
+        // Find the group coordinator first
+        FindCoordinatorResponse coordResp = findCoordinator(groupId, FindCoordinatorRequest.KEY_TYPE_GROUP);
+        if (coordResp.errorCode() != KafkaErrors.NONE.code()) {
+            throw new IOException("FindCoordinator failed: " + KafkaErrors.forCode(coordResp.errorCode()));
+        }
+
         // Encode subscription metadata
         byte[] metadata = ConsumerGroupCoordinator.encodeSubscription(subscribedTopics);
 
@@ -308,9 +322,9 @@ public final class KafkaConsumer implements AutoCloseable {
                 groupId, sessionTimeoutMs, sessionTimeoutMs, memberId, "consumer",
                 List.of(new JoinGroupRequest.Protocol(assignmentStrategy, metadata)));
 
-        byte[] payload = KafkaCodec.encodeJoinGroupRequest(request);
+        byte[] payload = KafkaCodec.encodeJoinGroupRequest((short) 0, request);
         ByteBuffer resp = connection.sendAndReceive(ApiKey.JOIN_GROUP.key(), (short) 0, payload);
-        JoinGroupResponse response = KafkaCodec.decodeJoinGroupResponse(resp);
+        JoinGroupResponse response = KafkaCodec.decodeJoinGroupResponse((short) 0, resp);
 
         if (response.errorCode() != KafkaErrors.NONE.code()) {
             throw new IOException("JoinGroup failed: " + KafkaErrors.forCode(response.errorCode()));
@@ -342,9 +356,9 @@ public final class KafkaConsumer implements AutoCloseable {
         }
 
         SyncGroupRequest request = new SyncGroupRequest(groupId, generationId, memberId, assignments);
-        byte[] payload = KafkaCodec.encodeSyncGroupRequest(request);
+        byte[] payload = KafkaCodec.encodeSyncGroupRequest((short) 0, request);
         ByteBuffer resp = connection.sendAndReceive(ApiKey.SYNC_GROUP.key(), (short) 0, payload);
-        SyncGroupResponse response = KafkaCodec.decodeSyncGroupResponse(resp);
+        SyncGroupResponse response = KafkaCodec.decodeSyncGroupResponse((short) 0, resp);
 
         if (response.errorCode() != KafkaErrors.NONE.code()) {
             throw new IOException("SyncGroup failed: " + KafkaErrors.forCode(response.errorCode()));
@@ -407,9 +421,9 @@ public final class KafkaConsumer implements AutoCloseable {
 
     private List<SyncGroupRequest.Assignment> assignPartitions(JoinGroupResponse joinResponse) throws IOException {
         // Fetch metadata for subscribed topics
-        byte[] metaPayload = KafkaCodec.encodeMetadataRequest(new MetadataRequest(subscribedTopics));
+        byte[] metaPayload = KafkaCodec.encodeMetadataRequest(MetadataCodec.MIN_VERSION, new MetadataRequest(subscribedTopics));
         ByteBuffer metaResp = connection.sendAndReceive(ApiKey.METADATA.key(), (short) 0, metaPayload);
-        MetadataResponse metadata = KafkaCodec.decodeMetadataResponse(metaResp);
+        MetadataResponse metadata = KafkaCodec.decodeMetadataResponse(MetadataCodec.MIN_VERSION, metaResp);
 
         // Collect all topic-partitions
         List<TopicPartition> allPartitions = new ArrayList<>();
@@ -459,9 +473,11 @@ public final class KafkaConsumer implements AutoCloseable {
             topics.add(new OffsetFetchRequest.TopicPartitions(entry.getKey(), entry.getValue()));
         }
 
-        byte[] payload = KafkaCodec.encodeOffsetFetchRequest(new OffsetFetchRequest(groupId, topics));
-        ByteBuffer resp = connection.sendAndReceive(ApiKey.OFFSET_FETCH.key(), (short) 0, payload);
-        OffsetFetchResponse response = KafkaCodec.decodeOffsetFetchResponse(resp);
+        OffsetFetchRequest request = new OffsetFetchRequest(groupId, topics);
+        short offsetFetchVersion = connection.getNegotiatedVersion(ApiKey.OFFSET_FETCH.key());
+        byte[] payload = KafkaCodec.encodeOffsetFetchRequest(offsetFetchVersion, request);
+        ByteBuffer resp = connection.sendAndReceive(ApiKey.OFFSET_FETCH.key(), offsetFetchVersion, payload);
+        OffsetFetchResponse response = KafkaCodec.decodeOffsetFetchResponse((short) 0, resp);
 
         for (var t : response.topics()) {
             for (var p : t.partitions()) {
@@ -486,9 +502,9 @@ public final class KafkaConsumer implements AutoCloseable {
 
     private void sendHeartbeat() throws IOException {
         byte[] payload = KafkaCodec.encodeHeartbeatRequest(
-                new HeartbeatRequest(groupId, generationId, memberId));
+                (short) 0, new HeartbeatRequest(groupId, generationId, memberId));
         ByteBuffer resp = connection.sendAndReceive(ApiKey.HEARTBEAT.key(), (short) 0, payload);
-        HeartbeatResponse response = KafkaCodec.decodeHeartbeatResponse(resp);
+        HeartbeatResponse response = KafkaCodec.decodeHeartbeatResponse((short) 0, resp);
 
         if (response.errorCode() == KafkaErrors.REBALANCE_IN_PROGRESS.code()) {
             LOG.info("Rebalance triggered, rejoining group");
@@ -506,7 +522,7 @@ public final class KafkaConsumer implements AutoCloseable {
     public void leaveGroup() throws IOException {
         if (!memberId.isEmpty()) {
             byte[] payload = KafkaCodec.encodeLeaveGroupRequest(
-                    new LeaveGroupRequest(groupId, memberId));
+                    (short) 0, new LeaveGroupRequest(groupId, memberId));
             connection.sendAndReceive(ApiKey.LEAVE_GROUP.key(), (short) 0, payload);
             LOG.info("Left group '{}'", groupId);
         }
@@ -529,5 +545,11 @@ public final class KafkaConsumer implements AutoCloseable {
             }
             connection.close();
         }
+    }
+
+    private FindCoordinatorResponse findCoordinator(String key, byte keyType) throws IOException {
+        byte[] payload = KafkaCodec.encodeFindCoordinatorRequest((short) 0, new FindCoordinatorRequest(key, keyType));
+        ByteBuffer resp = connection.sendAndReceive(ApiKey.FIND_COORDINATOR.key(), (short) 0, payload);
+        return KafkaCodec.decodeFindCoordinatorResponse((short) 0, resp);
     }
 }

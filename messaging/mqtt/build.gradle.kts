@@ -5,4 +5,6 @@ dependencies {
     api(project(":lego-flow-blocks"))
     api(project(":lego-flow-service"))
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
+    implementation(project(":lego-flow-http"))
+    testImplementation(project(":lego-flow-acl"))
 }

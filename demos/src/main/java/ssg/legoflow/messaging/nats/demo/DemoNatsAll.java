@@ -7,6 +7,7 @@ import ssg.legoflow.messaging.nats.protocol.ConnectOptions;
 import ssg.legoflow.messaging.nats.server.NatsServer;
 import ssg.legoflow.messaging.nats.server.auth.TokenAuthenticator;
 import ssg.legoflow.messaging.nats.server.auth.UserPassAuthenticator;
+import ssg.legoflow.messaging.nats.transport.InMemoryNatsTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -18,27 +19,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Comprehensive demo of all NATS module features.
  *
- * <h2>Server Configuration</h2>
- * <p><b>Preferred (default): In-house {@link NatsServer}</b> — No external dependencies.
- * Runs anywhere without installation. Supports all 12 protocol operations, subject-based
- * routing with wildcards, queue groups, request/reply, headers, authentication
- * (token + user/pass), and JetStream persistent streaming with durable consumers.
+ * <h2>Transport</h2>
+ * <p>All sections run against an in-house {@link NatsServer} over in-memory transport
+ * pairs ({@link InMemoryNatsTransport#createPair()}) — no sockets, no ports, runs
+ * anywhere. The server core is headless; each client connects over its own dedicated
+ * in-memory pair wired into the server via {@link NatsServer#handleConnection}.
+ * Supports all 12 protocol operations, subject-based routing with wildcards, queue
+ * groups, request/reply, headers, authentication (token + user/pass), and JetStream
+ * persistent streaming with durable consumers.
  * Ideal for development, testing, CI/CD, and learning the NATS protocol.</p>
  *
- * <p><b>Alternative: External NATS Server (nats-server)</b> — Set {@link #USE_EXTERNAL}{@code =true}
- * and configure {@link #EXTERNAL_HOST}/{@link #EXTERNAL_PORT}. Required for:</p>
- * <ul>
- *   <li>Production load testing with clustering and route mesh</li>
- *   <li>TLS encryption and NKEY/JWT authentication</li>
- *   <li>Multi-node JetStream replication (R3+ clusters)</li>
- *   <li>Integration testing against a real NATS infrastructure</li>
- * </ul>
- *
- * <h2>Switching</h2>
- * <p>The only code that changes when switching is the server lifecycle (start/stop).
- * All client code (pub/sub, request/reply, JetStream) uses the same API regardless of backend.
- * When {@code USE_EXTERNAL=true}, the demo skips server creation and connects directly
- * to the configured host:port.</p>
+ * <p><b>Alternative: External NATS Server (nats-server)</b> — the in-memory design has
+ * no external socket seam; {@link #USE_EXTERNAL}/{@link #EXTERNAL_HOST}/{@link #EXTERNAL_PORT}
+ * are retained as metadata only and are not used by the in-memory sections.</p>
  *
  * <h2>Features Demonstrated</h2>
  * <ol>
@@ -56,8 +49,9 @@ public final class DemoNatsAll {
     private static final Logger LOG = LoggerFactory.getLogger(DemoNatsAll.class);
 
     // ============================= CONFIGURATION =============================
-    // Preferred: in-house NatsServer (no external dependencies, runs anywhere)
-    // Alternative: set USE_EXTERNAL=true and configure host/port for nats-server
+    // All sections run over the in-memory seam (headless NatsServer, no sockets).
+    // The external-server fields below are retained as metadata only; the in-memory
+    // design has no external socket seam, so they are not used by the sections.
     // =========================================================================
 
     /** Set to {@code true} to connect to an external NATS server. */
@@ -103,23 +97,18 @@ public final class DemoNatsAll {
             return runWithExternalServer(EXTERNAL_HOST, EXTERNAL_PORT);
         }
 
-        // Pub/sub, request/reply, queue groups (no auth)
-        int pubSubMessages;
-        boolean requestReply;
-        int queueGroupTotal;
-        int queueGroupWorkers;
+        // Pub/sub, request/reply, queue groups (no auth) — each over the in-memory seam
+        int pubSubMessages = demoPubSub();
+        boolean requestReply = demoRequestReply();
+        var queueResults = demoQueueGroups();
+        int queueGroupTotal = queueResults[0];
+        int queueGroupWorkers = queueResults[1];
+
+        // JetStream needs the headless server reference
         int jetStreamConsumed;
-
-        try (var server = new NatsServer(0)) {
-            server.start(0);
-            int port = server.port();
-            LOG.info("In-house NatsServer started on port {}", port);
-
-            pubSubMessages = demoPubSub(port);
-            requestReply = demoRequestReply(port);
-            var queueResults = demoQueueGroups(port);
-            queueGroupTotal = queueResults[0];
-            queueGroupWorkers = queueResults[1];
+        try (var server = new NatsServer()) {
+            server.start();
+            LOG.info("In-house NatsServer started (in-memory)");
             jetStreamConsumed = demoJetStream(server);
         }
 
@@ -132,57 +121,55 @@ public final class DemoNatsAll {
     }
 
     private static Results runWithExternalServer(String host, int port) throws Exception {
-        int pubSubMessages = demoPubSub(host, port);
-        boolean requestReply = demoRequestReply(host, port);
-        var queueResults = demoQueueGroups(host, port);
-
-        // JetStream and auth not available without in-house server reference
-        return new Results(pubSubMessages, requestReply, queueResults[0],
-                queueResults[1], 0, false, false);
+        // Metadata-only: the in-memory seam has no external socket path.
+        return new Results(0, false, 0, 0, 0, false, false);
     }
 
     // ======================== 1. PUB/SUB ====================================
 
     /**
-     * Demonstrates basic publish/subscribe with wildcard subjects.
+     * Demonstrates basic publish/subscribe with wildcard subjects over the
+     * in-memory seam.
      */
-    static int demoPubSub(int port) throws IOException, InterruptedException {
-        return demoPubSub("localhost", port);
-    }
-
-    /**
-     * Demonstrates basic publish/subscribe with wildcard subjects.
-     */
-    static int demoPubSub(String host, int port) throws IOException, InterruptedException {
+    static int demoPubSub() throws IOException, InterruptedException {
         LOG.info("=== 1. Pub/Sub ===");
         var received = new AtomicInteger(0);
         var latch = new CountDownLatch(3);
 
-        try (var subscriber = new NatsClient(host, port,
-                ConnectOptions.withDefaults("demo-sub"));
-             var publisher = new NatsClient(host, port,
-                     ConnectOptions.withDefaults("demo-pub"))) {
+        try (var server = new NatsServer()) {
+            server.start();
 
-            subscriber.connect();
-            publisher.connect();
+            var subPair = InMemoryNatsTransport.createPair();
+            server.handleConnection(subPair[0]);
+            var pubPair = InMemoryNatsTransport.createPair();
+            server.handleConnection(pubPair[0]);
 
-            // Subscribe with wildcard '>' (matches one or more trailing tokens)
-            subscriber.subscribe("demo.>", msg -> {
-                LOG.info("Received on {}: {}", msg.subject(), msg.dataAsString());
-                received.incrementAndGet();
-                latch.countDown();
-            });
+            try (var subscriber = new NatsClient(subPair[1],
+                    ConnectOptions.withDefaults("demo-sub"));
+                 var publisher = new NatsClient(pubPair[1],
+                         ConnectOptions.withDefaults("demo-pub"))) {
 
-            Thread.sleep(50); // Allow subscription to propagate
+                subscriber.connect();
+                publisher.connect();
 
-            // Publish to different subjects matching the wildcard
-            publisher.publish("demo.user.login", "user=alice");
-            publisher.publish("demo.user.logout", "user=bob");
-            publisher.publish("demo.system.restart", "node=1");
+                // Subscribe with wildcard '>' (matches one or more trailing tokens)
+                subscriber.subscribe("demo.>", msg -> {
+                    LOG.info("Received on {}: {}", msg.subject(), msg.dataAsString());
+                    received.incrementAndGet();
+                    latch.countDown();
+                });
 
-            // Give subscriber's virtual thread time to process delivered messages
-            Thread.sleep(100);
-            latch.await(10, TimeUnit.SECONDS);
+                Thread.sleep(50); // Allow subscription to propagate
+
+                // Publish to different subjects matching the wildcard
+                publisher.publish("demo.user.login", "user=alice");
+                publisher.publish("demo.user.logout", "user=bob");
+                publisher.publish("demo.system.restart", "node=1");
+
+                // Give subscriber's virtual thread time to process delivered messages
+                Thread.sleep(100);
+                latch.await(10, TimeUnit.SECONDS);
+            }
         }
 
         LOG.info("Pub/sub received {} messages", received.get());
@@ -192,52 +179,55 @@ public final class DemoNatsAll {
     // ======================== 2. REQUEST/REPLY ==============================
 
     /**
-     * Demonstrates the request/reply pattern with automatic inbox management.
+     * Demonstrates the request/reply pattern with automatic inbox management
+     * over the in-memory seam.
      * <p>
      * The requester publishes a message with a unique reply-to inbox subject.
      * The responder processes the request and publishes the reply to that inbox.
      * CompletableFuture-based with configurable timeout.
      */
-    static boolean demoRequestReply(int port) throws IOException, InterruptedException {
-        return demoRequestReply("localhost", port);
-    }
-
-    /**
-     * Demonstrates the request/reply pattern with automatic inbox management.
-     */
-    static boolean demoRequestReply(String host, int port) throws IOException, InterruptedException {
+    static boolean demoRequestReply() throws IOException, InterruptedException {
         LOG.info("=== 2. Request/Reply ===");
 
-        try (var service = new NatsClient(host, port,
-                ConnectOptions.withDefaults("demo-service"));
-             var requester = new NatsClient(host, port,
-                     ConnectOptions.withDefaults("demo-requester"))) {
+        try (var server = new NatsServer()) {
+            server.start();
 
-            service.connect();
-            requester.connect();
+            var servicePair = InMemoryNatsTransport.createPair();
+            server.handleConnection(servicePair[0]);
+            var requesterPair = InMemoryNatsTransport.createPair();
+            server.handleConnection(requesterPair[0]);
 
-            // Service subscribes and replies
-            service.subscribe("math.add", msg -> {
-                String[] parts = msg.dataAsString().split("\\+");
-                int result = Integer.parseInt(parts[0].trim()) + Integer.parseInt(parts[1].trim());
-                try {
-                    service.publish(msg.replyTo(), String.valueOf(result)
-                            .getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                } catch (IOException e) {
-                    LOG.error("Error sending reply", e);
+            try (var service = new NatsClient(servicePair[1],
+                    ConnectOptions.withDefaults("demo-service"));
+                 var requester = new NatsClient(requesterPair[1],
+                         ConnectOptions.withDefaults("demo-requester"))) {
+
+                service.connect();
+                requester.connect();
+
+                // Service subscribes and replies
+                service.subscribe("math.add", msg -> {
+                    String[] parts = msg.dataAsString().split("\\+");
+                    int result = Integer.parseInt(parts[0].trim()) + Integer.parseInt(parts[1].trim());
+                    try {
+                        service.publish(msg.replyTo(), String.valueOf(result)
+                                .getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                    } catch (IOException e) {
+                        LOG.error("Error sending reply", e);
+                    }
+                });
+
+                Thread.sleep(50);
+
+                // Send request with 3-second timeout
+                NatsMessage reply = requester.request("math.add", "15 + 25",
+                        Duration.ofSeconds(3));
+
+                if (reply != null) {
+                    String result = reply.dataAsString();
+                    LOG.info("Request/reply result: 15 + 25 = {}", result);
+                    return "40".equals(result);
                 }
-            });
-
-            Thread.sleep(50);
-
-            // Send request with 3-second timeout
-            NatsMessage reply = requester.request("math.add", "15 + 25",
-                    Duration.ofSeconds(3));
-
-            if (reply != null) {
-                String result = reply.dataAsString();
-                LOG.info("Request/reply result: 15 + 25 = {}", result);
-                return "40".equals(result);
             }
         }
 
@@ -247,60 +237,68 @@ public final class DemoNatsAll {
     // ======================== 3. QUEUE GROUPS ================================
 
     /**
-     * Demonstrates queue group load balancing.
+     * Demonstrates queue group load balancing over the in-memory seam.
      * <p>
      * Multiple subscribers in the same queue group receive messages in a
      * round-robin fashion, enabling horizontal scaling. Non-queued
      * subscribers still receive all messages independently.
      */
-    static int[] demoQueueGroups(int port) throws IOException, InterruptedException {
-        return demoQueueGroups("localhost", port);
-    }
-
-    /**
-     * Demonstrates queue group load balancing.
-     */
-    static int[] demoQueueGroups(String host, int port) throws IOException, InterruptedException {
+    static int[] demoQueueGroups() throws IOException, InterruptedException {
         LOG.info("=== 3. Queue Groups ===");
         int numWorkers = 3;
         int numMessages = 12;
         var workerCounts = new ConcurrentHashMap<String, AtomicInteger>();
         var latch = new CountDownLatch(numMessages);
 
-        var workers = new NatsClient[numWorkers];
-        try {
-            for (int i = 0; i < numWorkers; i++) {
-                String name = "worker-" + i;
-                workers[i] = new NatsClient(host, port,
-                        ConnectOptions.withDefaults(name));
-                workers[i].connect();
-                workerCounts.put(name, new AtomicInteger(0));
+        try (var server = new NatsServer()) {
+            server.start();
 
-                final String workerName = name;
-                workers[i].subscribe("tasks", "worker-group", msg -> {
-                    workerCounts.get(workerName).incrementAndGet();
-                    latch.countDown();
-                });
-            }
+            var workers = new NatsClient[numWorkers];
+            try {
+                // Each worker client gets its OWN in-memory pair
+                for (int i = 0; i < numWorkers; i++) {
+                    String name = "worker-" + i;
+                    var workerPair = InMemoryNatsTransport.createPair();
+                    server.handleConnection(workerPair[0]);
+                    workers[i] = new NatsClient(workerPair[1],
+                            ConnectOptions.withDefaults(name));
+                    workers[i].connect();
+                    workerCounts.put(name, new AtomicInteger(0));
 
-            Thread.sleep(50);
-
-            // Publish tasks
-            try (var publisher = new NatsClient(host, port,
-                    ConnectOptions.withDefaults("demo-task-pub"))) {
-                publisher.connect();
-                for (int i = 0; i < numMessages; i++) {
-                    publisher.publish("tasks", "task-" + i);
+                    final String workerName = name;
+                    workers[i].subscribe("tasks", "worker-group", msg -> {
+                        workerCounts.get(workerName).incrementAndGet();
+                        latch.countDown();
+                    });
                 }
-            }
 
-            // Give queue workers' virtual threads time to process messages
-            Thread.sleep(100);
-            latch.await(10, TimeUnit.SECONDS);
+                Thread.sleep(50);
 
-        } finally {
-            for (var worker : workers) {
-                if (worker != null) worker.close();
+                // Publish tasks (publisher gets its own in-memory pair)
+                var pubPair = InMemoryNatsTransport.createPair();
+                server.handleConnection(pubPair[0]);
+                var publisher = new NatsClient(pubPair[1],
+                        ConnectOptions.withDefaults("demo-task-pub"));
+                publisher.connect();
+                try {
+                    for (int i = 0; i < numMessages; i++) {
+                        publisher.publish("tasks", "task-" + i);
+                    }
+
+                    // Give queue workers' virtual threads time to process messages
+                    Thread.sleep(100);
+                    // Wait for delivery before closing the publisher: closing the
+                    // pair early would cut the server-side reader off mid-stream
+                    // and drop in-flight messages.
+                    latch.await(10, TimeUnit.SECONDS);
+                } finally {
+                    publisher.close();
+                }
+
+            } finally {
+                for (var worker : workers) {
+                    if (worker != null) worker.close();
+                }
             }
         }
 
@@ -379,13 +377,14 @@ public final class DemoNatsAll {
     static boolean demoTokenAuth() throws IOException, InterruptedException {
         LOG.info("=== 5. Token Authentication ===");
 
-        try (var server = new NatsServer(0)) {
+        try (var server = new NatsServer()) {
             server.setAuthenticator(new TokenAuthenticator("secret-token-123"));
-            server.start(0);
-            int port = server.port();
+            server.start();
 
-            // Connect with valid token
-            try (var client = new NatsClient("localhost", port,
+            // Connect with valid token over the in-memory seam
+            var clientPair = InMemoryNatsTransport.createPair();
+            server.handleConnection(clientPair[0]);
+            try (var client = new NatsClient(clientPair[1],
                     ConnectOptions.withDefaults("auth-client").withToken("secret-token-123"))) {
                 client.connect();
                 LOG.info("Token auth: connected successfully");
@@ -405,15 +404,16 @@ public final class DemoNatsAll {
     static boolean demoUserPassAuth() throws IOException, InterruptedException {
         LOG.info("=== 6. User/Pass Authentication ===");
 
-        try (var server = new NatsServer(0)) {
+        try (var server = new NatsServer()) {
             var auth = new UserPassAuthenticator();
             auth.addUser("demo-user", "demo-password");
             server.setAuthenticator(auth);
-            server.start(0);
-            int port = server.port();
+            server.start();
 
-            // Connect with valid credentials
-            try (var client = new NatsClient("localhost", port,
+            // Connect with valid credentials over the in-memory seam
+            var clientPair = InMemoryNatsTransport.createPair();
+            server.handleConnection(clientPair[0]);
+            try (var client = new NatsClient(clientPair[1],
                     ConnectOptions.withDefaults("auth-client")
                             .withUserPass("demo-user", "demo-password"))) {
                 client.connect();

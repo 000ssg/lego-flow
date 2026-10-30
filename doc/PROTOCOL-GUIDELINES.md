@@ -242,6 +242,37 @@ Every protocol module must provide a memory-based transport for client↔server 
 - No network, no threads, deterministic ordering
 - `close()` poisons both queues
 
+#### TCP Semantics (Configurable)
+
+`InMemoryByteTransport` supports optional TCP-like semantics via `withTcpSemantics(TcpSemantics)`:
+
+| Semantics | Chunk Size | Coalescing | Backpressure | Use Case |
+|-----------|------------|------------|--------------|----------|
+| `DEFAULT` | 256 bytes | No | No | Simulates TCP segmentation (default) |
+| `NONE` | N/A | N/A | N/A | Raw synchronous queue behavior |
+| `COALESCING` | 16 KB | Yes | No | Simulates TCP coalescing |
+| `BACKPRESSURE` | 256 bytes | No | Yes (4 KB) | Simulates full send buffer |
+
+- **Chunked delivery**: Each `send()` is split into chunks (max 256 bytes by default), simulating TCP segmentation
+- **Partial reads**: `receive()` delivers one chunk at a time, simulating TCP partial reads
+- **Backpressure**: When enabled, `send()` blocks if the outbound queue exceeds the limit
+- **Enabled by default**: TCP semantics are active by default; disable with `TcpSemantics.NONE` for raw synchronous behavior
+
+```java
+// Default: chunked delivery (256-byte chunks)
+var pair = InMemoryByteTransport.createPair();
+
+// Disable TCP semantics for raw synchronous behavior
+var pair = InMemoryByteTransport.createPair();
+pair[0].withTcpSemantics(TcpSemantics.NONE);
+pair[1].withTcpSemantics(TcpSemantics.NONE);
+
+// Enable backpressure simulation
+var pair = InMemoryByteTransport.createPair();
+pair[0].withTcpSemantics(TcpSemantics.BACKPRESSURE);
+pair[1].withTcpSemantics(TcpSemantics.BACKPRESSURE);
+```
+
 ### 6.3 Frame Codec Tests Must Cover
 
 - Single frame in single read
@@ -397,4 +428,164 @@ When starting a new protocol implementation, create:
 
 ---
 
-**Last Updated**: 2026-08-28
+**Last Updated**: 2026-10-24
+
+---
+
+## 11. Messaging Reference Pattern
+
+This section documents the reference pattern proven across all messaging modules (AMQP, MQTT, STOMP, NATS, XMPP, Kafka, WAMP). Use this as the canonical implementation template.
+
+### 11.1 Transport SPI Shape
+
+Every messaging protocol defines a transport SPI at its lowest abstraction boundary:
+
+```java
+public interface XxxTransport {
+    void send(ByteBuffer data);
+    int receive(ByteBuffer buffer);
+    void close() throws IOException;
+    boolean isOpen();
+}
+```
+
+**Key rules:**
+- Protocol core NEVER imports NIO classes directly
+- All I/O flows through the SPI
+- `receive()` returns bytes read (0 = keep reading, -1 = EOF)
+- `send()` throws on failure (never silently swallow)
+
+### 11.2 InMemoryTransport Pattern
+
+For integration tests, provide a memory-based transport pair:
+
+```java
+public class InMemoryXxxTransport implements XxxTransport {
+    private final BlockingQueue<ByteBuffer> inbound;
+    private final BlockingQueue<ByteBuffer> outbound;
+    private volatile boolean closed;
+
+    public static InMemoryXxxTransport[] createPair() {
+        InMemoryXxxTransport a = new InMemoryXxxTransport();
+        InMemoryXxxTransport b = new InMemoryXxxTransport();
+        a.outbound = b.inbound;
+        b.outbound = a.inbound;
+        return new InMemoryXxxTransport[]{a, b};
+    }
+}
+```
+
+**Rules:**
+- Uses `BlockingQueue<ByteBuffer>` pair (one queue per direction)
+- `send()` on one side → `receive()` on the other
+- No network, no threads, deterministic ordering
+- `close()` poisons both queues
+
+### 11.3 Pipeline Transport
+
+For production, use `PipelineTransport` driven by `SelectableChannelManager`:
+
+```java
+public class PipelineXxxTransport implements XxxTransport {
+    private final SelectableChannelManager manager;
+    private final SocketChannel channel;
+    // ...
+}
+```
+
+**Rules:**
+- Never write from the calling thread (use pipeline)
+- Server-side: driven by selector thread
+- Client-side: driven by virtual thread
+
+### 11.4 Codec Stream Reassembly
+
+Every codec must handle partial reads:
+
+```java
+class XxxCodec {
+    private final byte[] buffer = new byte[256];
+    private int length = 0;
+
+    void append(byte[] data, int offset, int len) {
+        // Grow buffer if needed
+        // Copy data
+        // Track length
+    }
+
+    List<ByteBuffer> extractFrames() {
+        // Read size header
+        // Extract complete frames
+        // Shift remainder
+    }
+}
+```
+
+**Rules:**
+- Use `byte[]` with length tracking (not `ByteBuffer`)
+- `ByteBuffer.compact()` loses position semantics
+- Return zero or more complete frames per call
+- Never return partial frames
+
+### 11.5 Version Negotiation
+
+For protocols with versioned APIs (Kafka):
+
+```java
+public class XxxApiVersions {
+    public static final int METADATA = 12;
+    public static final int LEADER_AND_ISR = 7;
+    // ...
+}
+```
+
+**Rules:**
+- Pin all APIs to spec-max versions
+- Broker and client use negotiated versions
+- Document pinned versions in ARCHITECTURE.md
+
+### 11.6 Golden Fixtures Workflow
+
+For protocol accuracy:
+
+1. Write frozen order tables (`doc/spec/order/*.txt`)
+2. Write golden encoder script (`doc/work/*_golden.py`)
+3. Generate golden vectors
+4. Write codec implementation
+5. Write tests with golden vectors
+6. Verify against spec
+
+**Rules:**
+- Spec is the only layout source
+- Broker observation is a check, never a source
+- One API version per sub-task, never mixed
+- Unit tests before interop
+
+### 11.7 Module Documentation Requirements
+
+Every messaging module must have:
+
+- `README.md` — Overview, features, quick-start, dependency badges
+- `AGENTS.md` — Module-specific conventions
+- `doc/ARCHITECTURE.md` — Purpose, Mermaid diagrams, design decisions
+- `doc/COMPLIANCE.md` — Spec compliance matrix
+- `doc/REQUIREMENTS.md` — Historical requirements tracking (append-only)
+
+**Rules:**
+- README must link to ARCHITECTURE, COMPLIANCE, REQUIREMENTS
+- Use Mermaid diagrams, not ASCII art
+- COMPLIANCE must map RFC sections → status → test ref
+- REQUIREMENTS must be append-only, commit-based
+
+### 11.8 Test Coverage Requirements
+
+- Unit tests: codec encode/decode round-trip for all versions
+- Integration tests: client ↔ server via InMemoryTransport
+- Interop tests: client ↔ real broker (Docker, @Disabled)
+- Coverage: ≥80% line coverage for migrated modules
+
+**Rules:**
+- All API versions must have tests
+- Golden fixtures must match spec exactly
+- Use `assertThat` from assertj, not JUnit assertions
+- Byte array fields require element-wise comparison

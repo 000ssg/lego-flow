@@ -16,7 +16,7 @@ class BrokerClusterTest {
             assertThat(cluster.size()).isEqualTo(3);
             for (int i = 0; i < 3; i++) {
                 assertThat(cluster.getBroker(i)).isNotNull();
-                assertThat(cluster.getBroker(i).port()).isGreaterThan(0);
+                assertThat(cluster.getBroker(i).brokerId()).isEqualTo(i);
             }
         }
     }

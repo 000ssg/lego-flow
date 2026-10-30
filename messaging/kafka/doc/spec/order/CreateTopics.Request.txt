@@ -1,0 +1,17 @@
+CreateTopics Request — field processing order (binding; spec 3.6.1) — flexible encoding from v5
+wire order by layout (equal run = byte-identical field layout):
+  v0 -> Topics:(Topics)Name:(Topics)NumPartitions:(Topics)ReplicationFactor:(Topics)Assignments:(Assignments)PartitionIndex:(Assignments)BrokerIds:(Topics)Configs:(Configs)Name:(Configs)Value:timeoutMs
+  v1-v4 -> Topics:(Topics)Name:(Topics)NumPartitions:(Topics)ReplicationFactor:(Topics)Assignments:(Assignments)PartitionIndex:(Assignments)BrokerIds:(Topics)Configs:(Configs)Name:(Configs)Value:timeoutMs:validateOnly?
+  v5-v7 -> Topics:(Topics)Name:(Topics)NumPartitions:(Topics)ReplicationFactor:(Topics)Assignments:(Assignments)PartitionIndex:(Assignments)BrokerIds:(Topics)Configs:(Configs)Name:(Configs)Value:timeoutMs:validateOnly?|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0:
+  v0: fixed: Topics([]CreatableTopic), timeoutMs(int32) || tagged: ∅
+  v1-v4:
+  v1: fixed: Topics([]CreatableTopic), timeoutMs(int32), validateOnly(bool) || tagged: ∅
+  v2: fixed: Topics([]CreatableTopic), timeoutMs(int32), validateOnly(bool) || tagged: ∅
+  v3: fixed: Topics([]CreatableTopic), timeoutMs(int32), validateOnly(bool) || tagged: ∅
+  v4: fixed: Topics([]CreatableTopic), timeoutMs(int32), validateOnly(bool) || tagged: ∅
+  v5-v7:
+  v5: fixed: Topics([]CreatableTopic) [flex], timeoutMs(int32) [flex], validateOnly(bool) [flex] || tagged: ∅
+  v6: fixed: Topics([]CreatableTopic) [flex], timeoutMs(int32) [flex], validateOnly(bool) [flex] || tagged: ∅
+  v7: fixed: Topics([]CreatableTopic) [flex], timeoutMs(int32) [flex], validateOnly(bool) [flex] || tagged: ∅

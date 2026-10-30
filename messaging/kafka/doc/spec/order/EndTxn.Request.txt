@@ -1,0 +1,11 @@
+EndTxn Request — field processing order (binding; spec 3.6.1) — flexible encoding from v3
+wire order by layout (equal run = byte-identical field layout):
+  v0-v2 -> TransactionalId:ProducerId:ProducerEpoch:Committed
+  v3 -> TransactionalId:ProducerId:ProducerEpoch:Committed|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0-v2:
+  v0: fixed: TransactionalId(string), ProducerId(int64), ProducerEpoch(int16), Committed(bool) || tagged: ∅
+  v1: fixed: TransactionalId(string), ProducerId(int64), ProducerEpoch(int16), Committed(bool) || tagged: ∅
+  v2: fixed: TransactionalId(string), ProducerId(int64), ProducerEpoch(int16), Committed(bool) || tagged: ∅
+  v3:
+  v3: fixed: TransactionalId(string) [flex], ProducerId(int64) [flex], ProducerEpoch(int16) [flex], Committed(bool) [flex] || tagged: ∅

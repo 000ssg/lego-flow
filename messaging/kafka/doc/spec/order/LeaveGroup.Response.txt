@@ -1,0 +1,17 @@
+LeaveGroup Response — field processing order (binding; spec 3.6.1) — flexible encoding from v4
+wire order by layout (equal run = byte-identical field layout):
+  v0 -> ErrorCode
+  v1-v2 -> ThrottleTimeMs?:ErrorCode
+  v3 -> ThrottleTimeMs?:ErrorCode:Members:Members[*].MemberId:Members[*].GroupInstanceId?:Members[*].ErrorCode
+  v4-v5 -> ThrottleTimeMs?:ErrorCode:Members:Members[*].MemberId:Members[*].GroupInstanceId?:Members[*].ErrorCode|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0:
+  v0: fixed: ErrorCode(int16) || tagged: ∅
+  v1-v2:
+  v1: fixed: ThrottleTimeMs(int32), ErrorCode(int16) || tagged: ∅
+  v2: fixed: ThrottleTimeMs(int32), ErrorCode(int16) || tagged: ∅
+  v3:
+  v3: fixed: ThrottleTimeMs(int32), ErrorCode(int16), []Members { MemberId(string), GroupInstanceId(string), ErrorCode(int16) } || tagged: ∅
+  v4-v5:
+  v4: fixed: ThrottleTimeMs(int32), ErrorCode(int16), []Members { MemberId(string) [flex], GroupInstanceId(string) [flex], ErrorCode(int16) } || tagged: ∅ (per-member + top-level)
+  v5: fixed: ThrottleTimeMs(int32), ErrorCode(int16), []Members { MemberId(string) [flex], GroupInstanceId(string) [flex], ErrorCode(int16) } || tagged: ∅ (per-member + top-level)

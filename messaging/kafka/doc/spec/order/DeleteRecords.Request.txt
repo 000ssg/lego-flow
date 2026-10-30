@@ -1,0 +1,10 @@
+DeleteRecords Request — field processing order (binding; spec 3.6.1) — flexible encoding from v2
+wire order by layout (equal run = byte-identical field layout):
+  v0-v1 -> Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)Offset:TimeoutMs
+  v2 -> Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)Offset:TimeoutMs|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0-v1:
+  v0: fixed: Topics([]DeleteRecordsTopic), TimeoutMs(int32) || tagged: ∅
+  v1: fixed: Topics([]DeleteRecordsTopic), TimeoutMs(int32) || tagged: ∅
+  v2:
+  v2: fixed: Topics([]DeleteRecordsTopic) [flex], TimeoutMs(int32) [flex] || tagged: ∅

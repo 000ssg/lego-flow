@@ -117,21 +117,27 @@ public class BufferPoolingBenchmark {
     
     private static void testMqttBufferPooling() {
         System.out.println("Testing MQTT buffer pooling...");
-        
+
+        var codec = new ssg.legoflow.messaging.mqtt.codec.MqttCodec(
+                ssg.legoflow.messaging.mqtt.protocol.MqttVersion.V5_0);
+        var packet = new ssg.legoflow.messaging.mqtt.protocol.PublishPacket(
+                "test/topic", "Test message".getBytes(),
+                ssg.legoflow.messaging.mqtt.protocol.QoS.AT_MOST_ONCE,
+                false, false, 0,
+                new ssg.legoflow.messaging.mqtt.protocol.MqttProperties());
+
         // Warm up the buffer pool
         for (int i = 0; i < 50; i++) {
-            MqttCodec.encode(new ssg.legoflow.messaging.mqtt.MqttMessage(3, false, 0, false, 
-                "test/topic", "Test message".getBytes()));
+            codec.encode(packet);
         }
-        
+
         // Test performance
         long startTime = System.nanoTime();
         for (int i = 0; i < 1000; i++) {
-            MqttCodec.encode(new ssg.legoflow.messaging.mqtt.MqttMessage(3, false, 0, false, 
-                "test/topic", "Test message".getBytes()));
+            codec.encode(packet);
         }
         long endTime = System.nanoTime();
-        
+
         System.out.println("MQTT encoding time: " + TimeUnit.NANOSECONDS.toMillis(endTime - startTime) + "ms");
     }
     

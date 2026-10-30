@@ -8,8 +8,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+
 /**
  * Demo: admin client operations — topic CRUD, metadata, API versions.
+ *
+ * <p>Runs over the in-memory transport seam ({@link KafkaDemoClient#inMemory}).
  *
  * @since 0.1.0
  */
@@ -30,7 +33,8 @@ public final class AdminClientDemo {
         try (KafkaBroker broker = new KafkaBroker("localhost", 0)) {
             broker.start();
 
-            try (KafkaAdminClient admin = new KafkaAdminClient("localhost", broker.port(), "admin-client")) {
+            try (var client = KafkaDemoClient.inMemory(broker).open();
+                 KafkaAdminClient admin = new KafkaAdminClient(client.transport(), "admin-client")) {
                 admin.connect();
 
                 // API versions

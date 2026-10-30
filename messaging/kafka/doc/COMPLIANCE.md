@@ -213,17 +213,19 @@
 
 ## Known Limitations
 
-- **In-memory storage** — no disk persistence or log segments; data lost on restart
 - **GZIP only** — Snappy, LZ4, and ZStandard require native libraries (JDK-only policy)
 - **No ACL/authorization** — no topic or group-level access control beyond SASL authentication
-- **v0 API versions only** — codec uses v0 wire format for simplicity, though ApiKey declares broader version ranges
+- **Version negotiation** — all 37 APIs pinned to spec-max versions; broker and client use negotiated versions via `KafkaApiVersions` and `KafkaAdminClient.getNegotiatedVersion()`
+- **Flexible encoding (KIP-482)** — codecs support flexible encoding from specified versions (e.g., Metadata v9+, UpdateMetadata v6+, LeaderAndIsr v4+)
 - **Simplified multi-broker** — BrokerCluster is an in-process simulation; no actual inter-broker network replication
-- **No SASL/SCRAM client** — SASL infrastructure is server-side; client auth requires manual handshake via KafkaConnection
+- **No SASL/SCRAM client** — SASL infrastructure is server-side; client auth requires a manual SaslHandshake/SaslAuthenticate exchange over the transport
 
 ## Test Coverage Summary
 
-- Total tests: 364
-- Key unit test classes: `KafkaBrokerTest` (27), `ConsumerGroupCoordinatorTest` (36), `PartitionLogTest` (20), `TransactionManagerTest` (31), `KafkaProducerTest` (14), `KafkaConsumerTest` (17), `KafkaAdminClientTest` (26), `KafkaCodecTest` (85), `ConfigManagerTest` (8), `ReplicaManagerTest` (8), `BrokerClusterTest` (7), `PartitionAssignerTest` (6), `CredentialStoreTest` (5), `ScramSha256ServerTest` (6), `PlainSaslServerTest` (4), `RebalanceListenerTest` (2), `RecordBatchTest` (26), `ApiKeyTest` (6), `KafkaErrorsTest` (7), `NodeTest` (4), `PartitionerTest` (6), `TopicPartitionTest` (7)
-- Key demo test classes: `SimpleProducerConsumerDemoTest` (3), `AdminClientDemoTest` (1), `TransactionalProducerDemoTest` (2)
+- Total tests: 1320+ (0 failures)
+- Transport trio: `KafkaTransportTest` (18 — SPI round-trip, head-of-stream partial-read reassembly, two-send interleaving, close/EOF semantics, pipeline smoke), `InMemoryKafkaTest` (in-memory seam), `KafkaServiceIntegrationTest` (15 — real TCP round-trip through `SelectableChannelManager`, produce/fetch, admin, error handling, stress)
+- Key unit test classes: `KafkaBrokerTest` (30, including wire-reassembly: partial prefix, fragmented body, coalesced frames), `ConsumerGroupCoordinatorTest` (36), `PartitionLogTest` (20), `TransactionManagerTest` (31), `KafkaProducerTest` (142), `KafkaConsumerTest` (17), `KafkaAdminClientTest` (235), `KafkaCodecTest` (85), `ConfigManagerTest` (8), `ReplicaManagerTest` (8), `BrokerClusterTest` (7), `PartitionAssignerTest` (6), `CredentialStoreTest` (5), `ScramSha256ServerTest` (6), `PlainSaslServerTest` (4), `RebalanceListenerTest` (2), `RecordBatchTest` (26), `ApiKeyTest` (6), `KafkaErrorsTest` (7), `NodeTest` (4), `PartitionerTest` (6), `TopicPartitionTest` (7), `InMemoryLogStorageTest` (13), `MappedFileLogStorageTest` (15), `LogStorageFactoryTest` (6)
+- All 35 codec test files fully tested with version coverage: `ApiVersionsCodecTest` (8), `SaslHandshakeCodecTest` (4), `SaslAuthenticateCodecTest` (6), `UpdateMetadataCodecTest` (15), `HeartbeatCodecTest` (15), `LeaveGroupCodecTest` (20), `SyncGroupCodecTest` (21), `DeleteTopicsCodecTest` (15), `FetchCodecTest` (32), `InitProducerIdCodecTest` (22), `CreateTopicsCodecTest` (15), `LeaderAndIsrCodecTest` (19), `StopReplicaCodecTest` (11), `OffsetForLeaderEpochCodecTest` (5), `ControlledShutdownCodecTest` (4), `MetadataCodecTest` (17)
 - All 37 API types fully covered: codec round-trip + broker handler + client integration
-- Complete coverage: SASL (PLAIN + SCRAM-SHA-256), multi-broker simulation, consumer group (range + sticky + cooperative), transactions (full lifecycle including consumer offsets), log compaction, dynamic configuration
+- JaCoCo (instruction): 91.9% — broker 85.7%, client 88.5%, codec 99.6%, transport 82.4% (≥80% gate)
+- Complete coverage: SASL (PLAIN + SCRAM-SHA-256), multi-broker simulation, consumer group (range + sticky + cooperative), transactions (full lifecycle including consumer offsets), log compaction, dynamic configuration, pluggable storage, transport reassembly, version negotiation

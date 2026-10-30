@@ -1,0 +1,21 @@
+CreateTopics Response — field processing order (binding; spec 3.6.1) — flexible encoding from v5
+wire order by layout (equal run = byte-identical field layout):
+  v0 -> Topics:(Topics)Name:(Topics)ErrorCode
+  v1 -> Topics:(Topics)Name:(Topics)ErrorCode:(Topics)ErrorMessage?
+  v2-v4 -> ThrottleTimeMs?:Topics:(Topics)Name:(Topics)ErrorCode:(Topics)ErrorMessage?
+  v5-v6 -> ThrottleTimeMs?:Topics:(Topics)Name:(Topics)ErrorCode:(Topics)ErrorMessage?:(Topics)NumPartitions?:(Topics)ReplicationFactor?:(Topics)Configs?:(Configs)Name?:(Configs)Value?:(Configs)ReadOnly?:(Configs)ConfigSource?:(Configs)IsSensitive?:(Topics)TopicConfigErrorCode[tag0]|flex
+  v7 -> ThrottleTimeMs?:Topics:(Topics)Name:(Topics)TopicId?:(Topics)ErrorCode:(Topics)ErrorMessage?:(Topics)NumPartitions?:(Topics)ReplicationFactor?:(Topics)Configs?:(Configs)Name?:(Configs)Value?:(Configs)ReadOnly?:(Configs)ConfigSource?:(Configs)IsSensitive?:(Topics)TopicConfigErrorCode[tag0]|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0:
+  v0: fixed: Topics([]CreatableTopicResult) || tagged: ∅
+  v1:
+  v1: fixed: Topics([]CreatableTopicResult) || tagged: ∅
+  v2-v4:
+  v2: fixed: ThrottleTimeMs(int32), Topics([]CreatableTopicResult) || tagged: ∅
+  v3: fixed: ThrottleTimeMs(int32), Topics([]CreatableTopicResult) || tagged: ∅
+  v4: fixed: ThrottleTimeMs(int32), Topics([]CreatableTopicResult) || tagged: ∅
+  v5-v6:
+  v5: fixed: ThrottleTimeMs(int32) [flex], Topics([]CreatableTopicResult) [flex] || tagged: ∅
+  v6: fixed: ThrottleTimeMs(int32) [flex], Topics([]CreatableTopicResult) [flex] || tagged: ∅
+  v7:
+  v7: fixed: ThrottleTimeMs(int32) [flex], Topics([]CreatableTopicResult) [flex] || tagged: ∅

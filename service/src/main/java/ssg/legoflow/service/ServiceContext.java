@@ -39,11 +39,7 @@ public interface ServiceContext extends Context {
         if (mgr == null) {
             throw new IllegalStateException("ChannelManager not configured in context for service: " + service.getDescriptor().name());
         }
-        mgr.registerChannel(service, channel);
-        var pipeline = mgr.getChannelPipeline(service);
-        if (pipeline != null && handler != null) {
-            pipeline.addLast(handler);
-        }
+        mgr.registerChannel(service, channel, handler);
     }
 
     default void registerServerChannel(Service<?, ?> service, ServerDataChannel channel) {

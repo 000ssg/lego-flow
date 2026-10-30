@@ -1,0 +1,30 @@
+Metadata Request — field processing order (binding; spec 3.6.1) — flexible encoding from v9
+wire order by layout (equal run = byte-identical field layout):
+  v0 -> Topics:Topics[*].Name
+  v1-v3 -> Topics:Topics[*].Name
+  v4-v7 -> Topics:Topics[*].Name:AllowAutoTopicCreation
+  v8 -> Topics:Topics[*].Name:AllowAutoTopicCreation:IncludeClusterAuthorizedOperations:IncludeTopicAuthorizedOperations
+  v9 -> Topics:Topics[*].Name:AllowAutoTopicCreation:IncludeClusterAuthorizedOperations:IncludeTopicAuthorizedOperations|flex
+  v10 -> Topics:Topics[*].TopicId:Topics[*].Name:AllowAutoTopicCreation:IncludeClusterAuthorizedOperations:IncludeTopicAuthorizedOperations|flex
+  v11-v12 -> Topics:Topics[*].TopicId:Topics[*].Name:AllowAutoTopicCreation:IncludeTopicAuthorizedOperations|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0:
+  v0: fixed: Topics[]MetadataRequestTopic { Name(string) } || tagged: ∅
+  v1-v3:
+  v1: fixed: Topics([]MetadataRequestTopic, nullable) { Name(string) } || tagged: ∅
+  v2: fixed: Topics([]MetadataRequestTopic, nullable) { Name(string) } || tagged: ∅
+  v3: fixed: Topics([]MetadataRequestTopic, nullable) { Name(string) } || tagged: ∅
+  v4-v7:
+  v4: fixed: Topics([]MetadataRequestTopic, nullable) { Name(string) }, AllowAutoTopicCreation(bool) || tagged: ∅
+  v5: fixed: Topics([]MetadataRequestTopic, nullable) { Name(string) }, AllowAutoTopicCreation(bool) || tagged: ∅
+  v6: fixed: Topics([]MetadataRequestTopic, nullable) { Name(string) }, AllowAutoTopicCreation(bool) || tagged: ∅
+  v7: fixed: Topics([]MetadataRequestTopic, nullable) { Name(string) }, AllowAutoTopicCreation(bool) || tagged: ∅
+  v8:
+  v8: fixed: Topics([]MetadataRequestTopic, nullable) { Name(string) }, AllowAutoTopicCreation(bool), IncludeClusterAuthorizedOperations(bool), IncludeTopicAuthorizedOperations(bool) || tagged: ∅
+  v9:
+  v9: fixed: Topics([]MetadataRequestTopic, nullable) { Name(string) [flex] }, AllowAutoTopicCreation(bool), IncludeClusterAuthorizedOperations(bool), IncludeTopicAuthorizedOperations(bool) || tagged: ∅ (per-topic + top-level)
+  v10:
+  v10: fixed: Topics([]MetadataRequestTopic, nullable) { TopicId(uuid) [flex], Name(string, nullable) [flex] }, AllowAutoTopicCreation(bool), IncludeClusterAuthorizedOperations(bool), IncludeTopicAuthorizedOperations(bool) || tagged: ∅ (per-topic + top-level)
+  v11-v12:
+  v11: fixed: Topics([]MetadataRequestTopic, nullable) { TopicId(uuid) [flex], Name(string, nullable) [flex] }, AllowAutoTopicCreation(bool), IncludeTopicAuthorizedOperations(bool) || tagged: ∅ (per-topic + top-level)
+  v12: fixed: Topics([]MetadataRequestTopic, nullable) { TopicId(uuid) [flex], Name(string, nullable) [flex] }, AllowAutoTopicCreation(bool), IncludeTopicAuthorizedOperations(bool) || tagged: ∅ (per-topic + top-level)

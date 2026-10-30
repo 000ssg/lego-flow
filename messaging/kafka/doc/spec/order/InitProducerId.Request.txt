@@ -1,0 +1,12 @@
+InitProducerId Request — field processing order (binding; spec 3.6.1) — flexible encoding from v2
+wire order by layout (equal run = byte-identical field layout):
+  v0-v1 -> TransactionalId?:(TransactionTimeoutMs)TransactionTimeoutMs
+  v2-v4 -> TransactionalId?:TransactionTimeoutMs:ProducerId:ProducerEpoch|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0-v1:
+  v0: fixed: TransactionalId(string, nullable), TransactionTimeoutMs(int32) || tagged: ∅
+  v1: fixed: TransactionalId(string, nullable), TransactionTimeoutMs(int32) || tagged: ∅
+  v2-v4:
+  v2: fixed: TransactionalId(string, nullable) [flex], TransactionTimeoutMs(int32), ProducerId(int64), ProducerEpoch(int16) || tagged: ∅
+  v3: fixed: TransactionalId(string, nullable) [flex], TransactionTimeoutMs(int32), ProducerId(int64), ProducerEpoch(int16) || tagged: ∅
+  v4: fixed: TransactionalId(string, nullable) [flex], TransactionTimeoutMs(int32), ProducerId(int64), ProducerEpoch(int16) || tagged: ∅

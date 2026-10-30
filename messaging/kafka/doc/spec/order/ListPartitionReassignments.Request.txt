@@ -1,0 +1,6 @@
+ListPartitionReassignments Request — field processing order (binding; spec 3.6.1) — flexible encoding from v0
+wire order by layout (equal run = byte-identical field layout):
+  v0 -> TimeoutMs:Topics:(Topics)Name:(Topics)PartitionIndexes|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0:
+  v0: fixed: TimeoutMs(int32) [flex], Topics([]ListPartitionReassignmentsTopics, nullable) [flex: Name(string, topicName) [flex], PartitionIndexes([]int32) [flex]] || tagged: ∅

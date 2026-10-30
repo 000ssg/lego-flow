@@ -48,7 +48,7 @@ class ConsistentHasherTest {
         // All keys should map to one of the nodes
         for (int i = 0; i < 100; i++) {
             var node = hasher.getNode("key-" + i);
-            assertThat(node).isIn(nodes.toArray(new ClusterNode[0]));
+            assertThat(node).isIn(nodes.toArray(new ClusterNode[nodes.size()]));
         }
     }
 

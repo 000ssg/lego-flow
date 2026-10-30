@@ -1,11 +1,13 @@
 package ssg.legoflow.messaging.kafka.client;
 
 import ssg.legoflow.messaging.kafka.codec.KafkaCodec;
+import ssg.legoflow.messaging.kafka.codec.MetadataCodec;
 import ssg.legoflow.messaging.kafka.common.*;
 import ssg.legoflow.messaging.kafka.protocol.*;
 import ssg.legoflow.messaging.kafka.record.Compression;
 import ssg.legoflow.messaging.kafka.record.Record;
 import ssg.legoflow.messaging.kafka.record.RecordBatch;
+import ssg.legoflow.service.channel.ByteTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -56,10 +58,9 @@ public final class KafkaProducer implements AutoCloseable {
     private volatile boolean inTransaction = false;
 
     /**
-     * Creates a new Kafka producer.
+     * Creates a new Kafka producer over an injected transport.
      *
-     * @param host            the broker host
-     * @param port            the broker port
+     * @param transport       the connection transport (service layer or in-memory pair)
      * @param clientId        the client ID
      * @param partitioner     the partitioner strategy
      * @param acks            the acknowledgment mode (-1, 0, 1)
@@ -69,10 +70,10 @@ public final class KafkaProducer implements AutoCloseable {
      * @param idempotent      whether to enable idempotent mode
      * @param transactionalId the transactional ID (null for non-transactional)
      */
-    public KafkaProducer(String host, int port, String clientId, Partitioner partitioner,
+    public KafkaProducer(ByteTransport transport, String clientId, Partitioner partitioner,
                          short acks, int retries, long retryBackoffMs, Compression compression,
                          boolean idempotent, String transactionalId) {
-        this.connection = new KafkaConnection(host, port, clientId);
+        this.connection = new KafkaConnection(transport, clientId);
         this.partitioner = partitioner != null ? partitioner : Partitioner.keyHash();
         this.acks = acks;
         this.retries = retries;
@@ -86,32 +87,47 @@ public final class KafkaProducer implements AutoCloseable {
     /**
      * Creates a simple non-idempotent producer.
      *
-     * @param host     the broker host
-     * @param port     the broker port
-     * @param clientId the client ID
+     * @param transport  the connection transport
+     * @param clientId   the client ID
      */
-    public KafkaProducer(String host, int port, String clientId) {
-        this(host, port, clientId, null, (short) 1, 3, 100, Compression.NONE, false, null);
+    public KafkaProducer(ByteTransport transport, String clientId) {
+        this(transport, clientId, null, (short) 1, 3, 100, Compression.NONE, false, null);
     }
 
     /**
-     * Initializes the producer, establishing connection and (if idempotent) obtaining a producer ID.
+     * Initializes the producer, verifying the connection and (if idempotent) obtaining a
+     * producer ID.
      *
-     * @throws IOException if connection or initialization fails
+     * @throws IOException if connection is not open or initialization fails
      */
     public void init() throws IOException {
-        connection.connect();
+        if (!connection.isConnected()) {
+            throw new IOException("Connection not open");
+        }
 
         if (idempotent) {
             initProducerId();
         }
     }
 
+    /** Exposes the underlying connection (for tests). */
+    KafkaConnection connection() {
+        return connection;
+    }
+
     private void initProducerId() throws IOException {
-        byte[] payload = KafkaCodec.encodeInitProducerIdRequest(
+        // Find the transaction coordinator first (only for transactional producers)
+        if (transactionalId != null) {
+            FindCoordinatorResponse coordResp = findCoordinator(transactionalId, FindCoordinatorRequest.KEY_TYPE_TRANSACTION);
+            if (coordResp.errorCode() != KafkaErrors.NONE.code()) {
+                throw new IOException("FindCoordinator failed: " + KafkaErrors.forCode(coordResp.errorCode()));
+            }
+        }
+
+        byte[] payload = KafkaCodec.encodeInitProducerIdRequest((short) 0,
                 new InitProducerIdRequest(transactionalId, 60000));
         ByteBuffer resp = connection.sendAndReceive(ApiKey.INIT_PRODUCER_ID.key(), (short) 0, payload);
-        InitProducerIdResponse response = KafkaCodec.decodeInitProducerIdResponse(resp);
+        InitProducerIdResponse response = KafkaCodec.decodeInitProducerIdResponse((short) 0, resp);
 
         if (response.errorCode() != KafkaErrors.NONE.code()) {
             throw new IOException("InitProducerId failed: " + KafkaErrors.forCode(response.errorCode()));
@@ -119,6 +135,12 @@ public final class KafkaProducer implements AutoCloseable {
         this.producerId = response.producerId();
         this.producerEpoch = response.producerEpoch();
         LOG.info("Initialized producer: id={}, epoch={}", producerId, producerEpoch);
+    }
+
+    private FindCoordinatorResponse findCoordinator(String key, byte keyType) throws IOException {
+        byte[] payload = KafkaCodec.encodeFindCoordinatorRequest((short) 0, new FindCoordinatorRequest(key, keyType));
+        ByteBuffer resp = connection.sendAndReceive(ApiKey.FIND_COORDINATOR.key(), (short) 0, payload);
+        return KafkaCodec.decodeFindCoordinatorResponse((short) 0, resp);
     }
 
     /**
@@ -211,14 +233,14 @@ public final class KafkaProducer implements AutoCloseable {
                 List.of(new ProduceRequest.TopicData(topic,
                         List.of(new ProduceRequest.PartitionData(partition, batchBytes)))));
 
-        byte[] payload = KafkaCodec.encodeProduceRequest(request);
+        byte[] payload = KafkaCodec.encodeProduceRequest((short) 0, request);
 
         // Send with retries
         IOException lastError = null;
         for (int attempt = 0; attempt <= retries; attempt++) {
             try {
                 ByteBuffer resp = connection.sendAndReceive(ApiKey.PRODUCE.key(), (short) 0, payload);
-                ProduceResponse response = KafkaCodec.decodeProduceResponse(resp);
+                ProduceResponse response = KafkaCodec.decodeProduceResponse((short) 0, resp);
 
                 for (var tr : response.responses()) {
                     for (var pr : tr.partitionResponses()) {
@@ -281,11 +303,11 @@ public final class KafkaProducer implements AutoCloseable {
             topics.add(new AddPartitionsToTxnRequest.TopicPartitions(entry.getKey(), entry.getValue()));
         }
 
-        byte[] payload = KafkaCodec.encodeAddPartitionsToTxnRequest(
+        byte[] payload = KafkaCodec.encodeAddPartitionsToTxnRequest((short) 0, 
                 new AddPartitionsToTxnRequest(transactionalId, producerId, producerEpoch, topics));
         ByteBuffer resp = connection.sendAndReceive(
                 ApiKey.ADD_PARTITIONS_TO_TXN.key(), (short) 0, payload);
-        AddPartitionsToTxnResponse response = KafkaCodec.decodeAddPartitionsToTxnResponse(resp);
+        AddPartitionsToTxnResponse response = KafkaCodec.decodeAddPartitionsToTxnResponse((short) 0, resp);
 
         for (var t : response.topics()) {
             for (var p : t.partitions()) {
@@ -318,10 +340,10 @@ public final class KafkaProducer implements AutoCloseable {
     private void endTransaction(boolean commit) throws IOException {
         if (!inTransaction) throw new IllegalStateException("No active transaction");
 
-        byte[] payload = KafkaCodec.encodeEndTxnRequest(
+        byte[] payload = KafkaCodec.encodeEndTxnRequest((short) 0, 
                 new EndTxnRequest(transactionalId, producerId, producerEpoch, commit));
         ByteBuffer resp = connection.sendAndReceive(ApiKey.END_TXN.key(), (short) 0, payload);
-        EndTxnResponse response = KafkaCodec.decodeEndTxnResponse(resp);
+        EndTxnResponse response = KafkaCodec.decodeEndTxnResponse((short) 0, resp);
 
         if (response.errorCode() != KafkaErrors.NONE.code()) {
             throw new IOException("EndTxn failed: " + KafkaErrors.forCode(response.errorCode()).message());
@@ -338,9 +360,9 @@ public final class KafkaProducer implements AutoCloseable {
      * @throws IOException if the request fails
      */
     public void refreshMetadata(String topic) throws IOException {
-        byte[] payload = KafkaCodec.encodeMetadataRequest(new MetadataRequest(List.of(topic)));
+        byte[] payload = KafkaCodec.encodeMetadataRequest(MetadataCodec.MIN_VERSION, new MetadataRequest(List.of(topic)));
         ByteBuffer resp = connection.sendAndReceive(ApiKey.METADATA.key(), (short) 0, payload);
-        MetadataResponse response = KafkaCodec.decodeMetadataResponse(resp);
+        MetadataResponse response = KafkaCodec.decodeMetadataResponse(MetadataCodec.MIN_VERSION, resp);
 
         for (var t : response.topics()) {
             if (t.errorCode() == KafkaErrors.NONE.code()) {

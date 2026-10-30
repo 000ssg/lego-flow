@@ -73,6 +73,7 @@ subprojects {
         "testImplementation"("org.junit.jupiter:junit-jupiter:$junitVersion")
         "testImplementation"("org.assertj:assertj-core:$assertjVersion")
         "testRuntimeOnly"("org.junit.platform:junit-platform-launcher:$junitPlatformVersion")
+        "testImplementation"("org.slf4j:slf4j-api:${project.property("slf4jVersion")}")
         "testRuntimeOnly"("org.slf4j:slf4j-simple:$slf4jSimpleVersion")
     }
 
@@ -179,30 +180,19 @@ fun Project.setupInteropTestsModule() {
         "testImplementation"(project(":lego-flow-smtp"))
         "testImplementation"(project(":lego-flow-ftp"))
         "testImplementation"(project(":lego-flow-ldap"))
+        // Kafka and WAMP (present in Maven POM, missing from Gradle config)
+        "testImplementation"(project(":lego-flow-kafka"))
+        "testImplementation"(project(":lego-flow-wamp"))
+        // SLF4J for interop test logging
+        "testRuntimeOnly"("org.slf4j:slf4j-simple:$slf4jSimpleVersion")
     }
 
-    // Read skipInteropTests once at configuration time
-    val skipInterop = findProperty("skipInteropTests")?.toString()?.toBoolean() ?: true
+    // Always compile interop test sources so they are discoverable (mirrors Maven behavior).
+    // Tests are skipped via @Disabled annotations, not by excluding from compilation.
 
-    // When interop tests are skipped, exclude test sources from compilation entirely
-    // so the build doesn't fail due to missing protocol module classes or Docker services.
-    // This mirrors Maven's <skipTests>true</skipTests> which prevents test compilation.
-    if (skipInterop) {
-        tasks.withType<JavaCompile> {
-            exclude("ssg/legoflow/interop/**/*.java")
-        }
-    }
-
-    // Skip test execution by default — mirrors Maven skipInteropTests=true property
-    // Override: ./gradlew :interop-tests:test -PskipInteropTests=false
+    // Tests are skipped by @Disabled annotations when no Docker services are available.
+    // Override with -PskipInteropTests=false to force execution (requires Docker).
     tasks.withType<Test> {
-        // Check both Gradle project properties (-PskipInteropTests=false) and JVM system properties
-        // (-DskipInteropTests=false) for Maven command-line parity
-        val skipValue = findProperty("skipInteropTests") 
-            ?: System.getProperty("skipInteropTests")
-            ?: "true"
-        enabled = skipValue != "true"
-        
         // System properties for Docker targets (mirrors Maven failsafe plugin config)
         systemProperty("interop.nginx.host", findProperty("interop.nginx.host") ?: "localhost")
         systemProperty("interop.nginx.port", findProperty("interop.nginx.port") ?: "8080")

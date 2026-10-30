@@ -1,0 +1,11 @@
+TxnOffsetCommit Response — field processing order (binding; spec 3.6.1) — flexible encoding from v3
+wire order by layout (equal run = byte-identical field layout):
+  v0-v2 -> ThrottleTimeMs:Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)ErrorCode
+  v3 -> ThrottleTimeMs:Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)ErrorCode|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0-v2:
+  v0: fixed: ThrottleTimeMs(int32), Topics([]TxnOffsetCommitResponseTopic) || tagged: ∅
+  v1: fixed: ThrottleTimeMs(int32), Topics([]TxnOffsetCommitResponseTopic) || tagged: ∅
+  v2: fixed: ThrottleTimeMs(int32), Topics([]TxnOffsetCommitResponseTopic) || tagged: ∅
+  v3:
+  v3: fixed: ThrottleTimeMs(int32) [flex], Topics([]TxnOffsetCommitResponseTopic) [flex] || tagged: ∅

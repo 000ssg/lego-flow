@@ -1,0 +1,16 @@
+DescribeConfigs Response — field processing order (binding; spec 3.6.1) — flexible encoding from v4
+wire order by layout (equal run = byte-identical field layout):
+  v0 -> ThrottleTimeMs:Results:(Results)ErrorCode:(Results)ErrorMessage:(Results)ResourceType:(Results)ResourceName:(Results)Configs:(Configs)Name:(Configs)Value:(Configs)ReadOnly:(Configs)IsDefault?:(Configs)IsSensitive
+  v1-v2 -> ThrottleTimeMs:Results:(Results)ErrorCode:(Results)ErrorMessage:(Results)ResourceType:(Results)ResourceName:(Results)Configs:(Configs)Name:(Configs)Value:(Configs)ReadOnly:(Configs)ConfigSource?:(Configs)IsSensitive:(Configs)Synonyms?:(Synonyms)Name?:(Synonyms)Value?:(Synonyms)Source?
+  v3 -> ThrottleTimeMs:Results:(Results)ErrorCode:(Results)ErrorMessage:(Results)ResourceType:(Results)ResourceName:(Results)Configs:(Configs)Name:(Configs)Value:(Configs)ReadOnly:(Configs)ConfigSource?:(Configs)IsSensitive:(Configs)Synonyms?:(Synonyms)Name?:(Synonyms)Value?:(Synonyms)Source?:(Configs)ConfigType?:(Configs)Documentation?
+  v4 -> ThrottleTimeMs:Results:(Results)ErrorCode:(Results)ErrorMessage:(Results)ResourceType:(Results)ResourceName:(Results)Configs:(Configs)Name:(Configs)Value:(Configs)ReadOnly:(Configs)ConfigSource?:(Configs)IsSensitive:(Configs)Synonyms?:(Synonyms)Name?:(Synonyms)Value?:(Synonyms)Source?:(Configs)ConfigType?:(Configs)Documentation?|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0:
+  v0: fixed: ThrottleTimeMs(int32), Results([]DescribeConfigsResult) || tagged: ∅
+  v1-v2:
+  v1: fixed: ThrottleTimeMs(int32), Results([]DescribeConfigsResult) || tagged: ∅
+  v2: fixed: ThrottleTimeMs(int32), Results([]DescribeConfigsResult) || tagged: ∅
+  v3:
+  v3: fixed: ThrottleTimeMs(int32), Results([]DescribeConfigsResult) || tagged: ∅
+  v4:
+  v4: fixed: ThrottleTimeMs(int32) [flex], Results([]DescribeConfigsResult) [flex] || tagged: ∅

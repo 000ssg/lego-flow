@@ -1,0 +1,13 @@
+UpdateMetadata Response — field processing order (binding; spec 3.6.1) — flexible encoding from v6
+wire order by layout (equal run = byte-identical field layout):
+  v0-v8: ErrorCode
+
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0-v8:
+  v0: fixed: ErrorCode(int16) || tagged: ∅
+  v1-v8: same as v0 (response structure unchanged)
+
+notes:
+- Simple response with only ErrorCode field
+- No partition errors or topic errors — success is implicit
+- flexible (v6+): endTags block at end

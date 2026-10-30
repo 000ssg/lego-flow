@@ -74,10 +74,21 @@ class AmqpServiceIntegrationTest {
         server.connect(ctx);
         int port = server.port();
 
+        // Wait for server to be ready to accept connections
+        int retries = 20;
+        while (retries-- > 0) {
+            if (server.getContainer() != null && server.getContainer().isRunning()) break;
+            Thread.sleep(100);
+        }
+
         var client = AmqpClientService.builder("localhost", port)
                 .timeout(Duration.ofSeconds(10))
                 .build();
         client.connect(ctx);
+
+        // Wait for the client's handshake data to be delivered to the server
+        // (allow selector thread to process the outbound queue)
+        Thread.sleep(100);
 
         assertThat(client.isConnected()).isTrue();
         assertThat(client.getClient()).isNotNull();
@@ -127,6 +138,13 @@ class AmqpServiceIntegrationTest {
         server.connect(ctx);
         int port = server.port();
 
+        // Wait for server to be ready to accept connections
+        int retries = 30;
+        while (retries-- > 0) {
+            Thread.sleep(100);
+            if (server.getContainer() != null && server.getContainer().isRunning()) break;
+        }
+
         final String[] receivedBody = {null};
         var receiveLatch = new CountDownLatch(1);
 
@@ -140,6 +158,10 @@ class AmqpServiceIntegrationTest {
                 .timeout(Duration.ofSeconds(10))
                 .build();
         client.connect(ctx);
+
+        // Wait for the client's handshake data to be delivered to the server
+        // (allow selector thread to process the outbound queue)
+        Thread.sleep(100);
 
         try {
             AmqpClient amqpClient = client.getClient();
@@ -169,6 +191,13 @@ class AmqpServiceIntegrationTest {
         server.connect(ctx);
         int port = server.port();
 
+        // Wait for server to be ready to accept connections
+        int retries = 30;
+        while (retries-- > 0) {
+            Thread.sleep(100);
+            if (server.getContainer() != null && server.getContainer().isRunning()) break;
+        }
+
         var clients = new AmqpClientService[3];
         for (int i = 0; i < 3; i++) {
             clients[i] = AmqpClientService.builder("localhost", port)
@@ -177,6 +206,14 @@ class AmqpServiceIntegrationTest {
                     .containerId("client-" + i)
                     .build();
             clients[i].connect(ctx);
+
+            // Wait for each client's handshake data to be delivered to the server
+            // (allow selector thread to process the outbound queue)
+            Thread.sleep(100);
+
+            // Small delay between clients to avoid race conditions
+            Thread.sleep(50);
+
             assertThat(clients[i].getClient())
                     .as("Client " + i + " should be connected")
                     .isNotNull();

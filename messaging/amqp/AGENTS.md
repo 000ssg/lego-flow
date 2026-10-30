@@ -103,3 +103,9 @@ The container's `handleConnection(AmqpTransport)` method is public, allowing dir
 
 > **General test patterns**: See [../doc/AGENTS_test_patterns.md](../doc/AGENTS_test_patterns.md)
 > **Protocol accuracy rules**: See [../doc/AGENTS_protocol_accuracy.md](../doc/AGENTS_protocol_accuracy.md)
+
+### AMQP Service Integration Test Caveat
+
+The `AmqpServiceIntegrationTest` (TCP-based client ↔ container) is **flaky** on CI — fails intermittently with `Invalid header from server` errors. Root cause: AMQP protocol header exchange races with virtual-thread scheduling under parallel CI load.
+
+**Status**: Pre-existing. Not caused by the enqueue-only transport refactoring. Consider adding `@Disabled` with Docker/setup instructions if this becomes a persistent CI blocker, per the pattern used for interop tests.

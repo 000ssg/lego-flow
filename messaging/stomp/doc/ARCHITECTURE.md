@@ -182,6 +182,16 @@ stateDiagram-v2
 
 Session tracks: subscriptions (ConcurrentHashMap), active transactions (ConcurrentHashSet), pending receipts (ConcurrentHashSet), message ID counter (AtomicLong), heart-beat intervals.
 
+## Stream Reassembly (Frame Codec)
+
+A TCP read can deliver a partial frame, several complete frames, or both — the codec must never lose or split a frame. `StompFrameCodec` therefore maintains a per-connection byte accumulator (stateful, like the MQTT codec) and decodes **exactly one complete frame per `receive()` call** using `StompCodec.findFrameEnd()`:
+
+- Bytes after a complete frame (subsequent frames) are kept for the next call.
+- A partial frame (`FrameIncompleteException`) waits for the next read instead of throwing at the caller.
+- A read timeout with no data does not end the caller's receive loop; only transport close returns `null`.
+
+This applies to both the client (background receiver thread) and the broker (per-connection loop). Without it, batched TCP reads silently dropped trailing frames (e.g. 4 of 5 rapid messages in an interop run).
+
 ## TCP Adapter
 
 The TCP adapter handles raw socket I/O with STOMP frame boundary detection:
@@ -226,4 +236,4 @@ The WebSocket adapter leverages WebSocket message boundaries:
 
 ---
 
-**Last Updated**: 2026-07-06
+**Last Updated**: 2026-09-18

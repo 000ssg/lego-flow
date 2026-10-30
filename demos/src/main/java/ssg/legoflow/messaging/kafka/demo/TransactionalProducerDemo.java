@@ -9,8 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
+
 /**
  * Demo: transactional producer with commit/abort.
+ *
+ * <p>Runs over the in-memory transport seam ({@link KafkaDemoClient#inMemory}).
  *
  * @since 0.1.0
  */
@@ -25,17 +28,17 @@ public final class TransactionalProducerDemo {
      * Runs the transactional producer demo.
      *
      * @param commitTransaction whether to commit (true) or abort (false)
-     * @return the broker for further inspection
+     * @return the broker for further inspection (still open — the caller closes it)
      * @throws IOException if an error occurs
      */
     public static KafkaBroker run(boolean commitTransaction) throws IOException {
         KafkaBroker broker = new KafkaBroker("localhost", 0);
         broker.start();
         broker.createTopic("txn-topic", 2);
-        int port = broker.port();
 
-        try (KafkaProducer producer = new KafkaProducer("localhost", port, "txn-producer",
-                Partitioner.roundRobin(), (short) -1, 3, 100, Compression.NONE, true, "my-txn")) {
+        try (var client = KafkaDemoClient.inMemory(broker).open();
+             KafkaProducer producer = new KafkaProducer(client.transport(), "txn-producer",
+                    Partitioner.roundRobin(), (short) -1, 3, 100, Compression.NONE, true, "my-txn")) {
             producer.init();
             producer.beginTransaction();
             producer.addPartitionsToTransaction(List.of(

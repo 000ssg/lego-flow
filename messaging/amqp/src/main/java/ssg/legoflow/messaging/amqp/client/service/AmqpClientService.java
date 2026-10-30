@@ -89,7 +89,7 @@ public final class AmqpClientService extends AbstractService<ByteBuffer, ByteBuf
 
             // 2. Create transport and handler with latch BEFORE registering
             transport = new PipelineTransport(dataChannel);
-            var handler = new AmqpClientChannelHandler(this, ctx);
+            var handler = new AmqpClientChannelHandler(this, ctx, transport);
             var latch = new CountDownLatch(1);
             handler.setConnectLatch(latch);
 
@@ -142,7 +142,7 @@ public final class AmqpClientService extends AbstractService<ByteBuffer, ByteBuf
     public String getContainerId() { return containerId; }
 
     public ChannelHandler createChannelHandler() {
-        return new AmqpClientChannelHandler(this, null);
+        return new AmqpClientChannelHandler(this, null, null);
     }
 
     @Override

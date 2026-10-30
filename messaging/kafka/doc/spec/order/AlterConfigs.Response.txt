@@ -1,0 +1,10 @@
+AlterConfigs Response — field processing order (binding; spec 3.6.1) — flexible encoding from v2
+wire order by layout (equal run = byte-identical field layout):
+  v0-v1 -> ThrottleTimeMs:Responses:(Responses)ErrorCode:(Responses)ErrorMessage:(Responses)ResourceType:(Responses)ResourceName
+  v2 -> ThrottleTimeMs:Responses:(Responses)ErrorCode:(Responses)ErrorMessage:(Responses)ResourceType:(Responses)ResourceName|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0-v1:
+  v0: fixed: ThrottleTimeMs(int32), Responses([]AlterConfigsResourceResponse) || tagged: ∅
+  v1: fixed: ThrottleTimeMs(int32), Responses([]AlterConfigsResourceResponse) || tagged: ∅
+  v2:
+  v2: fixed: ThrottleTimeMs(int32) [flex], Responses([]AlterConfigsResourceResponse) [flex] || tagged: ∅

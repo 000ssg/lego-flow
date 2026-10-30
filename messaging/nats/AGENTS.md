@@ -88,3 +88,17 @@ Key: Value\r\n
 - Demo functional tests: PubSub, RequestReply, QueueGroup, JetStream
 - All tests use loopback transport (no external NATS server required)
 - Test count: 271
+
+### NATS Service Integration Test Caveat
+
+The `NatsServiceIntegrationTest` (TCP-based client ↔ server) is **pre-existing flaky** — it fails consistently on CI (Ubuntu/Windows) but passes locally. Root cause: race between enqueue-only transport and server-side protocol processing. The SUB command may not be fully written and processed before the PUB is sent, causing the server to have no matching subscription when the message arrives.
+
+**Workaround**: Poll until the transport's outbound queue is drained before publishing:
+```java
+while (System.currentTimeMillis() < deadline) {
+    if (transport instanceof PipelineNatsTransport pnt && pnt.getOutboundQueueSize() == 0) break;
+    Thread.sleep(50);
+}
+```
+
+**Status**: Pre-existing. Not caused by the enqueue-only transport refactoring (confirmed on original HEAD). May require deeper fix in the service layer's connect/publish flow.

@@ -173,6 +173,11 @@ public final class ClientConfig {
             this.brokerMode = Objects.requireNonNull(mode);
             this.sndSettleMode = mode.sndSettleMode();
             this.rcvSettleMode = mode.rcvSettleMode();
+            // Verified against live Artemis (apache/artemis:latest-alpine, port 5672,
+            // protocols=AMQP acceptor): the AMQP acceptor is standard SASL-first (proto-3) —
+            // it sends NOTHING on connect, echoes SASL_HEADER and returns the mechanism
+            // list [PLAIN, ANONYMOUS]. proto-0 is NOT accepted. (Verified 2026-09-10,
+            // see AmqpInteropTest context header.) QPID_DISPATCH kept as-is — unverified.
             if (mode == BrokerMode.QPID_DISPATCH) {
                 this.proto0Accepted = true;
             }

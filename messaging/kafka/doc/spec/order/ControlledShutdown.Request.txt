@@ -1,0 +1,10 @@
+ControlledShutdown Request — field processing order (binding; spec 3.6.1)
+wire order by layout (equal run = byte-identical field layout):
+  v0-v1: BrokerId
+
+field lines (fixed-width, no flexible encoding):
+  v0-v1: BrokerId:int32
+
+notes:
+  - No flexible encoding at any version
+  - Simple single-field request

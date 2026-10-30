@@ -1,0 +1,19 @@
+OffsetCommit Response — field processing order (binding; spec 3.6.1) — flexible encoding from v8
+wire order by layout (equal run = byte-identical field layout):
+  v0-v2 -> Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)ErrorCode
+  v3-v7 -> ThrottleTimeMs?:Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)ErrorCode
+  v8-v9 -> ThrottleTimeMs?:Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)ErrorCode|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0-v2:
+  v0: fixed: Topics([]OffsetCommitResponseTopic) || tagged: ∅
+  v1: fixed: Topics([]OffsetCommitResponseTopic) || tagged: ∅
+  v2: fixed: Topics([]OffsetCommitResponseTopic) || tagged: ∅
+  v3-v7:
+  v3: fixed: ThrottleTimeMs(int32), Topics([]OffsetCommitResponseTopic) || tagged: ∅
+  v4: fixed: ThrottleTimeMs(int32), Topics([]OffsetCommitResponseTopic) || tagged: ∅
+  v5: fixed: ThrottleTimeMs(int32), Topics([]OffsetCommitResponseTopic) || tagged: ∅
+  v6: fixed: ThrottleTimeMs(int32), Topics([]OffsetCommitResponseTopic) || tagged: ∅
+  v7: fixed: ThrottleTimeMs(int32), Topics([]OffsetCommitResponseTopic) || tagged: ∅
+  v8-v9:
+  v8: fixed: ThrottleTimeMs(int32) [flex], Topics([]OffsetCommitResponseTopic) [flex] || tagged: ∅
+  v9: fixed: ThrottleTimeMs(int32) [flex], Topics([]OffsetCommitResponseTopic) [flex] || tagged: ∅

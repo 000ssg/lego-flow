@@ -3,6 +3,7 @@ package ssg.legoflow.messaging.nats.demo;
 import ssg.legoflow.messaging.nats.client.NatsClient;
 import ssg.legoflow.messaging.nats.protocol.ConnectOptions;
 import ssg.legoflow.messaging.nats.server.NatsServer;
+import ssg.legoflow.messaging.nats.transport.InMemoryNatsTransport;
 import ssg.legoflow.messaging.nats.cluster.NatsClusterBus;
 import ssg.legoflow.messaging.nats.cluster.NatsClusterConfig;
 import ssg.legoflow.messaging.nats.cluster.NatsClusterHealthBus;
@@ -47,10 +48,9 @@ public final class NatsClusterBusDemo {
     public static int run(int port) throws Exception {
         int total = 0;
 
-        try (var server = new NatsServer(port)) {
-            server.start(port);
-            int actualPort = server.port();
-            LOG.info("NATS server started on port {}", actualPort);
+        try (var server = new NatsServer()) {
+            server.start();
+            LOG.info("NATS server started (in-memory)");
 
             // Create 3 cluster nodes
             String clusterId = "demo-cluster";
@@ -60,12 +60,14 @@ public final class NatsClusterBusDemo {
             for (int i = 0; i < 3; i++) {
                 String nodeId = "node-" + i;
                 NatsClusterConfig cfg = NatsClusterConfig.builder()
-                        .serverUrl("nats://localhost:" + actualPort)
+                        .serverUrl("in-memory://localhost")
                         .clusterId(clusterId)
                         .nodeId(nodeId)
                         .build();
 
-                var client = new NatsClient("localhost", actualPort,
+                var clientPair = InMemoryNatsTransport.createPair();
+                server.handleConnection(clientPair[0]);
+                var client = new NatsClient(clientPair[1],
                         ConnectOptions.withDefaults(nodeId));
                 client.connect();
                 buses[i] = new NatsClusterBus(cfg, client);
@@ -84,7 +86,7 @@ public final class NatsClusterBusDemo {
 
                 // --- Scenario 3: Health Check ---
                 LOG.info("=== Scenario 3: Health Check Heartbeat ===");
-                total += runHealthCheckScenario(buses, actualPort);
+                total += runHealthCheckScenario(buses, port);
 
                 // --- Scenario 4: Distributed Pub/Sub ---
                 LOG.info("=== Scenario 4: Distributed Pub/Sub ===");

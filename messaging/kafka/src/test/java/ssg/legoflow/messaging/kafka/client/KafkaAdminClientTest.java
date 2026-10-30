@@ -13,13 +13,10 @@ import static org.assertj.core.api.Assertions.*;
 class KafkaAdminClientTest {
 
     private KafkaBroker broker;
-    private int port;
 
     @BeforeEach
-    void setUp() throws IOException {
-        broker = new KafkaBroker("localhost", 0);
-        broker.start();
-        port = broker.port();
+    void setUp() {
+        broker = InMemoryKafka.broker();
     }
 
     @AfterEach
@@ -29,7 +26,7 @@ class KafkaAdminClientTest {
 
     @Test
     void testApiVersions() throws IOException {
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.apiVersions();
             assertThat(response.errorCode()).isEqualTo(KafkaErrors.NONE.code());
@@ -42,7 +39,7 @@ class KafkaAdminClientTest {
         broker.createTopic("topic1", 2);
         broker.createTopic("topic2", 3);
 
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.metadata(null);
             assertThat(response.brokers()).hasSize(1);
@@ -54,7 +51,7 @@ class KafkaAdminClientTest {
     void testMetadataSpecificTopics() throws IOException {
         broker.createTopic("topic1", 2);
 
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.metadata(List.of("topic1"));
             assertThat(response.topics()).hasSize(1);
@@ -65,7 +62,7 @@ class KafkaAdminClientTest {
 
     @Test
     void testMetadataUnknownTopic() throws IOException {
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.metadata(List.of("nonexistent"));
             assertThat(response.topics().getFirst().errorCode())
@@ -75,7 +72,7 @@ class KafkaAdminClientTest {
 
     @Test
     void testCreateTopic() throws IOException {
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             short error = admin.createTopic("new-topic", 5);
             assertThat(error).isEqualTo(KafkaErrors.NONE.code());
@@ -87,7 +84,7 @@ class KafkaAdminClientTest {
     void testCreateTopicAlreadyExists() throws IOException {
         broker.createTopic("existing", 1);
 
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             short error = admin.createTopic("existing", 1);
             assertThat(error).isEqualTo(KafkaErrors.TOPIC_ALREADY_EXISTS.code());
@@ -96,7 +93,7 @@ class KafkaAdminClientTest {
 
     @Test
     void testCreateMultipleTopics() throws IOException {
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.createTopics(List.of(
                     new CreateTopicsRequest.TopicCreate("t1", 1, (short) 1, Map.of()),
@@ -112,7 +109,7 @@ class KafkaAdminClientTest {
     void testDeleteTopics() throws IOException {
         broker.createTopic("to-delete", 1);
 
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.deleteTopics(List.of("to-delete"));
             assertThat(response.responses().getFirst().errorCode()).isEqualTo(KafkaErrors.NONE.code());
@@ -122,7 +119,7 @@ class KafkaAdminClientTest {
 
     @Test
     void testDeleteNonexistentTopic() throws IOException {
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.deleteTopics(List.of("nonexistent"));
             assertThat(response.responses().getFirst().errorCode())
@@ -133,11 +130,11 @@ class KafkaAdminClientTest {
     @Test
     void testDescribeGroups() throws IOException {
         // Join a group first
-        try (var consumer = new KafkaConsumer("localhost", port, "consumer-1", "test-group")) {
+        try (var consumer = new KafkaConsumer(InMemoryKafka.pair(broker)[1], "consumer-1", "test-group")) {
             broker.createTopic("test", 1);
             consumer.subscribe(List.of("test"));
 
-            try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+            try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
                 admin.connect();
                 var response = admin.describeGroups(List.of("test-group"));
                 assertThat(response.groups()).hasSize(1);
@@ -149,7 +146,7 @@ class KafkaAdminClientTest {
 
     @Test
     void testDescribeGroupNotFound() throws IOException {
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.describeGroups(List.of("nonexistent"));
             assertThat(response.groups()).hasSize(1);
@@ -161,7 +158,7 @@ class KafkaAdminClientTest {
     void testListOffsets() throws IOException {
         broker.createTopic("test", 1);
 
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.listOffsets(new ListOffsetsRequest(List.of(
                     new ListOffsetsRequest.TopicOffsets("test", List.of(
@@ -177,7 +174,7 @@ class KafkaAdminClientTest {
         broker.groupCoordinator().joinGroup("test-group", "", "consumer", 10000,
                 List.of(Map.entry("range", new byte[0])), "client-1");
 
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.listGroups();
             assertThat(response.errorCode()).isEqualTo(KafkaErrors.NONE.code());
@@ -189,7 +186,7 @@ class KafkaAdminClientTest {
 
     @Test
     void testListGroupsEmpty() throws IOException {
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.listGroups();
             assertThat(response.errorCode()).isEqualTo(KafkaErrors.NONE.code());
@@ -204,7 +201,7 @@ class KafkaAdminClientTest {
                 List.of(Map.entry("range", new byte[0])), "client-1");
         broker.groupCoordinator().leaveGroup("delete-me", join.memberId());
 
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.deleteGroups(List.of("delete-me"));
             assertThat(response.results()).hasSize(1);
@@ -217,7 +214,7 @@ class KafkaAdminClientTest {
         broker.groupCoordinator().joinGroup("active-group", "", "consumer", 10000,
                 List.of(Map.entry("range", new byte[0])), "client-1");
 
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.deleteGroups(List.of("active-group"));
             assertThat(response.results().getFirst().errorCode())
@@ -227,7 +224,7 @@ class KafkaAdminClientTest {
 
     @Test
     void testDeleteGroupsNotFound() throws IOException {
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.deleteGroups(List.of("nonexistent"));
             assertThat(response.results().getFirst().errorCode())
@@ -239,7 +236,7 @@ class KafkaAdminClientTest {
     void testCreatePartitions() throws IOException {
         broker.createTopic("test-cp", 2);
 
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.createPartitions(List.of(
                     new CreatePartitionsRequest.TopicNewPartitions("test-cp", 5)));
@@ -253,7 +250,7 @@ class KafkaAdminClientTest {
     void testCreatePartitionsDecrease() throws IOException {
         broker.createTopic("test-cp2", 5);
 
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.createPartitions(List.of(
                     new CreatePartitionsRequest.TopicNewPartitions("test-cp2", 3)));
@@ -264,7 +261,7 @@ class KafkaAdminClientTest {
 
     @Test
     void testCreatePartitionsUnknownTopic() throws IOException {
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.createPartitions(List.of(
                     new CreatePartitionsRequest.TopicNewPartitions("nonexistent", 5)));
@@ -290,7 +287,7 @@ class KafkaAdminClientTest {
                 .records(records).encode();
         log.append(batch);
 
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.deleteRecords(List.of(
                     new DeleteRecordsRequest.TopicData("test-dr", List.of(
@@ -303,7 +300,7 @@ class KafkaAdminClientTest {
 
     @Test
     void testDeleteRecordsUnknownPartition() throws IOException {
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.deleteRecords(List.of(
                     new DeleteRecordsRequest.TopicData("nonexistent", List.of(
@@ -319,7 +316,7 @@ class KafkaAdminClientTest {
         broker.groupCoordinator().commitOffsets("od-group",
                 Map.of(new ssg.legoflow.messaging.kafka.common.TopicPartition("test", 0), 42L));
 
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.offsetDelete("od-group", List.of(
                     new OffsetDeleteRequest.TopicData("test", List.of(
@@ -338,11 +335,11 @@ class KafkaAdminClientTest {
 
     @Test
     void testFindCoordinator() throws IOException {
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.findCoordinator("my-group", FindCoordinatorRequest.KEY_TYPE_GROUP);
             assertThat(response.errorCode()).isEqualTo(KafkaErrors.NONE.code());
-            assertThat(response.port()).isEqualTo(port);
+            assertThat(response.nodeId()).isEqualTo(0);
         }
     }
 
@@ -350,7 +347,7 @@ class KafkaAdminClientTest {
     void testDescribeConfigs() throws IOException {
         broker.createTopic("config-topic", 2);
 
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.describeConfigs(List.of(
                     new DescribeConfigsRequest.ResourceRequest(
@@ -369,7 +366,7 @@ class KafkaAdminClientTest {
     void testAlterConfigs() throws IOException {
         broker.createTopic("alter-topic", 1);
 
-        try (var admin = new KafkaAdminClient("localhost", port, "admin")) {
+        try (var admin = new KafkaAdminClient(InMemoryKafka.pair(broker)[1], "admin")) {
             admin.connect();
             var response = admin.alterConfigs(List.of(
                     new AlterConfigsRequest.ResourceConfig(
