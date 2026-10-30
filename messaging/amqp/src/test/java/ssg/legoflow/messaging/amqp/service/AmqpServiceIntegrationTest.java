@@ -74,6 +74,13 @@ class AmqpServiceIntegrationTest {
         server.connect(ctx);
         int port = server.port();
 
+        // Wait for server to be ready to accept connections
+        int retries = 20;
+        while (retries-- > 0) {
+            if (server.getContainer() != null && server.getContainer().isRunning()) break;
+            Thread.sleep(100);
+        }
+
         var client = AmqpClientService.builder("localhost", port)
                 .timeout(Duration.ofSeconds(10))
                 .build();
@@ -136,6 +143,13 @@ class AmqpServiceIntegrationTest {
         server.connect(ctx);
         int port = server.port();
 
+        // Wait for server to be ready to accept connections
+        int retries = 30;
+        while (retries-- > 0) {
+            Thread.sleep(100);
+            if (server.getContainer() != null && server.getContainer().isRunning()) break;
+        }
+
         final String[] receivedBody = {null};
         var receiveLatch = new CountDownLatch(1);
 
@@ -187,6 +201,13 @@ class AmqpServiceIntegrationTest {
         server.connect(ctx);
         int port = server.port();
 
+        // Wait for server to be ready to accept connections
+        int retries = 30;
+        while (retries-- > 0) {
+            Thread.sleep(100);
+            if (server.getContainer() != null && server.getContainer().isRunning()) break;
+        }
+
         var clients = new AmqpClientService[3];
         for (int i = 0; i < 3; i++) {
             clients[i] = AmqpClientService.builder("localhost", port)
@@ -203,6 +224,9 @@ class AmqpServiceIntegrationTest {
                 if (t.getOutboundQueueSize() == 0) break;
                 Thread.sleep(50);
             }
+
+            // Small delay between clients to avoid race conditions
+            Thread.sleep(50);
 
             assertThat(clients[i].getClient())
                     .as("Client " + i + " should be connected")
