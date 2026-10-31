@@ -30,15 +30,10 @@ class StompBrokerTest {
 
     private StompClient connectClient() throws InterruptedException {
         var pair = InMemoryStompTransport.createPair();
-        var connected = new java.util.concurrent.CountDownLatch(1);
-        Thread.startVirtualThread(() -> {
-            broker.accept(pair[0]);
-            connected.countDown();
-        });
+        Thread.startVirtualThread(() -> broker.accept(pair[0]));
         var client = new StompClient(pair[1]);
         client.connect("localhost");
-        // Wait for broker thread to start processing (not finish)
-        Thread.sleep(50);
+        Thread.sleep(20);
         return client;
     }
 
@@ -101,6 +96,7 @@ class StompBrokerTest {
             received.add(msg);
             latch.countDown();
         });
+        Thread.sleep(50);
 
         publisher.send("/topic/test", "Hello!", "text/plain");
         assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
@@ -131,6 +127,7 @@ class StompBrokerTest {
             received2.add(msg);
             latch.countDown();
         });
+        Thread.sleep(50);
 
         publisher.send("/topic/broadcast", "Broadcast!", "text/plain");
         assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
@@ -160,6 +157,7 @@ class StompBrokerTest {
             topicB.add(msg);
             latch.countDown();
         });
+        Thread.sleep(50);
 
         publisher.send("/topic/a", "MessageA", "text/plain");
         publisher.send("/topic/b", "MessageB", "text/plain");
@@ -180,20 +178,19 @@ class StompBrokerTest {
         var subscriber = connectClient();
 
         var received = new CopyOnWriteArrayList<StompFrame>();
-        var latch = new CountDownLatch(1);
 
-        String subId = subscriber.subscribe("/topic/test", msg -> {
-            received.add(msg);
-            latch.countDown();
-        });
+        String subId = subscriber.subscribe("/topic/test", received::add);
+        Thread.sleep(50);
 
         publisher.send("/topic/test", "Before unsub", "text/plain");
-        assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
+        Thread.sleep(100);
         assertThat(received).hasSize(1);
 
         subscriber.unsubscribe(subId);
+        Thread.sleep(50);
 
         publisher.send("/topic/test", "After unsub", "text/plain");
+        Thread.sleep(200);
         assertThat(received).hasSize(1); // No new messages
 
         publisher.close();
@@ -205,6 +202,7 @@ class StompBrokerTest {
         var publisher = connectClient();
         // Send to a destination nobody subscribes to — should not error
         publisher.send("/topic/nowhere", "Lost message", "text/plain");
+        Thread.sleep(100);
         assertThat(publisher.isConnected()).isTrue();
         publisher.close();
     }
@@ -223,6 +221,7 @@ class StompBrokerTest {
             received.add(msg);
             latch.countDown();
         });
+        Thread.sleep(50);
 
         publisher.send("/topic/auto", "auto message", "text/plain");
         assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
@@ -246,6 +245,7 @@ class StompBrokerTest {
             received.add(msg);
             latch.countDown();
         });
+        Thread.sleep(50);
 
         publisher.send("/topic/ci", "msg1", "text/plain");
         publisher.send("/topic/ci", "msg2", "text/plain");
@@ -276,6 +276,7 @@ class StompBrokerTest {
             received.add(msg);
             latch.countDown();
         });
+        Thread.sleep(50);
 
         publisher.send("/topic/cl", "msg1", "text/plain");
         publisher.send("/topic/cl", "msg2", "text/plain");
@@ -303,6 +304,7 @@ class StompBrokerTest {
             received.add(msg);
             latch.countDown();
         });
+        Thread.sleep(50);
 
         publisher.send("/topic/nack", "rejected", "text/plain");
         assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
@@ -328,12 +330,14 @@ class StompBrokerTest {
             received.add(msg);
             latch.countDown();
         });
+        Thread.sleep(50);
 
         sender.begin("tx-1");
         sender.send("/topic/tx", "tx-msg-1", "text/plain", "tx-1");
         sender.send("/topic/tx", "tx-msg-2", "text/plain", "tx-1");
 
         // Messages should not be delivered yet
+        Thread.sleep(200);
         assertThat(received).isEmpty();
 
         sender.commit("tx-1");
@@ -352,11 +356,13 @@ class StompBrokerTest {
         var received = new CopyOnWriteArrayList<StompFrame>();
 
         receiver.subscribe("/topic/tx-abort", received::add);
+        Thread.sleep(50);
 
         sender.begin("tx-2");
         sender.send("/topic/tx-abort", "should-not-deliver", "text/plain", "tx-2");
         sender.abort("tx-2");
 
+        Thread.sleep(300);
         assertThat(received).isEmpty();
 
         sender.close();
@@ -372,6 +378,7 @@ class StompBrokerTest {
         // Subscribe to have a destination
         var received = new CopyOnWriteArrayList<StompFrame>();
         client.subscribe("/topic/receipt-test", received::add);
+        Thread.sleep(50);
 
         var receiptFuture = client.sendWithReceipt("/topic/receipt-test", "test", "text/plain");
         var receipt = receiptFuture.get(5, TimeUnit.SECONDS);
@@ -425,6 +432,7 @@ class StompBrokerTest {
             received.add(msg);
             latch.countDown();
         });
+        Thread.sleep(50);
 
         publisher.send("/topic/headers", "test", "text/plain");
         assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
@@ -451,6 +459,7 @@ class StompBrokerTest {
             received.add(msg);
             latch.countDown();
         });
+        Thread.sleep(50);
 
         publisher.send("/topic/ct", "{\"key\":\"value\"}", "application/json");
         assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
