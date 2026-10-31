@@ -142,10 +142,12 @@ class AmqpServiceIntegrationTest {
         int port = server.port();
 
         // Wait for server to be ready to accept connections
+        // The selector thread needs time to process the channel registration
+        Thread.sleep(50);
         int retries = 30;
         while (retries-- > 0) {
-            Thread.sleep(100);
             if (server.getContainer() != null && server.getContainer().isRunning()) break;
+            Thread.sleep(100);
         }
 
         final String[] receivedBody = {null};
@@ -198,10 +200,12 @@ class AmqpServiceIntegrationTest {
         int port = server.port();
 
         // Wait for server to be ready to accept connections
+        // The selector thread needs time to process the channel registration
+        Thread.sleep(50);
         int retries = 30;
         while (retries-- > 0) {
-            Thread.sleep(100);
             if (server.getContainer() != null && server.getContainer().isRunning()) break;
+            Thread.sleep(100);
         }
 
         // Wait for CONNECTION_OPENED events — signals each client handshake is complete
