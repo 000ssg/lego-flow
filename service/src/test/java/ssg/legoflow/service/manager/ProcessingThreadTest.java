@@ -67,9 +67,9 @@ class ProcessingThreadTest {
         DataChannel channel = createTestChannel();
         ChannelPipeline pipeline = createTestPipeline();
         ProcessingThread thread = new ProcessingThread(channel, pipeline, 1024);
-
+        
         thread.processReadable();
-        // ProcessingThread.processReadable() is synchronous — no async thread to wait for
+        Thread.sleep(500);
         assertThat(readCalled).isTrue();
     }
 
@@ -79,9 +79,9 @@ class ProcessingThreadTest {
         DataChannel channel = createTestChannel();
         ChannelPipeline pipeline = createTestPipeline();
         ProcessingThread thread = new ProcessingThread(channel, pipeline, 1024);
-
+        
         thread.processReadable();
-        // ProcessingThread.processReadable() is synchronous — no async thread to wait for
+        Thread.sleep(500);
         assertThat(disconnectCalled).isTrue();
     }
 
@@ -90,9 +90,9 @@ class ProcessingThreadTest {
         DataChannel channel = createTestChannel();
         ChannelPipeline pipeline = createTestPipeline();
         ProcessingThread thread = new ProcessingThread(channel, pipeline, 1024);
-
+        
         thread.processWritable();
-        // ProcessingThread.processWritable() is synchronous — no async thread to wait for
+        Thread.sleep(500);
         assertThat(writeCalled).isTrue();
     }
 
@@ -101,9 +101,9 @@ class ProcessingThreadTest {
         DataChannel channel = createTestChannel();
         ChannelPipeline pipeline = createTestPipeline();
         ProcessingThread thread = new ProcessingThread(channel, pipeline, 1024);
-
+        
         thread.processConnectable();
-        // ProcessingThread.processConnectable() is synchronous — no async thread to wait for
+        Thread.sleep(500);
         assertThat(connectCalled).isTrue();
     }
 
@@ -121,9 +121,9 @@ class ProcessingThreadTest {
         DataChannel channel = createTestChannel();
         ChannelPipeline pipeline = createTestPipeline();
         ProcessingThread thread = new ProcessingThread(channel, pipeline, 1024);
-
+        
         thread.processReadable();
-        // ProcessingThread.processReadable() is synchronous — no async thread to wait for
+        Thread.sleep(500);
         // After processing completes
         // assertThat(thread.isAlive()).isFalse(); // JDK 25 compatibility
     }
@@ -139,12 +139,12 @@ class ProcessingThreadTest {
             @Override public SelectionKey getSelectionKey() { return null; }
             @Override public void close() throws IOException {}
         };
-
+        
         ChannelPipeline pipeline = createTestPipeline();
         ProcessingThread thread = new ProcessingThread(failingChannel, pipeline, 1024);
-
+        
         thread.processReadable();
-        // ProcessingThread.processReadable() is synchronous — no async thread to wait for
+        Thread.sleep(500);
     }
 
     @Test
@@ -158,10 +158,10 @@ class ProcessingThreadTest {
             @Override public void onDisconnect(DataChannel ch) {}
             @Override public void onError(DataChannel ch, Throwable cause) {}
         });
-
+        
         ProcessingThread thread = new ProcessingThread(channel, failingPipeline, 1024);
         thread.processWritable();
-        // ProcessingThread.processWritable() is synchronous — no async thread to wait for
+        Thread.sleep(500);
     }
 
     @Test
@@ -175,10 +175,10 @@ class ProcessingThreadTest {
             @Override public void onDisconnect(DataChannel ch) {}
             @Override public void onError(DataChannel ch, Throwable cause) {}
         });
-
+        
         ProcessingThread thread = new ProcessingThread(channel, failingPipeline, 1024);
         thread.processConnectable();
-        // ProcessingThread.processConnectable() is synchronous — no async thread to wait for
+        Thread.sleep(500);
     }
 
     @Test
@@ -187,9 +187,9 @@ class ProcessingThreadTest {
         DataChannel channel = createTestChannel();
         ChannelPipeline pipeline = createTestPipeline();
         ProcessingThread thread = new ProcessingThread(channel, pipeline, 1024);
-
+        
         thread.processReadable();
-        // ProcessingThread.processReadable() is synchronous — no async thread to wait for
+        Thread.sleep(500);
     }
 
     @Test
@@ -197,9 +197,9 @@ class ProcessingThreadTest {
         DataChannel channel = createTestChannel();
         ChannelPipeline pipeline = createTestPipeline();
         ProcessingThread thread = new ProcessingThread(channel, pipeline, 8192);
-
+        
         thread.processReadable();
-        // ProcessingThread.processReadable() is synchronous — no async thread to wait for
+        Thread.sleep(500);
         assertThat(readCalled).isTrue();
     }
 
@@ -208,9 +208,9 @@ class ProcessingThreadTest {
         DataChannel channel = createTestChannel();
         ChannelPipeline pipeline = createTestPipeline();
         ProcessingThread thread = new ProcessingThread(channel, pipeline, 64);
-
+        
         thread.processReadable();
-        // ProcessingThread.processReadable() is synchronous — no async thread to wait for
+        Thread.sleep(500);
         assertThat(readCalled).isTrue();
     }
 }
