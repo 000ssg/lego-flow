@@ -16,16 +16,19 @@
 - [ ] Create `.github/workflows/interop-groups.md` documenting group execution
 - [ ] Add `interop-kafka` group to CI workflow
 
+**Verification**: `mvn verify -pl interop-tests -am -DskipInteropTests=false -Dinterop.group=interop-rest` runs exactly 14 tests.
+
 ---
 
 ## Phase 2: Thread.sleep Elimination (P1)
 
 **Status**: In Progress
 
-**Goal**: Replace `Thread.sleep` in tests with proper synchronization primitives.
+**Goal**: Replace timing-dependent tests with proper synchronization.
 
 **Progress**:
 - [x] AMQP integration tests — added 50ms selector thread delay after `server.connect()`
+- [ ] StompBrokerTest — 20 Thread.sleep calls (some necessary for async broker setup)
 - [ ] MySQL `AggregateQueryTest` — 6 disabled tests, 6 TODOs
 - [ ] DNS resolver tests — 4 disabled tests, 4 TODOs
 - [ ] HTTP proxy tests — 5 `Thread.sleep` calls
@@ -35,6 +38,16 @@
 - [ ] OAuth tests — 3 `Thread.sleep` calls
 
 **Pattern**: Use `CountDownLatch` or `AmqpEventListener.latchOnFirst()` for event synchronization.
+
+**Current Issue**:
+- StompBrokerTest has 20 Thread.sleep calls
+- `connectClient()` requires 20ms delay for async broker thread setup
+- Some test methods have unnecessary delays that can be replaced with latches
+
+**Notes**:
+- Line 36: `Thread.sleep(20)` in `connectClient()` — necessary for async broker setup
+- Lines 99, 130, 160, 224, 248, 279, 307, 333, 359, 435, 462: 50ms delays before send — can potentially use latches
+- Lines 183, 186, 190, 193, 205, 340, 365: Delays around unsubscribe/transaction tests
 
 ---
 
