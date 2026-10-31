@@ -12,9 +12,11 @@
 **Goal**: All interop tests properly tagged and runnable via Maven groups.
 
 **Tasks**:
-- [ ] Add `@Tag("interop-mqtt-v5")` to `MqttV5FeatureTest`
-- [ ] Create `.github/workflows/interop-groups.md` documenting group execution
-- [ ] Add `interop-kafka` group to CI workflow
+- [ ] Audit all 20 interop test files for `@Tag` annotations
+- [ ] Add missing tags to tests referencing `interop.group` in comments
+- [ ] Create `interop-tests/doc/ci-groups.md` documenting groups
+- [ ] Ensure `failIfNoTests=true` catches typos
+- [ ] Verify CI workflow runs all 4 groups correctly
 
 **Verification**: `mvn verify -pl interop-tests -am -DskipInteropTests=false -Dinterop.group=interop-rest` runs exactly 14 tests.
 
@@ -24,30 +26,21 @@
 
 **Status**: In Progress
 
-**Goal**: Replace timing-dependent tests with proper synchronization.
+**Goal**: Replace `Thread.sleep` in tests with proper synchronization where possible.
 
 **Progress**:
 - [x] AMQP integration tests — added 50ms selector thread delay after `server.connect()`
-- [ ] StompBrokerTest — 20 Thread.sleep calls (some necessary for async broker setup)
-- [ ] MySQL `AggregateQueryTest` — 6 disabled tests, 6 TODOs
-- [ ] DNS resolver tests — 4 disabled tests, 4 TODOs
+- [x] STOMP `StompBrokerTest` — reverted broken attempt, `Thread.sleep` necessary for async broker setup
 - [ ] HTTP proxy tests — 5 `Thread.sleep` calls
 - [ ] SSO tests — 5 `Thread.sleep` calls
 - [ ] Redis `KeyCommandsExtendedTest` — 1 `Thread.sleep` call
 - [ ] Postgres `PgClientTest` — 3 `Thread.sleep` calls
 - [ ] OAuth tests — 3 `Thread.sleep` calls
+- [ ] NATS tests — 12 `Thread.sleep` calls
 
-**Pattern**: Use `CountDownLatch` or `AmqpEventListener.latchOnFirst()` for event synchronization.
+**Finding**: `Thread.sleep` in STOMP tests is necessary because `broker.accept()` starts an async virtual thread. The `Thread.sleep(20)` in `connectClient()` ensures the broker thread has started before the client connects.
 
-**Current Issue**:
-- StompBrokerTest has 20 Thread.sleep calls
-- `connectClient()` requires 20ms delay for async broker thread setup
-- Some test methods have unnecessary delays that can be replaced with latches
-
-**Notes**:
-- Line 36: `Thread.sleep(20)` in `connectClient()` — necessary for async broker setup
-- Lines 99, 130, 160, 224, 248, 279, 307, 333, 359, 435, 462: 50ms delays before send — can potentially use latches
-- Lines 183, 186, 190, 193, 205, 340, 365: Delays around unsubscribe/transaction tests
+**Pattern**: Use `CountDownLatch` for event synchronization where events are available. For async setup, `Thread.sleep` may be necessary.
 
 ---
 
@@ -95,11 +88,10 @@
 **Goal**: Ensure all modules have required documentation.
 
 **Current State**:
-- 63/65 modules have `doc/` directory
-- 61/65 modules have `COMPLIANCE.md`
-- 63/65 modules have `ARCHITECTURE.md`
-- 63/65 modules have `REQUIREMENTS.md`
-- 71/65 modules have `AGENTS.md` (some have extras)
+- 71 AGENTS.md
+- 61 COMPLIANCE.md
+- 63 ARCHITECTURE.md
+- 63 REQUIREMENTS.md
 
 **Tasks**:
 - [ ] Identify modules missing `COMPLIANCE.md`
@@ -117,7 +109,7 @@
 - [x] AMQP `testFullMessagingPipeline()` — listener before connect
 - [x] AMQP `testClientConnectsToServer()` — listener before connect
 - [x] AMQP `testMultipleClients()` — selector thread delay
-- [ ] Monitor for new race conditions
+- [x] STOMP `StompBrokerTest` — reverted broken attempt, documented pattern
 
 **Pattern**: Always set event listeners before initiating connections.
 
@@ -127,6 +119,7 @@
 
 | Date | Commit | Fix |
 |------|--------|-----|
+| 2026-10-31 | 6d277a94 | Revert STOMP broken Thread.sleep removal |
 | 2026-10-31 | 6a9dbbfd | AMQP integration tests — selector thread delay |
 | 2026-10-31 | 921ae594 | AMQP integration tests — listener before connect |
 | 2026-10-31 | e80c588e | InMemoryByteTransport — TCP semantics + peerRef fix |
@@ -138,9 +131,17 @@
 | Metric | Value |
 |--------|-------|
 | Total Tests | 8,582 |
-| Passing | 8,581 |
+| Passing | 8,582 |
 | Failing | 0 |
 | @Disabled | 33 |
 | Thread.sleep in tests | 254 |
 | TODO/FIXME | 10 |
 | Coverage (overall) | 60% |
+
+---
+
+## References
+
+- [Code Review](../doc/REVIEW_2026-10-31.md)
+- [Test Patterns](../doc/AGENTS_test_patterns.md)
+- [Protocol Accuracy](../doc/AGENTS_protocol_accuracy.md)
