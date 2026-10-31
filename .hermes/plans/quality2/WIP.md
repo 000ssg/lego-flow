@@ -31,6 +31,7 @@
 **Progress**:
 - [x] AMQP integration tests — added 50ms selector thread delay after `server.connect()`
 - [x] STOMP `StompBrokerTest` — reverted broken attempt, `Thread.sleep` necessary for async broker setup
+- [x] ProcessingThreadTest — reverted broken attempt, `PROCESSING_POOL` uses virtual threads
 - [ ] HTTP proxy tests — 5 `Thread.sleep` calls
 - [ ] SSO tests — 5 `Thread.sleep` calls
 - [ ] Redis `KeyCommandsExtendedTest` — 1 `Thread.sleep` call
@@ -38,7 +39,7 @@
 - [ ] OAuth tests — 3 `Thread.sleep` calls
 - [ ] NATS tests — 12 `Thread.sleep` calls
 
-**Finding**: `Thread.sleep` in STOMP tests is necessary because `broker.accept()` starts an async virtual thread. The `Thread.sleep(20)` in `connectClient()` ensures the broker thread has started before the client connects.
+**Key Finding**: `Thread.sleep` is necessary when tests involve async virtual threads (broker.accept(), PROCESSING_POOL). Cannot be eliminated without architectural changes.
 
 **Pattern**: Use `CountDownLatch` for event synchronization where events are available. For async setup, `Thread.sleep` may be necessary.
 
