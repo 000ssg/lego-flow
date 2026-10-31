@@ -24,10 +24,11 @@ public final class InMemoryMqttTransport extends InMemoryByteTransport implement
     public static InMemoryMqttTransport[] createPair() {
         var q1 = new java.util.concurrent.LinkedBlockingQueue<java.nio.ByteBuffer>();
         var q2 = new java.util.concurrent.LinkedBlockingQueue<java.nio.ByteBuffer>();
-        return new InMemoryMqttTransport[]{
-                new InMemoryMqttTransport(q1, q2),
-                new InMemoryMqttTransport(q2, q1)
-        };
+        var a = new InMemoryMqttTransport(q1, q2);
+        var b = new InMemoryMqttTransport(q2, q1);
+        a.peerRef = b;
+        b.peerRef = a;
+        return new InMemoryMqttTransport[]{a, b};
     }
 
     @Override

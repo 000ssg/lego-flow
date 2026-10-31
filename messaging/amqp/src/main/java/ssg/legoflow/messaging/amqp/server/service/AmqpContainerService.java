@@ -1,6 +1,7 @@
 package ssg.legoflow.messaging.amqp.server.service;
 
 import ssg.legoflow.blocks.Context;
+import ssg.legoflow.messaging.amqp.common.AmqpEventListener;
 import ssg.legoflow.messaging.amqp.container.AmqpContainer;
 import ssg.legoflow.messaging.amqp.container.ContainerConfig;
 import ssg.legoflow.messaging.amqp.container.ContainerMode;
@@ -111,6 +112,11 @@ public final class AmqpContainerService extends AbstractService<ByteBuffer, Byte
 
     /** Returns the underlying container (after connect). */
     public AmqpContainer getContainer() { return container; }
+
+    /** Sets the event listener on the underlying container for test synchronization. */
+    public void setListener(AmqpEventListener listener) {
+        if (container != null) container.setListener(listener);
+    }
 
     /** Returns the port the service is listening on. */
     public int port() { return serverChannel != null ? serverChannel.getServerSocketChannel().socket().getLocalPort() : -1; }

@@ -104,8 +104,22 @@ The container's `handleConnection(AmqpTransport)` method is public, allowing dir
 > **General test patterns**: See [../doc/AGENTS_test_patterns.md](../doc/AGENTS_test_patterns.md)
 > **Protocol accuracy rules**: See [../doc/AGENTS_protocol_accuracy.md](../doc/AGENTS_protocol_accuracy.md)
 
-### AMQP Service Integration Test Caveat
+### AMQP Service Integration Tests
 
-The `AmqpServiceIntegrationTest` (TCP-based client ↔ container) is **flaky** on CI — fails intermittently with `Invalid header from server` errors. Root cause: AMQP protocol header exchange races with virtual-thread scheduling under parallel CI load.
+The `AmqpServiceIntegrationTest` (TCP-based client ↔ container) exercises the full pipeline: `SocketChannel → SelectableChannelManager → DataChannel → ChannelPipeline → PipelineTransport → AMQP protocol layer`.
 
-**Status**: Pre-existing. Not caused by the enqueue-only transport refactoring. Consider adding `@Disabled` with Docker/setup instructions if this becomes a persistent CI blocker, per the pattern used for interop tests.
+**Critical pattern**: Always set the `AmqpEventListener` on the server **before** calling `client.connect()`. The `CONNECTION_OPENED` event fires during the handshake, and if the listener is not yet registered, the event is missed and the test times out.
+
+```java
+// ✅ CORRECT: listener before connect
+CountDownLatch openLatch = new CountDownLatch(1);
+server.setListener(AmqpEventListener.latchOnFirst(openLatch, AmqpEventListener.EventType.CONNECTION_OPENED));
+var client = AmqpClientService.builder("localhost", port).timeout(Duration.ofSeconds(10)).build();
+client.connect(ctx);
+assertThat(openLatch.await(10, TimeUnit.SECONDS)).isTrue();
+
+// ❌ BROKEN: connect before listener — event missed
+var client = AmqpClientService.builder("localhost", port).timeout(Duration.ofSeconds(10)).build();
+client.connect(ctx);
+server.setListener(AmqpEventListener.latchOnFirst(openLatch, ...)); // TOO LATE
+```

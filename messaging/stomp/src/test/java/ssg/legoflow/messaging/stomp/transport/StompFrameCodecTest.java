@@ -7,6 +7,7 @@ import ssg.legoflow.messaging.stomp.core.StompCommand;
 import ssg.legoflow.messaging.stomp.core.StompFrame;
 import ssg.legoflow.messaging.stomp.core.StompHeaders;
 import ssg.legoflow.messaging.stomp.core.StompCodec;
+import ssg.legoflow.service.channel.InMemoryByteTransport;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -21,6 +22,11 @@ class StompFrameCodecTest {
     @BeforeEach
     void setUp() {
         pair = InMemoryTransport.createPair();
+        // Use NONE semantics for deterministic synchronous delivery in codec tests.
+        // DEFAULT semantics chunk data and use async delivery, which races with
+        // immediate receive() calls in unit tests.
+        pair[0].withTcpSemantics(InMemoryByteTransport.TcpSemantics.NONE);
+        pair[1].withTcpSemantics(InMemoryByteTransport.TcpSemantics.NONE);
         serverCodec = new StompFrameCodec(pair[0]);
         clientCodec = new StompFrameCodec(pair[1]);
     }
