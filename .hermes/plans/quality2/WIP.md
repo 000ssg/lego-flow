@@ -11,8 +11,13 @@
 
 **Goal**: All interop tests properly tagged and runnable via Maven groups.
 
+**Current State**:
+- 20+ interop test files identified
+- Need to audit for `@Tag` annotations
+- Need to create `interop-tests/doc/ci-groups.md`
+
 **Tasks**:
-- [ ] Audit all 20 interop test files for `@Tag` annotations
+- [ ] Audit all interop test files for `@Tag` annotations
 - [ ] Add missing tags to tests referencing `interop.group` in comments
 - [ ] Create `interop-tests/doc/ci-groups.md` documenting groups
 - [ ] Ensure `failIfNoTests=true` catches typos
@@ -38,30 +43,46 @@
 - [ ] Postgres `PgClientTest` — 3 `Thread.sleep` calls
 - [ ] OAuth tests — 3 `Thread.sleep` calls
 - [ ] NATS tests — 12 `Thread.sleep` calls
+- [ ] Cluster core tests — 5 `Thread.sleep` calls
+- [ ] DNS resolver tests — 2 `Thread.sleep` calls
+- [ ] ConnectTunnel tests — 5 `Thread.sleep` calls
 
 **Key Finding**: `Thread.sleep` is necessary when tests involve async virtual threads (broker.accept(), PROCESSING_POOL). Cannot be eliminated without architectural changes.
 
 **Pattern**: Use `CountDownLatch` for event synchronization where events are available. For async setup, `Thread.sleep` may be necessary.
 
+**Analysis**:
+- 79 test files contain `Thread.sleep`
+- 219 total `Thread.sleep` calls in non-interop tests
+- Many are for time-based assertions (TTL expiration, session expiry) — these are valid
+- Some are for async timing (virtual thread scheduling) — these may need `CountDownLatch`
+
 ---
 
 ## Phase 3: Disabled Test Resolution (P1)
 
-**Status**: Not Started
+**Status**: In Progress
 
 **Goal**: Resolve or document all 33 `@Disabled` tests.
 
-**Disabled Tests**:
-- MySQL `AggregateQueryTest` (6) — unsupported features
-- DNS resolver (7) — environment-specific
-- Interop tests (14) — require external servers
+**Disabled Tests Breakdown**:
+- MySQL `AggregateQueryTest` (6) — unsupported features (HAVING, DISTINCT, COUNT(DISTINCT), subqueries, table aliases, UPDATE with zero rows)
+- DNS resolver (7) — environment-specific (localhost DNS not available, multicast support)
+- Interop tests (14) — require external servers (Docker Compose)
 - MQTT (4) — virtual thread race conditions
+- Others (2) — flaky timing
 
 **Tasks**:
 - [ ] MySQL: implement or document unsupported features
 - [ ] DNS: fix resolver or skip with clear reason
 - [ ] MQTT: fix virtual thread race conditions
 - [ ] Interop: ensure Docker Compose setup is documented
+- [ ] Document why each is disabled in test class header
+
+**Current Status**:
+- 19 non-interop disabled tests identified
+- 14 interop tests have `@Disabled` for external dependencies
+- Most have clear reasons in `@Disabled` annotation
 
 ---
 
@@ -73,12 +94,14 @@
 
 **Current Coverage**:
 - Overall: 60% instructions, 43% branches
+- 410 modules with coverage reports
 - Need: Per-module analysis to identify gaps
 
 **Tasks**:
 - [ ] Generate per-module coverage reports
 - [ ] Identify modules below 90%
 - [ ] Add tests for uncovered code paths
+- [ ] Focus on high-priority modules (core messaging, service)
 
 ---
 
@@ -89,14 +112,15 @@
 **Goal**: Ensure all modules have required documentation.
 
 **Current State**:
-- 71 AGENTS.md
-- 61 COMPLIANCE.md
-- 63 ARCHITECTURE.md
-- 63 REQUIREMENTS.md
+- 71 AGENTS.md files
+- 61 COMPLIANCE.md files (missing from 10 modules)
+- 63 ARCHITECTURE.md files
+- 63 REQUIREMENTS.md files
 
 **Tasks**:
 - [ ] Identify modules missing `COMPLIANCE.md`
 - [ ] Add missing compliance documentation
+- [ ] Verify all modules have README.md with required badges
 
 ---
 
@@ -134,10 +158,14 @@
 | Total Tests | 8,582 |
 | Passing | 8,582 |
 | Failing | 0 |
-| @Disabled | 33 |
-| Thread.sleep in tests | 254 |
-| TODO/FIXME | 10 |
+| @Disabled | 33 (19 non-interop, 14 interop) |
+| Thread.sleep in tests | 219 (non-interop) |
+| TODO/FIXME | 0 (in production code) |
 | Coverage (overall) | 60% |
+| AGENTS.md files | 71 |
+| COMPLIANCE.md files | 61 |
+| ARCHITECTURE.md files | 63 |
+| REQUIREMENTS.md files | 63 |
 
 ---
 
