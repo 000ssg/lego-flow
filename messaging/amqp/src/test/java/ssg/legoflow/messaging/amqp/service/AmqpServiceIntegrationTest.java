@@ -236,6 +236,9 @@ class AmqpServiceIntegrationTest {
                     .build();
             clients[i].connect(ctx);
 
+            // Give client time to initialize before server sends protocol frames
+            Thread.sleep(50);
+
             // Wait for this client's handshake to complete on the server side
             assertThat(openLatches[i].await(10, TimeUnit.SECONDS))
                     .as("Client " + i + " handshake should complete")
