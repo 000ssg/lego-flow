@@ -82,6 +82,9 @@ class AmqpServiceIntegrationTest {
         }
         assertThat(server.isReady()).isTrue();
 
+        // Give selector thread time to process the new registration
+        Thread.sleep(10);
+
         // Wait for CONNECTION_OPENED event — signals handshake is complete
         CountDownLatch openLatch = new CountDownLatch(1);
         server.setListener(AmqpEventListener.latchOnFirst(openLatch, AmqpEventListener.EventType.CONNECTION_OPENED));
@@ -150,6 +153,9 @@ class AmqpServiceIntegrationTest {
         }
         assertThat(server.isReady()).isTrue();
 
+        // Give selector thread time to process the new registration
+        Thread.sleep(10);
+
         final String[] receivedBody = {null};
         var receiveLatch = new CountDownLatch(1);
 
@@ -206,6 +212,9 @@ class AmqpServiceIntegrationTest {
             Thread.sleep(10);
         }
         assertThat(server.isReady()).isTrue();
+
+        // Give selector thread time to process the new registration
+        Thread.sleep(10);
 
         // Wait for CONNECTION_OPENED events — signals each client handshake is complete
         CountDownLatch[] openLatches = new CountDownLatch[3];
