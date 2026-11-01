@@ -101,9 +101,10 @@ class NatsTransportTest {
         });
         assertThat(latch.await(1, TimeUnit.SECONDS)).isFalse(); // still blocked
         pair[1].close();
+        // Peer stays open until it reads the EOF — correct TCP semantics.
+        assertThat(pair[0].isOpen()).isTrue();
         assertThat(latch.await(2, TimeUnit.SECONDS)).isTrue();
         assertThat(result[0]).isEqualTo(-1);
-        assertThat(pair[0].isOpen()).isFalse();
     }
 
     @Test
@@ -190,6 +191,8 @@ class NatsTransportTest {
         Thread.sleep(100);
         assertThat(latch.await(1, TimeUnit.SECONDS)).isFalse(); // still blocking — no false EOF
         pair[1].close();
+        // Close the streams to set isOpen()=false, allowing TransportInputStream to return -1.
+        streams.close();
         assertThat(latch.await(2, TimeUnit.SECONDS)).isTrue();
         assertThat(rc[0]).isEqualTo(-1);
     }

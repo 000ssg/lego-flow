@@ -66,7 +66,9 @@ public class InMemoryByteHeadBuffer implements ByteTransport {
                 headBuffer = null;
                 data = inbound.poll();
                 if (data == null) {
-                    if (!open.get()) return -1; // closed and nothing buffered => EOF
+                    // Queue is empty — try blocking poll before checking open.
+                    // This ensures we consume any poison marker that was offered
+                    // before the peer's open flag was cleared.
                     long remaining = deadline - System.nanoTime();
                     if (remaining <= 0) return -1; // timed out
                     try {
@@ -75,7 +77,11 @@ public class InMemoryByteHeadBuffer implements ByteTransport {
                         Thread.currentThread().interrupt();
                         return -1;
                     }
-                    if (data == null) continue; // poll timed out; loop re-checks deadline/open
+                    if (data == null) {
+                        // Queue still empty after poll — check if closed.
+                        if (!open.get()) return -1; // closed and nothing buffered => EOF
+                        continue; // poll timed out; loop re-checks deadline/open
+                    }
                 }
                 if (!data.hasRemaining()) return -1; // poison marker => closed
                 headBuffer = data;

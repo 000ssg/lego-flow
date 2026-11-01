@@ -114,9 +114,10 @@ class XmppTransportTest {
         });
         Thread.sleep(50);
         pair[1].close();
+        // Peer stays open until it reads the EOF — correct TCP semantics.
+        assertThat(pair[0].isOpen()).isTrue();
         assertThat(latch.await(2, TimeUnit.SECONDS)).isTrue();
         assertThat(result[0]).isEqualTo(-1);
-        assertThat(pair[0].isOpen()).isFalse();
     }
 
     @Test
