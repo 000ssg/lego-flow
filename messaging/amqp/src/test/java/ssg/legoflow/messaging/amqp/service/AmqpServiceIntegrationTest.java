@@ -82,25 +82,14 @@ class AmqpServiceIntegrationTest {
         }
         assertThat(server.isReady()).isTrue();
 
-        // Wait for first client connection to ensure selector thread is processing
-        CountDownLatch serverAcceptedLatch = new CountDownLatch(1);
-        server.setListener((event, connId, detail) -> {
-            if (event == AmqpEventListener.EventType.CONNECTION_OPENED && serverAcceptedLatch.getCount() > 0) {
-                serverAcceptedLatch.countDown();
-            }
-        });
+        // Wait for CONNECTION_OPENED event — signals handshake is complete
+        CountDownLatch openLatch = new CountDownLatch(1);
+        server.setListener(AmqpEventListener.latchOnFirst(openLatch, AmqpEventListener.EventType.CONNECTION_OPENED));
 
         var client = AmqpClientService.builder("localhost", port)
                 .timeout(Duration.ofSeconds(10))
                 .build();
         client.connect(ctx);
-
-        // Wait for server to accept the connection
-        assertThat(serverAcceptedLatch.await(10, TimeUnit.SECONDS)).isTrue();
-
-        // Wait for the AMQP handshake to complete
-        CountDownLatch openLatch = new CountDownLatch(1);
-        server.setListener(AmqpEventListener.latchOnFirst(openLatch, AmqpEventListener.EventType.CONNECTION_OPENED));
 
         // Wait for the server to complete the AMQP handshake
         assertThat(openLatch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -221,11 +210,20 @@ class AmqpServiceIntegrationTest {
         }
         assertThat(server.isReady()).isTrue();
 
-        // Wait for first client connection to ensure selector thread is processing
-        CountDownLatch serverAcceptedLatch = new CountDownLatch(1);
+        // Wait for CONNECTION_OPENED events — signals each client handshake is complete
+        CountDownLatch[] openLatches = new CountDownLatch[3];
+        for (int i = 0; i < 3; i++) {
+            openLatches[i] = new CountDownLatch(1);
+        }
         server.setListener((event, connId, detail) -> {
-            if (event == AmqpEventListener.EventType.CONNECTION_OPENED && serverAcceptedLatch.getCount() > 0) {
-                serverAcceptedLatch.countDown();
+            if (event == AmqpEventListener.EventType.CONNECTION_OPENED) {
+                // Count down the next available latch
+                for (CountDownLatch latch : openLatches) {
+                    if (latch.getCount() > 0) {
+                        latch.countDown();
+                        break;
+                    }
+                }
             }
         });
 
@@ -238,10 +236,11 @@ class AmqpServiceIntegrationTest {
                     .build();
             clients[i].connect(ctx);
 
-            // Wait for server to accept this client
-            assertThat(serverAcceptedLatch.await(10, TimeUnit.SECONDS)).isTrue();
-
             // Wait for this client's handshake to complete on the server side
+            assertThat(openLatches[i].await(10, TimeUnit.SECONDS))
+                    .as("Client " + i + " handshake should complete")
+                    .isTrue();
+
             assertThat(clients[i].getClient())
                     .as("Client " + i + " should be connected")
                     .isNotNull();
