@@ -69,7 +69,7 @@ class AmqpServiceIntegrationTest {
     void testClientConnectsToServer() throws Exception {
         var server = AmqpContainerService.builder()
                 .port(0)
-                .containerId("test-server")
+                .containerId("test-server-2")
                 .build();
         server.connect(ctx);
         int port = server.port();
@@ -137,7 +137,7 @@ class AmqpServiceIntegrationTest {
     void testFullMessagingPipeline() throws Exception {
         var server = AmqpContainerService.builder()
                 .port(0)
-                .containerId("test-server")
+                .containerId("test-server-3")
                 .build();
         server.connect(ctx);
         int port = server.port();
