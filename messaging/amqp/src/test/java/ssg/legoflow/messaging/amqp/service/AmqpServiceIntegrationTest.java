@@ -210,6 +210,9 @@ class AmqpServiceIntegrationTest {
         }
         assertThat(server.isReady()).isTrue();
 
+        // Give server time to fully initialize before clients connect
+        Thread.sleep(100);
+
         // Wait for CONNECTION_OPENED events — signals each client handshake is complete
         CountDownLatch[] openLatches = new CountDownLatch[3];
         for (int i = 0; i < 3; i++) {
@@ -235,9 +238,6 @@ class AmqpServiceIntegrationTest {
                     .containerId("client-" + i)
                     .build();
             clients[i].connect(ctx);
-
-            // Give client time to initialize before server sends protocol frames
-            Thread.sleep(50);
 
             // Wait for this client's handshake to complete on the server side
             assertThat(openLatches[i].await(10, TimeUnit.SECONDS))
