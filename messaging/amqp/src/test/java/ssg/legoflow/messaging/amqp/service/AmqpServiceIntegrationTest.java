@@ -91,6 +91,9 @@ class AmqpServiceIntegrationTest {
                 .build();
         client.connect(ctx);
 
+        // Give client time to initialize before server sends protocol frames
+        Thread.sleep(100);
+
         // Wait for the server to complete the AMQP handshake
         assertThat(openLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
@@ -170,6 +173,9 @@ class AmqpServiceIntegrationTest {
                 .timeout(Duration.ofSeconds(10))
                 .build();
         client.connect(ctx);
+
+        // Give client time to initialize before server sends protocol frames
+        Thread.sleep(100);
 
         // Wait for the server to complete the AMQP handshake
         assertThat(openLatch.await(10, TimeUnit.SECONDS)).isTrue();
