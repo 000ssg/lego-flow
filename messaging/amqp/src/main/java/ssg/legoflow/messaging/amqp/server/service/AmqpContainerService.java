@@ -113,6 +113,11 @@ public final class AmqpContainerService extends AbstractService<ByteBuffer, Byte
     /** Returns the underlying container (after connect). */
     public AmqpContainer getContainer() { return container; }
 
+    /** Returns true if the server channel is registered and ready to accept connections. */
+    public boolean isReady() {
+        return serverChannel != null && serverChannel.getSelectionKey() != null;
+    }
+
     /** Sets the event listener on the underlying container for test synchronization. */
     public void setListener(AmqpEventListener listener) {
         if (container != null) container.setListener(listener);
