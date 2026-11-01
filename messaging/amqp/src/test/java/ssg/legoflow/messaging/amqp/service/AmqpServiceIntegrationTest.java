@@ -145,11 +145,10 @@ class AmqpServiceIntegrationTest {
         // Wait for server to be ready - poll until serverChannel is registered with selector
         int retries = 50;
         while (retries-- > 0) {
-            if (server.serverChannel != null && server.serverChannel.getSelectionKey() != null) break;
+            if (server.isReady()) break;
             Thread.sleep(10);
         }
-        assertThat(server.serverChannel).isNotNull();
-        assertThat(server.serverChannel.getSelectionKey()).isNotNull();
+        assertThat(server.isReady()).isTrue();
 
         final String[] receivedBody = {null};
         var receiveLatch = new CountDownLatch(1);
@@ -203,11 +202,10 @@ class AmqpServiceIntegrationTest {
         // Wait for server to be ready - poll until serverChannel is registered with selector
         int retries = 50;
         while (retries-- > 0) {
-            if (server.serverChannel != null && server.serverChannel.getSelectionKey() != null) break;
+            if (server.isReady()) break;
             Thread.sleep(10);
         }
-        assertThat(server.serverChannel).isNotNull();
-        assertThat(server.serverChannel.getSelectionKey()).isNotNull();
+        assertThat(server.isReady()).isTrue();
 
         // Wait for CONNECTION_OPENED events — signals each client handshake is complete
         CountDownLatch[] openLatches = new CountDownLatch[3];
