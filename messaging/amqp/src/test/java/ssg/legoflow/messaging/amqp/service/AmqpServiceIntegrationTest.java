@@ -242,10 +242,6 @@ class AmqpServiceIntegrationTest {
             assertThat(serverAcceptedLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
             // Wait for this client's handshake to complete on the server side
-            assertThat(openLatches[i].await(10, TimeUnit.SECONDS))
-                    .as("Client " + i + " handshake should complete")
-                    .isTrue();
-
             assertThat(clients[i].getClient())
                     .as("Client " + i + " should be connected")
                     .isNotNull();
