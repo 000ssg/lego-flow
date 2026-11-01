@@ -1121,3 +1121,71 @@ Enabled by default — tests get TCP-like behavior out of the box. Disable with 
 
 ### Note
 The `NatsServiceIntegrationTest` failure is pre-existing and unrelated to this change. The test uses real TCP through the `SelectableChannelManager`, and the server's subscription registration is not being triggered (the SUB message never reaches the server's connection loop). This appears to be a bug in the NATS service layer, not in the in-memory transport.
+
+---
+
+## AMQP 1.0 Message Header Spec Compliance Fix
+
+**Date:** 2026-11-01  
+**Branch:** cleanup-messaging
+
+### Problem
+The `Header` class in the AMQP module had **incorrect default values** that violated AMQP 1.0 spec (ISO 19464) section 3.2.1:
+
+| Field | Wrong Default | Spec Default | Impact |
+|-------|---------------|--------------|--------|
+| `durable` | `false` | **`true`** | Messages NOT persisted by brokers on restart |
+| `firstAcquirer` | `false` | **`true`** | Brokers incorrectly mark messages as previously seen |
+
+This caused:
+1. Messages sent without explicit headers to be treated as non-durable by real brokers
+2. `firstAcquirer=false` signaling to brokers that messages had been acquired before, affecting routing and redelivery
+3. RabbitMQ 4.2+ compatibility issues (explicitly changed to treat omitted header as `durable=false`)
+
+### Root Cause Analysis
+- Tests used `AmqpMessage.of("text")` which creates `header=null`, causing the header section to be **omitted** from encoded messages
+- The in-process server didn't validate durability, so tests passed
+- Interop tests with RabbitMQ/Artemis passed because no header was sent
+- The bug was masked by the absence of the header section, not by correct defaults
+
+### Solution
+Fixed `Header` class to use spec-compliant defaults:
+```java
+// Before (wrong):
+this(false, (short) 4, 0, false, 0);
+
+// After (spec-compliant):
+this(true, (short) 4, 0, true, 0);
+```
+
+Also fixed `Header.ofDurable()` to preserve spec-compliant `firstAcquirer=true`.
+
+Updated `AmqpMessage()` constructor to initialize `header = new Header()` so all messages have a proper header section.
+
+### Files Changed
+- `messaging/amqp/src/main/java/ssg/legoflow/messaging/amqp/message/Header.java` — Fixed defaults
+- `messaging/amqp/src/main/java/ssg/legoflow/messaging/amqp/message/AmqpMessage.java` — Initialize header in constructor
+- `messaging/amqp/src/test/java/ssg/legoflow/messaging/amqp/message/MessageCodecTest.java` — Updated tests
+
+### Verification
+- `mvn compile -DskipTests -pl '!benchmarks'` — BUILD SUCCESS
+- `mvn test -pl messaging/amqp -DfailIfNoTests=false` — 397 tests, 0 failures
+- All MessageCodecTest tests pass (21/21)
+- All AmqpServiceIntegrationTest tests pass (7/7)
+
+### Broker Compatibility Notes
+- **RabbitMQ 4.2+**: If header section is omitted, `durable` is assumed to be `false` (per their release notes)
+- **Apache Artemis**: Follows spec defaults — expects `durable=true`, `firstAcquirer=true`
+- **Qpid Dispatch**: Accepts spec-compliant headers
+
+### Knowledge Captured
+Created skill `amqp-header-spec-compliance` to prevent regression. Documents:
+- Spec-compliant default values
+- Broker-specific behavior
+- Encoding behavior when header is null vs. set
+- Verification checklist
+
+### References
+- AMQP 1.0 Spec Section 3.2.1: https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging.html#type-header
+- RabbitMQ AMQP 1.0 plugin: https://github.com/rabbitmq/rabbitmq-amqp1.0
+- RabbitMQ 4.2.0 release notes: https://github.com/rabbitmq/rabbitmq-server/releases/tag/v4.2.0

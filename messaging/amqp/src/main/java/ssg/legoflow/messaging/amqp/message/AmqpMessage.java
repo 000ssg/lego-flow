@@ -43,8 +43,9 @@ public final class AmqpMessage {
         AMQP_VALUE
     }
 
-    /** Creates an empty message. */
+    /** Creates an empty message with spec-compliant default header. */
     public AmqpMessage() {
+        this.header = new Header();
         this.deliveryAnnotations = new LinkedHashMap<>();
         this.messageAnnotations = new LinkedHashMap<>();
         this.applicationProperties = new LinkedHashMap<>();

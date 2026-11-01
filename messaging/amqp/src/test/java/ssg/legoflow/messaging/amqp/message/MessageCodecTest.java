@@ -12,9 +12,15 @@ import static org.assertj.core.api.Assertions.*;
 class MessageCodecTest {
 
     @Test void testEmptyMessage() {
+        // Empty message now has a spec-compliant default header (durable=true, firstAcquirer=true)
         var msg = new AmqpMessage();
         ByteBuffer buf = MessageCodec.encode(msg);
-        assertThat(buf.remaining()).isEqualTo(0); // No sections to encode
+        // Header section is encoded: descriptor(4) + list(1) + 5 fields(1 each) = ~12 bytes
+        assertThat(buf.remaining()).isGreaterThan(0);
+        var decoded = MessageCodec.decode(buf);
+        assertThat(decoded.header()).isNotNull();
+        assertThat(decoded.header().durable()).isTrue();
+        assertThat(decoded.header().firstAcquirer()).isTrue();
     }
 
     @Test void testStringBodyRoundTrip() {
@@ -51,15 +57,16 @@ class MessageCodecTest {
     }
 
     @Test void testHeaderDefaults() {
+        // Spec-compliant defaults: durable=true, firstAcquirer=true (section 3.2.1)
         var msg = new AmqpMessage()
                 .header(new Header())
                 .bodyString("test");
         ByteBuffer buf = MessageCodec.encode(msg);
         buf.rewind();
         var decoded = MessageCodec.decode(buf);
-        assertThat(decoded.header().durable()).isFalse();
+        assertThat(decoded.header().durable()).isTrue();
         assertThat(decoded.header().priority()).isEqualTo((short) 4);
-        assertThat(decoded.header().firstAcquirer()).isFalse();
+        assertThat(decoded.header().firstAcquirer()).isTrue();
     }
 
     @Test void testDurableHeader() {
@@ -70,6 +77,8 @@ class MessageCodecTest {
         buf.rewind();
         var decoded = MessageCodec.decode(buf);
         assertThat(decoded.header().durable()).isTrue();
+        // ofDurable() preserves spec-compliant firstAcquirer=true
+        assertThat(decoded.header().firstAcquirer()).isTrue();
     }
 
     @Test void testPropertiesRoundTrip() {
@@ -180,7 +189,7 @@ class MessageCodecTest {
 
     @Test void testFullMessageRoundTrip() {
         var msg = new AmqpMessage()
-                .header(new Header(true, (short) 5, 30000, false, 0))
+                .header(new Header(false, (short) 5, 30000, false, 0))
                 .deliveryAnnotations(Map.of("x-hop", "value"))
                 .messageAnnotations(Map.of("x-msg", "ann"))
                 .properties(Properties.builder()
@@ -197,7 +206,7 @@ class MessageCodecTest {
         buf.rewind();
         var decoded = MessageCodec.decode(buf);
 
-        assertThat(decoded.header().durable()).isTrue();
+        assertThat(decoded.header().durable()).isFalse();
         assertThat(decoded.header().priority()).isEqualTo((short) 5);
         assertThat(decoded.deliveryAnnotations()).containsKey("x-hop");
         assertThat(decoded.messageAnnotations()).containsKey("x-msg");
