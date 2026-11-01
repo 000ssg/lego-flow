@@ -94,12 +94,13 @@ public class InMemoryByteHeadBuffer implements ByteTransport {
     @Override
     public void close() {
         if (open.compareAndSet(true, false)) {
-            // Wake this side and the peer's blocked reader. Buffered bytes ahead of the poison
-            // marker are still delivered before the EOF is observed.
+            // Wake this side's blocked reader and deliver EOF.
             inbound.offer(ByteBuffer.allocate(0));
+            // Notify the peer that we closed — send poison pill so the peer
+            // gets EOF on its next receive(), but do NOT close the peer itself.
+            // The peer remains open until it reads and observes EOF.
             var p = peerRef;
             if (p != null) {
-                p.open.set(false);
                 p.inbound.offer(ByteBuffer.allocate(0));
             }
         }
