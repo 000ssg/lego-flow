@@ -75,11 +75,13 @@ class AmqpServiceIntegrationTest {
         int port = server.port();
 
         // Wait for server to be ready to accept connections
-        int retries = 20;
-        while (retries-- > 0) {
-            if (server.getContainer() != null && server.getContainer().isRunning()) break;
-            Thread.sleep(100);
-        }
+        // Use a latch to ensure selector thread has registered the server channel
+        CountDownLatch serverReadyLatch = new CountDownLatch(1);
+        server.setListener((event, connId, detail) -> {
+            if (event == AmqpEventListener.EventType.CONNECTION_OPENED && serverReadyLatch.getCount() > 0) {
+                serverReadyLatch.countDown();
+            }
+        });
 
         // Wait for CONNECTION_OPENED event — signals handshake is complete
         CountDownLatch openLatch = new CountDownLatch(1);
@@ -142,13 +144,12 @@ class AmqpServiceIntegrationTest {
         int port = server.port();
 
         // Wait for server to be ready to accept connections
-        // The selector thread needs time to process the channel registration
-        Thread.sleep(50);
-        int retries = 30;
-        while (retries-- > 0) {
-            if (server.getContainer() != null && server.getContainer().isRunning()) break;
-            Thread.sleep(100);
-        }
+        CountDownLatch serverReadyLatch = new CountDownLatch(1);
+        server.setListener((event, connId, detail) -> {
+            if (event == AmqpEventListener.EventType.CONNECTION_OPENED && serverReadyLatch.getCount() > 0) {
+                serverReadyLatch.countDown();
+            }
+        });
 
         final String[] receivedBody = {null};
         var receiveLatch = new CountDownLatch(1);
@@ -200,13 +201,12 @@ class AmqpServiceIntegrationTest {
         int port = server.port();
 
         // Wait for server to be ready to accept connections
-        // The selector thread needs time to process the channel registration
-        Thread.sleep(50);
-        int retries = 30;
-        while (retries-- > 0) {
-            if (server.getContainer() != null && server.getContainer().isRunning()) break;
-            Thread.sleep(100);
-        }
+        CountDownLatch serverReadyLatch = new CountDownLatch(1);
+        server.setListener((event, connId, detail) -> {
+            if (event == AmqpEventListener.EventType.CONNECTION_OPENED && serverReadyLatch.getCount() > 0) {
+                serverReadyLatch.countDown();
+            }
+        });
 
         // Wait for CONNECTION_OPENED events — signals each client handshake is complete
         CountDownLatch[] openLatches = new CountDownLatch[3];
