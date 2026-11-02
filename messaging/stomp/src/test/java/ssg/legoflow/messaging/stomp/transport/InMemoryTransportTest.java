@@ -1,5 +1,7 @@
 package ssg.legoflow.messaging.stomp.transport;
 
+import ssg.legoflow.service.channel.InMemoryByteTransport;
+import ssg.legoflow.service.channel.InMemoryByteTransport.TcpSemantics;
 import org.junit.jupiter.api.*;
 import static org.assertj.core.api.Assertions.*;
 import java.nio.ByteBuffer;
@@ -77,6 +79,8 @@ class InMemoryTransportTest {
     @Test
     void testMultipleMessages() throws Exception {
         var pair = InMemoryTransport.createPair();
+        pair[0].withTcpSemantics(TcpSemantics.NONE);
+        pair[1].withTcpSemantics(TcpSemantics.NONE);
         pair[0].send(ByteBuffer.wrap("first".getBytes()));
         pair[0].send(ByteBuffer.wrap("second".getBytes()));
 

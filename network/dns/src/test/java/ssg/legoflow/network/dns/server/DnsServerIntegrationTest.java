@@ -98,16 +98,23 @@ class DnsServerIntegrationTest {
                 new InetSocketAddress("localhost", port), Duration.ofSeconds(5))) {
             long queriesBefore = server.queriesReceived();
             long responsesBefore = server.responsesSent();
-            
+
             client.query("example.com.", RecordType.A);
-            
+
             // Allow async virtual thread to update counters (Windows CI can be slow with virtual thread scheduling)
             int retries = 100;
             while (server.queriesReceived() <= queriesBefore && retries-- > 0) {
                 Thread.sleep(200);
             }
-            
+
             assertThat(server.queriesReceived()).isGreaterThan(queriesBefore);
+
+            // Responses may lag behind queries due to async processing
+            retries = 100;
+            while (server.responsesSent() <= responsesBefore && retries-- > 0) {
+                Thread.sleep(200);
+            }
+
             assertThat(server.responsesSent()).isGreaterThan(responsesBefore);
         }
     }

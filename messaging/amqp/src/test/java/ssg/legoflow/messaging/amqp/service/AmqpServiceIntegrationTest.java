@@ -239,23 +239,29 @@ class AmqpServiceIntegrationTest {
         var clients = new AmqpClientService[3];
         for (int i = 0; i < 3; i++) {
             clients[i] = AmqpClientService.builder("localhost", port)
-                    .name("amqp-client-" + i) // Unique name per instance
+                    .name("amqp-client-" + i)
                     .timeout(Duration.ofSeconds(10))
                     .containerId("client-" + i)
                     .build();
             clients[i].connect(ctx);
 
-            // Give client time to initialize before server sends protocol frames
-            Thread.sleep(100);
-
-            // Wait for this client's handshake to complete on the server side
-            assertThat(openLatches[i].await(10, TimeUnit.SECONDS))
-                    .as("Client " + i + " handshake should complete")
+            // Wait for this client to connect before starting the next one
+            // to avoid race conditions with simultaneous connections
+            int connRetries = 100;
+            while (connRetries-- > 0) {
+                if (clients[i].isConnected()) break;
+                Thread.sleep(10);
+            }
+            assertThat(clients[i].isConnected())
+                    .as("Client " + i + " should connect")
                     .isTrue();
+        }
 
-            assertThat(clients[i].getClient())
-                    .as("Client " + i + " should be connected")
-                    .isNotNull();
+        // Wait for ALL server-side CONNECTION_OPENED events
+        for (CountDownLatch latch : openLatches) {
+            assertThat(latch.await(10, TimeUnit.SECONDS))
+                    .as("Server should complete all client handshakes")
+                    .isTrue();
         }
 
         // Verify all clients can create sessions
