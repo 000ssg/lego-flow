@@ -61,14 +61,48 @@ public interface MqttEventListener {
 
     /**
      * Creates a listener that fires a {@link CountDownLatch} on the first matching event.
+     * Use for single-connection tests.
      *
      * @param latch  the latch to count down
      * @param event  the event type to match
      * @return a listener that counts down the latch once
      */
     static MqttEventListener latchOnFirst(CountDownLatch latch, EventType event) {
-        return (e, clientId, detail) -> {
+        return (e, id, detail) -> {
             if (e == event) latch.countDown();
+        };
+    }
+
+    /**
+     * Creates a listener that fires a {@link CountDownLatch} only when the specified
+     * client ID triggers the event. Use for multi-connection tests.
+     *
+     * @param latch    the latch to count down
+     * @param event    the event type to match
+     * @param clientId the client identifier to filter on
+     * @return a listener that counts down the latch when the matching client fires
+     */
+    static MqttEventListener latchOnConnection(CountDownLatch latch, EventType event, String clientId) {
+        return (e, id, detail) -> {
+            if (e == event && clientId.equals(id)) latch.countDown();
+        };
+    }
+
+    /**
+     * Creates a listener that dispatches events to a map of per-client latches.
+     * Use for multi-connection tests: put expected client IDs as keys and
+     * CountDownLatch(1) as values before connecting clients.
+     *
+     * @param latchMap map of clientId -> CountDownLatch
+     * @param event the event type to match
+     * @return a listener that counts down the latch for the matching client
+     */
+    static MqttEventListener latchOnConnections(java.util.Map<String, CountDownLatch> latchMap, EventType event) {
+        return (e, id, detail) -> {
+            if (e == event && id != null) {
+                var latch = latchMap.get(id);
+                if (latch != null) latch.countDown();
+            }
         };
     }
 

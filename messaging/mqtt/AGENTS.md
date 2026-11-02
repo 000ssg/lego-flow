@@ -85,7 +85,7 @@ This pattern is common across Lego Flow protocol codecs that operate over TCP by
 
 ### MQTT-Specific Testing
 
-**`MqttEventListener`** — fires at `CLIENT_CONNECTED`, `CLIENT_DISCONNECTED`, `SESSION_CREATED`, `SESSION_RESUMED`, `SUBSCRIPTION_ADDED`, `WILL_DELIVERED`. Use `MqttEventListener.latchOnFirst(EventType)` to synchronize tests with broker-side protocol progress without `Thread.sleep`. (This is the generic protocol flow listener pattern — see [doc/AGENTS_protocol_accuracy.md](../../../doc/AGENTS_protocol_accuracy.md) §11.)
+**`MqttEventListener`** — fires at `CLIENT_CONNECTED`, `CLIENT_DISCONNECTED`, `SESSION_CREATED`, `SESSION_RESUMED`, `SUBSCRIPTION_ADDED`, `WILL_DELIVERED`. Use `MqttEventListener.latchOnFirst(EventType)` for single-connection tests, `latchOnConnection(latch, event, clientId)` when the ID is known, or `latchOnConnections(latchMap, event)` for multi-connection tests with a map of IDs. (See [doc/AGENTS_protocol_accuracy.md](../../../doc/AGENTS_protocol_accuracy.md) §11 for full pattern.)
 
 > **General test patterns**: See [../../../doc/AGENTS_test_patterns.md](../../../doc/AGENTS_test_patterns.md)
 > **Protocol accuracy rules**: See [../../../doc/AGENTS_protocol_accuracy.md](../../../doc/AGENTS_protocol_accuracy.md)

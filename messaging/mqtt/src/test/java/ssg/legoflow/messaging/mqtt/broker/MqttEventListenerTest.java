@@ -78,6 +78,63 @@ class MqttEventListenerTest {
     }
 
     @Test
+    void testLatchOnConnectionFiresOnlyForMatchingClient() throws Exception {
+        var latch = new CountDownLatch(1);
+        var listener = MqttEventListener.latchOnConnection(latch, MqttEventListener.EventType.CLIENT_CONNECTED, "client-2");
+
+        // Event from different client — latch should NOT count down
+        listener.onEvent(MqttEventListener.EventType.CLIENT_CONNECTED, "client-1", "payload");
+        assertThat(latch.getCount()).isEqualTo(1);
+
+        // Event from matching client — latch counts down
+        listener.onEvent(MqttEventListener.EventType.CLIENT_CONNECTED, "client-2", "payload");
+        assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue();
+    }
+
+    @Test
+    void testLatchOnConnectionIgnoresWrongEventType() throws Exception {
+        var latch = new CountDownLatch(1);
+        var listener = MqttEventListener.latchOnConnection(latch, MqttEventListener.EventType.CLIENT_CONNECTED, "client-1");
+
+        // Matching client but wrong event — latch should NOT count down
+        listener.onEvent(MqttEventListener.EventType.CLIENT_DISCONNECTED, "client-1", "payload");
+        assertThat(latch.getCount()).isEqualTo(1);
+    }
+
+    @Test
+    void testLatchOnConnectionsDispatchesToMatchingClient() throws Exception {
+        var latch1 = new CountDownLatch(1);
+        var latch2 = new CountDownLatch(1);
+        var latchMap = new java.util.HashMap<String, CountDownLatch>();
+        latchMap.put("client-1", latch1);
+        latchMap.put("client-2", latch2);
+
+        var listener = MqttEventListener.latchOnConnections(latchMap, MqttEventListener.EventType.CLIENT_CONNECTED);
+
+        // Event from client-1
+        listener.onEvent(MqttEventListener.EventType.CLIENT_CONNECTED, "client-1", "payload");
+        assertThat(latch1.await(1, TimeUnit.SECONDS)).isTrue();
+        assertThat(latch2.getCount()).isEqualTo(1);
+
+        // Event from client-2
+        listener.onEvent(MqttEventListener.EventType.CLIENT_CONNECTED, "client-2", "payload");
+        assertThat(latch2.await(1, TimeUnit.SECONDS)).isTrue();
+    }
+
+    @Test
+    void testLatchOnConnectionsIgnoresUnknownClient() throws Exception {
+        var latch1 = new CountDownLatch(1);
+        var latchMap = new java.util.HashMap<String, CountDownLatch>();
+        latchMap.put("client-1", latch1);
+
+        var listener = MqttEventListener.latchOnConnections(latchMap, MqttEventListener.EventType.CLIENT_CONNECTED);
+
+        // Event from unknown client — no latch to count down
+        listener.onEvent(MqttEventListener.EventType.CLIENT_CONNECTED, "client-99", "payload");
+        assertThat(latch1.getCount()).isEqualTo(1);
+    }
+
+    @Test
     void testNoOpFactory() {
         var noOp = MqttEventListener.noOp();
         assertThat(noOp).isSameAs(MqttEventListener.NO_OP);

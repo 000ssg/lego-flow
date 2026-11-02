@@ -90,7 +90,7 @@ Three transport implementations exist:
 ## Testing Practices
 
 - All non-TCP tests use `InMemoryStompTransport` (no network I/O)
-- `StompEventListener` — fires at `SESSION_CONNECTED`, `SESSION_DISCONNECTED`, `MESSAGE_DELIVERED`, `TRANSACTION_COMMITTED`, `TRANSACTION_ABORTED`. Use `StompEventListener.latchOnFirst(EventType)` to synchronize tests with broker-side protocol progress without `Thread.sleep`. (This is the generic protocol flow listener pattern — see [doc/AGENTS_protocol_accuracy.md](../../../doc/AGENTS_protocol_accuracy.md) §11.)
+- `StompEventListener` — fires at `SESSION_CONNECTED`, `SESSION_DISCONNECTED`, `MESSAGE_DELIVERED`, `TRANSACTION_COMMITTED`, `TRANSACTION_ABORTED`. Use `StompEventListener.latchOnFirst(EventType)` for single-connection tests, `latchOnConnection(latch, event, sessionId)` when the ID is known, or `latchOnConnections(latchMap, event)` for multi-connection tests with a map of IDs. (See [doc/AGENTS_protocol_accuracy.md](../../../doc/AGENTS_protocol_accuracy.md) §11 for full pattern.)
 - Codec tests: encode/decode round-trips for all 16 commands, header escaping, binary body
 - Broker tests: pub/sub, ack modes (auto/client/client-individual), transactions, receipts, version negotiation
 - Client tests: connect, subscribe, send, transactions, disconnect

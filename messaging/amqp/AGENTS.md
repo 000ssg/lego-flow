@@ -95,7 +95,7 @@ The container's `handleConnection(AmqpTransport)` method is public, allowing dir
 
 ### AMQP-Specific Testing
 
-**`AmqpEventListener`** — fires at `CONNECTION_STARTED`, `CONNECTION_OPENED`, `SESSION_CREATED`, `LINK_ATTACHED`. Use `AmqpEventListener.latchOnFirst(EventType)` to synchronize tests with server-side protocol progress without `Thread.sleep`. (This is the generic protocol flow listener pattern — see [doc/AGENTS_protocol_accuracy.md](../doc/AGENTS_protocol_accuracy.md) §11.)
+**`AmqpEventListener`** — fires at `CONNECTION_STARTED`, `CONNECTION_OPENED`, `SESSION_CREATED`, `LINK_ATTACHED`. Use `AmqpEventListener.latchOnFirst(EventType)` for single-connection tests, `latchOnConnection(latch, event, connectionId)` when the ID is known, or `latchOnConnections(latchMap, event)` for multi-connection tests with a map of IDs. (See [doc/AGENTS_protocol_accuracy.md](../doc/AGENTS_protocol_accuracy.md) §11 for full pattern.)
 
 **In-memory transport** — `InMemoryTransport.createPair()` creates two linked transports. Use `AmqpContainer.handleConnection(transport)` to inject the server side. For in-process tests requiring two threads, run the server on a **platform thread** (`Thread.ofPlatform().start()`) to avoid carrier thread starvation on CI. (See [doc/AGENTS_test_patterns.md](../doc/AGENTS_test_patterns.md) §8-9.)
 

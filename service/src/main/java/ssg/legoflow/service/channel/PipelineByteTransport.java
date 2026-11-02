@@ -140,7 +140,7 @@ public class PipelineByteTransport implements ByteTransport {
     public void send(ByteBuffer data) {
         if (!open.get()) return;
         // Consume bytes from the caller's buffer: advance position to limit.
-        // We duplicate to preserve the original position/limit for the queue,
+        // We duplicate to preserve the caller's position/limit for the queue,
         // then advance the caller's position so repeated sends drain the buffer.
         int pos = data.position();
         int lim = data.limit();

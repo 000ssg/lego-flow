@@ -56,4 +56,57 @@ class StompEventListenerTest {
         var noOp = StompEventListener.noOp();
         assertThat(noOp).isSameAs(StompEventListener.NO_OP);
     }
+
+    @Test void testLatchOnConnectionFiresOnlyForMatchingSession() throws Exception {
+        var latch = new CountDownLatch(1);
+        var listener = StompEventListener.latchOnConnection(latch, StompEventListener.EventType.SESSION_CONNECTED, "session-2");
+
+        // Event from different session — latch should NOT count down
+        listener.onEvent(StompEventListener.EventType.SESSION_CONNECTED, "session-1", "detail");
+        assertThat(latch.getCount()).isEqualTo(1);
+
+        // Event from matching session — latch counts down
+        listener.onEvent(StompEventListener.EventType.SESSION_CONNECTED, "session-2", "detail");
+        assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue();
+    }
+
+    @Test void testLatchOnConnectionIgnoresWrongEventType() throws Exception {
+        var latch = new CountDownLatch(1);
+        var listener = StompEventListener.latchOnConnection(latch, StompEventListener.EventType.SESSION_CONNECTED, "session-1");
+
+        // Matching session but wrong event — latch should NOT count down
+        listener.onEvent(StompEventListener.EventType.SESSION_DISCONNECTED, "session-1", "detail");
+        assertThat(latch.getCount()).isEqualTo(1);
+    }
+
+    @Test void testLatchOnConnectionsDispatchesToMatchingSession() throws Exception {
+        var latch1 = new CountDownLatch(1);
+        var latch2 = new CountDownLatch(1);
+        var latchMap = new java.util.HashMap<String, CountDownLatch>();
+        latchMap.put("session-1", latch1);
+        latchMap.put("session-2", latch2);
+
+        var listener = StompEventListener.latchOnConnections(latchMap, StompEventListener.EventType.SESSION_CONNECTED);
+
+        // Event from session-1
+        listener.onEvent(StompEventListener.EventType.SESSION_CONNECTED, "session-1", "detail");
+        assertThat(latch1.await(1, TimeUnit.SECONDS)).isTrue();
+        assertThat(latch2.getCount()).isEqualTo(1);
+
+        // Event from session-2
+        listener.onEvent(StompEventListener.EventType.SESSION_CONNECTED, "session-2", "detail");
+        assertThat(latch2.await(1, TimeUnit.SECONDS)).isTrue();
+    }
+
+    @Test void testLatchOnConnectionsIgnoresUnknownSession() throws Exception {
+        var latch1 = new CountDownLatch(1);
+        var latchMap = new java.util.HashMap<String, CountDownLatch>();
+        latchMap.put("session-1", latch1);
+
+        var listener = StompEventListener.latchOnConnections(latchMap, StompEventListener.EventType.SESSION_CONNECTED);
+
+        // Event from unknown session — no latch to count down
+        listener.onEvent(StompEventListener.EventType.SESSION_CONNECTED, "session-99", "detail");
+        assertThat(latch1.getCount()).isEqualTo(1);
+    }
 }

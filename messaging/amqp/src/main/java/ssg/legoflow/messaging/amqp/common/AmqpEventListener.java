@@ -58,11 +58,46 @@ public interface AmqpEventListener {
     }
 
     /**
-     * Convenience: creates a listener that fires a CountDownLatch on the first event.
+     * Creates a listener that fires a CountDownLatch on the first event.
+     * Use for single-connection tests.
      */
     static AmqpEventListener latchOnFirst(java.util.concurrent.CountDownLatch latch, EventType event) {
         return (e, connId, detail) -> {
             if (e == event) latch.countDown();
+        };
+    }
+
+    /**
+     * Creates a listener that fires a CountDownLatch only when the specified connection
+     * triggers the event. Use for multi-connection tests where you need per-connection
+     * synchronization.
+     *
+     * @param latch the latch to count down
+     * @param event the event type to match
+     * @param connectionId the connection identifier to filter on
+     * @return a listener that counts down the latch when the matching connection fires
+     */
+    static AmqpEventListener latchOnConnection(java.util.concurrent.CountDownLatch latch, EventType event, String connectionId) {
+        return (e, connId, detail) -> {
+            if (e == event && connectionId.equals(connId)) latch.countDown();
+        };
+    }
+
+    /**
+     * Creates a listener that dispatches events to a map of per-connection latches.
+     * Use for multi-connection tests: put expected connection IDs as keys and
+     * CountDownLatch(1) as values before connecting clients.
+     *
+     * @param latchMap map of connectionId -> CountDownLatch
+     * @param event the event type to match
+     * @return a listener that counts down the latch for the matching connection
+     */
+    static AmqpEventListener latchOnConnections(java.util.Map<String, java.util.concurrent.CountDownLatch> latchMap, EventType event) {
+        return (e, connId, detail) -> {
+            if (e == event && connId != null) {
+                var latch = latchMap.get(connId);
+                if (latch != null) latch.countDown();
+            }
         };
     }
 
