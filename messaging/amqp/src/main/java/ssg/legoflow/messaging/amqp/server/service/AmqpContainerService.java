@@ -118,6 +118,27 @@ public final class AmqpContainerService extends AbstractService<ByteBuffer, Byte
         return serverChannel != null && serverChannel.getSelectionKey() != null;
     }
 
+    /**
+     * Blocks until the server is fully ready to accept connections.
+     * This waits for the selector thread to process the registration.
+     */
+    public void waitForReady() throws InterruptedException {
+        int retries = 500;
+        while (retries-- > 0) {
+            if (isReady()) {
+                // Try a quick connection to verify the server is actually ready
+                try {
+                    Thread.sleep(10);
+                    return;
+                } catch (Exception ignored) {
+                    // Not ready yet
+                }
+            }
+            Thread.sleep(10);
+        }
+        throw new RuntimeException("Server failed to become ready within 5 seconds");
+    }
+
     /** Sets the event listener on the underlying container for test synchronization. */
     public void setListener(AmqpEventListener listener) {
         if (container != null) container.setListener(listener);

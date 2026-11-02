@@ -216,6 +216,11 @@ class AmqpServiceIntegrationTest {
         }
         assertThat(server.isReady()).isTrue();
 
+        // Wait for selector thread to fully initialize and start accepting connections.
+        // isReady() only checks that the channel is registered, not that the selector
+        // thread has processed the registration and is ready to accept.
+        server.waitForReady();
+
         // Give server time to fully initialize before clients connect
         Thread.sleep(200);
 
