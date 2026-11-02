@@ -1188,4 +1188,25 @@ Created skill `amqp-header-spec-compliance` to prevent regression. Documents:
 ### References
 - AMQP 1.0 Spec Section 3.2.1: https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging.html#type-header
 - RabbitMQ AMQP 1.0 plugin: https://github.com/rabbitmq/rabbitmq-amqp1.0
+
+## 2026-11-02: InMemoryByteTransport buffer mutation fix
+
+Fixed a critical bug in `InMemoryByteTransport.send()` where the caller's buffer position was mutated. With `TcpSemantics.NONE`, the buffer reference was passed directly to the peer via `enqueueToPeer()` — a partial receive would advance the stored buffer's position, corrupting subsequent sends with the same buffer. With TCP semantics, `data.get(chunk)` also mutated position.
+
+**Fix**: Always copy buffer content before enqueueing, then restore the caller's buffer position.
+
+### Files Changed
+- `service/src/main/java/ssg/legoflow/service/channel/InMemoryByteTransport.java` — Fixed `send()` to always copy
+- `service/src/test/java/ssg/legoflow/service/channel/InMemoryByteTransportBufferTest.java` — New test proving the fix
+
+### Verification
+- `mvn test -pl service -DskipTests=false` — 332 tests, 0 failures
+- `mvn test -DskipTests=false -pl '!demos'` — All modules pass (demos have pre-existing STOMP NoClassDefFound errors)
+- Previously flaky tests verified stable: `AmqpServiceIntegrationTest.testMultipleClients` (5/5), `InMemoryTransportTest.testMultipleMessages` (5/5), `DnsServerIntegrationTest.testServerQueryCounters` (5/5)
+
+### Knowledge Captured
+Updated `service/AGENTS.md` with the buffer contract: `send()` never mutates caller's buffer position/limit.
+
+### References
+- `InMemoryByteHeadBuffer.send()` already had correct copy semantics — this fix aligns `InMemoryByteTransport` with that contract
 - RabbitMQ 4.2.0 release notes: https://github.com/rabbitmq/rabbitmq-server/releases/tag/v4.2.0

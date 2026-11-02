@@ -103,20 +103,30 @@ public class InMemoryByteTransport implements ByteTransport {
     @Override
     public void send(ByteBuffer data) {
         if (!open.get()) return;
+        // Always copy: the caller's buffer position/limit must not be mutated.
+        // With TcpSemantics.NONE, enqueueToPeer() stores the buffer reference directly,
+        // so a partial receive would advance the stored buffer's position, corrupting
+        // any subsequent send() with the same buffer.
+        // With TCP semantics, data.get(chunk) would also mutate the caller's position.
+        int pos = data.position();
+        int lim = data.limit();
+        var copy = ByteBuffer.allocate(lim - pos);
+        copy.put(data);
+        copy.flip();
+        data.position(pos); // Restore caller's buffer position
         if (semantics == TcpSemantics.NONE) {
-            // Raw synchronous semantics: enqueue directly to peer's inbound
-            enqueueToPeer(data);
+            enqueueToPeer(copy);
             return;
         }
         // TCP-like semantics: split into chunks and enqueue to outbound queue
         // Background delivery thread will move them to peer's inbound asynchronously
         int maxChunkSize = semantics.chunkSize();
-        int remaining = data.remaining();
+        int remaining = copy.remaining();
         int chunks = Math.max(1, (remaining + maxChunkSize - 1) / maxChunkSize);
         for (int i = 0; i < chunks; i++) {
             int chunkSize = Math.min(maxChunkSize, remaining);
             byte[] chunk = new byte[chunkSize];
-            data.get(chunk);
+            copy.get(chunk);
             outbound.offer(ByteBuffer.wrap(chunk));
             outboundQueueSize.incrementAndGet();
             remaining -= chunkSize;
