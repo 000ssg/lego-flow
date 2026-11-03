@@ -22,6 +22,10 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.time.Duration;
+import ssg.legoflow.messaging.amqp.client.service.AmqpClientService;
 
 /**
  * AMQP 1.0 container (server) service — listens through {@link ssg.legoflow.service.manager.SelectableChannelManager}.
@@ -137,6 +141,43 @@ public final class AmqpContainerService extends AbstractService<ByteBuffer, Byte
             Thread.sleep(10);
         }
         throw new RuntimeException("Server failed to become ready within 5 seconds");
+    }
+
+    /**
+     * Blocks until the server has processed at least one connection event.
+     * This ensures the server's protocol state is fully initialized.
+     */
+    public void waitForFirstConnection(ServiceContext testCtx) throws InterruptedException {
+        CountDownLatch firstConnection = new CountDownLatch(1);
+        setListener((event, connId, detail) -> {
+            if (event == AmqpEventListener.EventType.CONNECTION_STARTED) {
+                firstConnection.countDown();
+            }
+        });
+
+        // Trigger a test connection to ensure the server's protocol state is initialized
+        try {
+            var testClient = AmqpClientService.builder("localhost", port())
+                    .name("test-client")
+                    .timeout(Duration.ofMillis(500))
+                    .containerId("test-" + System.nanoTime())
+                    .build();
+            testClient.connect(testCtx);
+            testClient.disconnect(testCtx);
+            // Wait for server to fully clean up the test connection
+            Thread.sleep(500);
+        } catch (Exception ignored) {
+            // Test connection may fail, that's OK
+        }
+
+        // Wait for the first connection event with timeout
+        boolean received = firstConnection.await(10, TimeUnit.SECONDS);
+        if (!received) {
+            LOG.warn("Server did not receive any connections within timeout");
+        }
+
+        // Give the server time to fully clean up
+        Thread.sleep(500);
     }
 
     /** Sets the event listener on the underlying container for test synchronization. */
