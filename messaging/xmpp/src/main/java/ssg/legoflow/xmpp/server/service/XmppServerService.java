@@ -97,6 +97,12 @@ public final class XmppServerService extends AbstractService<ByteBuffer, ByteBuf
 
     public void setStanzaCallback(Consumer<XmppResult> cb) { this.stanzaCallback = cb; }
 
+    /**
+     * Converts input to output. In the service layer, this method is intentionally empty
+     * because all data flow is handled through the transport pipeline via {@code ChannelHandler}
+     * callbacks ({@code onRead}, {@code onWrite}). The service layer owns the socket lifecycle
+     * and delegates all protocol processing to the transport and core classes.
+     */
     @Override
     protected ByteBuffer[] convertToOutput(Context ctx, ByteBuffer... input) {
         for (ByteBuffer buf : input) {

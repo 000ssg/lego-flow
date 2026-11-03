@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Assumptions;
 
 /**
  * Interoperability test: Lego Flow MQTT client → Mosquitto broker.
@@ -35,7 +36,6 @@ import org.junit.jupiter.api.Disabled;
  * {@code docker compose -f interop-tests/docker-compose.core.yml up -d mosquitto}
  */
 @Tag("interop-messaging-core")
-@Disabled("Requires external Mosquitto broker: docker compose -f interop-tests/docker-compose.core.yml up -d mosquitto")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MqttMosquittoInteropTest {
 
@@ -67,6 +67,7 @@ class MqttMosquittoInteropTest {
         var ctx = new DefaultServiceContext(ServiceUser.anonymous());
         ctx.setAttribute("channelManager", channelManager);
         service.connect(ctx);
+        Assumptions.assumeTrue(service.isConnected(), "Mosquitto broker not available");
     }
 
     @AfterEach

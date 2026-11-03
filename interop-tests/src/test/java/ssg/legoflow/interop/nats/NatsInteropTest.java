@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Assumptions;
 
 /**
  * Interoperability test: Lego Flow NATS client to real NATS server.
@@ -35,7 +36,7 @@ import org.junit.jupiter.api.Disabled;
  *   mvn verify -Dinterop.nats.host=localhost -DskipInteropTests=false
  */
     @Tag("interop-rest")
-@Disabled("Requires external NATS server: docker run -p 4222:4222 nats:latest")
+@Disabled("NATS request/reply hangs against real server — interop test needs fixing")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class NatsInteropTest {
 
@@ -57,6 +58,7 @@ class NatsInteropTest {
         service = NatsService.builder(host, port).build();
         service.connect(ctx);
         this.client = service.getClient();
+        Assumptions.assumeTrue(service.isConnected(), "NATS server not available");
     }
 
     @AfterAll

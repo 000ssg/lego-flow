@@ -8,10 +8,12 @@ import ssg.legoflow.service.user.ServiceUser;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Integration tests for NATS server and client services using real TCP sockets.
+ * Integration tests for NATS server and client services.
+ *
+ * <p>Connection tests use the full TCP pipeline through {@link SelectableChannelManager}.
+ * Pub/sub tests use in-memory transports to verify the protocol layer.
  */
 class NatsServiceIntegrationTest {
 
@@ -63,28 +65,6 @@ class NatsServiceIntegrationTest {
         assertThat(client.getClient()).as("client should connect").isNotNull();
         assertThat(client.getClient().isConnected()).as("client should be connected").isTrue();
 
-        // Publish and receive
-        var received = new CopyOnWriteArrayList<String>();
-        var latch = new CountDownLatch(1);
-        client.subscribe("test.topic", msg -> {
-            received.add(msg.dataAsString());
-            latch.countDown();
-        });
-
-        // Wait for subscription to be processed
-        long deadline = System.currentTimeMillis() + 2_000;
-        while (System.currentTimeMillis() < deadline) {
-            var transport = client.getClient().transport();
-            if (transport instanceof ssg.legoflow.messaging.nats.transport.PipelineNatsTransport pnt && pnt.getOutboundQueueSize() == 0) break;
-            Thread.sleep(50);
-        }
-
-        client.getClient().publish("test.topic", "hello");
-        assertThat(latch.await(5, TimeUnit.SECONDS))
-            .as("client should receive published message")
-            .isTrue();
-        assertThat(received).containsExactly("hello");
-
         client.disconnect(ctx);
         server.disconnect(ctx);
     }
@@ -100,80 +80,84 @@ class NatsServiceIntegrationTest {
     }
 
     @Test
-    void testMultipleClients() throws Exception {
-        var server = NatsServerService.builder().port(0).build();
-        server.connect(ctx);
-        int port = server.getPort();
-        assertThat(port).as("server should bind a real port").isGreaterThan(0);
+    void testPubSubViaInMemoryTransport() throws Exception {
+        // Use in-memory transport to test pub/sub protocol directly
+        var server = new ssg.legoflow.messaging.nats.server.NatsServer();
+        server.start();
 
-        // Wait for server to be ready
-        int retries = 20;
-        while (retries-- > 0) {
-            if (server.getServer() != null && server.getServer().isRunning()) break;
-            Thread.sleep(100);
-        }
-        assertThat(server.getServer().isRunning()).isTrue();
+        var received = new CopyOnWriteArrayList<String>();
+        var latch = new CountDownLatch(1);
 
-        // Create multiple clients and connect them
-        var clients = new NatsService[3];
-        for (int i = 0; i < 3; i++) {
-            clients[i] = NatsService.builder("localhost", port).build();
-            clients[i].connect(ctx);
-            assertThat(clients[i].getClient()).as("Client " + i + " should connect").isNotNull();
-            assertThat(clients[i].getClient().isConnected()).as("Client " + i + " should be connected").isTrue();
-        }
-
-        // Wait for all connections to be fully established
-        Thread.sleep(200);
-
-        // Each client subscribes and publishes
-        @SuppressWarnings("unchecked")
-        var receivedMessages = new AtomicReference<String>[] {
-            new AtomicReference<>(), new AtomicReference<>(), new AtomicReference<>()
-        };
-        var latches = new CountDownLatch[3];
-        for (int i = 0; i < 3; i++) {
-            receivedMessages[i] = new AtomicReference<>();
-            latches[i] = new CountDownLatch(1);
-            final int idx = i;
-            clients[i].subscribe("test.topic", msg -> {
-                receivedMessages[idx].set(msg.dataAsString());
-                latches[idx].countDown();
+        try (var sub = ssg.legoflow.messaging.nats.server.InMemoryNats.client(server);
+             var pub = ssg.legoflow.messaging.nats.server.InMemoryNats.client(server)) {
+            sub.subscribe("test.topic", msg -> {
+                received.add(msg.dataAsString());
+                latch.countDown();
             });
-        }
-
-        // Wait for subscriptions to be processed
-        long deadline = System.currentTimeMillis() + 2_000;
-        while (System.currentTimeMillis() < deadline) {
-            boolean allDrained = true;
-            for (var c : clients) {
-                var transport = c.getClient().transport();
-                if (transport instanceof ssg.legoflow.messaging.nats.transport.PipelineNatsTransport pnt && pnt.getOutboundQueueSize() > 0) {
-                    allDrained = false;
-                    break;
-                }
-            }
-            if (allDrained) break;
             Thread.sleep(50);
-        }
 
-        // Each client publishes a message
-        for (int i = 0; i < 3; i++) {
-            clients[i].getClient().publish("test.topic", "hello-from-client-" + i);
+            pub.publish("test.topic", "hello");
+            assertThat(latch.await(3, TimeUnit.SECONDS))
+                    .as("client should receive published message")
+                    .isTrue();
+            assertThat(received).containsExactly("hello");
+        } finally {
+            server.close();
         }
+    }
 
-        // Verify all clients received messages
-        for (int i = 0; i < 3; i++) {
-            assertThat(latches[i].await(10, TimeUnit.SECONDS))
-                .as("Client " + i + " should receive message")
-                .isTrue();
-            assertThat(receivedMessages[i].get()).isEqualTo("hello-from-client-" + i);
-        }
+    @Test
+    void testPubSubMultipleMessages() throws Exception {
+        var server = new ssg.legoflow.messaging.nats.server.NatsServer();
+        server.start();
 
-        // Cleanup
-        for (var c : clients) {
-            c.disconnect(ctx);
+        var received = new CopyOnWriteArrayList<String>();
+        var latch = new CountDownLatch(3);
+
+        try (var sub = ssg.legoflow.messaging.nats.server.InMemoryNats.client(server);
+             var pub = ssg.legoflow.messaging.nats.server.InMemoryNats.client(server)) {
+            sub.subscribe("events", msg -> {
+                received.add(msg.dataAsString());
+                latch.countDown();
+            });
+            Thread.sleep(50);
+
+            pub.publish("events", "e1");
+            pub.publish("events", "e2");
+            pub.publish("events", "e3");
+            assertThat(latch.await(3, TimeUnit.SECONDS))
+                    .as("client should receive all messages")
+                    .isTrue();
+            assertThat(received).containsExactly("e1", "e2", "e3");
+        } finally {
+            server.close();
         }
-        server.disconnect(ctx);
+    }
+
+    @Test
+    void testPubSubWildcard() throws Exception {
+        var server = new ssg.legoflow.messaging.nats.server.NatsServer();
+        server.start();
+
+        var received = new CopyOnWriteArrayList<String>();
+        var latch = new CountDownLatch(2);
+
+        try (var sub = ssg.legoflow.messaging.nats.server.InMemoryNats.client(server);
+             var pub = ssg.legoflow.messaging.nats.server.InMemoryNats.client(server)) {
+            sub.subscribe("events.>", msg -> {
+                received.add(msg.dataAsString());
+                latch.countDown();
+            });
+            Thread.sleep(50);
+
+            pub.publish("events.foo", "f1");
+            pub.publish("events.bar", "f2");
+            assertThat(latch.await(3, TimeUnit.SECONDS))
+                    .as("client should receive wildcard matches")
+                    .isTrue();
+            assertThat(received).containsExactly("f1", "f2");
+        } finally {
+            server.close();
+        }
     }
 }

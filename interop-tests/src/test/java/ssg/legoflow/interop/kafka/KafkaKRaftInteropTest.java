@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Assumptions;
 
 /**
  * Interoperability test: Lego Flow Kafka client → Confluent cp-kafka broker (KRaft).
@@ -53,7 +54,7 @@ import org.junit.jupiter.api.Disabled;
  *   mvn verify -DskipInteropTests=false -Dinterop.group=interop-kafka
  */
 @Tag("interop-kafka")
-@Disabled("Requires external Kafka broker: docker compose -f interop-tests/docker-compose.kafka.yml up -d")
+@Disabled("Kafka KRaft broker version incompatibility — needs protocol fix")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class KafkaKRaftInteropTest {
 

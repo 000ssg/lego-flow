@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Assumptions;
 
 /**
  * Interoperability test: Lego Flow AMQP 1.0 client ↔ Apache ActiveMQ Artemis.
@@ -85,7 +86,6 @@ import org.junit.jupiter.api.Disabled;
  * host=localhost, port=5672, username=artemis, password=guest, broker=ARTEMIS.
  */
 @Tag("interop-messaging-core")
-@Disabled("Requires external Artemis broker: docker compose -f interop-tests/docker-compose.core.yml up -d artemis")
 class AmqpInteropTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(AmqpInteropTest.class);

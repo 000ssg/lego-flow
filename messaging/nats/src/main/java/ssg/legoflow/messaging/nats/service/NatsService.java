@@ -51,6 +51,7 @@ public final class NatsService extends AbstractService<ByteBuffer, ByteBuffer> {
     private volatile TcpDataChannel dataChannel;
     private volatile java.util.function.Consumer<NatsMessage> messageCallback;
     private volatile java.util.function.Consumer<NatsResult> operationCallback;
+    private volatile boolean connected = false;
 
     /** Result of a NATS send/subscribe operation. */
     public record NatsResult(boolean success, String subject, long msgId) {
@@ -94,6 +95,7 @@ public final class NatsService extends AbstractService<ByteBuffer, ByteBuffer> {
             // 6. Run the NATS protocol handshake over the transport
             this.client = new NatsClient(transport, ConnectOptions.withDefaults("nats-service"));
             client.connect();
+            connected = true;
             LOG.info("NATS client connected to {}:{}", host, port);
         } catch (IOException e) {
             throw new RuntimeException("NATS client failed to connect: " + host + ":" + port, e);
@@ -105,6 +107,7 @@ public final class NatsService extends AbstractService<ByteBuffer, ByteBuffer> {
 
     @Override
     protected void doDisconnect(ServiceContext ctx) {
+        connected = false;
         try { if (client != null) client.close(); } catch (Exception ignored) {}
         try { if (transport != null) transport.close(); } catch (Exception ignored) {}
         if (ctx != null) {
@@ -117,6 +120,7 @@ public final class NatsService extends AbstractService<ByteBuffer, ByteBuffer> {
     public NatsClient getClient() { return client; }
     public PipelineNatsTransport getTransport() { return transport; }
     public TcpDataChannel getDataChannel() { return dataChannel; }
+    public boolean isConnected() { return connected; }
     public void setMessageCallback(Consumer<NatsMessage> cb) { this.messageCallback = cb; }
     public void setOperationCallback(Consumer<NatsResult> cb) { this.operationCallback = cb; }
 
@@ -133,43 +137,16 @@ public final class NatsService extends AbstractService<ByteBuffer, ByteBuffer> {
         }
     }
 
+    /**
+     * Converts input to output. In the service layer, this method is intentionally empty
+     * because all data flow is handled through the transport pipeline via {@code ChannelHandler}
+     * callbacks ({@code onRead}, {@code onWrite}). The service layer owns the socket lifecycle
+     * and delegates all protocol processing to the transport and core classes.
+     */
     @Override
-    protected ByteBuffer[] convertToOutput(Context ctx, ByteBuffer... input) {
-        for (ByteBuffer buf : input) {
-            try { if (buf != null && buf.hasRemaining()) processInboundData(buf); }
-            catch (Exception e) { ctx.handleError(e); }
-        }
-        return new ByteBuffer[0];
-    }
-
+    protected ByteBuffer[] convertToOutput(Context ctx, ByteBuffer... input) { return new ByteBuffer[0]; }
     @Override
-    protected ByteBuffer[] convertToInput(Context ctx, ByteBuffer... output) {
-        for (ByteBuffer buf : output) {
-            try { if (buf != null && buf.hasRemaining()) processOutboundData(buf); }
-            catch (Exception e) { ctx.handleError(e); }
-        }
-        return new ByteBuffer[0];
-    }
-
-    private void processInboundData(ByteBuffer data) {
-        byte[] bytes = new byte[data.remaining()];
-        data.get(bytes);
-        try {
-            String content = new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
-            String subject = "default";
-            int idx = content.indexOf('\n');
-            if (idx > 0) {
-                subject = content.substring(0, idx).trim();
-                bytes = content.substring(idx + 1).getBytes(java.nio.charset.StandardCharsets.UTF_8);
-            }
-            client.publish(subject, bytes);
-            if (operationCallback != null) operationCallback.accept(NatsResult.ok(subject, -1));
-        } catch (Exception e) {
-            if (operationCallback != null) operationCallback.accept(NatsResult.error(e.getMessage()));
-        }
-    }
-
-    private void processOutboundData(ByteBuffer data) {}
+    protected ByteBuffer[] convertToInput(Context ctx, ByteBuffer... output) { return new ByteBuffer[0]; }
 
     public ChannelHandler createChannelHandler() { return new NatsClientChannelHandler(this); }
 

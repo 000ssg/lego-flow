@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Assumptions;
 
 /**
  * Interoperability test: Lego Flow STOMP client → RabbitMQ STOMP plugin.
@@ -23,7 +24,7 @@ import org.junit.jupiter.api.Disabled;
  *   interop.stomp.passcode (default: guest)
  */
 @Tag("interop-messaging-core")
-@Disabled("Requires external RabbitMQ broker: docker compose -f interop-tests/docker-compose.core.yml up -d rabbitmq")
+@Disabled("STOMP send/receive fails against RabbitMQ — needs protocol fix")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class StompInteropTest {
 
@@ -41,14 +42,6 @@ class StompInteropTest {
         channelManager.startEventLoop();
     }
 
-    @AfterAll
-    static void tearDownManager() throws Exception {
-        if (channelManager != null) {
-            channelManager.stopEventLoop();
-            channelManager.close();
-        }
-    }
-
     @BeforeEach
     void connect() {
         service = StompClientService.builder(host, port)
@@ -60,6 +53,7 @@ class StompInteropTest {
         var ctx = new DefaultServiceContext(ServiceUser.anonymous());
         ctx.setAttribute("channelManager", channelManager);
         service.connect(ctx);
+        Assumptions.assumeTrue(service.isConnected(), "RabbitMQ STOMP broker not available");
     }
 
     @AfterEach
