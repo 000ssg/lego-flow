@@ -12,6 +12,7 @@ import ssg.legoflow.xmpp.core.MessageStanza;
 import ssg.legoflow.xmpp.core.Stanza;
 import ssg.legoflow.xmpp.server.service.XmppServerService;
 import ssg.legoflow.xmpp.stream.XmppCodec;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -118,6 +119,80 @@ class XmppServiceIntegrationTest {
         assertThat(server.getPort()).isGreaterThan(0);
         assertThat(server.getServer()).isNotNull();
         assertThat(server.getServer().isRunning()).isTrue();
+        server.disconnect(ctx);
+    }
+
+    @Test
+    void testMultipleClients() throws Exception {
+        var server = XmppServerService.builder().port(0).build();
+        server.connect(ctx);
+        int port = server.getPort();
+        assertThat(port).as("server should bind a real port").isGreaterThan(0);
+
+        // Wait for server to be ready
+        int retries = 20;
+        while (retries-- > 0) {
+            if (server.getServer() != null && server.getServer().isRunning()) break;
+            Thread.sleep(100);
+        }
+        assertThat(server.getServer().isRunning()).isTrue();
+
+        // Create multiple clients and connect them
+        var clients = new XmppClientService[3];
+        for (int i = 0; i < 3; i++) {
+            clients[i] = XmppClientService.builder("localhost", port).build();
+            clients[i].connect(ctx);
+            assertThat(clients[i].getClient()).as("Client " + i + " should connect").isNotNull();
+            assertThat(clients[i].getClient().isConnected()).as("Client " + i + " should be connected").isTrue();
+        }
+
+        // Set up message listeners on each client
+        var receivedMessages = new java.util.ArrayList<java.util.concurrent.atomic.AtomicReference<String>>(3);
+        var latches = new CountDownLatch[3];
+        for (int i = 0; i < 3; i++) {
+            receivedMessages.add(new java.util.concurrent.atomic.AtomicReference<>());
+            latches[i] = new CountDownLatch(1);
+            final int idx = i;
+            clients[i].getClient().addMessageListener(msg -> {
+                if (msg instanceof MessageStanza ms) {
+                    receivedMessages.get(idx).set(ms.body());
+                    latches[idx].countDown();
+                }
+            });
+        }
+
+        // Server collects messages from all clients
+        var serverReceived = new CopyOnWriteArrayList<String>();
+        server.getServer().addStanzaHandler("test", s -> {
+            if (s instanceof MessageStanza ms) {
+                serverReceived.add(ms.body());
+            }
+        });
+
+        // Each client sends a message
+        for (int i = 0; i < 3; i++) {
+            clients[i].getClient().login("user" + i, "pass" + i).join();
+            clients[i].getClient().sendMessage(
+                new JID("server", "test.example", null),
+                "hello-from-client-" + i
+            );
+        }
+
+        // Verify all clients received replies
+        for (int i = 0; i < 3; i++) {
+            assertThat(latches[i].await(10, TimeUnit.SECONDS))
+                .as("Client " + i + " should receive reply")
+                .isTrue();
+            assertThat(receivedMessages.get(i).get()).startsWith("pong-from-client-");
+        }
+
+        // Verify server received all messages
+        assertThat(serverReceived).hasSize(3);
+
+        // Cleanup
+        for (var c : clients) {
+            c.disconnect(ctx);
+        }
         server.disconnect(ctx);
     }
 }

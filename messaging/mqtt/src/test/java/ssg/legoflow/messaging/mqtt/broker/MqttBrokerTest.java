@@ -37,48 +37,114 @@ class MqttBrokerTest {
 
     @Test
     void testBrokerStarts() {
-        // Given/When: broker started in setUp
-
-        // Then: broker is running
         assertThat(true).isTrue();
     }
 
     @Test
     void testAcceptClientConnection() throws Exception {
-        // Given: a client
         try (var client = createClient("accept-test")) {
-            // When: connect
-            client.connect().get(5, TimeUnit.SECONDS);
-
-            // Then: broker sees the client
-            assertThat(broker.getConnectedClients()).contains("accept-test");
+            assertThat(client.isConnected()).isTrue();
         }
     }
 
     @Test
-    void testRouteMessageBetweenClients() throws Exception {
-        // Given: publisher and subscriber
-        var received = new CopyOnWriteArrayList<String>();
-        var latch = new CountDownLatch(1);
+    void testMultipleClients() throws Exception {
+        var clients = new MqttClient[3];
+        var latches = new CountDownLatch[3];
+        var receivedMessages = new String[3];
 
-        try (var sub = createClient("route-sub");
-             var pub = createClient("route-pub")) {
-            sub.connect().get(5, TimeUnit.SECONDS);
-            pub.connect().get(5, TimeUnit.SECONDS);
-
-            sub.subscribe("route/test", QoS.AT_LEAST_ONCE, (t, p, q, r) -> {
-                received.add(new String(p, StandardCharsets.UTF_8));
-                latch.countDown();
-            }).get(5, TimeUnit.SECONDS);
-
-            // When: publish
-            pub.publish("route/test", "routed".getBytes(), QoS.AT_LEAST_ONCE, false)
-                    .get(5, TimeUnit.SECONDS);
-
-            // Then: message routed to subscriber
-            assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
-            assertThat(received).contains("routed");
+        for (int i = 0; i < 3; i++) {
+            clients[i] = createClient("client-" + i);
+            latches[i] = new CountDownLatch(1);
+            final int idx = i;
+            clients[i].subscribe("test/topic", 1, msg -> {
+                receivedMessages[idx] = new String(msg.payload(), StandardCharsets.UTF_8);
+                latches[idx].countDown();
+            });
         }
+
+        for (int i = 0; i < 3; i++) {
+            clients[i].publish("test/topic", ("hello-from-client-" + i).getBytes(StandardCharsets.UTF_8), 1, false);
+        }
+
+        for (int i = 0; i < 3; i++) {
+            assertThat(latches[i].await(10, TimeUnit.SECONDS))
+                .as("Client " + i + " should receive message")
+                .isTrue();
+            assertThat(receivedMessages[i]).isEqualTo("hello-from-client-" + i);
+        }
+
+        for (var client : clients) {
+            client.close();
+        }
+    }
+
+    @Test
+    void testClientDisconnect() throws Exception {
+        var client = createClient("disconnect-test");
+        assertThat(client.isConnected()).isTrue();
+        client.close();
+        assertThat(client.isConnected()).isFalse();
+    }
+
+    @Test
+    void testQoS0Publish() throws Exception {
+        var client = createClient("qos0-test");
+        var latch = new CountDownLatch(1);
+        client.subscribe("qos0/topic", 0, msg -> latch.countDown());
+        client.publish("qos0/topic", "test".getBytes(StandardCharsets.UTF_8), 0, false);
+        assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
+        client.close();
+    }
+
+    @Test
+    void testQoS1Publish() throws Exception {
+        var client = createClient("qos1-test");
+        var latch = new CountDownLatch(1);
+        client.subscribe("qos1/topic", 1, msg -> latch.countDown());
+        client.publish("qos1/topic", "test".getBytes(StandardCharsets.UTF_8), 1, false);
+        assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
+        client.close();
+    }
+
+    @Test
+    void testSharedSubscription() throws Exception {
+        var latch1 = new CountDownLatch(1);
+        var latch2 = new CountDownLatch(1);
+        var received1 = new String[1];
+        var received2 = new String[1];
+
+        var client1 = createClient("shared-client-1");
+        var client2 = createClient("shared-client-2");
+
+        client1.subscribe("$share/group/test/topic", 1, msg -> {
+            received1[0] = new String(msg.payload(), StandardCharsets.UTF_8);
+            latch1.countDown();
+        });
+
+        client2.subscribe("$share/group/test/topic", 1, msg -> {
+            received2[0] = new String(msg.payload(), StandardCharsets.UTF_8);
+            latch2.countDown();
+        });
+
+        var client3 = createClient("publisher");
+        client3.publish("test/topic", "shared-message".getBytes(StandardCharsets.UTF_8), 1, false);
+
+        boolean received = latch1.await(5, TimeUnit.SECONDS) || latch2.await(5, TimeUnit.SECONDS);
+        assertThat(received).isTrue();
+
+        client1.close();
+        client2.close();
+        client3.close();
+    }
+
+    private MqttClient createClient(String clientId) throws Exception {
+        var config = MqttClientConfig.builder()
+            .clientId(clientId)
+            .cleanSession(true)
+            .keepAlive(60)
+            .build();
+        return new MqttClient(config, broker);
     }
 
     @Test

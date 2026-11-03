@@ -8,6 +8,7 @@ import ssg.legoflow.service.manager.SelectableChannelManager;
 import ssg.legoflow.service.user.ServiceUser;
 import ssg.legoflow.messaging.nats.transport.PipelineNatsTransport;
 import java.time.Duration;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -103,6 +104,78 @@ class NatsServiceIntegrationTest {
         assertThat(server.getPort()).isGreaterThan(0);
         assertThat(server.getServer()).isNotNull();
         assertThat(server.getServer().isRunning()).isTrue();
+        server.disconnect(ctx);
+    }
+
+    @Test
+    void testMultipleClients() throws Exception {
+        var server = NatsServerService.builder().port(0).build();
+        server.connect(ctx);
+        int port = server.getPort();
+        assertThat(port).as("server should bind a real port").isGreaterThan(0);
+
+        // Wait for server to be ready
+        int retries = 20;
+        while (retries-- > 0) {
+            if (server.getServer() != null && server.getServer().isRunning()) break;
+            Thread.sleep(100);
+        }
+        assertThat(server.getServer().isRunning()).isTrue();
+
+        // Create multiple clients and connect them
+        var clients = new NatsService[3];
+        for (int i = 0; i < 3; i++) {
+            clients[i] = NatsService.builder("localhost", port).build();
+            clients[i].connect(ctx);
+            assertThat(clients[i].getClient()).as("Client " + i + " should connect").isNotNull();
+            assertThat(clients[i].getClient().isConnected()).as("Client " + i + " should be connected").isTrue();
+        }
+
+        // Each client subscribes and publishes
+        var receivedMessages = new java.util.ArrayList<java.util.concurrent.atomic.AtomicReference<String>>(3);
+        var latches = new CountDownLatch[3];
+        for (int i = 0; i < 3; i++) {
+            receivedMessages.add(new java.util.concurrent.atomic.AtomicReference<>());
+            latches[i] = new CountDownLatch(1);
+            final int idx = i;
+            clients[i].subscribe("test.topic", msg -> {
+                receivedMessages.get(idx).set(msg.dataAsString());
+                latches[idx].countDown();
+            });
+        }
+
+        // Wait for subscriptions to be processed
+        long deadline = System.currentTimeMillis() + 2_000;
+        while (System.currentTimeMillis() < deadline) {
+            boolean allDrained = true;
+            for (var c : clients) {
+                var transport = c.getClient().transport();
+                if (transport instanceof PipelineNatsTransport pnt && pnt.getOutboundQueueSize() > 0) {
+                    allDrained = false;
+                    break;
+                }
+            }
+            if (allDrained) break;
+            Thread.sleep(50);
+        }
+
+        // Each client publishes a message
+        for (int i = 0; i < 3; i++) {
+            clients[i].getClient().publish("test.topic", "hello-from-client-" + i);
+        }
+
+        // Verify all clients received messages
+        for (int i = 0; i < 3; i++) {
+            assertThat(latches[i].await(10, TimeUnit.SECONDS))
+                .as("Client " + i + " should receive message")
+                .isTrue();
+            assertThat(receivedMessages.get(i).get()).isEqualTo("hello-from-client-" + i);
+        }
+
+        // Cleanup
+        for (var c : clients) {
+            c.disconnect(ctx);
+        }
         server.disconnect(ctx);
     }
 }

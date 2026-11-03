@@ -64,14 +64,19 @@ public class PipelineByteTransport implements ByteTransport {
 
         if (count + n > buffer.length) {
             if (count > 0) {
-                if (start < end) {
-                    // Data is contiguous from start to end
+                // Compact: move all data to the beginning of the buffer
+                // Handle both contiguous and wrapped cases correctly
+                if (start <= end) {
+                    // Contiguous: data is in [start, end)
                     System.arraycopy(buffer, start, buffer, 0, count);
                 } else {
-                    // Data is split across two regions (wrap-around)
+                    // Wrapped: data is in [start, buffer.length) and [0, end)
                     int firstPart = buffer.length - start;
+                    int secondPart = end;
+                    // Copy first part
                     System.arraycopy(buffer, start, buffer, 0, firstPart);
-                    System.arraycopy(buffer, 0, buffer, firstPart, end);
+                    // Copy second part
+                    System.arraycopy(buffer, 0, buffer, firstPart, secondPart);
                 }
                 end = count;
                 start = 0;
@@ -230,5 +235,10 @@ public class PipelineByteTransport implements ByteTransport {
      */
     public int getOutboundQueueSize() {
         return outboundQueue.size();
+    }
+
+    /** Exposed for testing — dequeues the first buffer from the outbound queue. */
+    public ByteBuffer getOutboundQueue() {
+        return outboundQueue.poll();
     }
 }

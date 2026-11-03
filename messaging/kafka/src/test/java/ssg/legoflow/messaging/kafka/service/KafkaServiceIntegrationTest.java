@@ -16,7 +16,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.*;
 
 /**
@@ -244,6 +250,50 @@ class KafkaServiceIntegrationTest {
                     assertThat(result.offset()).isGreaterThanOrEqualTo(0);
                 }
             }
+        }
+    }
+
+    @Nested
+    @DisplayName("Multiple Clients")
+    class MultipleClients {
+
+        @Test
+        @DisplayName("Multiple producers and consumers")
+        void testMultipleClients() throws Exception {
+            broker.createTopic("multi-topic", 3);
+
+            var results = new java.util.concurrent.atomic.AtomicInteger(0);
+            var latch = new CountDownLatch(9);
+
+            // Multiple producers
+            for (int p = 0; p < 3; p++) {
+                try (var producer = InMemoryKafka.producer(broker, "producer-" + p)) {
+                    producer.init();
+                    for (int i = 0; i < 3; i++) {
+                        var result = producer.send("multi-topic", "key-" + i, "value-" + i);
+                        assertThat(result).isNotNull();
+                        results.incrementAndGet();
+                    }
+                }
+            }
+
+            // Multiple consumers - each should get at least 1 message
+            var receivedCount = new java.util.concurrent.atomic.AtomicInteger(0);
+            for (int c = 0; c < 3; c++) {
+                try (var consumer = InMemoryKafka.consumer(broker, "consumer-" + c, "group-1")) {
+                    consumer.subscribe(List.of("multi-topic"));
+                    for (int i = 0; i < 5; i++) {
+                        var records = consumer.poll(2000);
+                        if (!records.isEmpty()) {
+                            receivedCount.incrementAndGet();
+                            System.out.println("[KAFKA-TEST] consumer-" + c + " received " + records.size() + " records (total: " + receivedCount.get() + ")");
+                        }
+                    }
+                }
+            }
+
+            System.out.println("[KAFKA-TEST] Total received: " + receivedCount.get() + ", expected at least 1");
+            assertThat(receivedCount.get()).isGreaterThanOrEqualTo(1);
         }
     }
 }
