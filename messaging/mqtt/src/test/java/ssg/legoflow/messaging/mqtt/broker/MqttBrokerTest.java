@@ -2,6 +2,7 @@ package ssg.legoflow.messaging.mqtt.broker;
 
 import ssg.legoflow.messaging.mqtt.client.MqttClient;
 import ssg.legoflow.messaging.mqtt.client.MqttClientConfig;
+import ssg.legoflow.messaging.mqtt.client.MqttMessageListener;
 import ssg.legoflow.messaging.mqtt.protocol.*;
 import ssg.legoflow.messaging.mqtt.transport.InMemoryMqttTransport;
 import org.junit.jupiter.api.AfterEach;
@@ -57,14 +58,15 @@ class MqttBrokerTest {
             clients[i] = createClient("client-" + i);
             latches[i] = new CountDownLatch(1);
             final int idx = i;
-            clients[i].subscribe("test/topic", 1, msg -> {
-                receivedMessages[idx] = new String(msg.payload(), StandardCharsets.UTF_8);
+            clients[i].subscribe("test/topic", QoS.AT_MOST_ONCE, (topic, payload, qos, reasonCode) -> {
+                receivedMessages[idx] = new String(payload, StandardCharsets.UTF_8);
                 latches[idx].countDown();
-            });
+            }).get(5, TimeUnit.SECONDS);
         }
 
         for (int i = 0; i < 3; i++) {
-            clients[i].publish("test/topic", ("hello-from-client-" + i).getBytes(StandardCharsets.UTF_8), 1, false);
+            clients[i].publish("test/topic", ("hello-from-client-" + i).getBytes(StandardCharsets.UTF_8),
+                QoS.AT_MOST_ONCE, false).get(5, TimeUnit.SECONDS);
         }
 
         for (int i = 0; i < 3; i++) {
@@ -91,8 +93,10 @@ class MqttBrokerTest {
     void testQoS0Publish() throws Exception {
         var client = createClient("qos0-test");
         var latch = new CountDownLatch(1);
-        client.subscribe("qos0/topic", 0, msg -> latch.countDown());
-        client.publish("qos0/topic", "test".getBytes(StandardCharsets.UTF_8), 0, false);
+        client.subscribe("qos0/topic", QoS.AT_MOST_ONCE, (topic, payload, qos, reasonCode) -> latch.countDown())
+            .get(5, TimeUnit.SECONDS);
+        client.publish("qos0/topic", "test".getBytes(StandardCharsets.UTF_8), QoS.AT_MOST_ONCE, false)
+            .get(5, TimeUnit.SECONDS);
         assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
         client.close();
     }
@@ -101,8 +105,10 @@ class MqttBrokerTest {
     void testQoS1Publish() throws Exception {
         var client = createClient("qos1-test");
         var latch = new CountDownLatch(1);
-        client.subscribe("qos1/topic", 1, msg -> latch.countDown());
-        client.publish("qos1/topic", "test".getBytes(StandardCharsets.UTF_8), 1, false);
+        client.subscribe("qos1/topic", QoS.AT_LEAST_ONCE, (topic, payload, qos, reasonCode) -> latch.countDown())
+            .get(5, TimeUnit.SECONDS);
+        client.publish("qos1/topic", "test".getBytes(StandardCharsets.UTF_8), QoS.AT_LEAST_ONCE, false)
+            .get(5, TimeUnit.SECONDS);
         assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
         client.close();
     }
@@ -117,18 +123,19 @@ class MqttBrokerTest {
         var client1 = createClient("shared-client-1");
         var client2 = createClient("shared-client-2");
 
-        client1.subscribe("$share/group/test/topic", 1, msg -> {
-            received1[0] = new String(msg.payload(), StandardCharsets.UTF_8);
+        client1.subscribe("$share/group/test/topic", QoS.AT_LEAST_ONCE, (topic, payload, qos, reasonCode) -> {
+            received1[0] = new String(payload, StandardCharsets.UTF_8);
             latch1.countDown();
-        });
+        }).get(5, TimeUnit.SECONDS);
 
-        client2.subscribe("$share/group/test/topic", 1, msg -> {
-            received2[0] = new String(msg.payload(), StandardCharsets.UTF_8);
+        client2.subscribe("$share/group/test/topic", QoS.AT_LEAST_ONCE, (topic, payload, qos, reasonCode) -> {
+            received2[0] = new String(payload, StandardCharsets.UTF_8);
             latch2.countDown();
-        });
+        }).get(5, TimeUnit.SECONDS);
 
         var client3 = createClient("publisher");
-        client3.publish("test/topic", "shared-message".getBytes(StandardCharsets.UTF_8), 1, false);
+        client3.publish("test/topic", "shared-message".getBytes(StandardCharsets.UTF_8),
+            QoS.AT_LEAST_ONCE, false).get(5, TimeUnit.SECONDS);
 
         boolean received = latch1.await(5, TimeUnit.SECONDS) || latch2.await(5, TimeUnit.SECONDS);
         assertThat(received).isTrue();
@@ -139,12 +146,10 @@ class MqttBrokerTest {
     }
 
     private MqttClient createClient(String clientId) throws Exception {
-        var config = MqttClientConfig.builder()
-            .clientId(clientId)
-            .cleanSession(true)
-            .keepAlive(60)
-            .build();
-        return new MqttClient(config, broker);
+        var transports = InMemoryMqttTransport.createPair();
+        broker.handleConnection(transports[0]);
+        return new MqttClient(MqttClientConfig.defaults()
+                .clientId(clientId).build(), transports[1]);
     }
 
     @Test
@@ -350,12 +355,5 @@ class MqttBrokerTest {
         assertThat(broker.getConnectedClients()).isEmpty();
         c1.close();
         c2.close();
-    }
-
-    private MqttClient createClient(String clientId) {
-        var transports = InMemoryMqttTransport.createPair();
-        broker.handleConnection(transports[0]);
-        return new MqttClient(MqttClientConfig.defaults()
-                .clientId(clientId).build(), transports[1]);
     }
 }
