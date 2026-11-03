@@ -188,11 +188,15 @@ fun Project.setupInteropTestsModule() {
     }
 
     // Always compile interop test sources so they are discoverable (mirrors Maven behavior).
-    // Tests are skipped via @Disabled annotations, not by excluding from compilation.
-
-    // Tests are skipped by @Disabled annotations when no Docker services are available.
+    // Tests are skipped via Assumptions when no Docker services are available.
     // Override with -PskipInteropTests=false to force execution (requires Docker).
+    // When -PskipInteropTests=true, interop tests are excluded from the test task.
     tasks.withType<Test> {
+        // Skip interop tests when -PskipInteropTests=true
+        if (project.name == "interop-tests" && findProperty("skipInteropTests") == "true") {
+            enabled = false
+        }
+
         // System properties for Docker targets (mirrors Maven failsafe plugin config)
         systemProperty("interop.nginx.host", findProperty("interop.nginx.host") ?: "localhost")
         systemProperty("interop.nginx.port", findProperty("interop.nginx.port") ?: "8080")

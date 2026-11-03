@@ -295,12 +295,11 @@ jobs:
             fi
           done
 
-      - name: Run ${{ matrix.group }} interop tests (Maven)
-        run: |
-          mvn install -DskipTests -pl interop-tests -am -q
-          mvn verify -pl interop-tests -am -DskipInteropTests=false -Dinterop.group=${{ matrix.group }} -Dinterop.failIfNoTests=${{ matrix.failIfNoTests }}
+      - name: Run ${{ matrix.group }} interop tests (Gradle)
+        run: ./gradlew :interop-tests:test -PskipInteropTests=false -Dinterop.group=${{ matrix.group }} --rerun-tasks --no-daemon
         env:
           CI: true
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
       - name: Stop Docker services
         if: always()
