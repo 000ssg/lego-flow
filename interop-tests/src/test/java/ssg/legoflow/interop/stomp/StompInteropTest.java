@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Assumptions;
  *   interop.stomp.passcode (default: guest)
  */
 @Tag("interop-messaging-core")
-@Disabled("STOMP send/receive fails against RabbitMQ — needs protocol fix")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class StompInteropTest {
 
@@ -72,8 +71,20 @@ class StompInteropTest {
 
     @Test
     void testSendAndReceive() throws Exception {
-        String testQueue = "/queue/interop-stomp-test-" + System.identityHashCode(this);
+        String testQueue = "/queue/interop-stomp-test-";
         String expectedMessage = "hello-stomp";
+
+        // Create a separate client for sending (brokers don't echo to publishers)
+        var senderService = StompClientService.builder(host, port)
+                .name("interop-stomp-sender-" + System.identityHashCode(this))
+                .login(login)
+                .passcode(passcode)
+                .timeoutMs(10000)
+                .build();
+        var senderCtx = new DefaultServiceContext(ServiceUser.anonymous());
+        senderCtx.setAttribute("channelManager", channelManager);
+        senderService.connect(senderCtx);
+
         var stompClient = service.getClient();
         CountDownLatch latch = new CountDownLatch(1);
         AtomicReference<StompFrame> received = new AtomicReference<>();
@@ -83,25 +94,42 @@ class StompInteropTest {
             latch.countDown();
         });
 
-        stompClient.send(testQueue, expectedMessage, null);
+        var senderClient = senderService.getClient();
+        senderClient.send(testQueue, expectedMessage, null);
 
         assertThat(latch.await(5, TimeUnit.SECONDS)).as("should receive message").isTrue();
         assertThat(received.get()).isNotNull();
         assertThat(received.get().bodyAsText()).isEqualTo(expectedMessage);
+
+        senderService.disconnect(senderCtx);
     }
 
     @Test
     void testMultipleMessages() throws Exception {
-        String testQueue = "/queue/interop-stomp-multi-" + System.identityHashCode(this);
+        String testQueue = "/queue/interop-stomp-multi-";
+
+        // Create a separate client for sending
+        var senderService = StompClientService.builder(host, port)
+                .name("interop-stomp-multi-sender-" + System.identityHashCode(this))
+                .login(login)
+                .passcode(passcode)
+                .timeoutMs(10000)
+                .build();
+        var senderCtx = new DefaultServiceContext(ServiceUser.anonymous());
+        senderCtx.setAttribute("channelManager", channelManager);
+        senderService.connect(senderCtx);
+
         var stompClient = service.getClient();
+        var senderClient = senderService.getClient();
         CountDownLatch latch = new CountDownLatch(5);
 
         stompClient.subscribe(testQueue, frame -> latch.countDown());
 
         for (int i = 0; i < 5; i++) {
-            stompClient.send(testQueue, "msg-" + i, null);
+            senderClient.send(testQueue, "msg-" + i, null);
         }
 
         assertThat(latch.await(5, TimeUnit.SECONDS)).as("should receive 5 messages").isTrue();
+        senderService.disconnect(senderCtx);
     }
 }

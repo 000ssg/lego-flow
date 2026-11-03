@@ -36,9 +36,8 @@ import org.junit.jupiter.api.Assumptions;
  *   mvn verify -Dinterop.nats.host=localhost -DskipInteropTests=false
  */
     @Tag("interop-rest")
-@Disabled("NATS request/reply hangs against real server — interop test needs fixing")
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class NatsInteropTest {
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    class NatsInteropTest {
 
     private final String host = System.getProperty("interop.nats.host", "localhost");
     private final int port = Integer.parseInt(System.getProperty("interop.nats.port", "4222"));
@@ -89,10 +88,14 @@ class NatsInteropTest {
         CountDownLatch latch = new CountDownLatch(1);
         AtomicReference<NatsMessage> received = new AtomicReference<>();
 
+        // Subscribe first
         client.subscribe(subject, msg -> {
             received.set(msg);
             latch.countDown();
         });
+
+        // Small delay to ensure subscription is registered
+        Thread.sleep(50);
 
         client.publish(subject, expectedMessage);
 
@@ -105,20 +108,38 @@ class NatsInteropTest {
     @Test
     void testRequestReply() throws Exception {
         String subject = "interop.nats.request-reply";
+        AtomicReference<NatsMessage> reply = new AtomicReference<>();
+        CountDownLatch subscribeLatch = new CountDownLatch(1);
+        CountDownLatch replyLatch = new CountDownLatch(1);
 
+        // Subscribe first, then request
         client.subscribe(subject, msg -> {
+            subscribeLatch.countDown();
             try {
                 String body = new String(msg.payload());
                 String response = "replied:" + body;
-                client.publish(msg.replyTo() != null ? msg.replyTo() : "_INBOX.none", response);
+                if (msg.replyTo() != null) {
+                    client.publish(msg.replyTo(), response);
+                }
             } catch (Exception e) {
                 // Ignore publish errors in response handler
             }
         });
 
-        NatsMessage reply = client.request(subject, "ping", Duration.ofSeconds(5));
-        assertThat(reply).isNotNull();
-        assertThat(reply.dataAsString()).isEqualTo("replied:ping");
+        // Wait for subscribe to be registered
+        Thread.sleep(100);
+
+        NatsMessage natsReply = client.request(subject, "ping", Duration.ofSeconds(10));
+        if (natsReply != null) {
+            reply.set(natsReply);
+            replyLatch.countDown();
+        }
+
+        // Wait for reply
+        boolean gotReply = replyLatch.await(10, TimeUnit.SECONDS);
+        assertThat(gotReply).as("reply should be received").isTrue();
+        assertThat(reply.get()).isNotNull();
+        assertThat(reply.get().dataAsString()).isEqualTo("replied:ping");
     }
 
     @Test
@@ -146,6 +167,9 @@ class NatsInteropTest {
 
         client.subscribe(subject, msg -> latch.countDown());
 
+        // Small delay to ensure subscription is registered
+        Thread.sleep(50);
+
         client.publish(subject, "msg1");
         client.publish(subject, "msg2");
         client.publish(subject, "msg3");
@@ -156,13 +180,23 @@ class NatsInteropTest {
 
     @Test
     void testCloseGracefully() throws Exception {
-        // Use a dedicated service + client to avoid disrupting the shared connection
-        var second = NatsService.builder(host, port).build();
-        second.connect(ctx);
-        NatsClient testClient = second.getClient();
-        assertThat(testClient.isConnected()).isTrue();
-        second.disconnect(ctx);
-        testClient.close();
-        assertThat(testClient.isConnected()).isFalse();
+        // Create a separate manager for this test to avoid conflicts
+        var separateCtx = new DefaultServiceContext(ServiceUser.anonymous());
+        var separateManager = new SelectableChannelManager(separateCtx);
+        separateCtx.setAttribute("channelManager", separateManager);
+        separateManager.startEventLoop();
+
+        try {
+            var second = NatsService.builder(host, port).build();
+            second.connect(separateCtx);
+            NatsClient testClient = second.getClient();
+            assertThat(testClient.isConnected()).isTrue();
+            second.disconnect(separateCtx);
+            testClient.close();
+            assertThat(testClient.isConnected()).isFalse();
+        } finally {
+            separateManager.stopEventLoop();
+            separateManager.close();
+        }
     }
 }
