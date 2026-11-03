@@ -176,8 +176,8 @@ public final class AmqpContainerService extends AbstractService<ByteBuffer, Byte
             LOG.warn("Server did not receive any connections within timeout");
         }
 
-        // Give the server time to fully clean up
-        Thread.sleep(500);
+        // Give the server time to fully clean up and stabilize
+        Thread.sleep(1000);
     }
 
     /** Sets the event listener on the underlying container for test synchronization. */
