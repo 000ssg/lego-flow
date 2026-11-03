@@ -1,27 +1,17 @@
 package ssg.legoflow.messaging.nats.service;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import static org.assertj.core.api.Assertions.*;
 import ssg.legoflow.service.DefaultServiceContext;
 import ssg.legoflow.service.manager.SelectableChannelManager;
 import ssg.legoflow.service.user.ServiceUser;
-import ssg.legoflow.messaging.nats.transport.PipelineNatsTransport;
-import java.time.Duration;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import static org.assertj.core.api.Assertions.*;
 
 /**
- * End-to-end integration test: NATS client service ↔ server service over real TCP through
- * the {@link SelectableChannelManager} (mirrors the AMQP {@code AmqpServiceIntegrationTest}).
- *
- * <p>Exercises the full production pipeline: SocketChannel → SelectableChannelManager →
- * TcpDataChannel → ChannelPipeline → {@link ssg.legoflow.messaging.nats.transport.PipelineNatsTransport}
- * → NATS protocol layer. The protocol core itself never touches sockets — this test only
- * drives the service layer, which owns the (manager-managed) channels.
+ * Integration tests for NATS server and client services using real TCP sockets.
  */
 class NatsServiceIntegrationTest {
 
@@ -43,55 +33,57 @@ class NatsServiceIntegrationTest {
     }
 
     @Test
+    void testServerServiceLifecycle() throws Exception {
+        var server = NatsServerService.builder().port(0).build();
+        server.connect(ctx);
+        assertThat(server.getPort()).isGreaterThan(0);
+        assertThat(server.getServer()).isNotNull();
+        assertThat(server.getServer().isRunning()).isTrue();
+        server.disconnect(ctx);
+    }
+
+    @Test
     void testClientAndServerServiceOverTcp() throws Exception {
         var server = NatsServerService.builder().port(0).build();
         server.connect(ctx);
         int port = server.getPort();
         assertThat(port).as("server should bind a real port").isGreaterThan(0);
 
-        // Poll for the selector to register the server channel (service-layer sync point).
+        // Wait for server to be ready
         int retries = 20;
         while (retries-- > 0) {
             if (server.getServer() != null && server.getServer().isRunning()) break;
             Thread.sleep(100);
         }
+        assertThat(server.getServer().isRunning()).isTrue();
 
+        // Create and connect client
         var client = NatsService.builder("localhost", port).build();
         client.connect(ctx);
+        assertThat(client.getClient()).as("client should connect").isNotNull();
+        assertThat(client.getClient().isConnected()).as("client should be connected").isTrue();
 
-        // Wait for the client's handshake data to be flushed to the server
-        // (PipelineByteTransport is enqueue-only; wait for outbound queue to drain)
-        long handshakeDeadline = System.currentTimeMillis() + 2_000;
-        while (System.currentTimeMillis() < handshakeDeadline) {
-            var transport = client.getClient().transport();
-            if (transport instanceof PipelineNatsTransport pnt && pnt.getOutboundQueueSize() == 0) break;
-            Thread.sleep(50);
-        }
-
-        assertThat(client.getClient()).as("client should be connected").isNotNull();
-        assertThat(client.getClient().isConnected()).isTrue();
-
-        // Pub/sub over real TCP.
+        // Publish and receive
+        var received = new CopyOnWriteArrayList<String>();
         var latch = new CountDownLatch(1);
-        var got = new AtomicReference<String>();
         client.subscribe("test.topic", msg -> {
-            got.set(msg.dataAsString());
+            received.add(msg.dataAsString());
             latch.countDown();
         });
-        // Wait for the SUB to be fully processed by the server before publishing.
-        // With enqueue-only transport, the SUB must be written and processed before
-        // the PUB arrives; poll until the outbound queue is drained (SUB written).
-        long subDeadline = System.currentTimeMillis() + 2_000;
-        while (System.currentTimeMillis() < subDeadline) {
+
+        // Wait for subscription to be processed
+        long deadline = System.currentTimeMillis() + 2_000;
+        while (System.currentTimeMillis() < deadline) {
             var transport = client.getClient().transport();
-            if (transport instanceof PipelineNatsTransport pnt && pnt.getOutboundQueueSize() == 0) break;
+            if (transport instanceof ssg.legoflow.messaging.nats.transport.PipelineNatsTransport pnt && pnt.getOutboundQueueSize() == 0) break;
             Thread.sleep(50);
         }
-        client.getClient().publish("test.topic", "hello-tcp");
 
-        // Use 10-second timeout to account for TCP round-trip latency
-        assertThat(latch.await(10, TimeUnit.SECONDS)).as("message should arrive over TCP").isTrue();
-        assertThat(got.get()).isEqualTo("hello-tcp");
+        client.getClient().publish("test.topic", "hello");
+        assertThat(latch.await(5, TimeUnit.SECONDS))
+            .as("client should receive published message")
+            .isTrue();
+        assertThat(received).containsExactly("hello");
 
         client.disconnect(ctx);
         server.disconnect(ctx);
@@ -131,15 +123,21 @@ class NatsServiceIntegrationTest {
             assertThat(clients[i].getClient().isConnected()).as("Client " + i + " should be connected").isTrue();
         }
 
+        // Wait for all connections to be fully established
+        Thread.sleep(200);
+
         // Each client subscribes and publishes
-        var receivedMessages = new java.util.ArrayList<java.util.concurrent.atomic.AtomicReference<String>>(3);
+        @SuppressWarnings("unchecked")
+        var receivedMessages = new AtomicReference<String>[] {
+            new AtomicReference<>(), new AtomicReference<>(), new AtomicReference<>()
+        };
         var latches = new CountDownLatch[3];
         for (int i = 0; i < 3; i++) {
-            receivedMessages.add(new java.util.concurrent.atomic.AtomicReference<>());
+            receivedMessages[i] = new AtomicReference<>();
             latches[i] = new CountDownLatch(1);
             final int idx = i;
             clients[i].subscribe("test.topic", msg -> {
-                receivedMessages.get(idx).set(msg.dataAsString());
+                receivedMessages[idx].set(msg.dataAsString());
                 latches[idx].countDown();
             });
         }
@@ -150,7 +148,7 @@ class NatsServiceIntegrationTest {
             boolean allDrained = true;
             for (var c : clients) {
                 var transport = c.getClient().transport();
-                if (transport instanceof PipelineNatsTransport pnt && pnt.getOutboundQueueSize() > 0) {
+                if (transport instanceof ssg.legoflow.messaging.nats.transport.PipelineNatsTransport pnt && pnt.getOutboundQueueSize() > 0) {
                     allDrained = false;
                     break;
                 }
@@ -169,7 +167,7 @@ class NatsServiceIntegrationTest {
             assertThat(latches[i].await(10, TimeUnit.SECONDS))
                 .as("Client " + i + " should receive message")
                 .isTrue();
-            assertThat(receivedMessages.get(i).get()).isEqualTo("hello-from-client-" + i);
+            assertThat(receivedMessages[i].get()).isEqualTo("hello-from-client-" + i);
         }
 
         // Cleanup

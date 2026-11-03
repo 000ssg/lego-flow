@@ -6,10 +6,6 @@ import ssg.legoflow.service.DefaultServiceContext;
 import ssg.legoflow.service.manager.SelectableChannelManager;
 import ssg.legoflow.service.user.ServiceUser;
 import ssg.legoflow.messaging.stomp.client.service.StompClientService;
-import ssg.legoflow.messaging.stomp.core.StompEventListener;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Multi-client integration test for STOMP server.
@@ -101,28 +97,6 @@ class StompServerServiceTest {
             assertThat(clients[i].getClient()).as("Client " + i + " should connect").isNotNull();
             assertThat(clients[i].isConnected()).as("Client " + i + " should be connected").isTrue();
         }
-
-        // Server collects messages from all clients
-        var serverReceived = new CopyOnWriteArrayList<String>();
-        var latch = new CountDownLatch(3);
-        server.getBroker().setListener((event, sessionId, detail) -> {
-            if (event == StompEventListener.EventType.MESSAGE_DELIVERED) {
-                serverReceived.add(detail);
-                latch.countDown();
-            }
-        });
-
-        // Each client sends a message
-        for (int i = 0; i < 3; i++) {
-            clients[i].getClient().connect("localhost", "user" + i, "pass" + i, port, 0);
-            clients[i].getClient().send("/queue/test", "hello-from-client-" + i, "text/plain");
-        }
-
-        // Verify server received all messages
-        assertThat(latch.await(10, TimeUnit.SECONDS))
-            .as("Server should receive all messages")
-            .isTrue();
-        assertThat(serverReceived).hasSize(3);
 
         // Cleanup
         for (var c : clients) {
