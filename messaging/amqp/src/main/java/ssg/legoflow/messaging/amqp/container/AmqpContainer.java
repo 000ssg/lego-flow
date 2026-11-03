@@ -185,9 +185,10 @@ public final class AmqpContainer implements AutoCloseable {
         String connId = UUID.randomUUID().toString().substring(0, 8);
         var ctx = new ConnectionContext(connId, transport);
         connections.put(connId, ctx);
-        LOG.debug("New connection: {}", connId);
+        LOG.info("Connection {} — accepted, submitting to executor", connId);
 
         executor.submit(() -> handleConnectionInternal(ctx));
+        LOG.info("Connection {} — submitted to executor", connId);
     }
 
     /**
@@ -208,40 +209,57 @@ public final class AmqpContainer implements AutoCloseable {
 
     /** Shared protocol loop — called from executor or directly. */
     private void handleConnectionInternal(ConnectionContext ctx) {
+        System.out.println("[SERVER-" + ctx.id + "] handleConnectionInternal START");
         listener.onEvent(AmqpEventListener.EventType.CONNECTION_STARTED, ctx.id, null);
+        System.out.println("[SERVER-" + ctx.id + "] CONNECTION_STARTED event fired");
         try {
             runProtocol(ctx);
+            System.out.println("[SERVER-" + ctx.id + "] protocol handshake complete");
         } catch (Exception e) {
-            LOG.debug("Connection {} error: {}", ctx.id, e.getMessage());
+            System.out.println("[SERVER-" + ctx.id + "] protocol error: " + e.getMessage());
         } finally {
             listener.onEvent(AmqpEventListener.EventType.CONNECTION_CLOSING, ctx.id, null);
             cleanupConnection(ctx);
             connections.remove(ctx.id);
             ctx.transport.close();
+            System.out.println("[SERVER-" + ctx.id + "] handleConnectionInternal END");
         }
     }
 
     /** Executes the full protocol handshake and frame loop. Extracted for sync/async dispatch. */
     private void runProtocol(ConnectionContext ctx) {
+        long startNs = System.nanoTime();
+        System.out.println("[SERVER-" + ctx.id + "] START protocol at " + startNs);
         byte[] firstHeader = readHeader(ctx.transport);
+        long readNs = System.nanoTime();
+        System.out.println("[SERVER-" + ctx.id + "] READ header: " + Arrays.toString(firstHeader) + " at " + readNs + " (delta=" + (readNs - startNs) + "ns)");
 
         if (Arrays.equals(firstHeader, AmqpConstants.SASL_HEADER)) {
-            LOG.debug("Connection {} — SASL-first protocol", ctx.id);
+            System.out.println("[SERVER-" + ctx.id + "] SASL-FIRST, echoing SASL_HEADER");
             ctx.transport.send(ByteBuffer.wrap(AmqpConstants.SASL_HEADER));
+            long sendSaslNs = System.nanoTime();
+            System.out.println("[SERVER-" + ctx.id + "] SENT SASL_HEADER at " + sendSaslNs + " (delta=" + (sendSaslNs - readNs) + "ns)");
             doSaslExchange(ctx, ctx.transport);
+            long saslDoneNs = System.nanoTime();
+            System.out.println("[SERVER-" + ctx.id + "] SASL DONE at " + saslDoneNs + " (delta=" + (saslDoneNs - sendSaslNs) + "ns)");
             byte[] amqpHeader = readHeader(ctx.transport);
+            long readAmqpNs = System.nanoTime();
+            System.out.println("[SERVER-" + ctx.id + "] READ AMQP header: " + Arrays.toString(amqpHeader) + " at " + readAmqpNs + " (delta=" + (readAmqpNs - saslDoneNs) + "ns)");
             if (!Arrays.equals(amqpHeader, AmqpConstants.AMQP_HEADER)) {
-                throw new IllegalStateException("Expected AMQP header after SASL");
+                throw new IllegalStateException("Expected AMQP header after SASL: " + Arrays.toString(amqpHeader));
             }
+            System.out.println("[SERVER-" + ctx.id + "] Echoing AMQP_HEADER");
             ctx.transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
+            long sendAmqpNs = System.nanoTime();
+            System.out.println("[SERVER-" + ctx.id + "] SENT AMQP_HEADER at " + sendAmqpNs + " (delta=" + (sendAmqpNs - readAmqpNs) + "ns)");
             ctx.state = ConnectionState.HDR_EXCH;
             handleConnectionLifecycle(ctx, true);
         } else if (Arrays.equals(firstHeader, AmqpConstants.AMQP_HEADER)) {
             if (!config.proto0Accepted()) {
-                LOG.debug("Connection {} — proto-0 rejected (mode={})", ctx.id, config.mode());
+                System.out.println("[SERVER-" + ctx.id + "] proto-0 rejected");
                 throw new IllegalStateException("Protocol header exchange not supported in this mode");
             }
-            LOG.debug("Connection {} — proto-0 protocol", ctx.id);
+            System.out.println("[SERVER-" + ctx.id + "] proto-0 protocol");
             ctx.transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
             ctx.state = ConnectionState.HDR_EXCH;
             handleConnectionLifecycle(ctx, false);

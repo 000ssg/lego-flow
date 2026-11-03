@@ -94,6 +94,8 @@ public final class AmqpClient implements AutoCloseable {
             throw new IllegalArgumentException("Transport must not be null");
         }
         this.transport = transport;
+        long startNs = System.nanoTime();
+        System.out.println("[CLIENT] START connect at " + startNs);
 
         SaslMechanism mechanism;
         if (config.saslMechanism() != null) {
@@ -105,41 +107,42 @@ public final class AmqpClient implements AutoCloseable {
         }
 
         if (config.proto0Accepted()) {
-            // Proto-0 (Artemis): read 0-9-1 header first, then send AMQP 1.0 header.
-            // Artemis sends its 0-9-1 header on connect. We read it, then negotiate AMQP 1.0.
-            readFully(ByteBuffer.allocate(8)); // skip Artemis 0-9-1 header
-            // Now send AMQP 1.0 header and read echo
+            System.out.println("[CLIENT] proto-0 mode");
+            readFully(ByteBuffer.allocate(8));
+            System.out.println("[CLIENT] SENT AMQP_HEADER");
             transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
             ByteBuffer headerBuf = ByteBuffer.allocate(8);
             readFully(headerBuf);
             headerBuf.flip();
             byte[] echo = new byte[8];
             headerBuf.get(echo);
+            long readNs = System.nanoTime();
+            System.out.println("[CLIENT] READ echo: " + Arrays.toString(echo) + " at " + readNs + " (delta=" + (readNs - startNs) + "ns)");
             if (!Arrays.equals(echo, AmqpConstants.AMQP_HEADER)) {
                 throw new IOException("Invalid AMQP header echo in proto-0: " + Arrays.toString(echo));
             }
         } else {
-            // Proto-3: SASL-first. Send SASL_HEADER, wait for server echo.
+            System.out.println("[CLIENT] SASL-first mode");
             transport.send(ByteBuffer.wrap(AmqpConstants.SASL_HEADER));
+            long sendNs = System.nanoTime();
+            System.out.println("[CLIENT] SENT SASL_HEADER at " + sendNs + " (delta=" + (sendNs - startNs) + "ns)");
             ByteBuffer headerBuf = ByteBuffer.allocate(8);
             try {
                 readFully(headerBuf);
             } catch (AmqpException e) {
-                LOG.debug("Server closed connection on SASL_HEADER — proto-0 fallback needed");
-                throw new IOException(
-                        "Server does not support SASL-first protocol (proto-3). "
-                        + "The service layer should create a new transport and retry with proto0Accepted=true.", e);
+                System.out.println("[CLIENT] Connection closed on SASL_HEADER");
+                throw new IOException("Server does not support SASL-first protocol", e);
             }
             headerBuf.flip();
             byte[] serverHeader = new byte[8];
             headerBuf.get(serverHeader);
+            long readNs = System.nanoTime();
+            System.out.println("[CLIENT] READ server header: " + Arrays.toString(serverHeader) + " at " + readNs + " (delta=" + (readNs - sendNs) + "ns)");
 
             if (Arrays.equals(serverHeader, AmqpConstants.SASL_HEADER)) {
-                // Server echoes SASL_HEADER, then sends SASL mechanisms frame.
-                // The SASL exchange must be done before any AMQP framing begins.
-                LOG.debug("Server supports SASL-first, proceeding with negotiation");
+                System.out.println("[CLIENT] SASL-FIRST, proceeding with negotiation");
                 doSaslNegotiation(mechanism);
-                // After SASL completes, send AMQP_HEADER and wait for echo.
+                System.out.println("[CLIENT] SENT AMQP_HEADER after SASL");
                 transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
                 headerBuf.clear();
                 readFully(headerBuf);
@@ -150,32 +153,34 @@ public final class AmqpClient implements AutoCloseable {
                     throw new IOException("Invalid AMQP header echo after SASL: " + Arrays.toString(amqpEcho));
                 }
             } else if (Arrays.equals(serverHeader, AmqpConstants.AMQP_HEADER)) {
-                LOG.debug("Server responded with AMQP_HEADER, doing SASL (proto-0 auto-detect)");
+                System.out.println("[CLIENT] AMQP_HEADER received, doing SASL");
                 doSaslNegotiation(mechanism);
             } else {
                 throw new IOException("Invalid header from server: " + Arrays.toString(serverHeader));
             }
         }
         state = ConnectionState.HDR_EXCH;
+        System.out.println("[CLIENT] Headers exchanged, sending OPEN");
 
-        // Send open
         var open = new Performative.Open(
                 config.containerId(), config.host(),
                 config.maxFrameSize(), config.channelMax(),
                 config.idleTimeout(), List.of(), List.of(), Map.of()
         );
         sendPerformative(0, open);
+        System.out.println("[CLIENT] OPEN sent");
 
-        // Receive open response
         AmqpFrame openFrame = readFrame();
+        System.out.println("[CLIENT] OPEN response received");
         if (openFrame.performative() instanceof AmqpType.Described desc) {
             var remoteOpen = (Performative.Open) PerformativeCodec.decode(desc);
             maxFrameSize = (int) Math.min(config.maxFrameSize(), remoteOpen.maxFrameSize());
-            LOG.debug("Connected to container '{}'", remoteOpen.containerId());
+            System.out.println("[CLIENT] Connected to container '" + remoteOpen.containerId() + "'");
         }
 
         state = ConnectionState.OPENED;
         connected.set(true);
+        System.out.println("[CLIENT] Connection complete");
     }
 
     private void doSaslNegotiation(SaslMechanism mechanism) throws IOException {

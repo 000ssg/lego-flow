@@ -54,6 +54,7 @@ public class PipelineByteTransport implements ByteTransport {
         if (!open.get()) return;
         int n = data == null ? 0 : data.remaining();
         int added = add(data);
+        System.out.println("[TRANSPORT-" + System.identityHashCode(this) + " ch=" + System.identityHashCode(ch) + "] onRead: n=" + n + " added=" + added + " count=" + count);
         if (n > 0) available.release(1);
     }
 
@@ -63,7 +64,15 @@ public class PipelineByteTransport implements ByteTransport {
 
         if (count + n > buffer.length) {
             if (count > 0) {
-                System.arraycopy(buffer, start, buffer, 0, count);
+                if (start < end) {
+                    // Data is contiguous from start to end
+                    System.arraycopy(buffer, start, buffer, 0, count);
+                } else {
+                    // Data is split across two regions (wrap-around)
+                    int firstPart = buffer.length - start;
+                    System.arraycopy(buffer, start, buffer, 0, firstPart);
+                    System.arraycopy(buffer, 0, buffer, firstPart, end);
+                }
                 end = count;
                 start = 0;
             }
@@ -96,6 +105,7 @@ public class PipelineByteTransport implements ByteTransport {
         }
         start = (start + n) % buffer.length;
         count -= n;
+        System.out.println("[TRANSPORT-" + System.identityHashCode(this) + "] fetch: n=" + n + " count=" + count);
         return n;
     }
 
@@ -150,6 +160,7 @@ public class PipelineByteTransport implements ByteTransport {
         outboundQueue.offer(dup);
         data.position(lim);
         registerOps();
+        System.out.println("[TRANSPORT-" + System.identityHashCode(this) + "] send: " + java.util.Arrays.toString(dup.array()) + " queueSize=" + outboundQueue.size());
     }
 
     @Override
@@ -193,12 +204,14 @@ public class PipelineByteTransport implements ByteTransport {
     @Override
     public void close() {
         if (!open.compareAndSet(true, false)) return;
+        System.out.println("[TRANSPORT-" + System.identityHashCode(this) + "] close() called, clearing outbound queue (size=" + outboundQueue.size() + ")");
         outboundQueue.clear();
         try {
             channel.close();
         } catch (IOException e) {
             LOG.debug("Error closing channel", e);
         }
+        System.out.println("[TRANSPORT-" + System.identityHashCode(this) + "] close() complete");
     }
 
     @Override

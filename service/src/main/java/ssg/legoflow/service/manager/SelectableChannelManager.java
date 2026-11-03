@@ -363,6 +363,7 @@ public class SelectableChannelManager extends AbstractServicesManager {
                 var reg = new ChannelRegistration(clientChannel, pipeline, bufferSize);
                 var key = clientChannel.getSocketChannel().register(selector, SelectionKey.OP_READ, reg);
                 clientChannel.setSelectionKey(key);
+                System.out.println("[MANAGER] Accepted connection, channel=" + System.identityHashCode(clientChannel) + " reg=" + System.identityHashCode(reg) + " key=" + System.identityHashCode(key));
                 pipeline.fireConnect(clientChannel);
                 LOG.debug("Accepted client connection");
             }
