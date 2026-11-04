@@ -162,22 +162,28 @@ class AmqpServiceIntegrationTest {
     }
 
     private void testFullMessagingPipelineInternal() throws Exception {
+        // Use in-memory transport to avoid race conditions with TCP/virtual threads
+        var pair = InMemoryTransport.createPair();
+
+        final String[] receivedBody = {null};
+        var receiveLatch = new CountDownLatch(1);
+
+        // Start server on platform thread (not virtual thread) for deterministic execution
         var server = AmqpContainerService.builder()
                 .port(0)
                 .containerId("test-server-3")
                 .build();
         server.connect(ctx);
-        int port = server.port();
 
-        // Wait for server to be ready - poll until serverChannel is registered with selector
-        int retries = 50;
-        while (retries-- > 0) {
-            if (server.isReady()) break;
-            Thread.sleep(10);
-        }
-        assertThat(server.isReady()).isTrue();
+        // Use synchronous connection handling on platform thread
+        Thread serverThread = Thread.ofPlatform().name("amqp-server-test").start(() -> {
+            try {
+                server.getContainer().handleConnectionSync(pair.server());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
 
-        // Set up message handler and listener BEFORE waiting for ready to avoid race
         final String[] receivedBody = {null};
         var receiveLatch = new CountDownLatch(1);
 
