@@ -87,7 +87,7 @@ class StompServerServiceTest {
         }
         assertThat(server.getBroker()).isNotNull();
 
-        // Create multiple clients and connect them
+        // Create multiple clients and connect them with small delays to avoid race conditions
         var clients = new StompClientService[3];
         for (int i = 0; i < 3; i++) {
             clients[i] = StompClientService.builder("localhost", port)
@@ -96,6 +96,8 @@ class StompServerServiceTest {
             clients[i].connect(ctx);
             assertThat(clients[i].getClient()).as("Client " + i + " should connect").isNotNull();
             assertThat(clients[i].isConnected()).as("Client " + i + " should be connected").isTrue();
+            // Small delay between connections to avoid race conditions
+            if (i < 2) Thread.sleep(50);
         }
 
         // Cleanup

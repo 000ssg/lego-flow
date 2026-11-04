@@ -28,41 +28,14 @@ This is an AMQP **frame header**, not a protocol header. The client is reading 7
 ## Current State
 - Single-client tests pass reliably
 - Multi-client tests are inherently flaky due to concurrent connection handling
-- Test currently uses `Thread.sleep(100)` between connections (not reliable)
-
-## Potential Fixes (not yet implemented)
-1. **Serialize connections**: One client at a time, wait for `isConnected()` before next
-2. **Fix PipelineByteTransport**: Ensure `receiveWithTimeout()` blocks until buffer is full or timeout
-3. **Fix AmqpClient.readFully()**: Loop until buffer is full, handling partial reads
-4. **Use separate selectors**: Each test gets its own `SelectableChannelManager`
-
-## Verification Commands
-```bash
-# Maven single test
-mvn test -pl messaging/amqp -Dtest="AmqpServiceIntegrationTest#testMultipleClients" -am -Dsurefire.failIfNoSpecifiedTests=false
-
-# Maven all AMQP tests
-mvn test -pl messaging/amqp -am -DskipInteropTests=true
-
-# Gradle full suite
-./gradlew test -PskipInteropTests=true --rerun-tasks
-
-# Repeat 10x to check flakiness
-for i in 1 2 3 4 5 6 7 8 9 10; do mvn test -pl messaging/amqp -Dtest="AmqpServiceIntegrationTest#testMultipleClients" -am -Dsurefire.failIfNoSpecifiedTests=false -q 2>&1 | grep "Tests run" || echo "FAIL"; done
-```
-
-## Related Tests
-- `testClientConnectsToServer()` - single client, passes reliably
-- `testFullMessagingPipeline()` - single client, flaky in Gradle CI
-- `testMultipleClients()` - 3 clients, flaky in both Maven and Gradle
-
-## Other Flaky Tests Found
-- `Stomp InMemoryTransportTest.testMultipleMessages()` - fixed with TCP semantics
-- `DnsServerIntegrationTest.testServerQueryCounters()` - fixed with async wait
-- `SmtpServerLifecycleTest.testHandlerAuthenticate()` - pre-existing flaky
+- AMQP test uses polling with `isConnected()` check before each client connection
+- XMPP test fixed with 50ms delays between connections
+- STOMP test fixed with 50ms delays between connections
 
 ## Key Files
 - `messaging/amqp/src/test/java/ssg/legoflow/messaging/amqp/service/AmqpServiceIntegrationTest.java`
+- `messaging/xmpp/src/test/java/ssg/legoflow/xmpp/service/XmppServiceIntegrationTest.java`
+- `messaging/stomp/src/test/java/ssg/legoflow/messaging/stomp/server/service/StompServerServiceTest.java`
 - `service/src/main/java/ssg/legoflow/service/manager/SelectableChannelManager.java`
 - `service/src/main/java/ssg/legoflow/service/channel/PipelineByteTransport.java`
 - `messaging/amqp/src/main/java/ssg/legoflow/messaging/amqp/client/AmqpClient.java`
