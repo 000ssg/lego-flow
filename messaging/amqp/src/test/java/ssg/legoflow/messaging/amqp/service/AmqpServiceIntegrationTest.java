@@ -258,9 +258,8 @@ class AmqpServiceIntegrationTest {
         // thread has processed the registration and is ready to accept.
         server.waitForReady();
 
-        // Ensure the server has processed at least one connection event to fully initialize
-        // its protocol state (SASL, container, etc.)
-        server.waitForFirstConnection(ctx);
+        // Wait for server to stabilize after becoming ready
+        Thread.sleep(100);
 
         // Wait for CONNECTION_OPENED events — signals each client handshake is complete
         CountDownLatch[] openLatches = new CountDownLatch[3];
