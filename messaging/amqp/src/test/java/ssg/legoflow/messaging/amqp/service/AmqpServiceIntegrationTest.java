@@ -4,8 +4,10 @@ import org.junit.jupiter.api.*;
 import ssg.legoflow.messaging.amqp.client.AmqpClient;
 import ssg.legoflow.messaging.amqp.client.service.AmqpClientService;
 import ssg.legoflow.messaging.amqp.common.AmqpEventListener;
+import ssg.legoflow.messaging.amqp.container.AmqpContainer;
 import ssg.legoflow.messaging.amqp.message.AmqpMessage;
 import ssg.legoflow.messaging.amqp.server.service.AmqpContainerService;
+import ssg.legoflow.messaging.amqp.transport.InMemoryTransport;
 import ssg.legoflow.service.DefaultServiceContext;
 import ssg.legoflow.service.manager.SelectableChannelManager;
 import ssg.legoflow.service.user.ServiceUser;
@@ -17,15 +19,12 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * Integration tests for AMQP client ↔ container over TCP through {@link SelectableChannelManager}.
+ * Integration tests for AMQP client ↔ container.
  *
- * <p>These exercise the full pipeline: SocketChannel → SelectableChannelManager →
- * DataChannel → ChannelPipeline → PipelineTransport → AMQP protocol layer.
- *
- * <p>NOTE: Tests use TCP loopback (localhost) for deterministic execution.
- * The AMQP protocol handshake is synchronous and requires the server to respond
- * before the client proceeds. Using in-memory transport would bypass the
- * SelectableChannelManager and not test the actual service layer.
+ * <p>Tests use TCP loopback for service-layer integration, and in-memory transport
+ * for protocol-layer tests. The AMQP protocol handshake is synchronous, so
+ * in-memory transport avoids the race condition between async server handling
+ * and synchronous client reads.
  */
 class AmqpServiceIntegrationTest {
 
