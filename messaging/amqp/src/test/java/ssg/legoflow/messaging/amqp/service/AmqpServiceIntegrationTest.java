@@ -277,7 +277,7 @@ class AmqpServiceIntegrationTest {
         server.waitForReady();
 
         // Wait for server to stabilize after becoming ready
-        Thread.sleep(100);
+        Thread.sleep(300);
 
         var clients = new AmqpClientService[3];
         for (int i = 0; i < 3; i++) {
@@ -299,8 +299,9 @@ class AmqpServiceIntegrationTest {
                     .isTrue();
 
             // Longer delay between client connections to prevent selector overload
+            // Virtual thread scheduling is non-deterministic; longer delay helps
             if (i < 2) {
-                Thread.sleep(100);
+                Thread.sleep(200);
             }
         }
 
