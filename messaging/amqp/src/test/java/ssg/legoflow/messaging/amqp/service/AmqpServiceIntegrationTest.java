@@ -180,9 +180,8 @@ class AmqpServiceIntegrationTest {
         // Wait for selector thread to fully initialize and start accepting connections.
         server.waitForReady();
 
-        // Ensure the server has processed at least one connection event to fully initialize
-        // its protocol state (SASL, container, etc.)
-        server.waitForFirstConnection(ctx);
+        // Wait for server to stabilize after becoming ready
+        Thread.sleep(100);
 
         final String[] receivedBody = {null};
         var receiveLatch = new CountDownLatch(1);
