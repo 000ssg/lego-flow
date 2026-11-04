@@ -91,8 +91,18 @@ class AmqpServiceIntegrationTest {
                 .build();
         client.connect(ctx);
 
+        // Poll for client to fully connect before proceeding
+        int connRetries = 200;
+        while (connRetries-- > 0) {
+            if (client.isConnected()) break;
+            Thread.sleep(10);
+        }
+        assertThat(client.isConnected())
+                .as("Client should be connected")
+                .isTrue();
+
         // Give client time to initialize before server sends protocol frames
-        Thread.sleep(200);
+        Thread.sleep(100);
 
         // Wait for the server to complete the AMQP handshake
         assertThat(openLatch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -174,8 +184,18 @@ class AmqpServiceIntegrationTest {
                 .build();
         client.connect(ctx);
 
+        // Poll for client to fully connect before proceeding
+        int connRetries = 200;
+        while (connRetries-- > 0) {
+            if (client.isConnected()) break;
+            Thread.sleep(10);
+        }
+        assertThat(client.isConnected())
+                .as("Client should be connected")
+                .isTrue();
+
         // Give client time to initialize before server sends protocol frames
-        Thread.sleep(200);
+        Thread.sleep(100);
 
         // Wait for the server to complete the AMQP handshake
         assertThat(openLatch.await(10, TimeUnit.SECONDS)).isTrue();
