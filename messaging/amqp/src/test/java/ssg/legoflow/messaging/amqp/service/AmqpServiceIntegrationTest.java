@@ -21,6 +21,11 @@ import static org.assertj.core.api.Assertions.*;
  *
  * <p>These exercise the full pipeline: SocketChannel → SelectableChannelManager →
  * DataChannel → ChannelPipeline → PipelineTransport → AMQP protocol layer.
+ *
+ * <p>NOTE: Tests use TCP loopback (localhost) for deterministic execution.
+ * The AMQP protocol handshake is synchronous and requires the server to respond
+ * before the client proceeds. Using in-memory transport would bypass the
+ * SelectableChannelManager and not test the actual service layer.
  */
 class AmqpServiceIntegrationTest {
 
@@ -162,27 +167,20 @@ class AmqpServiceIntegrationTest {
     }
 
     private void testFullMessagingPipelineInternal() throws Exception {
-        // Use in-memory transport to avoid race conditions with TCP/virtual threads
-        var pair = InMemoryTransport.createPair();
-
-        final String[] receivedBody = {null};
-        var receiveLatch = new CountDownLatch(1);
-
-        // Start server on platform thread (not virtual thread) for deterministic execution
         var server = AmqpContainerService.builder()
                 .port(0)
                 .containerId("test-server-3")
                 .build();
         server.connect(ctx);
+        int port = server.port();
 
-        // Use synchronous connection handling on platform thread
-        Thread serverThread = Thread.ofPlatform().name("amqp-server-test").start(() -> {
-            try {
-                server.getContainer().handleConnectionSync(pair.server());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+        // Wait for server to be ready - poll until serverChannel is registered with selector
+        int retries = 50;
+        while (retries-- > 0) {
+            if (server.isReady()) break;
+            Thread.sleep(10);
+        }
+        assertThat(server.isReady()).isTrue();
 
         final String[] receivedBody = {null};
         var receiveLatch = new CountDownLatch(1);
@@ -201,7 +199,7 @@ class AmqpServiceIntegrationTest {
         server.waitForReady();
 
         // Wait for server to stabilize after becoming ready
-        Thread.sleep(100);
+        Thread.sleep(200);
 
         var client = AmqpClientService.builder("localhost", port)
                 .timeout(Duration.ofSeconds(10))
