@@ -178,7 +178,7 @@ class AmqpServiceIntegrationTest {
         assertThat(server.isReady()).isTrue();
 
         // Give selector thread time to process the new registration
-        Thread.sleep(50);
+        Thread.sleep(100);
 
         final String[] receivedBody = {null};
         var receiveLatch = new CountDownLatch(1);
@@ -209,7 +209,7 @@ class AmqpServiceIntegrationTest {
                 .isTrue();
 
         // Give client time to initialize before server sends protocol frames
-        Thread.sleep(100);
+        Thread.sleep(200);
 
         // Wait for the server to complete the AMQP handshake
         assertThat(openLatch.await(10, TimeUnit.SECONDS)).isTrue();
