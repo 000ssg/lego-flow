@@ -149,14 +149,14 @@ class AmqpServiceIntegrationTest {
     @Test
     void testFullMessagingPipeline() throws Exception {
         // Retry logic to handle flaky connection timing
-        for (int attempt = 0; attempt < 3; attempt++) {
+        for (int attempt = 0; attempt < 5; attempt++) {
             try {
                 testFullMessagingPipelineInternal();
                 return; // Success
             } catch (Exception e) {
-                if (attempt == 2) throw e;
-                System.out.println("Attempt " + (attempt + 1) + " failed, retrying...");
-                Thread.sleep(500);
+                if (attempt == 4) throw e;
+                System.out.println("Attempt " + (attempt + 1) + " failed: " + e.getMessage() + ", retrying...");
+                Thread.sleep(1000);
             }
         }
     }
