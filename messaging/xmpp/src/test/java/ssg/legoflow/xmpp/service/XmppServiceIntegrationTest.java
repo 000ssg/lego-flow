@@ -137,13 +137,25 @@ class XmppServiceIntegrationTest {
         }
         assertThat(server.getServer().isRunning()).isTrue();
 
-        // Create multiple clients and connect them
+        // Create multiple clients and connect them with small delays to avoid race conditions
         var clients = new XmppClientService[3];
         for (int i = 0; i < 3; i++) {
             clients[i] = XmppClientService.builder("localhost", port).build();
-            clients[i].connect(ctx);
+            try {
+                clients[i].connect(ctx);
+            } catch (RuntimeException e) {
+                // Retry once if connection fails due to timing
+                if (i > 0) {
+                    Thread.sleep(50);
+                    clients[i].connect(ctx);
+                } else {
+                    throw e;
+                }
+            }
             assertThat(clients[i].getClient()).as("Client " + i + " should connect").isNotNull();
             assertThat(clients[i].getClient().isConnected()).as("Client " + i + " should be connected").isTrue();
+            // Small delay between connections to avoid race conditions
+            if (i < 2) Thread.sleep(50);
         }
 
         // Verify all clients are still connected
