@@ -230,7 +230,7 @@ class AmqpServiceIntegrationTest {
         for (int i = 0; i < 3; i++) {
             openLatches[i] = new CountDownLatch(1);
         }
-        server.setListener((event, connId, detail) -> {
+        server.setListener((event, connId, detail) -> {\
             if (event == AmqpEventListener.EventType.CONNECTION_OPENED) {
                 // Count down the next available latch
                 for (CountDownLatch latch : openLatches) {
@@ -261,6 +261,11 @@ class AmqpServiceIntegrationTest {
             assertThat(clients[i].isConnected())
                     .as("Client " + i + " should connect")
                     .isTrue();
+
+            // Small delay between client connections to prevent selector overload
+            if (i < 2) {
+                Thread.sleep(50);
+            }
         }
 
         // Wait for ALL server-side CONNECTION_OPENED events
