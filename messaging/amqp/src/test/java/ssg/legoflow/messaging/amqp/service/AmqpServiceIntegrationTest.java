@@ -301,7 +301,7 @@ class AmqpServiceIntegrationTest {
             // Longer delay between client connections to prevent selector overload
             // Virtual thread scheduling is non-deterministic; longer delay helps
             if (i < 2) {
-                Thread.sleep(200);
+                Thread.sleep(1000);
             }
         }
 
