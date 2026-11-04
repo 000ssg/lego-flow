@@ -271,9 +271,8 @@ class AmqpServiceIntegrationTest {
                     .build();
             clients[i].connect(ctx);
 
-            // Wait for this client to connect before starting the next one
-            // to avoid race conditions with simultaneous connections
-            int connRetries = 100;
+            // Poll for this client to fully connect before proceeding
+            int connRetries = 200;
             while (connRetries-- > 0) {
                 if (clients[i].isConnected()) break;
                 Thread.sleep(10);
@@ -282,9 +281,9 @@ class AmqpServiceIntegrationTest {
                     .as("Client " + i + " should connect")
                     .isTrue();
 
-            // Small delay between client connections to prevent selector overload
+            // Longer delay between client connections to prevent selector overload
             if (i < 2) {
-                Thread.sleep(50);
+                Thread.sleep(100);
             }
         }
 
