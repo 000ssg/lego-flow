@@ -27,10 +27,13 @@ public final class AmqpContainerChannelHandler implements ChannelHandler {
             var transport = new PipelineTransport(channel);
             transportByChannel.put(channel, transport);
             try {
-                // handleConnection() spawns a virtual thread — does NOT block here.
-                // If it throws (e.g. null container), clean up immediately.
+                // Use handleConnectionSync to process protocol in the selector thread.
+                // This avoids the race where a virtual thread starts before the
+                // client's data arrives in the transport's ring buffer.
+                // The selector thread is the only thread that reads from the socket,
+                // so synchronous processing guarantees correct ordering.
                 if (service.getContainer() != null) {
-                    service.getContainer().handleConnection(transport);
+                    service.getContainer().handleConnectionSync(transport);
                 } else {
                     LOG.error("Container not initialized for service: {}", service.getDescriptor().name());
                     transportByChannel.remove(channel);
