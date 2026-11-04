@@ -230,7 +230,7 @@ class AmqpServiceIntegrationTest {
         for (int i = 0; i < 3; i++) {
             openLatches[i] = new CountDownLatch(1);
         }
-        server.setListener((event, connId, detail) -> {\
+        server.setListener((event, connId, detail) -> {
             if (event == AmqpEventListener.EventType.CONNECTION_OPENED) {
                 // Count down the next available latch
                 for (CountDownLatch latch : openLatches) {
