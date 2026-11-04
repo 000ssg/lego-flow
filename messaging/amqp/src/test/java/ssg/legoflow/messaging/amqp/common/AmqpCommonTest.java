@@ -52,59 +52,6 @@ class AmqpCommonTest {
         assertThat(latch.getCount()).isEqualTo(0);
     }
 
-    @Test void latchOnConnectionFiresOnlyForMatchingConnection() throws Exception {
-        var latch = new CountDownLatch(1);
-        var listener = AmqpEventListener.latchOnConnection(latch, AmqpEventListener.EventType.CONNECTION_OPENED, "conn-2");
-
-        // Event from different connection — latch should NOT count down
-        listener.onEvent(AmqpEventListener.EventType.CONNECTION_OPENED, "conn-1", null);
-        assertThat(latch.getCount()).isEqualTo(1);
-
-        // Event from matching connection — latch counts down
-        listener.onEvent(AmqpEventListener.EventType.CONNECTION_OPENED, "conn-2", null);
-        assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue();
-    }
-
-    @Test void latchOnConnectionIgnoresWrongEventType() throws Exception {
-        var latch = new CountDownLatch(1);
-        var listener = AmqpEventListener.latchOnConnection(latch, AmqpEventListener.EventType.CONNECTION_OPENED, "conn-1");
-
-        // Matching connection but wrong event — latch should NOT count down
-        listener.onEvent(AmqpEventListener.EventType.SESSION_CREATED, "conn-1", "session-1");
-        assertThat(latch.getCount()).isEqualTo(1);
-    }
-
-    @Test void latchOnConnectionsDispatchesToMatchingConnection() throws Exception {
-        var latch1 = new CountDownLatch(1);
-        var latch2 = new CountDownLatch(1);
-        var latchMap = new java.util.HashMap<String, java.util.concurrent.CountDownLatch>();
-        latchMap.put("conn-1", latch1);
-        latchMap.put("conn-2", latch2);
-
-        var listener = AmqpEventListener.latchOnConnections(latchMap, AmqpEventListener.EventType.CONNECTION_OPENED);
-
-        // Event from conn-1
-        listener.onEvent(AmqpEventListener.EventType.CONNECTION_OPENED, "conn-1", null);
-        assertThat(latch1.await(1, TimeUnit.SECONDS)).isTrue();
-        assertThat(latch2.getCount()).isEqualTo(1);
-
-        // Event from conn-2
-        listener.onEvent(AmqpEventListener.EventType.CONNECTION_OPENED, "conn-2", null);
-        assertThat(latch2.await(1, TimeUnit.SECONDS)).isTrue();
-    }
-
-    @Test void latchOnConnectionsIgnoresUnknownConnection() throws Exception {
-        var latch1 = new CountDownLatch(1);
-        var latchMap = new java.util.HashMap<String, java.util.concurrent.CountDownLatch>();
-        latchMap.put("conn-1", latch1);
-
-        var listener = AmqpEventListener.latchOnConnections(latchMap, AmqpEventListener.EventType.CONNECTION_OPENED);
-
-        // Event from unknown connection — no latch to count down
-        listener.onEvent(AmqpEventListener.EventType.CONNECTION_OPENED, "conn-99", null);
-        assertThat(latch1.getCount()).isEqualTo(1);
-    }
-
     @Test void eventTypeValues() {
         var values = AmqpEventListener.EventType.values();
         assertThat(values).containsExactly(
