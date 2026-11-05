@@ -55,8 +55,10 @@ jobs:
             ${{ runner.os }}-gradle-caches-
 
       # ── Compile + test with Gradle (with JaCoCo instrumentation) ───────────────
+      # Note: --rerun-tasks removed to leverage Gradle build cache (4s vs 2m+)
+      # Coverage gate generates reports from .exec files without re-running tests
       - name: Compile and run unit tests
-        run: ./gradlew clean compileJava test -PskipInteropTests=true --parallel --rerun-tasks --no-daemon
+        run: ./gradlew clean compileJava test -PskipInteropTests=true --parallel --no-daemon
         env:
           CI: true
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -98,7 +100,7 @@ jobs:
             ${{ runner.os }}-gradle-caches-
 
       - name: Compile and run unit tests
-        run: .\gradlew.bat clean compileJava test -PskipInteropTests=true --parallel --rerun-tasks --no-daemon
+        run: .\gradlew.bat clean compileJava test -PskipInteropTests=true --parallel --no-daemon
         env:
           CI: true
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
