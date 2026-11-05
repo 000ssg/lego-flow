@@ -191,10 +191,19 @@ fun Project.setupInteropTestsModule() {
     // Tests are skipped via Assumptions when no Docker services are available.
     // Override with -PskipInteropTests=false to force execution (requires Docker).
     // When -PskipInteropTests=true, interop tests are excluded from the test task.
+    // Filter by group: -Pinterop.group=interop-messaging-core
     tasks.withType<Test> {
         // Skip interop tests when -PskipInteropTests=true
         if (project.name == "interop-tests" && findProperty("skipInteropTests") == "true") {
             enabled = false
+        }
+
+        // JUnit 5 tag filtering for interop groups
+        val interopGroup = findProperty("interop.group")?.toString()
+        if (interopGroup != null) {
+            useJUnitPlatform {
+                includeTags(interopGroup)
+            }
         }
 
         // System properties for Docker targets (mirrors Maven failsafe plugin config)
