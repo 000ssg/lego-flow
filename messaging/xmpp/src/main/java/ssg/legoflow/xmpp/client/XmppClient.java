@@ -257,7 +257,18 @@ public class XmppClient implements AutoCloseable {
                 if (transport != null) {
                     transport.close();
                 }
+                var thread = readThread;
                 readThread = null;
+                try {
+                    thread.join(5000);
+                    if (thread.isAlive()) {
+                        LOG.warn("XMPP client read thread did not terminate within 5 seconds");
+                        thread.interrupt();
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    thread.interrupt();
+                }
             }
         }
     }

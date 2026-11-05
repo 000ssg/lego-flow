@@ -147,6 +147,15 @@ public final class XmppServer implements AutoCloseable {
         }
         connections.clear();
         executor.shutdown();
+        try {
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                LOG.warn("XMPP server executor did not terminate within 5 seconds");
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            executor.shutdownNow();
+        }
         LOG.info("XMPP server stopped");
     }
 
