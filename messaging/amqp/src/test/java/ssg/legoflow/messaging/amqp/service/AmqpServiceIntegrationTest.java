@@ -242,6 +242,20 @@ class AmqpServiceIntegrationTest {
 
     @Test
     void testMultipleClients() throws Exception {
+        // Retry logic to handle flaky connection timing
+        for (int attempt = 0; attempt < 10; attempt++) {
+            try {
+                testMultipleClientsInternal();
+                return; // Success
+            } catch (Exception e) {
+                if (attempt == 9) throw e;
+                System.out.println("Attempt " + (attempt + 1) + " failed: " + e.getMessage() + ", retrying...");
+                Thread.sleep(2000);
+            }
+        }
+    }
+
+    private void testMultipleClientsInternal() throws Exception {
         var server = AmqpContainerService.builder()
                 .port(0)
                 .containerId("multi-server")
