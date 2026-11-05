@@ -7,7 +7,7 @@
 #   • Maven is no longer needed in CI (JaCoCo HTML report bug fixed)
 #
 # Conditional execution:
-#   Set `skip-coverage` label on PR to skip coverage gate
+#   Set `run-coverage` label on PR to enable coverage gate (disabled by default)
 #   Set `run-interop` label on PR to enable interoperability tests (disabled by default)
 #   Set `run-windows` label on PR to enable slow Windows build (disabled by default)
 
@@ -115,13 +115,14 @@ jobs:
   # ──────────────────────────────────────────────
   # 2. Coverage Gate — Gradle (HTML + XML JaCoCo reports)
   #    Replaced Maven coverage gate with Gradle jacocoAggregateReport task.
-  #    Can be skipped by adding 'skip-coverage' label on PR.
+  #    Enabled on PR only with 'run-coverage' label (disabled by default).
+  #    Runs automatically on push to master/productize branches.
   # ──────────────────────────────────────────────
   coverage-gate:
     name: "Coverage Gate"
     runs-on: ubuntu-24.04
     needs: build
-    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-coverage') }}
+    if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-coverage')) }}
 
     steps:
       - name: Checkout repository
