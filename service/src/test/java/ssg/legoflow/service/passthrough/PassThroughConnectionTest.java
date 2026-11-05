@@ -378,6 +378,14 @@ class PassThroughConnectionTest {
             total += r;
         }
 
+        // Wait for stats to stabilize (relay threads may still be updating counters)
+        long deadline = System.currentTimeMillis() + 2000;
+        while (System.currentTimeMillis() < deadline) {
+            try { Thread.sleep(50); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            ConnectionStatistics stats = ptc.getStatistics();
+            if (stats.localBytesRead() >= data.length) break;
+        }
+
         // Check stats while connection is still alive
         ConnectionStatistics stats = ptc.getStatistics();
         assertThat(stats.localBytesRead()).isEqualTo(data.length);
