@@ -47,7 +47,7 @@ jobs:
 
       # ── Gradle build cache for dependency repository ──
       - name: Cache Gradle user home
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle.kts', '**/gradle.properties') }}
@@ -65,7 +65,7 @@ jobs:
 
       # ── Upload test results (Gradle format) ───────────────────────────
       - name: Upload test results
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: test-results-${{ matrix.os }}
           path: "**/build/reports/tests/test/index.html"
@@ -92,7 +92,7 @@ jobs:
           cache: gradle
 
       - name: Cache Gradle user home
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle.kts', '**/gradle.properties') }}
@@ -100,13 +100,13 @@ jobs:
             ${{ runner.os }}-gradle-caches-
 
       - name: Compile and run unit tests
-        run: .\gradlew.bat clean compileJava test -PskipInteropTests=true --parallel --no-daemon
+        run: .\\gradlew.bat clean compileJava test -PskipInteropTests=true --parallel --no-daemon
         env:
           CI: true
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
       - name: Upload test results
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: test-results-windows
           path: "**/build/reports/tests/test/index.html"
@@ -135,7 +135,7 @@ jobs:
           cache: gradle
 
       - name: Cache Gradle user home
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle.kts', '**/gradle.properties') }}
@@ -150,7 +150,7 @@ jobs:
 
       # ── Upload JaCoCo HTML report for review ──────────────────────────
       - name: Upload JaCoCo report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: jacoco-report
           path: build/jacoco/aggregate/html/
@@ -188,7 +188,7 @@ jobs:
           cache: gradle
 
       - name: Cache Gradle user home
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle.kts', '**/gradle.properties') }}
@@ -253,7 +253,7 @@ jobs:
           cache: gradle
 
       - name: Cache Gradle user home
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle.kts', '**/gradle.properties') }}
