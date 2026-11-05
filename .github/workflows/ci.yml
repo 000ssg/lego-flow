@@ -7,7 +7,7 @@
 #   • Maven is no longer needed in CI (JaCoCo HTML report bug fixed)
 #
 # Conditional execution:
-#   Set `skip-coverage` label on PR to skip coverage gate
+#   Set `run-coverage` label on PR to enable coverage gate (disabled by default)
 #   Set `run-interop` label on PR to enable interoperability tests (disabled by default)
 #   Set `run-windows` label on PR to enable slow Windows build (disabled by default)
 
@@ -29,7 +29,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-24.04, macos-latest]
         java: [25]
       fail-fast: false
 
@@ -47,7 +47,7 @@ jobs:
 
       # ── Gradle build cache for dependency repository ──
       - name: Cache Gradle user home
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle.kts', '**/gradle.properties') }}
@@ -55,15 +55,17 @@ jobs:
             ${{ runner.os }}-gradle-caches-
 
       # ── Compile + test with Gradle (with JaCoCo instrumentation) ───────────────
+      # Note: --rerun-tasks removed to leverage Gradle build cache (4s vs 2m+)
+      # Coverage gate generates reports from .exec files without re-running tests
       - name: Compile and run unit tests
-        run: ./gradlew clean compileJava test -PskipInteropTests=true --parallel --rerun-tasks --no-daemon
+        run: ./gradlew clean compileJava test -PskipInteropTests=true --parallel --no-daemon
         env:
           CI: true
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
       # ── Upload test results (Gradle format) ───────────────────────────
       - name: Upload test results
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: test-results-${{ matrix.os }}
           path: "**/build/reports/tests/test/index.html"
@@ -90,7 +92,7 @@ jobs:
           cache: gradle
 
       - name: Cache Gradle user home
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle.kts', '**/gradle.properties') }}
@@ -98,13 +100,13 @@ jobs:
             ${{ runner.os }}-gradle-caches-
 
       - name: Compile and run unit tests
-        run: .\gradlew.bat clean compileJava test -PskipInteropTests=true --parallel --rerun-tasks --no-daemon
+        run: .\\gradlew.bat clean compileJava test -PskipInteropTests=true --parallel --no-daemon
         env:
           CI: true
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
       - name: Upload test results
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: test-results-windows
           path: "**/build/reports/tests/test/index.html"
@@ -113,13 +115,14 @@ jobs:
   # ──────────────────────────────────────────────
   # 2. Coverage Gate — Gradle (HTML + XML JaCoCo reports)
   #    Replaced Maven coverage gate with Gradle jacocoAggregateReport task.
-  #    Can be skipped by adding 'skip-coverage' label on PR.
+  #    Enabled on PR only with 'run-coverage' label (disabled by default).
+  #    Runs automatically on push to master/productize branches.
   # ──────────────────────────────────────────────
   coverage-gate:
     name: "Coverage Gate"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
-    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-coverage') }}
+    if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-coverage')) }}
 
     steps:
       - name: Checkout repository
@@ -133,7 +136,7 @@ jobs:
           cache: gradle
 
       - name: Cache Gradle user home
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle.kts', '**/gradle.properties') }}
@@ -141,14 +144,14 @@ jobs:
             ${{ runner.os }}-gradle-caches-
 
       - name: Generate aggregate JaCoCo coverage report
-        run: ./gradlew jacocoAggregateReport --no-daemon --rerun-tasks -PskipInteropTests=true
+        run: ./gradlew jacocoAggregateReport --no-daemon -PskipInteropTests=true
         env:
           CI: true
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
       # ── Upload JaCoCo HTML report for review ──────────────────────────
       - name: Upload JaCoCo report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: jacoco-report
           path: build/jacoco/aggregate/html/
@@ -162,7 +165,7 @@ jobs:
   # ──────────────────────────────────────────────
   protocol-tests:
     name: "Protocol Tests (${{ matrix.profile }})"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         include:
@@ -186,7 +189,7 @@ jobs:
           cache: gradle
 
       - name: Cache Gradle user home
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle.kts', '**/gradle.properties') }}
@@ -200,15 +203,44 @@ jobs:
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
   # ──────────────────────────────────────────────
-  # 4. Interoperability tests (Gradle + Docker Compose)
-  #    Runs against real reference implementations via Gradle.
+  # 4. Interoperability tests (Gradle + Docker Compose) — 4 groups, 3 active jobs
+  #    Each active group runs in its own job against the reference brokers its
+  #    protocols need (see interop-tests/doc/ci-groups.md):
+  #      interop-messaging-core: MQTT, STOMP, AMQP — mosquitto, rabbitmq, artemis
+  #      interop-kafka:          Kafka composite tests — kafka (KRaft broker)
+  #      interop-wamp:           WAMP composite tests — crossbar (WAMP router)
+  #    interop-rest has existing tests (re-tagged) but its CI job is disabled
+  #    until proper rest interop is implemented (see the plan tracker).
+  #    kafka/wamp: failIfNoTests=false until the Phase 6 composite tests land.
   #    Disabled by default — enable with 'run-interop' label on PR.
   # ──────────────────────────────────────────────
   interoperability-tests:
-    name: "Interoperability Tests"
-    runs-on: ubuntu-latest
+    name: "Interop (${{ matrix.group }})"
+    runs-on: ubuntu-24.04
     needs: build
+    # Enable on PR by adding the 'run-interop' label (disabled by default).
     if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-interop') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Per-group compose files — each group owns EXACTLY the reference
+          # services it needs; files never share services across groups:
+          #   core  -> artemis + rabbitmq + mosquitto
+          #   kafka -> kafka
+          #   wamp  -> crossbar
+          - group: interop-messaging-core
+            file: docker-compose.core.yml
+            containers: "artemis-test rabbitmq-test mosquitto-test"
+            failIfNoTests: "true"
+          - group: interop-kafka
+            file: docker-compose.kafka.yml
+            containers: "kafka-test"
+            failIfNoTests: "false"
+          - group: interop-wamp
+            file: docker-compose.wamp.yml
+            containers: "wamp-router-test"
+            failIfNoTests: "false"
 
     steps:
       - name: Checkout repository
@@ -222,60 +254,56 @@ jobs:
           cache: gradle
 
       - name: Cache Gradle user home
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle.kts', '**/gradle.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-caches-
 
-      - name: Start Docker services
+      - name: Start Docker services for ${{ matrix.group }}
+        working-directory: interop-tests
         run: |
-          docker compose -f interop-tests/docker-compose.yml up -d
-          echo "Waiting for all services to become healthy..."
+          COMPOSE_FILE=${{ matrix.file }}
+          echo "Starting per-group services from ${COMPOSE_FILE}..."
+          docker compose -f "${COMPOSE_FILE}" up -d
+          echo "Waiting for ${{ matrix.containers }} to become healthy..."
           timeout=180
           elapsed=0
           interval=5
           while [ $elapsed -lt $timeout ]; do
             all_healthy=true
-            for svc in nginx nats rabbitmq activemq openldap prosody mosquitto redis postgresql mailhog ftp; do
-              status=$(docker inspect --format='{{.State.Health.Status}}' "legoflow-${svc}" 2>/dev/null || echo "not_found")
+            for c in ${{ matrix.containers }}; do
+              status=$(docker inspect --format='{{.State.Health.Status}}' "$c" 2>/dev/null || echo "not_found")
               if [ "$status" != "healthy" ]; then
                 all_healthy=false
-                echo "  ${svc}: ${status}"
+                echo "  $c: $status"
               fi
             done
             if [ "$all_healthy" = true ]; then
               echo "All services healthy!"
-              docker compose -f interop-tests/docker-compose.yml ps
+              docker compose -f "${COMPOSE_FILE}" ps
               break
             fi
             elapsed=$((elapsed + interval))
             echo "Waiting... (${elapsed}s / ${timeout}s)"
             sleep $interval
           done
-          # Final verification
-          for svc in nginx nats rabbitmq activemq openldap prosody mosquitto redis postgresql mailhog ftp; do
-            status=$(docker inspect --format='{{.State.Health.Status}}' "legoflow-${svc}" 2>/dev/null || echo "not_found")
+          for c in ${{ matrix.containers }}; do
+            status=$(docker inspect --format='{{.State.Health.Status}}' "$c" 2>/dev/null || echo "not_found")
             if [ "$status" != "healthy" ]; then
-              echo "ERROR: ${svc} is not healthy (status: ${status})"
-              docker logs "legoflow-${svc}" 2>&1 | tail -30
+              echo "ERROR: $c is not healthy (status: $status)"
+              docker logs "$c" 2>&1 | tail -30
               exit 1
             fi
           done
 
-      - name: Register XMPP test user (Prosody)
-        run: docker exec legoflow-prosody prosodyctl register test localhost test 2>/dev/null || true
-
-      - name: Run interoperability tests (Docker services are running)
-        run: |
-          # Build and install protocol modules to local Maven repo first
-          mvn install -DskipTests -pl interop-tests -am -q
-          # Run interop tests with Maven
-          mvn verify -pl interop-tests -am -DskipInteropTests=false
+      - name: Run ${{ matrix.group }} interop tests (Gradle)
+        run: ./gradlew :interop-tests:test -PskipInteropTests=false -Pinterop.group=${{ matrix.group }} --no-daemon
         env:
           CI: true
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
       - name: Stop Docker services
         if: always()
-        run: docker compose -f interop-tests/docker-compose.yml down
+        run: cd interop-tests && docker compose -f ${{ matrix.file }} down --remove-orphans

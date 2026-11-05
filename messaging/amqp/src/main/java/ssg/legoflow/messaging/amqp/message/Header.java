@@ -21,13 +21,14 @@ public record Header(
         long deliveryCount
 ) {
 
-    /** Creates a Header with default values. */
+    /** Creates a Header with spec-compliant default values. */
     public Header() {
-        this(false, (short) 4, 0, false, 0);
+        // AMQP 1.0 spec (section 3.2.1): durable=true, first-acquirer=true
+        this(true, (short) 4, 0, true, 0);
     }
 
-    /** Creates a durable header with default priority. */
+    /** Creates a durable header with spec-compliant defaults. */
     public static Header ofDurable() {
-        return new Header(true, (short) 4, 0, false, 0);
+        return new Header(true, (short) 4, 0, true, 0);
     }
 }

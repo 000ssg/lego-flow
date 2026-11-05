@@ -1,0 +1,35 @@
+Fetch Response — field processing order (binding; spec 3.6.1) — flexible encoding from v12
+wire order by layout (equal run = byte-identical field layout):
+  v0 -> Responses:(Responses)Topic?:(Responses)Partitions:(Partitions)PartitionIndex:(Partitions)ErrorCode:(Partitions)HighWatermark:(Partitions)Records
+  v1-v3 -> ThrottleTimeMs?:Responses:(Responses)Topic?:(Responses)Partitions:(Partitions)PartitionIndex:(Partitions)ErrorCode:(Partitions)HighWatermark:(Partitions)Records
+  v4 -> ThrottleTimeMs?:Responses:(Responses)Topic?:(Responses)Partitions:(Partitions)PartitionIndex:(Partitions)ErrorCode:(Partitions)HighWatermark:(Partitions)LastStableOffset?:(Partitions)AbortedTransactions?:(AbortedTransactions)ProducerId?:(AbortedTransactions)FirstOffset?:(Partitions)Records
+  v5-v6 -> ThrottleTimeMs?:Responses:(Responses)Topic?:(Responses)Partitions:(Partitions)PartitionIndex:(Partitions)ErrorCode:(Partitions)HighWatermark:(Partitions)LastStableOffset?:(Partitions)LogStartOffset?:(Partitions)AbortedTransactions?:(AbortedTransactions)ProducerId?:(AbortedTransactions)FirstOffset?:(Partitions)Records
+  v7-v10 -> ThrottleTimeMs?:ErrorCode?:SessionId?:Responses:(Responses)Topic?:(Responses)Partitions:(Partitions)PartitionIndex:(Partitions)ErrorCode:(Partitions)HighWatermark:(Partitions)LastStableOffset?:(Partitions)LogStartOffset?:(Partitions)AbortedTransactions?:(AbortedTransactions)ProducerId?:(AbortedTransactions)FirstOffset?:(Partitions)Records
+  v11 -> ThrottleTimeMs?:ErrorCode?:SessionId?:Responses:(Responses)Topic?:(Responses)Partitions:(Partitions)PartitionIndex:(Partitions)ErrorCode:(Partitions)HighWatermark:(Partitions)LastStableOffset?:(Partitions)LogStartOffset?:(Partitions)AbortedTransactions?:(AbortedTransactions)ProducerId?:(AbortedTransactions)FirstOffset?:(Partitions)PreferredReadReplica?:(Partitions)Records
+  v12 -> ThrottleTimeMs?:ErrorCode?:SessionId?:Responses:(Responses)Topic?:(Responses)Partitions:(Partitions)PartitionIndex:(Partitions)ErrorCode:(Partitions)HighWatermark:(Partitions)LastStableOffset?:(Partitions)LogStartOffset?:(Partitions)AbortedTransactions?:(AbortedTransactions)ProducerId?:(AbortedTransactions)FirstOffset?:(Partitions)PreferredReadReplica?:(Partitions)Records:(Partitions)DivergingEpoch[tag0]:(DivergingEpoch)Epoch?:(DivergingEpoch)EndOffset?:(Partitions)CurrentLeader[tag1]:(CurrentLeader)LeaderId?:(CurrentLeader)LeaderEpoch?:(Partitions)SnapshotId[tag2]:(SnapshotId)EndOffset:(SnapshotId)Epoch|flex
+  v13-v15 -> ThrottleTimeMs?:ErrorCode?:SessionId?:Responses:(Responses)TopicId?:(Responses)Partitions:(Partitions)PartitionIndex:(Partitions)ErrorCode:(Partitions)HighWatermark:(Partitions)LastStableOffset?:(Partitions)LogStartOffset?:(Partitions)AbortedTransactions?:(AbortedTransactions)ProducerId?:(AbortedTransactions)FirstOffset?:(Partitions)PreferredReadReplica?:(Partitions)Records:(Partitions)DivergingEpoch[tag0]:(DivergingEpoch)Epoch?:(DivergingEpoch)EndOffset?:(Partitions)CurrentLeader[tag1]:(CurrentLeader)LeaderId?:(CurrentLeader)LeaderEpoch?:(Partitions)SnapshotId[tag2]:(SnapshotId)EndOffset:(SnapshotId)Epoch|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0:
+  v0: fixed: Responses([]FetchableTopicResponse) || tagged: ∅
+  v1-v3:
+  v1: fixed: ThrottleTimeMs(int32), Responses([]FetchableTopicResponse) || tagged: ∅
+  v2: fixed: ThrottleTimeMs(int32), Responses([]FetchableTopicResponse) || tagged: ∅
+  v3: fixed: ThrottleTimeMs(int32), Responses([]FetchableTopicResponse) || tagged: ∅
+  v4:
+  v4: fixed: ThrottleTimeMs(int32), Responses([]FetchableTopicResponse) || tagged: ∅
+  v5-v6:
+  v5: fixed: ThrottleTimeMs(int32), Responses([]FetchableTopicResponse) || tagged: ∅
+  v6: fixed: ThrottleTimeMs(int32), Responses([]FetchableTopicResponse) || tagged: ∅
+  v7-v10:
+  v7: fixed: ThrottleTimeMs(int32), ErrorCode(int16), SessionId(int32), Responses([]FetchableTopicResponse) || tagged: ∅
+  v8: fixed: ThrottleTimeMs(int32), ErrorCode(int16), SessionId(int32), Responses([]FetchableTopicResponse) || tagged: ∅
+  v9: fixed: ThrottleTimeMs(int32), ErrorCode(int16), SessionId(int32), Responses([]FetchableTopicResponse) || tagged: ∅
+  v10: fixed: ThrottleTimeMs(int32), ErrorCode(int16), SessionId(int32), Responses([]FetchableTopicResponse) || tagged: ∅
+  v11:
+  v11: fixed: ThrottleTimeMs(int32), ErrorCode(int16), SessionId(int32), Responses([]FetchableTopicResponse) || tagged: ∅
+  v12:
+  v12: fixed: ThrottleTimeMs(int32) [flex], ErrorCode(int16) [flex], SessionId(int32) [flex], Responses([]FetchableTopicResponse) [flex] || tagged: ∅
+  v13-v15:
+  v13: fixed: ThrottleTimeMs(int32) [flex], ErrorCode(int16) [flex], SessionId(int32) [flex], Responses([]FetchableTopicResponse) [flex] || tagged: ∅
+  v14: fixed: ThrottleTimeMs(int32) [flex], ErrorCode(int16) [flex], SessionId(int32) [flex], Responses([]FetchableTopicResponse) [flex] || tagged: ∅
+  v15: fixed: ThrottleTimeMs(int32) [flex], ErrorCode(int16) [flex], SessionId(int32) [flex], Responses([]FetchableTopicResponse) [flex] || tagged: ∅

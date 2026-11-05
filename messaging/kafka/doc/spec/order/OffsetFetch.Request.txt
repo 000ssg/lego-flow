@@ -1,0 +1,20 @@
+OffsetFetch Request — field processing order (binding; spec 3.6.1) — flexible encoding from v6
+wire order by layout (equal run = byte-identical field layout):
+  v0-v5 -> GroupId?:Topics?:(Topics)Name?:(Topics)PartitionIndexes?
+  v6 -> GroupId?:Topics?:(Topics)Name?:(Topics)PartitionIndexes?|flex
+  v7 -> GroupId?:Topics?:(Topics)Name?:(Topics)PartitionIndexes?:RequireStable?|flex
+  v8 -> Groups?:(Groups)groupId?:(Groups)Topics?:(Topics)Name?:(Topics)PartitionIndexes?:RequireStable?|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0-v5:
+  v0: fixed: GroupId(string), Topics([]OffsetFetchRequestTopic) || tagged: ∅
+  v1: fixed: GroupId(string), Topics([]OffsetFetchRequestTopic) || tagged: ∅
+  v2: fixed: GroupId(string), Topics([]OffsetFetchRequestTopic) || tagged: ∅
+  v3: fixed: GroupId(string), Topics([]OffsetFetchRequestTopic) || tagged: ∅
+  v4: fixed: GroupId(string), Topics([]OffsetFetchRequestTopic) || tagged: ∅
+  v5: fixed: GroupId(string), Topics([]OffsetFetchRequestTopic) || tagged: ∅
+  v6:
+  v6: fixed: GroupId(string) [flex], Topics([]OffsetFetchRequestTopic) [flex] || tagged: ∅
+  v7:
+  v7: fixed: GroupId(string) [flex], Topics([]OffsetFetchRequestTopic) [flex], RequireStable(bool) [flex] || tagged: ∅
+  v8:
+  v8: fixed: Groups([]OffsetFetchRequestGroup) [flex], RequireStable(bool) [flex] || tagged: ∅

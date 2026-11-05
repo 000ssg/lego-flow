@@ -1,0 +1,23 @@
+JoinGroup Request — field processing order (binding; spec 3.6.1) — flexible encoding from v6
+wire order by layout (equal run = byte-identical field layout):
+  v0 -> GroupId:SessionTimeoutMs:MemberId:ProtocolType:Protocols:(Protocols)Name:(Protocols)Metadata
+  v1-v4 -> GroupId:SessionTimeoutMs:RebalanceTimeoutMs?:MemberId:ProtocolType:Protocols:(Protocols)Name:(Protocols)Metadata
+  v5 -> GroupId:SessionTimeoutMs:RebalanceTimeoutMs?:MemberId:GroupInstanceId?:ProtocolType:Protocols:(Protocols)Name:(Protocols)Metadata
+  v6-v7 -> GroupId:SessionTimeoutMs:RebalanceTimeoutMs?:MemberId:GroupInstanceId?:ProtocolType:Protocols:(Protocols)Name:(Protocols)Metadata|flex
+  v8-v9 -> GroupId:SessionTimeoutMs:RebalanceTimeoutMs?:MemberId:GroupInstanceId?:ProtocolType:Protocols:(Protocols)Name:(Protocols)Metadata:Reason?|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0:
+  v0: fixed: GroupId(string), SessionTimeoutMs(int32), MemberId(string), ProtocolType(string), Protocols([]JoinGroupRequestProtocol) || tagged: ∅
+  v1-v4:
+  v1: fixed: GroupId(string), SessionTimeoutMs(int32), RebalanceTimeoutMs(int32), MemberId(string), ProtocolType(string), Protocols([]JoinGroupRequestProtocol) || tagged: ∅
+  v2: fixed: GroupId(string), SessionTimeoutMs(int32), RebalanceTimeoutMs(int32), MemberId(string), ProtocolType(string), Protocols([]JoinGroupRequestProtocol) || tagged: ∅
+  v3: fixed: GroupId(string), SessionTimeoutMs(int32), RebalanceTimeoutMs(int32), MemberId(string), ProtocolType(string), Protocols([]JoinGroupRequestProtocol) || tagged: ∅
+  v4: fixed: GroupId(string), SessionTimeoutMs(int32), RebalanceTimeoutMs(int32), MemberId(string), ProtocolType(string), Protocols([]JoinGroupRequestProtocol) || tagged: ∅
+  v5:
+  v5: fixed: GroupId(string), SessionTimeoutMs(int32), RebalanceTimeoutMs(int32), MemberId(string), GroupInstanceId(string), ProtocolType(string), Protocols([]JoinGroupRequestProtocol) || tagged: ∅
+  v6-v7:
+  v6: fixed: GroupId(string) [flex], SessionTimeoutMs(int32) [flex], RebalanceTimeoutMs(int32) [flex], MemberId(string) [flex], GroupInstanceId(string) [flex], ProtocolType(string) [flex], Protocols([]JoinGroupRequestProtocol) [flex] || tagged: ∅
+  v7: fixed: GroupId(string) [flex], SessionTimeoutMs(int32) [flex], RebalanceTimeoutMs(int32) [flex], MemberId(string) [flex], GroupInstanceId(string) [flex], ProtocolType(string) [flex], Protocols([]JoinGroupRequestProtocol) [flex] || tagged: ∅
+  v8-v9:
+  v8: fixed: GroupId(string) [flex], SessionTimeoutMs(int32) [flex], RebalanceTimeoutMs(int32) [flex], MemberId(string) [flex], GroupInstanceId(string) [flex], ProtocolType(string) [flex], Protocols([]JoinGroupRequestProtocol) [flex], Reason(string) [flex] || tagged: ∅
+  v9: fixed: GroupId(string) [flex], SessionTimeoutMs(int32) [flex], RebalanceTimeoutMs(int32) [flex], MemberId(string) [flex], GroupInstanceId(string) [flex], ProtocolType(string) [flex], Protocols([]JoinGroupRequestProtocol) [flex], Reason(string) [flex] || tagged: ∅

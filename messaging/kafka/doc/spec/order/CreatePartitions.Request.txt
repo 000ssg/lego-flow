@@ -1,0 +1,11 @@
+CreatePartitions Request — field processing order (binding; spec 3.6.1) — flexible encoding from v2
+wire order by layout (equal run = byte-identical field layout):
+  v0-v1 -> Topics:(Topics)Name:(Topics)Count:(Topics)Assignments?:(Assignments)BrokerIds:TimeoutMs:ValidateOnly
+  v2-v3 -> Topics:(Topics)Name:(Topics)Count:(Topics)Assignments?:(Assignments)BrokerIds:TimeoutMs:ValidateOnly|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0-v1:
+  v0: fixed: Topics([]CreatePartitionsTopic), TimeoutMs(int32), ValidateOnly(bool) || tagged: ∅
+  v1: fixed: Topics([]CreatePartitionsTopic), TimeoutMs(int32), ValidateOnly(bool) || tagged: ∅
+  v2-v3:
+  v2: fixed: Topics([]CreatePartitionsTopic) [flex], TimeoutMs(int32), ValidateOnly(bool) || tagged: ∅
+  v3: fixed: Topics([]CreatePartitionsTopic) [flex], TimeoutMs(int32), ValidateOnly(bool) || tagged: ∅

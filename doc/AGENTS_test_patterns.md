@@ -212,6 +212,71 @@ Thread.sleep(100);
 latch.await(5, TimeUnit.SECONDS);
 ```
 
+## 13. PipelineByteTransport: Enqueue-Only Send Rule
+
+**Critical**: `PipelineByteTransport.send()` must NEVER write directly to the underlying `DataChannel`. The channel is owned by the `SelectableChannelManager`'s selector thread. Concurrent writes from the calling thread race with the selector's read/write, causing silent message loss.
+
+### Anti-Pattern ❌: Immediate channel write
+```java
+// UNSAFE — races with selector thread
+public void send(ByteBuffer data) {
+    channel.write(data); // DON'T DO THIS
+}
+```
+
+### Correct Pattern ✅: Enqueue + selector-driven write
+```java
+public void send(ByteBuffer data) {
+    // 1. Consume caller's buffer (advance position to limit)
+    int pos = data.position();
+    int lim = data.limit();
+    var dup = data.duplicate();
+    dup.position(pos);
+    dup.limit(lim);
+    // 2. Enqueue for selector thread
+    outboundQueue.offer(dup);
+    // 3. Drain caller's buffer
+    data.position(lim);
+    registerOps();
+}
+```
+
+### Test Implications
+- Unit tests must call `onWrite()` to trigger actual channel writes
+- Integration tests must wait for outbound queue drain before assuming data is on the wire
+- Never assert `channel.written()` immediately after `send()` — it will be empty
+
+### Reference
+- `PipelineByteTransport.send()` — canonical implementation
+- `KafkaTransportTest.testPipelineSendEnqueues` — correct enqueue-only test pattern
+
+## 14. send(ByteBuffer) Contract: Must Consume Caller's Buffer
+
+`ByteTransport.send(ByteBuffer)` must advance the caller's buffer position to limit. This is the standard Java I/O contract (mirroring `OutputStream.write()` and `SocketChannel.write()`).
+
+### Anti-Pattern ❌: Duplicate without consuming
+```java
+public void send(ByteBuffer data) {
+    outboundQueue.offer(data.duplicate()); // BUG: caller's position unchanged
+}
+```
+
+### Correct Pattern ✅: Duplicate + consume
+```java
+public void send(ByteBuffer data) {
+    int pos = data.position();
+    int lim = data.limit();
+    var dup = data.duplicate();
+    dup.position(pos);
+    dup.limit(lim);
+    outboundQueue.offer(dup);
+    data.position(lim); // CONSUME
+}
+```
+
+### Why This Matters
+Without consuming the caller's buffer, repeated sends in a loop will enqueue the same data indefinitely. This caused silent protocol corruption in earlier implementations.
+
 ---
 
 ## Timeout Guidelines

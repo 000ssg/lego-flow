@@ -1,0 +1,19 @@
+DescribeGroups Response — field processing order (binding; spec 3.6.1) — flexible encoding from v5
+wire order by layout (equal run = byte-identical field layout):
+  v0 -> Groups
+  v1-v2 -> ThrottleTimeMs:Groups
+  v3 -> ThrottleTimeMs:Groups:Groups[*].AuthorizedOperations
+  v4 -> ThrottleTimeMs:Groups:Groups[*].Members:Groups[*].Members[*].GroupInstanceId:Groups[*].AuthorizedOperations
+  v5 -> ThrottleTimeMs:Groups:Groups[*].Members:Groups[*].Members[*].GroupInstanceId:Groups[*].AuthorizedOperations|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0:
+  v0: fixed: Groups[]DescribedGroup { ErrorCode(int16), GroupId(string), GroupState(string), ProtocolType(string), ProtocolData(string), Members[]DescribedGroupMember { MemberId(string), ClientId(string), ClientHost(string), MemberMetadata(bytes), MemberAssignment(bytes) } } || tagged: ∅
+  v1-v2:
+  v1: fixed: ThrottleTimeMs(int32), Groups[]DescribedGroup { ErrorCode(int16), GroupId(string), GroupState(string), ProtocolType(string), ProtocolData(string), Members[]DescribedGroupMember { MemberId(string), ClientId(string), ClientHost(string), MemberMetadata(bytes), MemberAssignment(bytes) } } || tagged: ∅
+  v2: fixed: ThrottleTimeMs(int32), Groups[]DescribedGroup { ErrorCode(int16), GroupId(string), GroupState(string), ProtocolType(string), ProtocolData(string), Members[]DescribedGroupMember { MemberId(string), ClientId(string), ClientHost(string), MemberMetadata(bytes), MemberAssignment(bytes) } } || tagged: ∅
+  v3:
+  v3: fixed: ThrottleTimeMs(int32), Groups[]DescribedGroup { ErrorCode(int16), GroupId(string), GroupState(string), ProtocolType(string), ProtocolData(string), Members[]DescribedGroupMember { MemberId(string), ClientId(string), ClientHost(string), MemberMetadata(bytes), MemberAssignment(bytes) }, AuthorizedOperations(int32) } || tagged: ∅
+  v4:
+  v4: fixed: ThrottleTimeMs(int32), Groups[]DescribedGroup { ErrorCode(int16), GroupId(string), GroupState(string), ProtocolType(string), ProtocolData(string), Members[]DescribedGroupMember { MemberId(string), GroupInstanceId(string), ClientId(string), ClientHost(string), MemberMetadata(bytes), MemberAssignment(bytes) }, AuthorizedOperations(int32) } || tagged: ∅
+  v5:
+  v5: fixed: ThrottleTimeMs(int32), Groups[]DescribedGroup { ErrorCode(int16), GroupId(string) [flex], GroupState(string) [flex], ProtocolType(string) [flex], ProtocolData(string) [flex], Members[]DescribedGroupMember { MemberId(string) [flex], GroupInstanceId(string) [flex], ClientId(string) [flex], ClientHost(string) [flex], MemberMetadata(bytes) [flex], MemberAssignment(bytes) [flex] }, AuthorizedOperations(int32) } || tagged: ∅ (per-member + per-group + top-level)

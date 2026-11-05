@@ -1,0 +1,16 @@
+FindCoordinator Response — field processing order (binding; spec 3.6.1) — flexible encoding from v3
+wire order by layout (equal run = byte-identical field layout):
+  v0 -> ErrorCode?:NodeId?:Host?:Port?
+  v1-v2 -> ThrottleTimeMs?:ErrorCode?:ErrorMessage?:NodeId?:Host?:Port?
+  v3 -> ThrottleTimeMs?:ErrorCode?:ErrorMessage?:NodeId?:Host?:Port?|flex
+  v4 -> ThrottleTimeMs?:Coordinators?:(Coordinators)Key?:(Coordinators)NodeId?:(Coordinators)Host?:(Coordinators)Port?:(Coordinators)ErrorCode?:(Coordinators)ErrorMessage?|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0:
+  v0: fixed: ErrorCode(int16), NodeId(int32), Host(string), Port(int32) || tagged: ∅
+  v1-v2:
+  v1: fixed: ThrottleTimeMs(int32), ErrorCode(int16), ErrorMessage(string), NodeId(int32), Host(string), Port(int32) || tagged: ∅
+  v2: fixed: ThrottleTimeMs(int32), ErrorCode(int16), ErrorMessage(string), NodeId(int32), Host(string), Port(int32) || tagged: ∅
+  v3:
+  v3: fixed: ThrottleTimeMs(int32) [flex], ErrorCode(int16) [flex], ErrorMessage(string) [flex], NodeId(int32) [flex], Host(string) [flex], Port(int32) [flex] || tagged: ∅
+  v4:
+  v4: fixed: ThrottleTimeMs(int32) [flex], Coordinators([]Coordinator) [flex] || tagged: ∅

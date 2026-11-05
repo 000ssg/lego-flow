@@ -17,7 +17,7 @@ class JetStreamManagerTest {
     @BeforeEach
     void setUp() throws IOException {
         server = new NatsServer();
-        server.start(0);
+        server.start();
         jsm = server.jetStreamManager();
     }
 

@@ -58,7 +58,8 @@ public interface AmqpEventListener {
     }
 
     /**
-     * Convenience: creates a listener that fires a CountDownLatch on the first event.
+     * Creates a listener that fires a CountDownLatch on the first event.
+     * Use for single-connection tests.
      */
     static AmqpEventListener latchOnFirst(java.util.concurrent.CountDownLatch latch, EventType event) {
         return (e, connId, detail) -> {

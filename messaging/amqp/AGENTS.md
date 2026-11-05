@@ -95,7 +95,7 @@ The container's `handleConnection(AmqpTransport)` method is public, allowing dir
 
 ### AMQP-Specific Testing
 
-**`AmqpEventListener`** — fires at `CONNECTION_STARTED`, `CONNECTION_OPENED`, `SESSION_CREATED`, `LINK_ATTACHED`. Use `AmqpEventListener.latchOnFirst(EventType)` to synchronize tests with server-side protocol progress without `Thread.sleep`. (This is the generic protocol flow listener pattern — see [doc/AGENTS_protocol_accuracy.md](../doc/AGENTS_protocol_accuracy.md) §11.)
+**`AmqpEventListener`** — fires at `CONNECTION_STARTED`, `CONNECTION_OPENED`, `SESSION_CREATED`, `LINK_ATTACHED`. Use `AmqpEventListener.latchOnFirst(EventType)` for single-connection tests, `latchOnConnection(latch, event, connectionId)` when the ID is known, or `latchOnConnections(latchMap, event)` for multi-connection tests with a map of IDs. (See [doc/AGENTS_protocol_accuracy.md](../doc/AGENTS_protocol_accuracy.md) §11 for full pattern.)
 
 **In-memory transport** — `InMemoryTransport.createPair()` creates two linked transports. Use `AmqpContainer.handleConnection(transport)` to inject the server side. For in-process tests requiring two threads, run the server on a **platform thread** (`Thread.ofPlatform().start()`) to avoid carrier thread starvation on CI. (See [doc/AGENTS_test_patterns.md](../doc/AGENTS_test_patterns.md) §8-9.)
 
@@ -103,3 +103,23 @@ The container's `handleConnection(AmqpTransport)` method is public, allowing dir
 
 > **General test patterns**: See [../doc/AGENTS_test_patterns.md](../doc/AGENTS_test_patterns.md)
 > **Protocol accuracy rules**: See [../doc/AGENTS_protocol_accuracy.md](../doc/AGENTS_protocol_accuracy.md)
+
+### AMQP Service Integration Tests
+
+The `AmqpServiceIntegrationTest` (TCP-based client ↔ container) exercises the full pipeline: `SocketChannel → SelectableChannelManager → DataChannel → ChannelPipeline → PipelineTransport → AMQP protocol layer`.
+
+**Critical pattern**: Always set the `AmqpEventListener` on the server **before** calling `client.connect()`. The `CONNECTION_OPENED` event fires during the handshake, and if the listener is not yet registered, the event is missed and the test times out.
+
+```java
+// ✅ CORRECT: listener before connect
+CountDownLatch openLatch = new CountDownLatch(1);
+server.setListener(AmqpEventListener.latchOnFirst(openLatch, AmqpEventListener.EventType.CONNECTION_OPENED));
+var client = AmqpClientService.builder("localhost", port).timeout(Duration.ofSeconds(10)).build();
+client.connect(ctx);
+assertThat(openLatch.await(10, TimeUnit.SECONDS)).isTrue();
+
+// ❌ BROKEN: connect before listener — event missed
+var client = AmqpClientService.builder("localhost", port).timeout(Duration.ofSeconds(10)).build();
+client.connect(ctx);
+server.setListener(AmqpEventListener.latchOnFirst(openLatch, ...)); // TOO LATE
+```

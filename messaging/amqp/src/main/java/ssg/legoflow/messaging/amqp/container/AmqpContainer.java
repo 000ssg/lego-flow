@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
+import ssg.legoflow.service.channel.ByteTransport;
 import java.util.function.BiConsumer;
 
 /**
@@ -30,8 +31,8 @@ import java.util.function.BiConsumer;
  *
  * <p>Acts as a broker: handles connections, sessions, and links.
  *
- * <p><b>Transport-agnostic:</b> this class accepts {@link AmqpTransport} instances
- * via {@link #handleConnection(AmqpTransport)}. TCP server infrastructure belongs
+ * <p><b>Transport-agnostic:</b> this class accepts {@link ByteTransport} instances
+ * via {@link #handleConnection(ByteTransport)}. TCP server infrastructure belongs
  * in the service layer.
  *
  * @since 0.1.0
@@ -61,6 +62,18 @@ public final class AmqpContainer implements AutoCloseable {
         this.config = Objects.requireNonNull(config);
         this.authenticator = config.authenticator() != null ? config.authenticator() : new SaslAuthenticator();
     }
+
+    /** Returns the container configuration. */
+    public ContainerConfig getContainerConfig() { return config; }
+
+    /** Returns the SASL authenticator. */
+    public SaslAuthenticator getSaslAuthenticator() { return authenticator; }
+
+    /** Returns the message handler. */
+    public BiConsumer<ConnectionContext, IncomingMessage> getMessageHandler() { return messageHandler; }
+
+    /** Returns the event listener. */
+    public AmqpEventListener getListener() { return listener; }
 
     /**
      * Sets the application message handler for unsettled transfers.
@@ -127,7 +140,7 @@ public final class AmqpContainer implements AutoCloseable {
 
     /**
      * Starts the container. The service layer is responsible for calling
-     * {@link #handleConnection(AmqpTransport)} for each accepted client connection.
+     * {@link #handleConnection(ByteTransport)} for each accepted client connection.
      */
     public void start() {
         if (!running.compareAndSet(false, true)) return;
@@ -180,13 +193,14 @@ public final class AmqpContainer implements AutoCloseable {
      *
      * @param transport the transport for this connection (already open)
      */
-    public void handleConnection(AmqpTransport transport) {
+    public void handleConnection(ByteTransport transport) {
         String connId = UUID.randomUUID().toString().substring(0, 8);
         var ctx = new ConnectionContext(connId, transport);
         connections.put(connId, ctx);
-        LOG.debug("New connection: {}", connId);
+        LOG.info("Connection {} — accepted, submitting to executor", connId);
 
         executor.submit(() -> handleConnectionInternal(ctx));
+        LOG.info("Connection {} — submitted to executor", connId);
     }
 
     /**
@@ -196,7 +210,7 @@ public final class AmqpContainer implements AutoCloseable {
      *
      * @param transport the transport for this connection (already open)
      */
-    public void handleConnectionSync(AmqpTransport transport) {
+    public void handleConnectionSync(ByteTransport transport) {
         String connId = UUID.randomUUID().toString().substring(0, 8);
         var ctx = new ConnectionContext(connId, transport);
         connections.put(connId, ctx);
@@ -207,40 +221,128 @@ public final class AmqpContainer implements AutoCloseable {
 
     /** Shared protocol loop — called from executor or directly. */
     private void handleConnectionInternal(ConnectionContext ctx) {
+        System.out.println("[SERVER-" + ctx.id + "] handleConnectionInternal START");
         listener.onEvent(AmqpEventListener.EventType.CONNECTION_STARTED, ctx.id, null);
+        System.out.println("[SERVER-" + ctx.id + "] CONNECTION_STARTED event fired");
         try {
             runProtocol(ctx);
-        } catch (Exception e) {
-            LOG.debug("Connection {} error: {}", ctx.id, e.getMessage());
+            System.out.println("[SERVER-" + ctx.id + "] protocol handshake complete");
+        } catch (IllegalStateException e) {
+            // Expected during teardown when client closes connection
+            if (!e.getMessage().contains("Transport closed")) {
+                System.out.println("[SERVER-" + ctx.id + "] protocol error: " + e.getMessage());
+            }
         } finally {
             listener.onEvent(AmqpEventListener.EventType.CONNECTION_CLOSING, ctx.id, null);
             cleanupConnection(ctx);
             connections.remove(ctx.id);
             ctx.transport.close();
+            System.out.println("[SERVER-" + ctx.id + "] handleConnectionInternal END");
         }
+    }
+
+    /**
+     * Handles a new client connection with event-driven data processing.
+     * The service layer calls this for each accepted transport — the protocol
+     * processes data incrementally as it arrives via the callback, without
+     * blocking on reads.
+     *
+     * <p>The callback is invoked from the selector thread whenever data arrives.
+     * The callback should be non-blocking and thread-safe.
+     *
+     * @param transport the transport for this connection (already open)
+     * @param onData callback invoked with incoming data
+     */
+    public void handleConnectionWithCallback(ByteTransport transport, java.util.function.Consumer<ByteBuffer> onData) {
+        String connId = UUID.randomUUID().toString().substring(0, 8);
+        var ctx = new ConnectionContext(connId, transport);
+        connections.put(connId, ctx);
+        LOG.info("Connection {} — accepted, event-driven", connId);
+
+        // Set up event-driven mode
+        if (transport instanceof ssg.legoflow.messaging.amqp.transport.PipelineTransport pipelineTransport) {
+            pipelineTransport.onReadWithCallback(data -> {
+                try {
+                    onData.accept(data);
+                } catch (Exception e) {
+                    LOG.error("Error in event-driven handler for connection {}", connId, e);
+                    transport.close();
+                }
+            });
+        }
+
+        // Fire connection started event
+        try {
+            listener.onEvent(AmqpEventListener.EventType.CONNECTION_STARTED, connId, null);
+        } catch (Exception e) {
+            LOG.warn("Failed to fire CONNECTION_STARTED event", e);
+        }
+
+        // Submit to executor for async cleanup
+        executor.submit(() -> {
+            try {
+                // Wait for connection to close
+                while (transport.isOpen()) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+            } finally {
+                try {
+                    listener.onEvent(AmqpEventListener.EventType.CONNECTION_CLOSING, connId, null);
+                } catch (Exception ignored) {}
+                cleanupConnection(ctx);
+                connections.remove(connId);
+                transport.close();
+            }
+        });
     }
 
     /** Executes the full protocol handshake and frame loop. Extracted for sync/async dispatch. */
     private void runProtocol(ConnectionContext ctx) {
-        byte[] firstHeader = readHeader(ctx.transport);
+        long startNs = System.nanoTime();
+        System.out.println("[SERVER-" + ctx.id + "] START protocol at " + startNs);
+        Optional<byte[]> firstHeaderOpt = readHeader(ctx.transport);
+        if (firstHeaderOpt.isEmpty()) {
+            throw new IllegalStateException("Transport closed before header");
+        }
+        byte[] firstHeader = firstHeaderOpt.get();
+        long readNs = System.nanoTime();
+        System.out.println("[SERVER-" + ctx.id + "] READ header: " + Arrays.toString(firstHeader) + " at " + readNs + " (delta=" + (readNs - startNs) + "ns)");
 
         if (Arrays.equals(firstHeader, AmqpConstants.SASL_HEADER)) {
-            LOG.debug("Connection {} — SASL-first protocol", ctx.id);
+            System.out.println("[SERVER-" + ctx.id + "] SASL-FIRST, echoing SASL_HEADER");
             ctx.transport.send(ByteBuffer.wrap(AmqpConstants.SASL_HEADER));
+            long sendSaslNs = System.nanoTime();
+            System.out.println("[SERVER-" + ctx.id + "] SENT SASL_HEADER at " + sendSaslNs + " (delta=" + (sendSaslNs - readNs) + "ns)");
             doSaslExchange(ctx, ctx.transport);
-            byte[] amqpHeader = readHeader(ctx.transport);
-            if (!Arrays.equals(amqpHeader, AmqpConstants.AMQP_HEADER)) {
-                throw new IllegalStateException("Expected AMQP header after SASL");
+            long saslDoneNs = System.nanoTime();
+            System.out.println("[SERVER-" + ctx.id + "] SASL DONE at " + saslDoneNs + " (delta=" + (saslDoneNs - sendSaslNs) + "ns)");
+            Optional<byte[]> amqpHeaderOpt = readHeader(ctx.transport);
+            if (amqpHeaderOpt.isEmpty()) {
+                throw new IllegalStateException("Transport closed before AMQP header");
             }
+            byte[] amqpHeader = amqpHeaderOpt.get();
+            long readAmqpNs = System.nanoTime();
+            System.out.println("[SERVER-" + ctx.id + "] READ AMQP header: " + Arrays.toString(amqpHeader) + " at " + readAmqpNs + " (delta=" + (readAmqpNs - saslDoneNs) + "ns)");
+            if (!Arrays.equals(amqpHeader, AmqpConstants.AMQP_HEADER)) {
+                throw new IllegalStateException("Expected AMQP header after SASL: " + Arrays.toString(amqpHeader));
+            }
+            System.out.println("[SERVER-" + ctx.id + "] Echoing AMQP_HEADER");
             ctx.transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
+            long sendAmqpNs = System.nanoTime();
+            System.out.println("[SERVER-" + ctx.id + "] SENT AMQP_HEADER at " + sendAmqpNs + " (delta=" + (sendAmqpNs - readAmqpNs) + "ns)");
             ctx.state = ConnectionState.HDR_EXCH;
             handleConnectionLifecycle(ctx, true);
         } else if (Arrays.equals(firstHeader, AmqpConstants.AMQP_HEADER)) {
             if (!config.proto0Accepted()) {
-                LOG.debug("Connection {} — proto-0 rejected (mode={})", ctx.id, config.mode());
+                System.out.println("[SERVER-" + ctx.id + "] proto-0 rejected");
                 throw new IllegalStateException("Protocol header exchange not supported in this mode");
             }
-            LOG.debug("Connection {} — proto-0 protocol", ctx.id);
+            System.out.println("[SERVER-" + ctx.id + "] proto-0 protocol");
             ctx.transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
             ctx.state = ConnectionState.HDR_EXCH;
             handleConnectionLifecycle(ctx, false);
@@ -249,14 +351,16 @@ public final class AmqpContainer implements AutoCloseable {
         }
     }
 
-    /** Reads an 8-byte protocol header. */
-    private byte[] readHeader(AmqpTransport transport) {
+    /** Reads an 8-byte protocol header. Returns empty if transport closes or times out. */
+    private Optional<byte[]> readHeader(ByteTransport transport) {
         ByteBuffer buf = ByteBuffer.allocate(8);
-        readFully(transport, buf);
+        if (!readWithTimeout(transport, buf, 5, TimeUnit.SECONDS)) {
+            return Optional.empty();
+        }
         buf.flip();
         byte[] header = new byte[8];
         buf.get(header);
-        return header;
+        return Optional.of(header);
     }
 
     private static String bytesHex(byte[] b) {
@@ -266,7 +370,7 @@ public final class AmqpContainer implements AutoCloseable {
     }
 
     /** Performs SASL negotiation: send mechanisms → read init → send outcome. */
-    private void doSaslExchange(ConnectionContext ctx, AmqpTransport transport) {
+    private void doSaslExchange(ConnectionContext ctx, ByteTransport transport) {
         // Send SASL mechanisms frame
         var mechanisms = SaslCodec.encodeMechanisms(authenticator.mechanisms());
         var mechFrame = new AmqpFrame(0, AmqpConstants.FRAME_TYPE_SASL, mechanisms);
@@ -346,7 +450,7 @@ public final class AmqpContainer implements AutoCloseable {
         // Main frame loop
         while (ctx.transport.isOpen() && ctx.state == ConnectionState.OPENED) {
             AmqpFrame frame = readFrame(ctx);
-            if (frame == null) break;
+            if (frame == null) break; // timeout or closed
             if (frame.isHeartbeat()) continue;
 
             ctx.lastActivity.set(System.currentTimeMillis());
@@ -636,7 +740,9 @@ public final class AmqpContainer implements AutoCloseable {
 
     private AmqpFrame readFrame(ConnectionContext ctx) {
         ByteBuffer sizeBuf = ByteBuffer.allocate(4);
-        readFully(ctx.transport, sizeBuf);
+        if (!readWithTimeout(ctx.transport, sizeBuf, 5, TimeUnit.SECONDS)) {
+            return null;
+        }
         sizeBuf.flip();
         int size = sizeBuf.getInt();
 
@@ -647,7 +753,9 @@ public final class AmqpContainer implements AutoCloseable {
         ByteBuffer frameBuf = ByteBuffer.allocate(size);
         frameBuf.putInt(size);
         ByteBuffer remaining = ByteBuffer.allocate(size - 4);
-        readFully(ctx.transport, remaining);
+        if (!readWithTimeout(ctx.transport, remaining, 5, TimeUnit.SECONDS)) {
+            return null;
+        }
         remaining.flip();
         frameBuf.put(remaining);
         frameBuf.flip();
@@ -655,7 +763,26 @@ public final class AmqpContainer implements AutoCloseable {
         return FrameCodec.decode(frameBuf);
     }
 
-    private void readFully(AmqpTransport transport, ByteBuffer buf) {
+    private boolean readWithTimeout(ByteTransport transport, ByteBuffer buf, long timeout, TimeUnit unit) {
+        long deadline = System.currentTimeMillis() + unit.toMillis(timeout);
+        while (buf.hasRemaining()) {
+            int n = transport.receive(buf);
+            if (n < 0) {
+                return false;
+            }
+            if (System.currentTimeMillis() >= deadline) {
+                return !buf.hasRemaining();
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @deprecated Use {@link #readWithTimeout(ByteTransport, ByteBuffer, long, TimeUnit)} instead.
+     * Blocking reads are being phased out in favor of non-blocking with timeout.
+     */
+    @Deprecated
+    private void readFully(ByteTransport transport, ByteBuffer buf) {
         while (buf.hasRemaining()) {
             int n = transport.receive(buf);
             if (n < 0) {
@@ -692,7 +819,7 @@ public final class AmqpContainer implements AutoCloseable {
     /** Internal connection context. */
     public static final class ConnectionContext {
         final String id;
-        final AmqpTransport transport;
+        final ByteTransport transport;
         final AtomicLong lastActivity = new AtomicLong(System.currentTimeMillis());
         volatile ConnectionState state = ConnectionState.START;
         volatile String remoteContainerId;
@@ -703,7 +830,7 @@ public final class AmqpContainer implements AutoCloseable {
         final Map<Integer, Integer> remoteToLocalChannel = new ConcurrentHashMap<>();
         final List<IncomingMessage> pendingMessages = Collections.synchronizedList(new ArrayList<>());
 
-        ConnectionContext(String id, AmqpTransport transport) {
+        ConnectionContext(String id, ByteTransport transport) {
             this.id = id;
             this.transport = transport;
         }

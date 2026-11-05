@@ -1,0 +1,21 @@
+# Reference router for the `interop-wamp` group ONLY
+# (WAMP composite tests — see doc/ci-groups.md).
+# Per-group compose files: each interop group owns exactly the services it
+# needs; no service appears in more than one group file.
+# The `default` realm is open; the interop client connects via
+# ws://localhost:8081/ws (host 8081 — avoids nginx's 8080).
+# Usage:     docker compose -f docker-compose.wamp.yml up -d
+# Verify:    docker compose -f docker-compose.wamp.yml ps
+# Teardown:  docker compose -f docker-compose.wamp.yml down
+
+services:
+  crossbar:
+    image: crossbario/crossbar:latest
+    container_name: wamp-router-test
+    ports:
+      - "8081:8080"    # WAMP WebSocket endpoint
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 2 bash -c '</dev/tcp/localhost/8080' || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12

@@ -1,0 +1,6 @@
+ListPartitionReassignments Response — field processing order (binding; spec 3.6.1) — flexible encoding from v0
+wire order by layout (equal run = byte-identical field layout):
+  v0 -> ThrottleTimeMs:ErrorCode:ErrorMessage:Topics:(Topics)Name:(Topics)Partitions:(Topics)Partitions:(Topics)Partitions.PartitionIndex:(Topics)Partitions.Replicas:(Topics)Partitions.AddingReplicas:(Topics)Partitions.RemovingReplicas|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0:
+  v0: fixed: ThrottleTimeMs(int32) [flex], ErrorCode(int16) [flex], ErrorMessage(string, nullable) [flex], Topics([]OngoingTopicReassignment) [flex: Name(string, topicName) [flex], Partitions([]OngoingPartitionReassignment) [flex: PartitionIndex(int32) [flex], Replicas([]int32, brokerId) [flex], AddingReplicas([]int32, brokerId) [flex], RemovingReplicas([]int32, brokerId) [flex]]] || tagged: ∅

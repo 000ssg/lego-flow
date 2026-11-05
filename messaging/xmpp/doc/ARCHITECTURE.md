@@ -18,11 +18,53 @@ graph TD
     L4["Stream Management (XEP-0198)<br/>(stanza counting, ack requests, session resumption)"]
     L5["SASL Authentication + TLS<br/>(PLAIN, SCRAM-SHA-1/256, STARTTLS, stream restart)"]
     L6["XML Stream<br/>(stream:stream, feature negotiation,<br/>stanza framing, incremental XML parsing)"]
-    L7["service module (TCP)<br/>(SelectableChannelManager, virtual threads)"]
+    L7["XmppTransport SPI<br/>(InMemoryXmppTransport for tests/demos,<br/>PipelineXmppTransport for production)"]
+    L75["service module<br/>(SelectableChannelManager, virtual threads)"]
     L8["blocks module<br/>(DP&lt;I,O&gt;, DF&lt;T&gt;, Context, State, Statistics)"]
 
-    L1 --> L2 --> L3 --> L4 --> L5 --> L6 --> L7 --> L8
+    L1 --> L2 --> L3 --> L4 --> L5 --> L6 --> L7 --> L75 --> L8
 ```
+
+## Headless Core / Transport SPI
+
+The protocol core is **socket-free**: `XmppClient` and `XmppServer` contain no `SocketChannel`/`Selector` usage. All I/O flows through the `XmppTransport` byte-level SPI, which the core owns and the service layer implements.
+
+```mermaid
+graph LR
+    subgraph Core["Protocol core (socket-free)"]
+        C[XmppClient]
+        S[XmppServer]
+        CO[XmppCodec]
+    end
+    subgraph SPI["XmppTransport SPI"]
+        T[XmppTransport]
+    end
+    subgraph Impl["Implementations"]
+        IM[InMemoryXmppTransport<br/>tests + demos]
+        PL[PipelineXmppTransport<br/>production]
+    end
+    subgraph SL["Service layer (only owner of real channels)"]
+        SS[XmppServerService]
+        CS[XmppClientService]
+        M[SelectableChannelManager]
+    end
+
+    C --> T
+    S --> T
+    T --> IM
+    T --> PL
+    SS --> PL
+    CS --> PL
+    SS --> M
+    CS --> M
+    SS -. "handleConnection(transport)" .-> S
+```
+
+- **Client**: `new XmppClient(transport)` wires the protocol to an injected transport; a virtual-thread read loop feeds `transport.onRead` bytes into the codec and the stream, and outbound stream/stanza bytes are flushed through the transport after every send. The legacy no-arg `XmppClient` keeps the in-memory buffer for backward compatibility.
+- **Server**: `XmppServer.handleConnection(XmppTransport)` accepts a per-connection transport and drives a non-blocking read loop (virtual thread) that decodes stanzas and broadcasts them to registered handlers; it never opens a socket itself.
+- **InMemoryXmppTransport**: paired in-memory queues with `onRead`/`onWrite` callbacks — used by unit tests and the demo suite (no TCP, fully deterministic).
+- **PipelineXmppTransport**: backed by a `DataChannel`; the `SelectableChannelManager` selector thread calls `onRead`/`onWrite` with `ByteBuffer`s — used by the service layer for production TCP.
+- **Why**: the same pattern applied in the NATS and MQTT modules — protocol logic is testable without a socket, and only the service layer touches non-blocking channels.
 
 ## XML Stream Lifecycle
 
@@ -191,9 +233,9 @@ graph LR
 | Lego Flow Module | Usage in XMPP |
 |------------------|---------------|
 | `blocks` | DP<I,O> for stanza processing pipeline, DF<T> for stanza filtering, Statistics for metrics |
-| `service` | TCP channels for client/server connections, virtual thread pools, lifecycle management |
+| `service` | `SelectableChannelManager` channels for the service layer (XmppClientService/XmppServerService); virtual threads for read loops |
 
-The XMPP module follows the framework's dual API convention: XmppClient and all feature managers (roster, presence, MUC, pubsub, IoT) expose both sync and async (CompletableFuture) variants, with functional-style builders for configuration and stanza handling.
+The XMPP module follows the framework's dual API convention: XmppClient and all feature managers (roster, presence, MUC, pubsub, IoT) expose both sync and async (CompletableFuture) variants, with functional-style builders for configuration and stanza handling. The service layer (`XmppClientService`, `XmppServerService`) is the only code in the module that owns real channels; the protocol core (`XmppClient`, `XmppServer`, `XmppCodec`, `XmppStream`) is socket-free and reads/writes exclusively through the `XmppTransport` SPI.
 
 ---
 

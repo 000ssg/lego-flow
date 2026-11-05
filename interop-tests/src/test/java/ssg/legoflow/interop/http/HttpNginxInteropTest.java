@@ -8,10 +8,12 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.net.Socket;
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Disabled;
 /**
  * Interoperability test: Lego Flow HTTP client ↔ real nginx server.
  */
-@Tag("web-protocols")
+@Tag("interop-rest")
+@Disabled("Requires external nginx: docker compose -f interop-tests/docker-compose.core.yml up -d nginx")
 class HttpNginxInteropTest {
 
     private final String nginxHost = System.getProperty("interop.nginx.host", "localhost");

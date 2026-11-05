@@ -1,0 +1,24 @@
+StopReplica Request — field processing order (binding; spec 3.6.1) — flexible encoding from v2
+wire order by layout (equal run = byte-identical field layout):
+  v0: ControllerId:ControllerEpoch:DeletePartitions:UngroupedPartitions[]
+  v1-v2: ControllerId:ControllerEpoch:BrokerEpoch:DeletePartitions:Topics[]
+  v3-v4: ControllerId:ControllerEpoch:BrokerEpoch:DeletePartitions:TopicStates[]
+  v4:    ControllerId:ControllerEpoch:BrokerEpoch:isKRaftController:DeletePartitions:TopicStates[]
+
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0:
+  v0: fixed: ControllerId(int32), ControllerEpoch(int32), DeletePartitions(bool), UngroupedPartitions([]StopReplicaPartitionV0) { TopicName(string), PartitionIndex(int32) } || tagged: ∅
+  v1:
+  v1: fixed: ControllerId(int32), ControllerEpoch(int32), BrokerEpoch(int64), DeletePartitions(bool), Topics([]StopReplicaTopicV1) { Name(string), PartitionIndexes(int32[]) } || tagged: ∅
+  v2: fixed: ControllerId(int32), ControllerEpoch(int32), BrokerEpoch(int64), DeletePartitions(bool), Topics([]StopReplicaTopicV1) { Name(string), PartitionIndexes(int32[]) } || tagged: ∅ (flex)
+  v3:
+  v3: fixed: ControllerId(int32), ControllerEpoch(int32), BrokerEpoch(int64), DeletePartitions(bool), TopicStates([]StopReplicaTopicState) { TopicName(string), PartitionStates([]StopReplicaPartitionState) { PartitionIndex(int32), LeaderEpoch(int32), DeletePartition(bool) } } || tagged: ∅ (flex)
+  v4:
+  v4: fixed: ControllerId(int32), ControllerEpoch(int32), BrokerEpoch(int64), isKRaftController(bool), DeletePartitions(bool), TopicStates([]StopReplicaTopicState) { TopicName(string), PartitionStates([]StopReplicaPartitionState) { PartitionIndex(int32), LeaderEpoch(int32), DeletePartition(bool) } } || tagged: ∅ (flex)
+
+notes:
+- v0: UngroupedPartitions used (flat array of TopicPartitionData)
+- v1-v2: Topics used (topic-level, partition indexes grouped)
+- v3+: TopicStates used (topic-level, partition states with leaderEpoch and deletePartition)
+- flexible (v2+): strings use KIP-482 compact encoding, arrays use N+1 varint, endTags block at end
+- isKRaftController is v4+ only

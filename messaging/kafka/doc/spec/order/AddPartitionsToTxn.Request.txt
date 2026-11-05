@@ -1,0 +1,14 @@
+AddPartitionsToTxn Request — field processing order (binding; spec 3.6.1) — flexible encoding from v3
+wire order by layout (equal run = byte-identical field layout):
+  v0-v2 -> V3AndBelowTransactionalId?:V3AndBelowProducerId?:V3AndBelowProducerEpoch?:V3AndBelowTopics?
+  v3 -> V3AndBelowTransactionalId?:V3AndBelowProducerId?:V3AndBelowProducerEpoch?:V3AndBelowTopics?|flex
+  v4 -> Transactions?:(Transactions)TransactionalId?:(Transactions)ProducerId?:(Transactions)ProducerEpoch?:(Transactions)VerifyOnly?:(Transactions)Topics?|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0-v2:
+  v0: fixed: V3AndBelowTransactionalId(string), V3AndBelowProducerId(int64), V3AndBelowProducerEpoch(int16), V3AndBelowTopics([]AddPartitionsToTxnTopic) || tagged: ∅
+  v1: fixed: V3AndBelowTransactionalId(string), V3AndBelowProducerId(int64), V3AndBelowProducerEpoch(int16), V3AndBelowTopics([]AddPartitionsToTxnTopic) || tagged: ∅
+  v2: fixed: V3AndBelowTransactionalId(string), V3AndBelowProducerId(int64), V3AndBelowProducerEpoch(int16), V3AndBelowTopics([]AddPartitionsToTxnTopic) || tagged: ∅
+  v3:
+  v3: fixed: V3AndBelowTransactionalId(string) [flex], V3AndBelowProducerId(int64) [flex], V3AndBelowProducerEpoch(int16) [flex], V3AndBelowTopics([]AddPartitionsToTxnTopic) [flex] || tagged: ∅
+  v4:
+  v4: fixed: Transactions([]AddPartitionsToTxnTransaction) [flex] || tagged: ∅

@@ -1,0 +1,58 @@
+# Reference servers for the `interop-messaging-core` group ONLY
+# (MQTT, STOMP, AMQP 1.0 — see doc/ci-groups.md).
+# Per-group compose files: each interop group owns exactly the services it
+# needs; no service appears in more than one group file.
+# Usage:     docker compose -f docker-compose.core.yml up -d
+# Verify:    docker compose -f docker-compose.core.yml ps
+# Teardown:  docker compose -f docker-compose.core.yml down
+
+services:
+  artemis:
+    image: apache/artemis:2.57.0-alpine
+    container_name: artemis-test
+    ports:
+      - "5675:5672"    # AMQP 1.0
+      - "8161:8161"    # Web console
+    environment:
+      # Creates the single broker user used by AmqpInteropTest
+      # (interop.amqp.username=artemis, interop.amqp.password=guest).
+      # NOTE: ARTEMIS_USERNAME is NOT read by the entrypoint; ARTEMIS_USER is.
+      - ARTEMIS_USER=artemis
+      - ARTEMIS_PASSWORD=guest
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 5672 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # AMQP 1.0 broker (rabbitmq_amqp1_0 plugin) + STOMP (61613) for StompInteropTest.
+  # Pinned to 3.13 for reproducible interop runs (see D12).
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: rabbitmq-test
+    ports:
+      - "5672:5672"    # AMQP (includes AMQP 1.0 plugin)
+      - "61613:61613"  # STOMP
+      - "15672:15672"  # Management UI
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    command: sh -c "rabbitmq-plugins enable --offline rabbitmq_amqp1_0 rabbitmq_stomp && rabbitmq-server"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mosquitto:
+    image: eclipse-mosquitto:2.0.18
+    container_name: mosquitto-test
+    ports:
+      - "1883:1883"    # MQTT
+    volumes:
+      - ./docker/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 1883 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10

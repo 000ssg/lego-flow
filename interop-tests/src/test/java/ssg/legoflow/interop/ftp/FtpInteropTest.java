@@ -8,6 +8,7 @@ import ssg.legoflow.ftp.protocol.FtpReply;
 import java.time.Duration;
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Disabled;
 
 /**
  * Interoperability test: Lego Flow FTP client ↔ real FTP server.
@@ -22,7 +23,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   interop.ftp.username (default: anonymous)
  *   interop.ftp.password (default: guest)
  */
-    @Tag("email-protocols")
+    @Tag("interop-rest")
+@Disabled("Requires external FTP server: docker compose -f interop-tests/docker-compose.core.yml up -d ftp")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class FtpInteropTest {
 

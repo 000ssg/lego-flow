@@ -1,0 +1,24 @@
+OffsetFetch Response — field processing order (binding; spec 3.6.1) — flexible encoding from v6
+wire order by layout (equal run = byte-identical field layout):
+  v0-v1 -> Topics?:(Topics)Name?:(Topics)Partitions?:(Partitions)PartitionIndex?:(Partitions)CommittedOffset?:(Partitions)Metadata?:(Partitions)ErrorCode?
+  v2 -> Topics?:(Topics)Name?:(Topics)Partitions?:(Partitions)PartitionIndex?:(Partitions)CommittedOffset?:(Partitions)Metadata?:(Partitions)ErrorCode?:ErrorCode?
+  v3-v4 -> ThrottleTimeMs?:Topics?:(Topics)Name?:(Topics)Partitions?:(Partitions)PartitionIndex?:(Partitions)CommittedOffset?:(Partitions)Metadata?:(Partitions)ErrorCode?:ErrorCode?
+  v5 -> ThrottleTimeMs?:Topics?:(Topics)Name?:(Topics)Partitions?:(Partitions)PartitionIndex?:(Partitions)CommittedOffset?:(Partitions)CommittedLeaderEpoch?:(Partitions)Metadata?:(Partitions)ErrorCode?:ErrorCode?
+  v6-v7 -> ThrottleTimeMs?:Topics?:(Topics)Name?:(Topics)Partitions?:(Partitions)PartitionIndex?:(Partitions)CommittedOffset?:(Partitions)CommittedLeaderEpoch?:(Partitions)Metadata?:(Partitions)ErrorCode?:ErrorCode?|flex
+  v8 -> ThrottleTimeMs?:Groups?:(Groups)groupId?:(Groups)Topics?:(Topics)Name?:(Topics)Partitions?:(Partitions)PartitionIndex?:(Partitions)CommittedOffset?:(Partitions)CommittedLeaderEpoch?:(Partitions)Metadata?:(Partitions)ErrorCode?:(Groups)ErrorCode?|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0-v1:
+  v0: fixed: Topics([]OffsetFetchResponseTopic) || tagged: ∅
+  v1: fixed: Topics([]OffsetFetchResponseTopic) || tagged: ∅
+  v2:
+  v2: fixed: Topics([]OffsetFetchResponseTopic), ErrorCode(int16) || tagged: ∅
+  v3-v4:
+  v3: fixed: ThrottleTimeMs(int32), Topics([]OffsetFetchResponseTopic), ErrorCode(int16) || tagged: ∅
+  v4: fixed: ThrottleTimeMs(int32), Topics([]OffsetFetchResponseTopic), ErrorCode(int16) || tagged: ∅
+  v5:
+  v5: fixed: ThrottleTimeMs(int32), Topics([]OffsetFetchResponseTopic), ErrorCode(int16) || tagged: ∅
+  v6-v7:
+  v6: fixed: ThrottleTimeMs(int32) [flex], Topics([]OffsetFetchResponseTopic) [flex], ErrorCode(int16) [flex] || tagged: ∅
+  v7: fixed: ThrottleTimeMs(int32) [flex], Topics([]OffsetFetchResponseTopic) [flex], ErrorCode(int16) [flex] || tagged: ∅
+  v8:
+  v8: fixed: ThrottleTimeMs(int32) [flex], Groups([]OffsetFetchResponseGroup) [flex] || tagged: ∅

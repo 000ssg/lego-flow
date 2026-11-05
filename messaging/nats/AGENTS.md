@@ -88,3 +88,4 @@ Key: Value\r\n
 - Demo functional tests: PubSub, RequestReply, QueueGroup, JetStream
 - All tests use loopback transport (no external NATS server required)
 - Test count: 271
+

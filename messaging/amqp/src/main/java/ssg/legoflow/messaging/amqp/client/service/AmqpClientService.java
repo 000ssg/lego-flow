@@ -89,7 +89,7 @@ public final class AmqpClientService extends AbstractService<ByteBuffer, ByteBuf
 
             // 2. Create transport and handler with latch BEFORE registering
             transport = new PipelineTransport(dataChannel);
-            var handler = new AmqpClientChannelHandler(this, ctx);
+            var handler = new AmqpClientChannelHandler(this, ctx, transport);
             var latch = new CountDownLatch(1);
             handler.setConnectLatch(latch);
 
@@ -142,9 +142,15 @@ public final class AmqpClientService extends AbstractService<ByteBuffer, ByteBuf
     public String getContainerId() { return containerId; }
 
     public ChannelHandler createChannelHandler() {
-        return new AmqpClientChannelHandler(this, null);
+        return new AmqpClientChannelHandler(this, null, null);
     }
 
+    /**
+     * Converts input to output. In the service layer, this method is intentionally empty
+     * because all data flow is handled through the transport pipeline via {@code ChannelHandler}
+     * callbacks ({@code onRead}, {@code onWrite}). The service layer owns the socket lifecycle
+     * and delegates all protocol processing to the transport and core classes.
+     */
     @Override
     protected ByteBuffer[] convertToOutput(Context ctx, ByteBuffer... input) { return new ByteBuffer[0]; }
     @Override

@@ -21,7 +21,7 @@ public enum BrokerMode {
     /** RabbitMQ AMQP 1.0 plugin. Requires SASL, strips /queues/ prefix. */
     RABBITMQ,
 
-    /** Apache Artemis. Accepts proto-0, supports GSSAPI. */
+    /** Apache Artemis. Standard SASL-first AMQP 1.0 acceptor (verified against live broker). */
     ARTEMIS,
 
     /** Qpid Dispatch Router. ANONYMOUS SASL, uses closest: address format. */

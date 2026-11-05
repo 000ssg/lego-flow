@@ -22,6 +22,12 @@
     <!-- Skip interop tests by default — only run when Docker services are available (CI interoperability job) -->
     <properties>
         <skipInteropTests>true</skipInteropTests>
+        <!-- Parallel interop group to run (see doc/ci-groups.md):
+             interop-messaging-core | interop-kafka | interop-wamp | interop-rest
+             Unset = run everything (default: all groups). -->
+        <interop.group/>
+        <!-- Fail when a group is requested but matches no tests (typo guard). -->
+        <interop.failIfNoTests>false</interop.failIfNoTests>
     </properties>
 
     <dependencies>
@@ -168,6 +174,18 @@
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-kafka</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-wamp</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
 
         <!-- Testing -->
         <dependency>
@@ -217,7 +235,10 @@
                 <version>3.2.5</version>
                 <configuration>
                     <skipTests>${skipInteropTests}</skipTests>
+                    <groups>${interop.group}</groups>
+                    <failIfNoTests>${interop.failIfNoTests}</failIfNoTests>
                     <systemPropertyVariables>
+                        <interop.group>${interop.group}</interop.group>
                         <interop.nginx.host>localhost</interop.nginx.host>
                         <interop.nginx.port>8080</interop.nginx.port>
                         <interop.mosquitto.host>localhost</interop.mosquitto.host>
@@ -237,8 +258,8 @@
                         <interop.telnet.port>2223</interop.telnet.port>
                         <!-- P2 protocols -->
                         <interop.amqp.host>localhost</interop.amqp.host>
-                        <interop.amqp.port>5672</interop.amqp.port>
-                        <interop.amqp.username>guest</interop.amqp.username>
+                        <interop.amqp.port>5675</interop.amqp.port>
+                        <interop.amqp.username>artemis</interop.amqp.username>
                         <interop.amqp.password>guest</interop.amqp.password>
                         <interop.amqp.vhost>/</interop.amqp.vhost>
                         <interop.amqp.queue>interop-test-queue</interop.amqp.queue>
@@ -265,6 +286,11 @@
                         <interop.ftp.port>21</interop.ftp.port>
                         <interop.smtp.host>localhost</interop.smtp.host>
                         <interop.smtp.port>25</interop.smtp.port>
+                        <!-- Phase 6 groups -->
+                        <interop.kafka.host>localhost</interop.kafka.host>
+                        <interop.kafka.port>9092</interop.kafka.port>
+                        <interop.wamp.host>localhost</interop.wamp.host>
+                        <interop.wamp.port>8081</interop.wamp.port>
 
                     </systemPropertyVariables>
                 </configuration>
@@ -296,8 +322,8 @@
                         <interop.telnet.port>2223</interop.telnet.port>
                         <!-- P2 protocols -->
                         <interop.amqp.host>localhost</interop.amqp.host>
-                        <interop.amqp.port>5672</interop.amqp.port>
-                        <interop.amqp.username>guest</interop.amqp.username>
+                        <interop.amqp.port>5675</interop.amqp.port>
+                        <interop.amqp.username>artemis</interop.amqp.username>
                         <interop.amqp.password>guest</interop.amqp.password>
                         <interop.amqp.vhost>/</interop.amqp.vhost>
                         <interop.amqp.queue>interop-test-queue</interop.amqp.queue>
@@ -340,4 +366,23 @@
             </plugin>
         </plugins>
     </build>
+
+    <!--
+      Activated whenever -Dinterop.group=<group> is set (see doc/ci-groups.md).
+      With <groups> selecting the group, fail the build if the group matches
+      zero tests — catches tag typos (otherwise the job would "pass" silently).
+    -->
+    <profiles>
+        <profile>
+            <id>interop-group</id>
+            <activation>
+                <property>
+                    <name>interop.group</name>
+                </property>
+            </activation>
+            <properties>
+                <interop.failIfNoTests>true</interop.failIfNoTests>
+            </properties>
+        </profile>
+    </profiles>
 </project>

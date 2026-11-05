@@ -26,8 +26,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *
  * <h2>Server Configuration</h2>
  * <p><b>Preferred (default): In-house {@link KafkaBroker}</b> — No external dependencies.
- * Runs anywhere without installation. Supports all 37 API types, SASL authentication,
- * consumer group rebalance strategies, transactions, dynamic configuration, and log compaction.
+ * The core broker is headless (no sockets); the demo drives it through the in-memory
+ * transport seam ({@link KafkaDemoClient#inMemory}), which is deterministic and needs no
+ * installation. Supports all 37 API types, SASL authentication, consumer group rebalance
+ * strategies, transactions, dynamic configuration, and log compaction.
  * Ideal for development, testing, CI/CD, and learning the Kafka protocol.</p>
  *
  * <p><b>Alternative: External Apache Kafka</b> — Set {@link #USE_EXTERNAL}{@code =true} and
@@ -40,10 +42,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * </ul>
  *
  * <h2>Switching</h2>
- * <p>The only code that changes when switching is the broker lifecycle (start/stop).
- * All client code (producer, consumer, admin) uses the same API regardless of backend.
- * When {@code USE_EXTERNAL=true}, the demo skips broker creation and connects directly
- * to the configured host:port.</p>
+ * <p>The only code that changes when switching is the <b>connection factory</b>
+ * ({@link KafkaDemoClient#inMemory} vs {@link KafkaDemoClient#tcp}) and the broker lifecycle
+ * (start/stop). All client code (producer, consumer, admin) uses the same API regardless of
+ * backend. When {@code USE_EXTERNAL=true}, the demo skips broker creation and connects directly
+ * to the configured host:port over real TCP.</p>
  *
  * <h2>Features Demonstrated</h2>
  * <ol>
@@ -68,7 +71,7 @@ public final class DemoKafkaAll {
     private static final Logger LOG = LoggerFactory.getLogger(DemoKafkaAll.class);
 
     // ============================= CONFIGURATION =============================
-    // Preferred: in-house KafkaBroker (no external dependencies, runs anywhere)
+    // Preferred: in-house KafkaBroker (headless, no external dependencies)
     // Alternative: set USE_EXTERNAL=true and configure host/port for Apache Kafka
     // =========================================================================
 
@@ -116,21 +119,22 @@ public final class DemoKafkaAll {
      */
     public static Results runAll() throws Exception {
         if (USE_EXTERNAL) {
-            return runWithExternalBroker(EXTERNAL_HOST, EXTERNAL_PORT);
+            return runWithFactory(KafkaDemoClient.tcp(EXTERNAL_HOST, EXTERNAL_PORT));
         }
         try (KafkaBroker broker = new KafkaBroker("localhost", 0)) {
             broker.start();
-            int port = broker.port();
-            LOG.info("In-house KafkaBroker started on port {}", port);
+            LOG.info("In-house headless KafkaBroker started");
 
             // Configure SASL credentials (in-house only — external Kafka has its own auth)
             configureSaslCredentials(broker);
 
-            Results results = runWithExternalBroker("localhost", port);
+            // In-house: drive the headless broker through the in-memory transport seam.
+            KafkaDemoClient.Factory factory = KafkaDemoClient.inMemory(broker);
+            Results results = runWithFactory(factory);
 
-            // Features only available with in-house broker
-            int compactedRecords = demoLogCompaction(broker, port);
-            boolean configOps = demoDynamicConfig(broker, port);
+            // Features only available with in-house broker (direct core access)
+            int compactedRecords = demoLogCompaction(broker, factory);
+            boolean configOps = demoDynamicConfig(broker, factory);
             boolean diskPersistence = demoDiskPersistence();
 
             return new Results(
@@ -147,13 +151,13 @@ public final class DemoKafkaAll {
         }
     }
 
-    private static Results runWithExternalBroker(String host, int port) throws Exception {
-        boolean topicMgmt = demoTopicManagement(host, port);
-        int produced = demoProduceConsume(host, port);
-        boolean idempotent = demoIdempotentProduction(host, port);
-        int txnCount = demoTransactions(host, port);
-        boolean admin = demoAdminOperations(host, port);
-        int rebalanceEvents = demoConsumerGroupRebalance(host, port);
+    private static Results runWithFactory(KafkaDemoClient.Factory factory) throws Exception {
+        boolean topicMgmt = demoTopicManagement(factory);
+        int produced = demoProduceConsume(factory);
+        boolean idempotent = demoIdempotentProduction(factory);
+        int txnCount = demoTransactions(factory);
+        boolean admin = demoAdminOperations(factory);
+        int rebalanceEvents = demoConsumerGroupRebalance(factory);
 
         return new Results(topicMgmt, produced, idempotent, txnCount, admin,
                 false /* configOps filled later for in-house */, 0, rebalanceEvents,
@@ -165,9 +169,10 @@ public final class DemoKafkaAll {
     /**
      * Demonstrates topic create, list, expand partitions, and delete.
      */
-    static boolean demoTopicManagement(String host, int port) throws IOException {
+    static boolean demoTopicManagement(KafkaDemoClient.Factory factory) throws IOException {
         LOG.info("=== 1. Topic Management ===");
-        try (var admin = new KafkaAdminClient(host, port, "demo-admin")) {
+        try (var conn = factory.open();
+             var admin = new KafkaAdminClient(conn.transport(), "demo-admin")) {
             admin.connect();
 
             // Create topic with 3 partitions
@@ -201,9 +206,10 @@ public final class DemoKafkaAll {
     /**
      * Demonstrates basic produce with key-based routing and multi-partition consume.
      */
-    static int demoProduceConsume(String host, int port) throws IOException {
+    static int demoProduceConsume(KafkaDemoClient.Factory factory) throws IOException {
         LOG.info("=== 2. Produce / Consume ===");
-        try (var admin = new KafkaAdminClient(host, port, "demo-admin-pc")) {
+        try (var conn = factory.open();
+             var admin = new KafkaAdminClient(conn.transport(), "demo-admin-pc")) {
             admin.connect();
             admin.createTopic("demo-pc", 3);
         }
@@ -211,7 +217,8 @@ public final class DemoKafkaAll {
         // Produce 20 messages with key-based partitioning
         // Preferred: Partitioner.keyHash() distributes evenly across partitions
         // Alternative: Partitioner.roundRobin() for even distribution without key affinity
-        try (var producer = new KafkaProducer(host, port, "demo-producer",
+        try (var conn = factory.open();
+             var producer = new KafkaProducer(conn.transport(), "demo-producer",
                 Partitioner.keyHash(), (short) 1, 0, 0, Compression.NONE, false, null)) {
             producer.init();
             for (int i = 0; i < 20; i++) {
@@ -222,7 +229,8 @@ public final class DemoKafkaAll {
 
         // Consume all messages from the consumer group
         int consumed = 0;
-        try (var consumer = new KafkaConsumer(host, port, "demo-consumer", "demo-pc-group")) {
+        try (var conn = factory.open();
+             var consumer = new KafkaConsumer(conn.transport(), "demo-consumer", "demo-pc-group")) {
             consumer.subscribe(List.of("demo-pc"));
             List<ConsumerRecord> records = consumer.poll(5000);
             consumed = records.size();
@@ -248,15 +256,17 @@ public final class DemoKafkaAll {
      * actually-moved partitions instead of all partitions. Best for large consumer groups
      * where full-stop rebalance is costly.
      */
-    static int demoConsumerGroupRebalance(String host, int port) throws IOException {
+    static int demoConsumerGroupRebalance(KafkaDemoClient.Factory factory) throws IOException {
         LOG.info("=== 3. Consumer Group Rebalance ===");
-        try (var admin = new KafkaAdminClient(host, port, "demo-admin-cg")) {
+        try (var conn = factory.open();
+             var admin = new KafkaAdminClient(conn.transport(), "demo-admin-cg")) {
             admin.connect();
             admin.createTopic("demo-rebalance", 4);
         }
 
         // Produce some messages first
-        try (var producer = new KafkaProducer(host, port, "demo-rb-producer")) {
+        try (var conn = factory.open();
+             var producer = new KafkaProducer(conn.transport(), "demo-rb-producer")) {
             producer.init();
             for (int i = 0; i < 8; i++) {
                 producer.send("demo-rebalance", "k" + i, "v" + i);
@@ -266,7 +276,8 @@ public final class DemoKafkaAll {
         List<String> rebalanceLog = new CopyOnWriteArrayList<>();
 
         // Consumer 1 with range strategy (default, preferred)
-        try (var consumer1 = new KafkaConsumer(host, port, "demo-rb-c1", "demo-rb-group")) {
+        try (var conn = factory.open();
+             var consumer1 = new KafkaConsumer(conn.transport(), "demo-rb-c1", "demo-rb-group")) {
             consumer1.setRebalanceListener(new RebalanceListener() {
                 @Override
                 public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
@@ -296,14 +307,16 @@ public final class DemoKafkaAll {
      * Enable idempotency by passing {@code idempotent=true} to the producer constructor.
      * The broker tracks (producerId, epoch, partition, sequence) and deduplicates.
      */
-    static boolean demoIdempotentProduction(String host, int port) throws IOException {
+    static boolean demoIdempotentProduction(KafkaDemoClient.Factory factory) throws IOException {
         LOG.info("=== 4. Idempotent Production ===");
-        try (var admin = new KafkaAdminClient(host, port, "demo-admin-idemp")) {
+        try (var conn = factory.open();
+             var admin = new KafkaAdminClient(conn.transport(), "demo-admin-idemp")) {
             admin.connect();
             admin.createTopic("demo-idemp", 1);
         }
 
-        try (var producer = new KafkaProducer(host, port, "demo-idemp-producer",
+        try (var conn = factory.open();
+             var producer = new KafkaProducer(conn.transport(), "demo-idemp-producer",
                 Partitioner.keyHash(), (short) -1, 3, 100, Compression.NONE,
                 true /* idempotent */, null)) {
             producer.init();
@@ -325,16 +338,18 @@ public final class DemoKafkaAll {
      * The transaction ensures that produced messages and consumed offsets are committed
      * atomically — either all visible or none (exactly-once semantics).
      */
-    static int demoTransactions(String host, int port) throws IOException {
+    static int demoTransactions(KafkaDemoClient.Factory factory) throws IOException {
         LOG.info("=== 5. Transactions ===");
-        try (var admin = new KafkaAdminClient(host, port, "demo-admin-txn")) {
+        try (var conn = factory.open();
+             var admin = new KafkaAdminClient(conn.transport(), "demo-admin-txn")) {
             admin.connect();
             admin.createTopic("demo-txn-input", 1);
             admin.createTopic("demo-txn-output", 1);
         }
 
         // Seed input topic
-        try (var seeder = new KafkaProducer(host, port, "demo-txn-seeder")) {
+        try (var conn = factory.open();
+             var seeder = new KafkaProducer(conn.transport(), "demo-txn-seeder")) {
             seeder.init();
             for (int i = 0; i < 5; i++) {
                 seeder.send("demo-txn-input", "k" + i, "input-" + i);
@@ -342,7 +357,8 @@ public final class DemoKafkaAll {
         }
 
         // Transactional producer: read from input, transform, write to output, commit offsets
-        try (var txnProducer = new KafkaProducer(host, port, "demo-txn-producer",
+        try (var conn = factory.open();
+             var txnProducer = new KafkaProducer(conn.transport(), "demo-txn-producer",
                 Partitioner.keyHash(), (short) -1, 0, 0, Compression.NONE,
                 true, "demo-txn-id")) {
             txnProducer.init();
@@ -360,7 +376,8 @@ public final class DemoKafkaAll {
 
         // Verify: output topic should have 3 messages
         int outputCount = 0;
-        try (var consumer = new KafkaConsumer(host, port, "demo-txn-consumer", "demo-txn-group")) {
+        try (var conn = factory.open();
+             var consumer = new KafkaConsumer(conn.transport(), "demo-txn-consumer", "demo-txn-group")) {
             consumer.subscribe(List.of("demo-txn-output"));
             var records = consumer.poll(3000);
             outputCount = records.size();
@@ -368,16 +385,16 @@ public final class DemoKafkaAll {
         }
         return outputCount;
     }
-
     // ======================== 6. ADMIN OPERATIONS ============================
 
     /**
      * Demonstrates admin operations: API versions, list groups, describe groups,
      * delete records, offset management.
      */
-    static boolean demoAdminOperations(String host, int port) throws IOException {
+    static boolean demoAdminOperations(KafkaDemoClient.Factory factory) throws IOException {
         LOG.info("=== 6. Admin Operations ===");
-        try (var admin = new KafkaAdminClient(host, port, "demo-admin-ops")) {
+        try (var conn = factory.open();
+             var admin = new KafkaAdminClient(conn.transport(), "demo-admin-ops")) {
             admin.connect();
 
             // API versions negotiation
@@ -387,11 +404,13 @@ public final class DemoKafkaAll {
             // Create a topic and produce, so we have a consumer group
             admin.createTopic("demo-admin-ops", 2);
 
-            try (var producer = new KafkaProducer(host, port, "demo-admin-p")) {
+            try (var pconn = factory.open();
+                 var producer = new KafkaProducer(pconn.transport(), "demo-admin-p")) {
                 producer.init();
                 producer.send("demo-admin-ops", "k", "v");
             }
-            try (var consumer = new KafkaConsumer(host, port, "demo-admin-c", "demo-admin-grp")) {
+            try (var cconn = factory.open();
+                 var consumer = new KafkaConsumer(cconn.transport(), "demo-admin-c", "demo-admin-grp")) {
                 consumer.subscribe(List.of("demo-admin-ops"));
                 consumer.poll(2000);
                 consumer.commitSync();
@@ -426,9 +445,10 @@ public final class DemoKafkaAll {
      * <b>Note:</b> With external Kafka, use the Kafka AdminClient API (same wire protocol).
      * With in-house broker, ConfigManager is also accessible directly.
      */
-    static boolean demoDynamicConfig(KafkaBroker broker, int port) throws IOException {
+    static boolean demoDynamicConfig(KafkaBroker broker, KafkaDemoClient.Factory factory) throws IOException {
         LOG.info("=== 7. Dynamic Configuration ===");
-        try (var admin = new KafkaAdminClient("localhost", port, "demo-config-admin")) {
+        try (var conn = factory.open();
+             var admin = new KafkaAdminClient(conn.transport(), "demo-config-admin")) {
             admin.connect();
             admin.createTopic("demo-config", 1);
 
@@ -487,9 +507,10 @@ public final class DemoKafkaAll {
      * After compaction, only the latest value per key survives.
      * Tombstones (null value) remove the key entirely.
      */
-    static int demoLogCompaction(KafkaBroker broker, int port) throws IOException {
+    static int demoLogCompaction(KafkaBroker broker, KafkaDemoClient.Factory factory) throws IOException {
         LOG.info("=== 9. Log Compaction ===");
-        try (var admin = new KafkaAdminClient("localhost", port, "demo-compact-admin")) {
+        try (var conn = factory.open();
+             var admin = new KafkaAdminClient(conn.transport(), "demo-compact-admin")) {
             admin.connect();
             admin.createTopic("demo-compact", 1);
         }
@@ -499,7 +520,8 @@ public final class DemoKafkaAll {
                 Map.of("cleanup.policy", "compact"));
 
         // Produce records with duplicate keys — later values should survive compaction
-        try (var producer = new KafkaProducer("localhost", port, "demo-compact-producer")) {
+        try (var conn = factory.open();
+             var producer = new KafkaProducer(conn.transport(), "demo-compact-producer")) {
             producer.init();
             producer.send("demo-compact", "user-1", "alice-v1");
             producer.send("demo-compact", "user-2", "bob-v1");
@@ -515,7 +537,8 @@ public final class DemoKafkaAll {
 
         // Verify by consuming
         int count = 0;
-        try (var consumer = new KafkaConsumer("localhost", port, "demo-compact-c", "demo-compact-grp")) {
+        try (var conn = factory.open();
+             var consumer = new KafkaConsumer(conn.transport(), "demo-compact-c", "demo-compact-grp")) {
             consumer.subscribe(List.of("demo-compact"));
             var records = consumer.poll(3000);
             count = records.size();
@@ -527,7 +550,7 @@ public final class DemoKafkaAll {
         return count;
     }
 
-    // ======================== 10. DISK PERSISTENCE ==============================
+    // ======================== 10. DISK PERSISTENCE =============================
 
     /**
      * Demonstrates disk persistence using the {@link LogStorageFactory} interface.
@@ -545,7 +568,7 @@ public final class DemoKafkaAll {
      * Best for testing, CI/CD, and ephemeral workloads where durability is not needed.
      *
      * <p><b>Alternative: custom {@code LogStorageFactory} lambda</b> — implement your own
-     * storage backend (e.g., RocksDB, LMDB, cloud object storage) by returning a
+     * storage backend (e.g. RocksDB, LMDB, cloud object storage) by returning a
      * {@link ssg.legoflow.messaging.kafka.broker.storage.LogStorage} from the factory.
      *
      * @return true if messages survived broker restart
@@ -563,15 +586,19 @@ public final class DemoKafkaAll {
             try (var broker = new KafkaBroker("localhost", 0, 0, 1,
                     LogStorageFactory.mappedFile(logDir))) {
                 broker.start();
-                int port = broker.port();
-                LOG.info("Broker with disk storage started on port {}", port);
+                LOG.info("Broker with disk storage started");
 
-                try (var admin = new KafkaAdminClient("localhost", port, "persist-admin")) {
+                // Each headless broker is driven through its own in-memory seam.
+                KafkaDemoClient.Factory factory = KafkaDemoClient.inMemory(broker);
+
+                try (var conn = factory.open();
+                     var admin = new KafkaAdminClient(conn.transport(), "persist-admin")) {
                     admin.connect();
                     admin.createTopic(topic, 1);
                 }
 
-                try (var producer = new KafkaProducer("localhost", port, "persist-producer")) {
+                try (var conn = factory.open();
+                     var producer = new KafkaProducer(conn.transport(), "persist-producer")) {
                     producer.init();
                     for (int i = 0; i < messageCount; i++) {
                         producer.send(topic, "key-" + i, "durable-value-" + i);
@@ -580,7 +607,8 @@ public final class DemoKafkaAll {
                 LOG.info("Produced {} messages to disk-backed broker", messageCount);
 
                 // Consume and commit to verify messages are there before restart
-                try (var consumer = new KafkaConsumer("localhost", port, "persist-c1", "persist-grp1")) {
+                try (var conn = factory.open();
+                     var consumer = new KafkaConsumer(conn.transport(), "persist-c1", "persist-grp1")) {
                     consumer.subscribe(List.of(topic));
                     var records = consumer.poll(3000);
                     LOG.info("Before restart: consumed {} messages", records.size());
@@ -592,15 +620,16 @@ public final class DemoKafkaAll {
             try (var broker2 = new KafkaBroker("localhost", 0, 0, 1,
                     LogStorageFactory.mappedFile(logDir))) {
                 broker2.start();
-                int port2 = broker2.port();
+                KafkaDemoClient.Factory factory2 = KafkaDemoClient.inMemory(broker2);
 
                 // Re-register the topic (topic metadata is not persisted, only partition logs)
                 broker2.createTopic(topic, 1);
 
-                LOG.info("New broker started on port {} — data directory reused", port2);
+                LOG.info("New broker started — data directory reused");
 
                 // Consume from the beginning — messages should have survived
-                try (var consumer = new KafkaConsumer("localhost", port2, "persist-c2", "persist-grp2")) {
+                try (var conn = factory2.open();
+                     var consumer = new KafkaConsumer(conn.transport(), "persist-c2", "persist-grp2")) {
                     consumer.subscribe(List.of(topic));
                     var records = consumer.poll(3000);
                     int recoveredCount = records.size();

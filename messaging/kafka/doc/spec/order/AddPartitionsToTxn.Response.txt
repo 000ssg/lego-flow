@@ -1,0 +1,14 @@
+AddPartitionsToTxn Response — field processing order (binding; spec 3.6.1) — flexible encoding from v3
+wire order by layout (equal run = byte-identical field layout):
+  v0-v2 -> ThrottleTimeMs:ResultsByTopicV3AndBelow?
+  v3 -> ThrottleTimeMs:ResultsByTopicV3AndBelow?|flex
+  v4 -> ThrottleTimeMs:ErrorCode?:ResultsByTransaction?:(ResultsByTransaction)TransactionalId?:(ResultsByTransaction)TopicResults?|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0-v2:
+  v0: fixed: ThrottleTimeMs(int32), ResultsByTopicV3AndBelow([]AddPartitionsToTxnTopicResult) || tagged: ∅
+  v1: fixed: ThrottleTimeMs(int32), ResultsByTopicV3AndBelow([]AddPartitionsToTxnTopicResult) || tagged: ∅
+  v2: fixed: ThrottleTimeMs(int32), ResultsByTopicV3AndBelow([]AddPartitionsToTxnTopicResult) || tagged: ∅
+  v3:
+  v3: fixed: ThrottleTimeMs(int32) [flex], ResultsByTopicV3AndBelow([]AddPartitionsToTxnTopicResult) [flex] || tagged: ∅
+  v4:
+  v4: fixed: ThrottleTimeMs(int32) [flex], ErrorCode(int16) [flex], ResultsByTransaction([]AddPartitionsToTxnResult) [flex] || tagged: ∅

@@ -1,0 +1,12 @@
+StopReplica Response — field processing order (binding; spec 3.6.1) — flexible encoding from v2
+wire order by layout (equal run = byte-identical field layout):
+  v0-v4: ErrorCode:PartitionErrors[]
+
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0-v4:
+  v0: fixed: ErrorCode(int16), PartitionErrors([]StopReplicaPartitionError) { TopicName(string), PartitionIndex(int32), ErrorCode(int16) } || tagged: ∅
+  v1-v4: same as v0 (PartitionErrors structure unchanged)
+
+notes:
+- v0-v4: flat array of PartitionError (topic name + partition index + error code)
+- flexible (v2+): strings use KIP-482 compact encoding, arrays use N+1 varint, endTags block at end

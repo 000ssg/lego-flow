@@ -116,4 +116,24 @@ class AmqpFrameCodecImplTest {
         codec.onRead(null, rest);
         assertTrue(extracted.isEmpty());
     }
+
+    @Test
+    void invalidFrameSizeSkipsFrame() {
+        AmqpFrameCodecImpl codec = new AmqpFrameCodecImpl(extractor);
+        // Size = 2 (< 4) — invalid frame, should be skipped/handled
+        ByteBuffer bad = ByteBuffer.allocate(4);
+        bad.putInt(2);
+        bad.flip();
+        codec.onRead(null, bad);
+        // Invalid size should not produce a frame
+        assertTrue(extracted.isEmpty());
+    }
+
+    @Test
+    void emptyReadDoesNotProduceFrame() {
+        AmqpFrameCodecImpl codec = new AmqpFrameCodecImpl(extractor);
+        ByteBuffer empty = ByteBuffer.wrap(new byte[0]);
+        codec.onRead(null, empty);
+        assertTrue(extracted.isEmpty());
+    }
 }

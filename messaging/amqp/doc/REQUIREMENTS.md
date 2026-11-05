@@ -257,7 +257,10 @@ Qpid Dispatch Router requires proto-0 mode (`BrokerMode.QPID_DISPATCH`):
 ### Final Design Decisions
 - **AmqpTransportNetworkTest removed from unit tests**: Unit tests must only use lego-flow components (in-memory transport). External broker tests belong in `interop-tests/` only. Docker running locally masks CI failures.
 - **QUIC loss detection gated behind 2+ RTT samples**: First RTT sample in in-process tests is artificially small (~1ms). CI scheduling jitter exceeds the tiny time threshold, falsely marking packets as lost. Per RFC 9002 §6.1.2, time-based detection requires a valid RTT estimate.
-- **AmqpContainer.handleConnection() with readyCallback**: Method submits to virtual-thread executor and returns immediately. Added `handleConnection(transport, readyCallback)` overload that fires the callback inside the executor task, before the first `readHeader()`. Tests pass `CountDownLatch::countDown` as the callback.
+| **AmqpContainer.handleConnection() with readyCallback**: Method submits to virtual-thread executor and returns immediately. Added `handleConnection(transport, readyCallback)` overload that fires the callback inside the executor task, before the first `readHeader()`. Tests pass `CountDownLatch::countDown` as the callback.
+| **Non-blocking read with timeout**: Replaced blocking `readHeader()` with `readHeader()` returning `Optional<byte[]>` and `readWithTimeout()` that returns false on timeout or EOF. This prevents indefinite blocking and enables event-driven processing. Added `handleConnectionWithCallback()` for true event-driven mode.
+| **Event-driven transport support**: `PipelineTransport` now supports `onReadWithCallback()` which forwards data immediately to a consumer instead of queuing in ring buffer. Enables selector-thread-driven protocol processing.
+| **Connection cleanup noise reduction**: Expected "Transport closed during read" errors during teardown are now suppressed, reducing test log noise.
 - **RecordingHandler uses `data.duplicate()`**: Avoids consuming the original buffer's position, so downstream pipeline handlers see the full data.
 
 ### Implementation Details

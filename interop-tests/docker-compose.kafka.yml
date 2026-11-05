@@ -1,0 +1,35 @@
+# Reference broker for the `interop-kafka` group ONLY
+# (Kafka composite tests — see doc/ci-groups.md).
+# Per-group compose files: each interop group owns exactly the services it
+# needs; no service appears in more than one group file.
+# Usage:     docker compose -f docker-compose.kafka.yml up -d
+# Verify:    docker compose -f docker-compose.kafka.yml ps
+# Teardown:  docker compose -f docker-compose.kafka.yml down
+
+services:
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: kafka-test
+    ports:
+      - "9092:9092"    # Kafka API (PLAINTEXT)
+    environment:
+      # Single-node KRaft (no zookeeper)
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      CLUSTER_ID: Pbz33PgFDkaZ4Tm8lALzEw==
+      KAFKA_CLUSTER_ID: Pbz33PgFDkaZ4Tm8lALzEw==
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-test:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      # TCP probe is enough: the broker accepts connections once KRaft quorum is up
+      test: ["CMD-SHELL", "echo > /dev/tcp/localhost/9092 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30

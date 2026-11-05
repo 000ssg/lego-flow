@@ -9,6 +9,7 @@ import ssg.legoflow.email.smtp.protocol.SmtpExtension;
 import java.time.Duration;
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Disabled;
 
 /**
  * Interoperability test: Lego Flow SMTP client ↔ real SMTP server.
@@ -29,7 +30,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   docker run -d -p 25:25 -p 8025:8025 mailhog/mailhog  # port 25 for SMTP, 8025 for web UI
  *   mvn verify -Dinterop.smtp.host=localhost
  */
-    @Tag("email-protocols")
+    @Tag("interop-rest")
+@Disabled("Requires external SMTP server: docker compose -f interop-tests/docker-compose.core.yml up -d smtp")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SmtpInteropTest {
 

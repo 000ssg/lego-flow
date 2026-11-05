@@ -1,0 +1,39 @@
+Fetch Request — field processing order (binding; spec 3.6.1) — flexible encoding from v12
+wire order by layout (equal run = byte-identical field layout):
+  v0-v2 -> ReplicaId?:MaxWaitMs:MinBytes:Topics:(Topics)Topic?:(Topics)Partitions:(Partitions)Partition:(Partitions)FetchOffset:(Partitions)PartitionMaxBytes
+  v3 -> ReplicaId?:MaxWaitMs:MinBytes:MaxBytes?:Topics:(Topics)Topic?:(Topics)Partitions:(Partitions)Partition:(Partitions)FetchOffset:(Partitions)PartitionMaxBytes
+  v4 -> ReplicaId?:MaxWaitMs:MinBytes:MaxBytes?:IsolationLevel?:Topics:(Topics)Topic?:(Topics)Partitions:(Partitions)Partition:(Partitions)FetchOffset:(Partitions)PartitionMaxBytes
+  v5-v6 -> ReplicaId?:MaxWaitMs:MinBytes:MaxBytes?:IsolationLevel?:Topics:(Topics)Topic?:(Topics)Partitions:(Partitions)Partition:(Partitions)FetchOffset:(Partitions)LogStartOffset?:(Partitions)PartitionMaxBytes
+  v7-v8 -> ReplicaId?:MaxWaitMs:MinBytes:MaxBytes?:IsolationLevel?:SessionId?:SessionEpoch?:Topics:(Topics)Topic?:(Topics)Partitions:(Partitions)Partition:(Partitions)FetchOffset:(Partitions)LogStartOffset?:(Partitions)PartitionMaxBytes:ForgottenTopicsData?:(ForgottenTopicsData)Topic?:(ForgottenTopicsData)Partitions?
+  v9-v10 -> ReplicaId?:MaxWaitMs:MinBytes:MaxBytes?:IsolationLevel?:SessionId?:SessionEpoch?:Topics:(Topics)Topic?:(Topics)Partitions:(Partitions)Partition:(Partitions)CurrentLeaderEpoch?:(Partitions)FetchOffset:(Partitions)LogStartOffset?:(Partitions)PartitionMaxBytes:ForgottenTopicsData?:(ForgottenTopicsData)Topic?:(ForgottenTopicsData)Partitions?
+  v11 -> ReplicaId?:MaxWaitMs:MinBytes:MaxBytes?:IsolationLevel?:SessionId?:SessionEpoch?:Topics:(Topics)Topic?:(Topics)Partitions:(Partitions)Partition:(Partitions)CurrentLeaderEpoch?:(Partitions)FetchOffset:(Partitions)LogStartOffset?:(Partitions)PartitionMaxBytes:ForgottenTopicsData?:(ForgottenTopicsData)Topic?:(ForgottenTopicsData)Partitions?:RackId?
+  v12 -> ReplicaId?:MaxWaitMs:MinBytes:MaxBytes?:IsolationLevel?:SessionId?:SessionEpoch?:Topics:(Topics)Topic?:(Topics)Partitions:(Partitions)Partition:(Partitions)CurrentLeaderEpoch?:(Partitions)FetchOffset:(Partitions)LastFetchedEpoch?:(Partitions)LogStartOffset?:(Partitions)PartitionMaxBytes:ForgottenTopicsData?:(ForgottenTopicsData)Topic?:(ForgottenTopicsData)Partitions?:RackId?:ClusterId[tag0]|flex
+  v13-v14 -> ReplicaId?:MaxWaitMs:MinBytes:MaxBytes?:IsolationLevel?:SessionId?:SessionEpoch?:Topics:(Topics)TopicId?:(Topics)Partitions:(Partitions)Partition:(Partitions)CurrentLeaderEpoch?:(Partitions)FetchOffset:(Partitions)LastFetchedEpoch?:(Partitions)LogStartOffset?:(Partitions)PartitionMaxBytes:ForgottenTopicsData?:(ForgottenTopicsData)TopicId?:(ForgottenTopicsData)Partitions?:RackId?:ClusterId[tag0]|flex
+  v15 -> MaxWaitMs:MinBytes:MaxBytes?:IsolationLevel?:SessionId?:SessionEpoch?:Topics:(Topics)TopicId?:(Topics)Partitions:(Partitions)Partition:(Partitions)CurrentLeaderEpoch?:(Partitions)FetchOffset:(Partitions)LastFetchedEpoch?:(Partitions)LogStartOffset?:(Partitions)PartitionMaxBytes:ForgottenTopicsData?:(ForgottenTopicsData)TopicId?:(ForgottenTopicsData)Partitions?:RackId?:ClusterId[tag0]:ReplicaState[tag1]:(ReplicaState)ReplicaId?:(ReplicaState)ReplicaEpoch?|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0-v2:
+  v0: fixed: ReplicaId(int32), MaxWaitMs(int32), MinBytes(int32), Topics([]FetchTopic) || tagged: ∅
+  v1: fixed: ReplicaId(int32), MaxWaitMs(int32), MinBytes(int32), Topics([]FetchTopic) || tagged: ∅
+  v2: fixed: ReplicaId(int32), MaxWaitMs(int32), MinBytes(int32), Topics([]FetchTopic) || tagged: ∅
+  v3:
+  v3: fixed: ReplicaId(int32), MaxWaitMs(int32), MinBytes(int32), MaxBytes(int32), Topics([]FetchTopic) || tagged: ∅
+  v4:
+  v4: fixed: ReplicaId(int32), MaxWaitMs(int32), MinBytes(int32), MaxBytes(int32), IsolationLevel(int8), Topics([]FetchTopic) || tagged: ∅
+  v5-v6:
+  v5: fixed: ReplicaId(int32), MaxWaitMs(int32), MinBytes(int32), MaxBytes(int32), IsolationLevel(int8), Topics([]FetchTopic) || tagged: ∅
+  v6: fixed: ReplicaId(int32), MaxWaitMs(int32), MinBytes(int32), MaxBytes(int32), IsolationLevel(int8), Topics([]FetchTopic) || tagged: ∅
+  v7-v8:
+  v7: fixed: ReplicaId(int32), MaxWaitMs(int32), MinBytes(int32), MaxBytes(int32), IsolationLevel(int8), SessionId(int32), SessionEpoch(int32), Topics([]FetchTopic), ForgottenTopicsData([]ForgottenTopic) || tagged: ∅
+  v8: fixed: ReplicaId(int32), MaxWaitMs(int32), MinBytes(int32), MaxBytes(int32), IsolationLevel(int8), SessionId(int32), SessionEpoch(int32), Topics([]FetchTopic), ForgottenTopicsData([]ForgottenTopic) || tagged: ∅
+  v9-v10:
+  v9: fixed: ReplicaId(int32), MaxWaitMs(int32), MinBytes(int32), MaxBytes(int32), IsolationLevel(int8), SessionId(int32), SessionEpoch(int32), Topics([]FetchTopic), ForgottenTopicsData([]ForgottenTopic) || tagged: ∅
+  v10: fixed: ReplicaId(int32), MaxWaitMs(int32), MinBytes(int32), MaxBytes(int32), IsolationLevel(int8), SessionId(int32), SessionEpoch(int32), Topics([]FetchTopic), ForgottenTopicsData([]ForgottenTopic) || tagged: ∅
+  v11:
+  v11: fixed: ReplicaId(int32), MaxWaitMs(int32), MinBytes(int32), MaxBytes(int32), IsolationLevel(int8), SessionId(int32), SessionEpoch(int32), Topics([]FetchTopic), ForgottenTopicsData([]ForgottenTopic), RackId(string) || tagged: ∅
+  v12:
+  v12: fixed: ReplicaId(int32) [flex], MaxWaitMs(int32) [flex], MinBytes(int32) [flex], MaxBytes(int32) [flex], IsolationLevel(int8) [flex], SessionId(int32) [flex], SessionEpoch(int32) [flex], Topics([]FetchTopic) [flex], ForgottenTopicsData([]ForgottenTopic) [flex], RackId(string) [flex] || tagged: tag0 ClusterId(string)
+  v13-v14:
+  v13: fixed: ReplicaId(int32) [flex], MaxWaitMs(int32) [flex], MinBytes(int32) [flex], MaxBytes(int32) [flex], IsolationLevel(int8) [flex], SessionId(int32) [flex], SessionEpoch(int32) [flex], Topics([]FetchTopic) [flex], ForgottenTopicsData([]ForgottenTopic) [flex], RackId(string) [flex] || tagged: tag0 ClusterId(string)
+  v14: fixed: ReplicaId(int32) [flex], MaxWaitMs(int32) [flex], MinBytes(int32) [flex], MaxBytes(int32) [flex], IsolationLevel(int8) [flex], SessionId(int32) [flex], SessionEpoch(int32) [flex], Topics([]FetchTopic) [flex], ForgottenTopicsData([]ForgottenTopic) [flex], RackId(string) [flex] || tagged: tag0 ClusterId(string)
+  v15:
+  v15: fixed: MaxWaitMs(int32) [flex], MinBytes(int32) [flex], MaxBytes(int32) [flex], IsolationLevel(int8) [flex], SessionId(int32) [flex], SessionEpoch(int32) [flex], Topics([]FetchTopic) [flex], ForgottenTopicsData([]ForgottenTopic) [flex], RackId(string) [flex] || tagged: tag0 ClusterId(string), tag1 ReplicaState(ReplicaState)

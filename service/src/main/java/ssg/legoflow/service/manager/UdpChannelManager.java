@@ -80,7 +80,8 @@ public class UdpChannelManager extends SelectableChannelManager {
         var pipeline = getChannelPipeline(service);
         var key = channel.getSelectionKey();
         if (key != null && key.isValid()) {
-            key.attach(new ChannelRegistration(channel, pipeline));
+            // UDP channels carry no TCP stream data — tcpBuf is unused (size 0).
+            key.attach(new ChannelRegistration(channel, pipeline, 0));
         }
         LOG.debug("Registered UDP channel for service: {}", service.getDescriptor().name());
     }

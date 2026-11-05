@@ -1,0 +1,28 @@
+LeaderAndIsr Request — field processing order (binding; spec 3.6.1) — flexible encoding from v4
+wire order by layout (equal run = byte-identical field layout):
+  v0-v1: ControllerId:ControllerEpoch:UngroupedPartitionStates[]:LiveLeaders[]
+  v2-v4: ControllerId:ControllerEpoch:BrokerEpoch:TopicStates[]:LiveLeaders[]
+  v5-v6: ControllerId:ControllerEpoch:BrokerEpoch:Type:TopicStates[]:LiveLeaders[]
+  v7:    ControllerId:isKRaftController:ControllerEpoch:BrokerEpoch:Type:TopicStates[]:LiveLeaders[]
+
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0:
+  v0: fixed: ControllerId(int32), ControllerEpoch(int32), UngroupedPartitionStates([]LeaderAndIsrPartitionState) { TopicName(string, nullable), PartitionIndex(int32), ControllerEpoch(int32), Leader(int32), LeaderEpoch(int32), Isr(int32[]), PartitionEpoch(int32), Replicas(int32[]) }, LiveLeaders([]LeaderAndIsrLiveLeader) { BrokerId(int32), HostName(string), Port(int32) } || tagged: ∅
+  v1:
+  v1: fixed: ControllerId(int32), ControllerEpoch(int32), UngroupedPartitionStates([]LeaderAndIsrPartitionState) { TopicName(string, nullable), PartitionIndex(int32), ControllerEpoch(int32), Leader(int32), LeaderEpoch(int32), Isr(int32[]), PartitionEpoch(int32), Replicas(int32[]), IsNew(bool) }, LiveLeaders([]LeaderAndIsrLiveLeader) { BrokerId(int32), HostName(string), Port(int32) } || tagged: ∅
+  v2-v4:
+  v2: fixed: ControllerId(int32), ControllerEpoch(int32), BrokerEpoch(int64), TopicStates([]LeaderAndIsrTopicState) { TopicName(string), PartitionStates([]LeaderAndIsrPartitionState) { PartitionIndex(int32), ControllerEpoch(int32), Leader(int32), LeaderEpoch(int32), Isr(int32[]), PartitionEpoch(int32), Replicas(int32[]) } }, LiveLeaders([]LeaderAndIsrLiveLeader) { BrokerId(int32), HostName(string), Port(int32) } || tagged: ∅
+  v3: fixed: ControllerId(int32), ControllerEpoch(int32), BrokerEpoch(int64), TopicStates([]LeaderAndIsrTopicState) { TopicName(string), PartitionStates([]LeaderAndIsrPartitionState) { PartitionIndex(int32), ControllerEpoch(int32), Leader(int32), LeaderEpoch(int32), Isr(int32[]), PartitionEpoch(int32), Replicas(int32[]), AddingReplicas(int32, nullable), RemovingReplicas(int32, nullable) } }, LiveLeaders([]LeaderAndIsrLiveLeader) { BrokerId(int32), HostName(string), Port(int32) } || tagged: ∅
+  v4: fixed: TopicStates([]LeaderAndIsrTopicState) [flex], LiveLeaders([]LeaderAndIsrLiveLeader) [flex] || tagged: ∅ (per-topic + top-level)
+  v5-v6:
+  v5: fixed: ControllerId(int32), ControllerEpoch(int32), BrokerEpoch(int64), Type(int8), TopicStates([]LeaderAndIsrTopicState) { TopicName(string), TopicId(uuid), PartitionStates([]LeaderAndIsrPartitionState) { PartitionIndex(int32), ControllerEpoch(int32), Leader(int32), LeaderEpoch(int32), Isr(int32[]), PartitionEpoch(int32), Replicas(int32[]) } } || tagged: ∅
+  v6: fixed: ControllerId(int32), ControllerEpoch(int32), BrokerEpoch(int64), Type(int8), TopicStates([]LeaderAndIsrTopicState) { TopicName(string), TopicId(uuid), PartitionStates([]LeaderAndIsrPartitionState) { PartitionIndex(int32), ControllerEpoch(int32), Leader(int32), LeaderEpoch(int32), Isr(int32[]), PartitionEpoch(int32), Replicas(int32[]), LeaderRecoveryState(int8) } } || tagged: ∅
+  v7:
+  v7: fixed: ControllerId(int32), isKRaftController(bool), ControllerEpoch(int32), BrokerEpoch(int64), Type(int8), TopicStates([]LeaderAndIsrTopicState) [flex] { TopicName(string), TopicId(uuid), PartitionStates([]LeaderAndIsrPartitionState) { PartitionIndex(int32), ControllerEpoch(int32), Leader(int32), LeaderEpoch(int32), Isr(int32[]), PartitionEpoch(int32), Replicas(int32[]), AddingReplicas(int32, nullable), RemovingReplicas(int32, nullable), LeaderRecoveryState(int8) } } || tagged: ∅ (per-topic + top-level)
+
+notes:
+- v0-v1: UngroupedPartitionStates used (partition-level, topic name repeated)
+- v2+: TopicStates used (topic-level, partitions grouped)
+- TopicId is 16-byte uuid, written as 16 zero bytes when null
+- AddingReplicas/RemovingReplicas: int32 array, null = -1 count
+- flexible (v4+): strings use KIP-482 compact encoding, arrays use N+1 varint, endTags block at end

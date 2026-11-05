@@ -1,0 +1,27 @@
+OffsetCommit Request — field processing order (binding; spec 3.6.1) — flexible encoding from v8
+wire order by layout (equal run = byte-identical field layout):
+  v0 -> GroupId:Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)CommittedOffset:(Partitions)CommittedMetadata
+  v1 -> GroupId:GenerationIdOrMemberEpoch?:MemberId?:Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)CommittedOffset:(Partitions)CommitTimestamp?:(Partitions)CommittedMetadata
+  v2-v4 -> GroupId:GenerationIdOrMemberEpoch?:MemberId?:RetentionTimeMs?:Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)CommittedOffset:(Partitions)CommittedMetadata
+  v5 -> GroupId:GenerationIdOrMemberEpoch?:MemberId?:Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)CommittedOffset:(Partitions)CommittedMetadata
+  v6 -> GroupId:GenerationIdOrMemberEpoch?:MemberId?:Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)CommittedOffset:(Partitions)CommittedLeaderEpoch?:(Partitions)CommittedMetadata
+  v7 -> GroupId:GenerationIdOrMemberEpoch?:MemberId?:GroupInstanceId?:Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)CommittedOffset:(Partitions)CommittedLeaderEpoch?:(Partitions)CommittedMetadata
+  v8-v9 -> GroupId:GenerationIdOrMemberEpoch?:MemberId?:GroupInstanceId?:Topics:(Topics)Name:(Topics)Partitions:(Partitions)PartitionIndex:(Partitions)CommittedOffset:(Partitions)CommittedLeaderEpoch?:(Partitions)CommittedMetadata|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0:
+  v0: fixed: GroupId(string), Topics([]OffsetCommitRequestTopic) || tagged: ∅
+  v1:
+  v1: fixed: GroupId(string), GenerationIdOrMemberEpoch(int32), MemberId(string), Topics([]OffsetCommitRequestTopic) || tagged: ∅
+  v2-v4:
+  v2: fixed: GroupId(string), GenerationIdOrMemberEpoch(int32), MemberId(string), RetentionTimeMs(int64), Topics([]OffsetCommitRequestTopic) || tagged: ∅
+  v3: fixed: GroupId(string), GenerationIdOrMemberEpoch(int32), MemberId(string), RetentionTimeMs(int64), Topics([]OffsetCommitRequestTopic) || tagged: ∅
+  v4: fixed: GroupId(string), GenerationIdOrMemberEpoch(int32), MemberId(string), RetentionTimeMs(int64), Topics([]OffsetCommitRequestTopic) || tagged: ∅
+  v5:
+  v5: fixed: GroupId(string), GenerationIdOrMemberEpoch(int32), MemberId(string), Topics([]OffsetCommitRequestTopic) || tagged: ∅
+  v6:
+  v6: fixed: GroupId(string), GenerationIdOrMemberEpoch(int32), MemberId(string), Topics([]OffsetCommitRequestTopic) || tagged: ∅
+  v7:
+  v7: fixed: GroupId(string), GenerationIdOrMemberEpoch(int32), MemberId(string), GroupInstanceId(string), Topics([]OffsetCommitRequestTopic) || tagged: ∅
+  v8-v9:
+  v8: fixed: GroupId(string) [flex], GenerationIdOrMemberEpoch(int32) [flex], MemberId(string) [flex], GroupInstanceId(string) [flex], Topics([]OffsetCommitRequestTopic) [flex] || tagged: ∅
+  v9: fixed: GroupId(string) [flex], GenerationIdOrMemberEpoch(int32) [flex], MemberId(string) [flex], GroupInstanceId(string) [flex], Topics([]OffsetCommitRequestTopic) [flex] || tagged: ∅

@@ -154,13 +154,21 @@ public final class ReceiverLink {
         this.linkCredit.addAndGet(credit);
         this.grantedCredit.addAndGet(credit);
         if (session != null) {
+            // Proton (Artemis) requires ALL FOUR session window fields in every FLOW:
+            // sending a FLOW with null next-outgoing-id fails with amqp:decode-error
+            // "the next-outgoing-id field is mandatory", and with null incoming-window it
+            // fails with "the incoming-window field is mandatory" (both verified 2026-09-10
+            // against live Artemis). So link credit is granted with the full session
+            // state attached — the spec's link-scoped variant (session fields null) is
+            // NOT accepted by Proton-J.
             var flow = new Performative.Flow(
-                    session.nextIncomingId(),          // next-incoming-id
-                    session.incomingWindow(),           // incoming-window
-                    null, null,                         // next-outgoing-id, outgoing-window
-                    handle,                             // handle
-                    deliveryCount.get(),                // delivery-count
-                    grantedCredit.get(),                // link-credit
+                    session.nextIncomingId(),      // next-incoming-id (mandatory for Proton)
+                    session.incomingWindow(),      // incoming-window (mandatory for Proton)
+                    session.nextOutgoingId(),      // next-outgoing-id (mandatory for Proton)
+                    session.outgoingWindow(),      // outgoing-window
+                    handle,                        // handle
+                    deliveryCount.get(),           // delivery-count
+                    grantedCredit.get(),           // link-credit
                     null, false, false, Map.of()
             );
             session.send(flow);

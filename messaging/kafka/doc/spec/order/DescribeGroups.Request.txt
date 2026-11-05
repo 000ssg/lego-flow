@@ -1,0 +1,15 @@
+DescribeGroups Request — field processing order (binding; spec 3.6.1) — flexible encoding from v5
+wire order by layout (equal run = byte-identical field layout):
+  v0-v2 -> Groups
+  v3-v4 -> Groups:IncludeAuthorizedOperations
+  v5 -> Groups:IncludeAuthorizedOperations|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0-v2:
+  v0: fixed: Groups[]string || tagged: ∅
+  v1: fixed: Groups[]string || tagged: ∅
+  v2: fixed: Groups[]string || tagged: ∅
+  v3-v4:
+  v3: fixed: Groups[]string, IncludeAuthorizedOperations(bool) || tagged: ∅
+  v4: fixed: Groups[]string, IncludeAuthorizedOperations(bool) || tagged: ∅
+  v5:
+  v5: fixed: Groups[]string [flex], IncludeAuthorizedOperations(bool) || tagged: ∅ (top-level)

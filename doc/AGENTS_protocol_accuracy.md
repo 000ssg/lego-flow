@@ -148,7 +148,26 @@ container.setListener(listener); // null = no-ops
 - Zero overhead when disabled (no `if (listener != null)` in hot path)
 - Fires at protocol transitions only (connection start, session create, etc.)
 - Never in the hot data path (frame reads/writes)
-- Provide a factory method for latch-based testing (e.g. `latchOnFirst(EventType)`)
+- Provide factory methods for latch-based testing (see below)
+
+**Factory methods** — two patterns for different test scenarios:
+
+```java
+// Single-connection tests: latch fires on first matching event
+var listener = ProtocolEventListener.latchOnFirst(latch, EventType.CONNECTION_OPENED);
+
+// Multi-connection tests with known IDs: latch fires only for specific connection
+var listener = ProtocolEventListener.latchOnConnection(latch, EventType.CONNECTION_OPENED, "conn-1");
+
+// Multi-connection tests with map: dispatch events to per-connection latches
+var latchMap = Map.of("conn-1", latch1, "conn-2", latch2);
+var listener = ProtocolEventListener.latchOnConnections(latchMap, EventType.CONNECTION_OPENED);
+```
+
+**When to use which**:
+- `latchOnFirst` — simple single-connection tests where you just need to wait for an event
+- `latchOnConnection` — when you know the connection ID in advance (in-memory tests, manual connection injection)
+- `latchOnConnections` — multi-connection tests with a map of IDs (TCP tests with tracked IDs, in-memory multi-client tests)
 
 **Reference**: `AmqpEventListener` in `messaging/amqp/`
 

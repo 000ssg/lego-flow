@@ -7,10 +7,11 @@ import java.util.List;
  *
  * <p>Finds the log offset for a given leader epoch.
  *
- * @param topics the topics and partitions to query
+ * @param clusterId the cluster ID (nullable, present v4+)
+ * @param topics    the topics and partitions to query
  * @since 0.1.0
  */
-public record OffsetForLeaderEpochRequest(List<TopicData> topics) {
+public record OffsetForLeaderEpochRequest(String clusterId, List<TopicData> topics) {
 
     /**
      * Per-topic data.

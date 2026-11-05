@@ -1,0 +1,17 @@
+LeaveGroup Request — field processing order (binding; spec 3.6.1) — flexible encoding from v4
+wire order by layout (equal run = byte-identical field layout):
+  v0-v2 -> GroupId:MemberId
+  v3 -> GroupId:Members:Members[*].MemberId:Members[*].GroupInstanceId?
+  v4 -> GroupId:Members:Members[*].MemberId:Members[*].GroupInstanceId?|flex
+  v5 -> GroupId:Members:Members[*].MemberId:Members[*].GroupInstanceId?:Members[*].Reason?|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0-v2:
+  v0: fixed: GroupId(string), MemberId(string) || tagged: ∅
+  v1: fixed: GroupId(string), MemberId(string) || tagged: ∅
+  v2: fixed: GroupId(string), MemberId(string) || tagged: ∅
+  v3:
+  v3: fixed: GroupId(string), []Members { MemberId(string), GroupInstanceId(string) } || tagged: ∅
+  v4:
+  v4: fixed: GroupId(string) [flex], []Members { MemberId(string) [flex], GroupInstanceId(string) [flex] } || tagged: ∅ (per-member + top-level)
+  v5:
+  v5: fixed: GroupId(string) [flex], []Members { MemberId(string) [flex], GroupInstanceId(string) [flex], Reason(string) [flex] } || tagged: ∅ (per-member + top-level)

@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import ssg.legoflow.service.channel.ByteTransport;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -36,13 +37,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  * send messages, and receive messages. Supports SASL authentication and
  * multiple delivery semantics.
  *
- * <p><b>Transport-agnostic:</b> this class uses only the {@link AmqpTransport}
+ * <p><b>Transport-agnostic:</b> this class uses only the {@link ByteTransport}
  * interface. TCP infrastructure belongs in the service layer.
  *
  * <p><b>Single-reader architecture:</b> there is no background read loop.
  * All frame reading happens synchronously on the calling thread:
  * <ol>
- *   <li>{@link #connect(AmqpTransport)} reads handshake frames (SASL, OPEN)</li>
+ *   <li>{@link #connect(ByteTransport)} reads handshake frames (SASL, OPEN)</li>
  *   <li>{@link #createSession()} reads BEGIN response</li>
  *   <li>{@link #createSender(AmqpSession, String, String)} and
  *       {@link #createReceiver(AmqpSession, String, String)} read ATTACH response</li>
@@ -64,7 +65,7 @@ public final class AmqpClient implements AutoCloseable {
     private final Map<Integer, AmqpSession> sessions = new ConcurrentHashMap<>();
     private final AtomicInteger nextChannel = new AtomicInteger(0);
 
-    private volatile AmqpTransport transport;
+    private volatile ByteTransport transport;
     private volatile ConnectionState state = ConnectionState.START;
     private volatile int maxFrameSize = AmqpConstants.DEFAULT_MAX_FRAME_SIZE;
 
@@ -88,11 +89,13 @@ public final class AmqpClient implements AutoCloseable {
      * @param transport the transport to use
      * @throws IOException if the connection fails
      */
-    public void connect(AmqpTransport transport) throws IOException {
+    public void connect(ByteTransport transport) throws IOException {
         if (transport == null) {
             throw new IllegalArgumentException("Transport must not be null");
         }
         this.transport = transport;
+        long startNs = System.nanoTime();
+        System.out.println("[CLIENT] START connect at " + startNs);
 
         SaslMechanism mechanism;
         if (config.saslMechanism() != null) {
@@ -104,36 +107,42 @@ public final class AmqpClient implements AutoCloseable {
         }
 
         if (config.proto0Accepted()) {
-            // Proto-0 (Qpid Dispatch): AMQP_HEADER → OPEN (no SASL).
-            LOG.debug("Proto-0 (Qpid): AMQP_HEADER, then OPEN (no SASL)");
+            System.out.println("[CLIENT] proto-0 mode");
+            readFully(ByteBuffer.allocate(8));
+            System.out.println("[CLIENT] SENT AMQP_HEADER");
             transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
             ByteBuffer headerBuf = ByteBuffer.allocate(8);
             readFully(headerBuf);
             headerBuf.flip();
             byte[] echo = new byte[8];
             headerBuf.get(echo);
+            long readNs = System.nanoTime();
+            System.out.println("[CLIENT] READ echo: " + Arrays.toString(echo) + " at " + readNs + " (delta=" + (readNs - startNs) + "ns)");
             if (!Arrays.equals(echo, AmqpConstants.AMQP_HEADER)) {
                 throw new IOException("Invalid AMQP header echo in proto-0: " + Arrays.toString(echo));
             }
         } else {
-            // Proto-3: SASL-first. Send SASL_HEADER, wait for server echo.
+            System.out.println("[CLIENT] SASL-first mode");
             transport.send(ByteBuffer.wrap(AmqpConstants.SASL_HEADER));
+            long sendNs = System.nanoTime();
+            System.out.println("[CLIENT] SENT SASL_HEADER at " + sendNs + " (delta=" + (sendNs - startNs) + "ns)");
             ByteBuffer headerBuf = ByteBuffer.allocate(8);
             try {
                 readFully(headerBuf);
             } catch (AmqpException e) {
-                LOG.debug("Server closed connection on SASL_HEADER — proto-0 fallback needed");
-                throw new IOException(
-                        "Server does not support SASL-first protocol (proto-3). "
-                        + "The service layer should create a new transport and retry with proto0Accepted=true.", e);
+                System.out.println("[CLIENT] Connection closed on SASL_HEADER");
+                throw new IOException("Server does not support SASL-first protocol", e);
             }
             headerBuf.flip();
             byte[] serverHeader = new byte[8];
             headerBuf.get(serverHeader);
+            long readNs = System.nanoTime();
+            System.out.println("[CLIENT] READ server header: " + Arrays.toString(serverHeader) + " at " + readNs + " (delta=" + (readNs - sendNs) + "ns)");
 
             if (Arrays.equals(serverHeader, AmqpConstants.SASL_HEADER)) {
-                LOG.debug("Server supports SASL-first, proceeding with negotiation");
+                System.out.println("[CLIENT] SASL-FIRST, proceeding with negotiation");
                 doSaslNegotiation(mechanism);
+                System.out.println("[CLIENT] SENT AMQP_HEADER after SASL");
                 transport.send(ByteBuffer.wrap(AmqpConstants.AMQP_HEADER));
                 headerBuf.clear();
                 readFully(headerBuf);
@@ -144,36 +153,40 @@ public final class AmqpClient implements AutoCloseable {
                     throw new IOException("Invalid AMQP header echo after SASL: " + Arrays.toString(amqpEcho));
                 }
             } else if (Arrays.equals(serverHeader, AmqpConstants.AMQP_HEADER)) {
-                LOG.debug("Server responded with AMQP_HEADER, doing SASL (proto-0 auto-detect)");
+                System.out.println("[CLIENT] AMQP_HEADER received, doing SASL");
                 doSaslNegotiation(mechanism);
             } else {
                 throw new IOException("Invalid header from server: " + Arrays.toString(serverHeader));
             }
         }
         state = ConnectionState.HDR_EXCH;
+        System.out.println("[CLIENT] Headers exchanged, sending OPEN");
 
-        // Send open
         var open = new Performative.Open(
                 config.containerId(), config.host(),
                 config.maxFrameSize(), config.channelMax(),
                 config.idleTimeout(), List.of(), List.of(), Map.of()
         );
         sendPerformative(0, open);
+        System.out.println("[CLIENT] OPEN sent");
 
-        // Receive open response
         AmqpFrame openFrame = readFrame();
+        System.out.println("[CLIENT] OPEN response received");
         if (openFrame.performative() instanceof AmqpType.Described desc) {
             var remoteOpen = (Performative.Open) PerformativeCodec.decode(desc);
             maxFrameSize = (int) Math.min(config.maxFrameSize(), remoteOpen.maxFrameSize());
-            LOG.debug("Connected to container '{}'", remoteOpen.containerId());
+            System.out.println("[CLIENT] Connected to container '" + remoteOpen.containerId() + "'");
         }
 
         state = ConnectionState.OPENED;
         connected.set(true);
+        System.out.println("[CLIENT] Connection complete");
     }
 
     private void doSaslNegotiation(SaslMechanism mechanism) throws IOException {
-        // Read sasl-mechanisms frame from server
+        // Read sasl-mechanisms frame from server.
+        // After SASL-first header exchange, the server sends the SASL mechanisms
+        // frame directly (no intermediate AMQP framing header).
         AmqpFrame mechFrame = readFrame();
         if (mechFrame == null || mechFrame.type() != AmqpConstants.FRAME_TYPE_SASL) {
             throw new AmqpException(AmqpError.FRAMING_ERROR,
@@ -325,12 +338,12 @@ public final class AmqpClient implements AutoCloseable {
         if (remainingMs <= 0) return false;
         int read = transport.receiveWithTimeout(sizeBuf, remainingMs, TimeUnit.MILLISECONDS);
         if (read < 4) {
-            System.out.println("[pollFrame] size read only " + read + " bytes, timeout");
+            LOG.debug("pollFrame: size read only {} bytes, timeout", read);
             return false;
         }
         sizeBuf.flip();
         int size = sizeBuf.getInt();
-        System.out.println("[pollFrame] size=" + size);
+        LOG.debug("pollFrame: size={}", size);
 
         if (size < AmqpConstants.FRAME_HEADER_SIZE) return false;
 
@@ -341,7 +354,7 @@ public final class AmqpClient implements AutoCloseable {
         ByteBuffer bodyBuf = ByteBuffer.allocate(size - 4);
         read = transport.receiveWithTimeout(bodyBuf, remainingMs, TimeUnit.MILLISECONDS);
         if (read < (size - 4)) {
-            System.out.println("[pollFrame] body read only " + read + "/" + (size - 4) + " bytes, timeout");
+            LOG.debug("pollFrame: body read only {}/{} bytes, timeout", read, size - 4);
             return false;
         }
         bodyBuf.flip();
@@ -353,18 +366,18 @@ public final class AmqpClient implements AutoCloseable {
 
         AmqpFrame frame = FrameCodec.decode(frameBuf);
         if (frame == null) {
-            System.out.println("[pollFrame] decode returned null for size " + size);
+            LOG.debug("pollFrame: decode returned null for size {}", size);
             return false;
         }
 
-        System.out.println("[pollFrame] ch=" + frame.channel() + " perf=" + frame.performative().getClass().getSimpleName());
+        LOG.debug("pollFrame: ch={} perf={}", frame.channel(), frame.performative().getClass().getSimpleName());
 
         // Process through state machine
         if (frame.isHeartbeat()) return true;
 
         if (frame.performative() instanceof AmqpType.Described desc) {
             Performative perf = PerformativeCodec.decode(desc);
-            System.out.println("[pollFrame] decoded " + perf.getClass().getSimpleName());
+            LOG.debug("pollFrame: decoded {}", perf.getClass().getSimpleName());
             handleIncomingPerformative(frame.channel(), perf, frame.payload());
         }
         return true;
@@ -429,20 +442,20 @@ public final class AmqpClient implements AutoCloseable {
                 }
             }
             case Performative.Attach attach -> {
-                System.out.println("[handleAttach] handle=" + attach.handle() + " role=" + attach.role());
+                LOG.debug("handleAttach: handle={} role={}", attach.handle(), attach.role());
                 if (session != null) {
                     SenderLink sl = session.senderLink(attach.handle());
                     if (sl != null) {
-                        System.out.println("[handleAttach] -> sender: " + sl.name());
+                        LOG.debug("handleAttach -> sender: {}", sl.name());
                         sl.state(SenderLink.State.ATTACHED);
                     }
                     ReceiverLink rl = session.receiverLink(attach.handle());
                     if (rl != null) {
-                        System.out.println("[handleAttach] -> receiver: " + rl.name());
+                        LOG.debug("handleAttach -> receiver: {}", rl.name());
                         rl.state(ReceiverLink.State.ATTACHED);
                     }
                     if (sl == null && rl == null) {
-                        System.out.println("[handleAttach] NO LINK FOUND for handle=" + attach.handle());
+                        LOG.debug("handleAttach: NO LINK FOUND for handle={}", attach.handle());
                     }
                 }
             }
@@ -499,7 +512,7 @@ public final class AmqpClient implements AutoCloseable {
                 state = ConnectionState.CLOSE_RCVD;
                 connected.set(false);
                 if (close.error() != null) {
-                    System.out.println("[AmqpClient] Server sent Close with error: " + close.error());
+                    LOG.debug("Server sent Close with error: {}", close.error());
                     throw new AmqpException(AmqpError.ILLEGAL_STATE, "Server closed connection: " + close.error());
                 }
             }

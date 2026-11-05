@@ -9,6 +9,14 @@ import org.slf4j.LoggerFactory;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Channel handler for AMQP container connections.
+ *
+ * <p>Manages the transport layer and delegates protocol handling to
+ * {@link ssg.legoflow.messaging.amqp.container.AmqpContainer}.
+ *
+ * @since 0.1.0
+ */
 public final class AmqpContainerChannelHandler implements ChannelHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(AmqpContainerChannelHandler.class);

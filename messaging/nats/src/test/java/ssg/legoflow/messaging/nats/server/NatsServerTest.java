@@ -14,15 +14,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import static org.assertj.core.api.Assertions.*;
 /**
- * Tests for {@link NatsServer} with client integration.
+ * Tests for {@link NatsServer} with client integration, over the in-memory transport seam
+ * ({@link InMemoryNats}) — no sockets, deterministic. Mirrors the production path
+ * (manager + {@code PipelineNatsTransport}); the protocol core itself is transport-agnostic.
  */
 class NatsServerTest {
 
     @Test
     void testServerStartAndStop() throws IOException {
         try (var server = new NatsServer()) {
-            server.start(0);
-            assertThat(server.port()).isGreaterThan(0);
+            server.start();
             assertThat(server.isRunning()).isTrue();
         }
     }
@@ -30,9 +31,8 @@ class NatsServerTest {
     @Test
     void testClientConnect() throws IOException {
         try (var server = new NatsServer()) {
-            server.start(0);
-            try (var client = new NatsClient("localhost", server.port())) {
-                client.connect();
+            server.start();
+            try (var client = InMemoryNats.client(server)) {
                 assertThat(client.isConnected()).isTrue();
                 assertThat(client.serverInfo()).isNotNull();
                 assertThat(client.serverInfo().jetstream()).isTrue();
@@ -43,15 +43,12 @@ class NatsServerTest {
     @Test
     void testPubSub() throws IOException, InterruptedException {
         try (var server = new NatsServer()) {
-            server.start(0);
+            server.start();
             var received = new CopyOnWriteArrayList<String>();
             var latch = new CountDownLatch(1);
 
-            try (var sub = new NatsClient("localhost", server.port());
-                 var pub = new NatsClient("localhost", server.port())) {
-                sub.connect();
-                pub.connect();
-
+            try (var sub = InMemoryNats.client(server);
+                 var pub = InMemoryNats.client(server)) {
                 sub.subscribe("test.topic", msg -> {
                     received.add(msg.dataAsString());
                     latch.countDown();
@@ -69,15 +66,12 @@ class NatsServerTest {
     @Test
     void testPubSubMultipleMessages() throws IOException, InterruptedException {
         try (var server = new NatsServer()) {
-            server.start(0);
+            server.start();
             var received = new CopyOnWriteArrayList<String>();
             var latch = new CountDownLatch(3);
 
-            try (var sub = new NatsClient("localhost", server.port());
-                 var pub = new NatsClient("localhost", server.port())) {
-                sub.connect();
-                pub.connect();
-
+            try (var sub = InMemoryNats.client(server);
+                 var pub = InMemoryNats.client(server)) {
                 sub.subscribe("events", msg -> {
                     received.add(msg.dataAsString());
                     latch.countDown();
@@ -97,15 +91,12 @@ class NatsServerTest {
     @Test
     void testPubSubWildcard() throws IOException, InterruptedException {
         try (var server = new NatsServer()) {
-            server.start(0);
+            server.start();
             var received = new CopyOnWriteArrayList<String>();
             var latch = new CountDownLatch(2);
 
-            try (var sub = new NatsClient("localhost", server.port());
-                 var pub = new NatsClient("localhost", server.port())) {
-                sub.connect();
-                pub.connect();
-
+            try (var sub = InMemoryNats.client(server);
+                 var pub = InMemoryNats.client(server)) {
                 sub.subscribe("events.>", msg -> {
                     received.add(msg.subject() + ":" + msg.dataAsString());
                     latch.countDown();
@@ -125,15 +116,12 @@ class NatsServerTest {
     @Test
     void testPubSubWithHeaders() throws IOException, InterruptedException {
         try (var server = new NatsServer()) {
-            server.start(0);
+            server.start();
             var latch = new CountDownLatch(1);
             var receivedHeaders = new NatsHeaders[1];
 
-            try (var sub = new NatsClient("localhost", server.port());
-                 var pub = new NatsClient("localhost", server.port())) {
-                sub.connect();
-                pub.connect();
-
+            try (var sub = InMemoryNats.client(server);
+                 var pub = InMemoryNats.client(server)) {
                 sub.subscribe("hdr.test", msg -> {
                     receivedHeaders[0] = msg.headers();
                     latch.countDown();
@@ -154,12 +142,9 @@ class NatsServerTest {
     @Test
     void testRequestReply() throws IOException, InterruptedException {
         try (var server = new NatsServer()) {
-            server.start(0);
-            try (var service = new NatsClient("localhost", server.port());
-                 var requester = new NatsClient("localhost", server.port())) {
-                service.connect();
-                requester.connect();
-
+            server.start();
+            try (var service = InMemoryNats.client(server);
+                 var requester = InMemoryNats.client(server)) {
                 // On CI, NATS server routing between two clients takes time.
                 // Use CountDownLatch + brief delay for subscription setup to be reliable.
                 var readyLatch = new CountDownLatch(1);
@@ -174,7 +159,6 @@ class NatsServerTest {
                 });
 
                 // Brief delay for server to process subscription registration.
-                // On CI the SUB message propagation between two connected clients can take time.
                 Thread.sleep(300);
 
                 // Now send the actual request
@@ -189,10 +173,8 @@ class NatsServerTest {
     @Test
     void testRequestReplyTimeout() throws IOException, InterruptedException {
         try (var server = new NatsServer()) {
-            server.start(0);
-            try (var client = new NatsClient("localhost", server.port())) {
-                client.connect();
-
+            server.start();
+            try (var client = InMemoryNats.client(server)) {
                 // No service listening — should timeout
                 var reply = client.request("no.service", "data", Duration.ofMillis(200));
                 assertThat(reply).isNull();
@@ -203,18 +185,14 @@ class NatsServerTest {
     @Test
     void testQueueGroup() throws IOException, InterruptedException {
         try (var server = new NatsServer()) {
-            server.start(0);
+            server.start();
             var worker1Count = new AtomicInteger(0);
             var worker2Count = new AtomicInteger(0);
             var latch = new CountDownLatch(10);
 
-            try (var w1 = new NatsClient("localhost", server.port());
-                 var w2 = new NatsClient("localhost", server.port());
-                 var pub = new NatsClient("localhost", server.port())) {
-                w1.connect();
-                w2.connect();
-                pub.connect();
-
+            try (var w1 = InMemoryNats.client(server);
+                 var w2 = InMemoryNats.client(server);
+                 var pub = InMemoryNats.client(server)) {
                 w1.subscribe("tasks", "workers", msg -> {
                     worker1Count.incrementAndGet();
                     latch.countDown();
@@ -242,12 +220,11 @@ class NatsServerTest {
     void testTokenAuth() throws IOException {
         try (var server = new NatsServer()) {
             server.setAuthenticator(new TokenAuthenticator("secret123"));
-            server.start(0);
+            server.start();
 
             // Correct token
-            try (var client = new NatsClient("localhost", server.port(),
+            try (var client = InMemoryNats.client(server,
                     ConnectOptions.withDefaults("client").withToken("secret123"))) {
-                client.connect();
                 assertThat(client.isConnected()).isTrue();
             }
         }
@@ -257,14 +234,15 @@ class NatsServerTest {
     void testTokenAuthRejected() throws IOException {
         try (var server = new NatsServer()) {
             server.setAuthenticator(new TokenAuthenticator("secret123"));
-            server.start(0);
+            server.start();
 
             assertThatThrownBy(() -> {
-                try (var client = new NatsClient("localhost", server.port(),
+                try (var client = InMemoryNats.client(server,
                         ConnectOptions.withDefaults("client").withToken("wrong"))) {
-                    client.connect();
+                    // unreachable — connect() throws on the -ERR from the server
+                    throw new IllegalStateException("should have thrown");
                 }
-            }).isInstanceOf(IOException.class);
+            }).isInstanceOf(IOException.class).hasMessageContaining("Connection rejected");
         }
     }
 
@@ -274,11 +252,10 @@ class NatsServerTest {
             var auth = new UserPassAuthenticator();
             auth.addUser("admin", "password");
             server.setAuthenticator(auth);
-            server.start(0);
+            server.start();
 
-            try (var client = new NatsClient("localhost", server.port(),
+            try (var client = InMemoryNats.client(server,
                     ConnectOptions.withDefaults("client").withUserPass("admin", "password"))) {
-                client.connect();
                 assertThat(client.isConnected()).isTrue();
             }
         }
@@ -290,32 +267,29 @@ class NatsServerTest {
             var auth = new UserPassAuthenticator();
             auth.addUser("admin", "password");
             server.setAuthenticator(auth);
-            server.start(0);
+            server.start();
 
             assertThatThrownBy(() -> {
-                try (var client = new NatsClient("localhost", server.port(),
+                try (var client = InMemoryNats.client(server,
                         ConnectOptions.withDefaults("client").withUserPass("admin", "wrong"))) {
-                    client.connect();
+                    // unreachable — connect() throws on the -ERR from the server
+                    throw new IllegalStateException("should have thrown");
                 }
-            }).isInstanceOf(IOException.class);
+            }).isInstanceOf(IOException.class).hasMessageContaining("Connection rejected");
         }
     }
 
     @Test
     void testMultipleClients() throws IOException, InterruptedException {
         try (var server = new NatsServer()) {
-            server.start(0);
+            server.start();
             var received1 = new CopyOnWriteArrayList<String>();
             var received2 = new CopyOnWriteArrayList<String>();
             var latch = new CountDownLatch(2);
 
-            try (var c1 = new NatsClient("localhost", server.port());
-                 var c2 = new NatsClient("localhost", server.port());
-                 var pub = new NatsClient("localhost", server.port())) {
-                c1.connect();
-                c2.connect();
-                pub.connect();
-
+            try (var c1 = InMemoryNats.client(server);
+                 var c2 = InMemoryNats.client(server);
+                 var pub = InMemoryNats.client(server)) {
                 c1.subscribe("news", msg -> { received1.add(msg.dataAsString()); latch.countDown(); });
                 c2.subscribe("news", msg -> { received2.add(msg.dataAsString()); latch.countDown(); });
                 Thread.sleep(50);
@@ -332,14 +306,11 @@ class NatsServerTest {
     @Test
     void testUnsubscribe() throws IOException, InterruptedException {
         try (var server = new NatsServer()) {
-            server.start(0);
+            server.start();
             var received = new CopyOnWriteArrayList<String>();
 
-            try (var client = new NatsClient("localhost", server.port());
-                 var pub = new NatsClient("localhost", server.port())) {
-                client.connect();
-                pub.connect();
-
+            try (var client = InMemoryNats.client(server);
+                 var pub = InMemoryNats.client(server)) {
                 var sub = client.subscribe("topic", msg -> received.add(msg.dataAsString()));
                 Thread.sleep(50);
 
@@ -360,10 +331,9 @@ class NatsServerTest {
     @Test
     void testClientDisconnect() throws IOException, InterruptedException {
         try (var server = new NatsServer()) {
-            server.start(0);
+            server.start();
 
-            var client = new NatsClient("localhost", server.port());
-            client.connect();
+            var client = InMemoryNats.client(server);
             assertThat(client.isConnected()).isTrue();
 
             client.close();
@@ -375,9 +345,8 @@ class NatsServerTest {
     @Test
     void testServerInfoFields() throws IOException {
         try (var server = new NatsServer()) {
-            server.start(0);
-            try (var client = new NatsClient("localhost", server.port())) {
-                client.connect();
+            server.start();
+            try (var client = InMemoryNats.client(server)) {
                 var info = client.serverInfo();
                 assertThat(info.serverId()).isNotEmpty();
                 assertThat(info.serverName()).isEqualTo("lego-flow-nats");

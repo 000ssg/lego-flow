@@ -2,8 +2,8 @@ package ssg.legoflow.benchmarks.messaging;
 
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
-import ssg.legoflow.mqtt.codec.MqttCodec;
-import ssg.legoflow.mqtt.protocol.*;
+import ssg.legoflow.messaging.mqtt.codec.MqttCodec;
+import ssg.legoflow.messaging.mqtt.protocol.*;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 /**
@@ -41,30 +41,30 @@ public class MqttLatencyBenchmark {
         smallPublishQos0 = new PublishPacket(
                 "telemetry/sensor/temperature",
                 makePayload(SMALL_PAYLOAD),
-                QoS.AT_MOST_ONCE, false, false, 0, new ssg.legoflow.mqtt.protocol.MqttProperties());
+                QoS.AT_MOST_ONCE, false, false, 0, new ssg.legoflow.messaging.mqtt.protocol.MqttProperties());
 
         // Small PUBLISH QoS 1 (command with ack)
         smallPublishQos1 = new PublishPacket(
                 "commands/device/actuator/set",
                 makePayload(SMALL_PAYLOAD),
-                QoS.AT_LEAST_ONCE, false, false, 42, new ssg.legoflow.mqtt.protocol.MqttProperties());
+                QoS.AT_LEAST_ONCE, false, false, 42, new ssg.legoflow.messaging.mqtt.protocol.MqttProperties());
 
         // Medium PUBLISH QoS 2 (exactly-once financial events)
         mediumPublishQos2 = new PublishPacket(
                 "events/finance/trade",
                 makePayload(MEDIUM_PAYLOAD),
-                QoS.EXACTLY_ONCE, false, false, 100, new ssg.legoflow.mqtt.protocol.MqttProperties());
+                QoS.EXACTLY_ONCE, false, false, 100, new ssg.legoflow.messaging.mqtt.protocol.MqttProperties());
 
         // Large PUBLISH QoS 1 (image chunk)
         largePublishQos1 = new PublishPacket(
                 "images/camera/stream",
                 makePayload(LARGE_PAYLOAD),
-                QoS.AT_LEAST_ONCE, false, false, 200, new ssg.legoflow.mqtt.protocol.MqttProperties());
+                QoS.AT_LEAST_ONCE, false, false, 200, new ssg.legoflow.messaging.mqtt.protocol.MqttProperties());
 
         // CONNECT packet
         connectPacket = new ConnectPacket(
                 MqttVersion.V5_0, "bench-client-01", true, 60,
-                "user", "pass", null, new ssg.legoflow.mqtt.protocol.MqttProperties());
+                "user", "pass", null, new ssg.legoflow.messaging.mqtt.protocol.MqttProperties());
     }
 
     /**

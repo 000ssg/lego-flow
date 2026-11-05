@@ -168,14 +168,25 @@
 | Create consumer API | `$JS.API.CONSUMER.CREATE` | ✅ Implemented | `JetStreamClient.createConsumer`; `JetStreamDemoTest` |
 | Delete consumer API | `$JS.API.CONSUMER.DELETE` | ✅ Implemented | `JetStreamClient.deleteConsumer`; `JetStreamDemoTest` |
 
+### Transport SPI + Service Layer
+
+| Feature | Requirement | Status | Verification |
+|---------|------------|--------|-------------|
+| NatsTransport SPI | Byte-level transport interface (connect, send, receiveWithTimeout, close); timeout ≠ EOF | ✅ Implemented | `NatsTransport`; `NatsTransportTest` |
+| InMemoryNatsTransport | `createPair()` transport pair for tests/demos; drains queued bytes before EOF | ✅ Implemented | `InMemoryNatsTransport.createPair`; `NatsTransportTest` |
+| PipelineNatsTransport | Production transport: DataChannel ring + outbound queue, selector-thread driven | ✅ Implemented | `PipelineNatsTransport`; `NatsServiceIntegrationTest` |
+| Service client (NatsService) | Non-blocking SocketChannel + manager; owns the client connection lifecycle | ✅ Implemented | `NatsService`; `NatsServiceTest`, `NatsServiceIntegrationTest` |
+| Service server (NatsServerService) | Non-blocking ServerSocketChannel + manager; hands connections to `NatsServer.handleConnection` | ✅ Implemented | `NatsServerService`; `NatsServerServiceTest`, `NatsServiceIntegrationTest` |
+| Codec reassembly | Line codec reassembles split/batched frames over chunked transport reads | ✅ Implemented | `NatsCodecReassemblyTest` (10) |
+
 ### Server Management
 
 | Feature | Requirement | Status | Verification |
 |---------|------------|--------|-------------|
 | Virtual threads | Per-client virtual thread | ✅ Implemented | `Executors.newVirtualThreadPerTaskExecutor()`; `NatsServerTest` |
 | Client registry | Track connected clients | ✅ Implemented | `NatsServer.clients`; `NatsServerTest` |
-| Graceful shutdown | Close all clients and socket | ✅ Implemented | `NatsServer.close`; `NatsServerTest` |
-| Ephemeral port | Port 0 auto-assignment | ✅ Implemented | `NatsServer(0)`; `NatsServerTest` |
+| Graceful shutdown | Close all clients and connections | ✅ Implemented | `NatsServer.close`; `NatsServerTest` |
+| Ephemeral port | Service binds port 0, reports real port via `getPort()` | ✅ Implemented | `NatsServerService.getPort`; `NatsServiceIntegrationTest` |
 | Client count | Track number of connections | ✅ Implemented | `NatsServer.clientCount`; `NatsServerTest` |
 
 ## Known Limitations
@@ -197,8 +208,8 @@
 
 ## Test Coverage Summary
 
-- Total compliance tests: 271
-- Key unit test classes: `NatsCodecTest` (43), `SubjectMatcherTest` (18), `StreamStoreTest` (16), `NatsHeadersTest` (18), `NatsServerTest` (17), `SubscriptionRegistryTest` (11), `SubjectTest` (10), `NatsMessageTest` (10), `ConsumerTest` (10), `ConnectOptionsTest` (9), `ServerInfoTest` (9), `StreamTest` (9), `PullSubscriptionTest` (8), `AuthenticatorTest` (10), `QueueGroupTest` (6), `NatsStatusTest` (5), `ConsumerConfigTest`, `StreamConfigTest`, `AckPolicyTest` (3)
+- Total compliance tests: 343
+- Key unit test classes: `NatsCodecTest` (43), `JetStreamManagerTest` (22), `SubjectMatcherTest` (18), `NatsHeadersTest` (18), `NatsTransportTest` (17), `NatsServerTest` (17), `StreamStoreTest` (16), `NatsClusterBusTest` (14), `NatsDistributedPubSubTest` (12), `SubscriptionRegistryTest` (11), `StreamConfigTest` (11), `SubjectTest` (10), `AuthenticatorTest` (10), `NatsCodecReassemblyTest` (10), `ConsumerTest` (10), `SubscriptionTest` (10), `NatsMessageTest` (10), `ServerInfoTest` (9), `ConnectOptionsTest` (9), `StreamTest` (9), `PullSubscriptionTest` (8), `NatsClusterHealthBusTest` (7), `QueueGroupTest` (6), `ConsumerConfigTest` (6), `NatsServiceTest` (5), `NatsStatusTest` (5), `NatsClusterConfigTest` (5), `InboxManagerTest` (5), `NatsServerServiceTest` (4), `AckPolicyTest` (3), `NatsServiceIntegrationTest` (2)
 - Key demo test classes: `PubSubDemoTest`, `RequestReplyDemoTest`, `QueueGroupDemoTest` (2), `JetStreamDemoTest` (1)
-- Sections fully covered: All 12 protocol operations (codec), subject matching with wildcards, queue groups, request/reply, headers, authentication, JetStream streams/consumers/pull subscriptions
+- Sections fully covered: All 12 protocol operations (codec), transport SPI + service layer, subject matching with wildcards, queue groups, request/reply, headers, authentication, JetStream streams/consumers/pull subscriptions
 - Key areas needing improvement: TLS transport, clustering, push subscriptions, key-value store, redelivery timers, file storage

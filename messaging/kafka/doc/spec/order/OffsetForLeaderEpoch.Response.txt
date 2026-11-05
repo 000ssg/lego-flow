@@ -1,0 +1,19 @@
+OffsetForLeaderEpoch Response — field processing order (binding; spec 3.6.1) — flexible encoding from v4
+wire order by layout (equal run = byte-identical field layout):
+  v0-v3: ErrorCode:Topics[]
+
+field lines (fixed-width, no flexible encoding):
+  v0-v3: ErrorCode:int16
+  v0-v3: Topics:[]struct{TopicName:string,EpochEndOffsets[]struct{Partition:int32,EndOffset:int64,ErrorCode:int16}}
+
+  v4: ErrorCode:Topics[]
+
+field lines (flexible encoding, KIP-482):
+  v4: ErrorCode:int16
+  v4: Topics:[]struct{TopicName:compact_string,EpochEndOffsets[]struct{Partition:int32,EndOffset:int64,ErrorCode:int16}}
+
+notes:
+  - Flexible encoding from v4 (KIP-482)
+  - compact_string = varint(N+1) + bytes
+  - array counts are varint
+  - endTags = varint(0) for each element with no tags

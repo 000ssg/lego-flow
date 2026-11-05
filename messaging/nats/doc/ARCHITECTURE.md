@@ -17,10 +17,19 @@ graph TD
     L3["Message Router<br/>(subscription matching, queue group round-robin,<br/>echo suppression)"]
     L4["Subject Engine<br/>(Subject model, SubjectMatcher wildcards * and >,<br/>SubscriptionRegistry)"]
     L5["Protocol Codec<br/>(12 operations, text-based line protocol,<br/>CRLF framing, JSON payloads for INFO/CONNECT)"]
-    L6["TCP Transport<br/>(Socket, BufferedReader/Writer, virtual threads)"]
+    L6["NatsTransport SPI<br/>(byte-level, transport-injected)"]
+    L7["Service Layer<br/>(NatsService / NatsServerService + SelectableChannelManager,<br/>only place that owns sockets)"]
 
     L1 --> L2 --> L3 --> L4 --> L5 --> L6
+    L7 -.drives.-> L6
 ```
+
+The protocol core is **headless**: it never opens sockets. `NatsClient` and
+`NatsServer` are constructed with an injected `NatsTransport` (a byte-level SPI
+over which the line codec runs via the `TransportStreams` stream adapter). The
+service layer (`NatsService` / `NatsServerService`) is the only component that
+touches NIO — it opens non-blocking channels, registers them with
+`SelectableChannelManager`, and wires `PipelineNatsTransport` into the core.
 
 ## Protocol Operations
 
@@ -100,8 +109,9 @@ graph TD
 
 ```mermaid
 graph TD
-    TCP["ServerSocket<br/>(TCP Listener)"] --> Accept["Accept Loop<br/>(virtual thread)"]
-    Accept --> CC["ClientConnection<br/>(per-client virtual thread)"]
+    SVC["NatsServerService<br/>(service layer: non-blocking<br/>ServerSocketChannel + manager)"] --> Pipe["PipelineNatsTransport<br/>(DataChannel ring,<br/>selector-thread driven)"]
+    Pipe --> HC["NatsServer.handleConnection(transport)"]
+    HC --> CC["ClientConnection<br/>(per-client virtual thread)"]
     CC --> Handshake["INFO/CONNECT<br/>Handshake"]
     Handshake --> Auth["Authenticator<br/>(token or user/pass)"]
     CC --> OpLoop["Operation Loop<br/>(PUB/SUB/UNSUB/PING)"]
@@ -112,7 +122,7 @@ graph TD
     JSMgr --> Streams["Stream instances"]
 ```
 
-- **NatsServer**: manages ServerSocket, client registry (ConcurrentHashMap), JetStreamManager
+- **NatsServer**: headless core — no accept loop, no socket. Connections arrive via `handleConnection(NatsTransport)` (mirrors `StompBroker.accept(StompTransport)`); client registry (ConcurrentHashMap), JetStreamManager
 - **ClientConnection**: per-client handler on a virtual thread; manages INFO/CONNECT handshake, authentication, protocol operation dispatch, cleanup on disconnect
 - **Authenticator**: pluggable interface with TokenAuthenticator and UserPassAuthenticator implementations
 - Each client connection maintains its own subscription map; cleanup removes all subscriptions on disconnect
@@ -121,8 +131,8 @@ graph TD
 
 ```mermaid
 graph TD
-    App["Application Code"] --> Client["NatsClient"]
-    Client --> Connect["connect()<br/>Socket + INFO/CONNECT + PING/PONG"]
+    App["Application Code"] --> Client["NatsClient<br/>(transport-injected)"]
+    Client --> Connect["connect()<br/>INFO/CONNECT + PING/PONG over NatsTransport"]
     Client --> Pub["publish()<br/>PUB/HPUB"]
     Client --> Sub["subscribe()<br/>SUB + handler callback"]
     Client --> Req["request()<br/>inbox + SUB + PUB + CompletableFuture"]
@@ -131,7 +141,7 @@ graph TD
     Client --> Inbox["InboxManager<br/>_INBOX.uuid.counter"]
 ```
 
-- Connection lifecycle: socket connect -> read INFO -> send CONNECT -> send PING -> read PONG -> ready
+- Connection lifecycle: transport connect -> read INFO -> send CONNECT -> send PING -> read PONG -> ready
 - Reader loop runs on a virtual thread, dispatching incoming operations via pattern matching switch
 - Subscriptions stored in ConcurrentHashMap keyed by string SID
 - Auto-unsubscribe: subscription deactivates after receiving maxMessages
@@ -202,7 +212,14 @@ graph TD
 | Lego Flow Module | Usage in NATS |
 |------------------|---------------|
 | `blocks` | DP<I,O> for message processing pipeline, DF<T> for filtering |
-| `service` | TCP channels for server/client connections, virtual thread pools |
+| `service` | Non-blocking channel lifecycle in `NatsService`/`NatsServerService`, `SelectableChannelManager` drives `PipelineNatsTransport`; virtual thread pools in the core |
+
+## Testing Architecture
+
+- **Core tests**: run over `InMemoryNatsTransport.createPair()` — no sockets, deterministic, main-scoped
+- **Service integration test**: `NatsServiceIntegrationTest` proves the real manager/TCP path (non-blocking channels + `PipelineNatsTransport`)
+- **Demos**: in-memory transport seam (no external broker required)
+- **Interop**: real external NATS broker via the service layer (`interop-tests`)
 
 ---
 
@@ -213,4 +230,4 @@ graph TD
 
 ---
 
-**Last Updated**: 2026-07-06
+**Last Updated**: 2026-09-20

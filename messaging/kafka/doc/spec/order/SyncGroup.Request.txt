@@ -1,0 +1,17 @@
+SyncGroup Request — field processing order (binding; spec 3.6.1) — flexible encoding from v4
+wire order by layout (equal run = byte-identical field layout):
+  v0-v2 -> GroupId:GenerationId:MemberId:Assignments:Assignments[*].MemberId:Assignments[*].Assignment
+  v3 -> GroupId:GenerationId:MemberId:GroupInstanceId?:Assignments:Assignments[*].MemberId:Assignments[*].Assignment
+  v4 -> GroupId:GenerationId:MemberId:GroupInstanceId?:Assignments:Assignments[*].MemberId:Assignments[*].Assignment|flex
+  v5 -> GroupId:GenerationId:MemberId:GroupInstanceId?:ProtocolType?:ProtocolName?:Assignments:Assignments[*].MemberId:Assignments[*].Assignment|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0-v2:
+  v0: fixed: GroupId(string), GenerationId(int32), MemberId(string), []Assignments { MemberId(string), Assignment(bytes) } || tagged: ∅
+  v1: fixed: GroupId(string), GenerationId(int32), MemberId(string), []Assignments { MemberId(string), Assignment(bytes) } || tagged: ∅
+  v2: fixed: GroupId(string), GenerationId(int32), MemberId(string), []Assignments { MemberId(string), Assignment(bytes) } || tagged: ∅
+  v3:
+  v3: fixed: GroupId(string), GenerationId(int32), MemberId(string), GroupInstanceId(string, nullable), []Assignments { MemberId(string), Assignment(bytes) } || tagged: ∅
+  v4:
+  v4: fixed: GroupId(string) [flex], GenerationId(int32), MemberId(string) [flex], GroupInstanceId(string, nullable) [flex], []Assignments { MemberId(string) [flex], Assignment(bytes, non-nullable) } || tagged: ∅ (per-assignment + top-level)
+  v5:
+  v5: fixed: GroupId(string) [flex], GenerationId(int32), MemberId(string) [flex], GroupInstanceId(string, nullable) [flex], ProtocolType(string, nullable, ignorable) [flex], ProtocolName(string, nullable, ignorable) [flex], []Assignments { MemberId(string) [flex], Assignment(bytes, non-nullable) } || tagged: ∅ (per-assignment + top-level)

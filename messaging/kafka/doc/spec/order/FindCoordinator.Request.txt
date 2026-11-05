@@ -1,0 +1,16 @@
+FindCoordinator Request — field processing order (binding; spec 3.6.1) — flexible encoding from v3
+wire order by layout (equal run = byte-identical field layout):
+  v0 -> Key?
+  v1-v2 -> Key?:KeyType?
+  v3 -> Key?:KeyType?|flex
+  v4 -> KeyType?:CoordinatorKeys?|flex
+field lines (fixed section first, trailing tagged section last, ascending tag):
+  v0:
+  v0: fixed: Key(string) || tagged: ∅
+  v1-v2:
+  v1: fixed: Key(string), KeyType(int8) || tagged: ∅
+  v2: fixed: Key(string), KeyType(int8) || tagged: ∅
+  v3:
+  v3: fixed: Key(string) [flex], KeyType(int8) [flex] || tagged: ∅
+  v4:
+  v4: fixed: KeyType(int8) [flex], CoordinatorKeys([]string) [flex] || tagged: ∅

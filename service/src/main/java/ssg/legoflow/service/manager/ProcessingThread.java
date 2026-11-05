@@ -32,7 +32,7 @@ public class ProcessingThread {
 
     private final DataChannel channel;
     private final ChannelPipeline pipeline;
-    private final ByteBuffer readBuffer;
+    final ByteBuffer readBuffer;
 
     public ProcessingThread(DataChannel channel, ChannelPipeline pipeline, int bufferSize) {
         this.channel = channel;
@@ -40,15 +40,27 @@ public class ProcessingThread {
         this.readBuffer = ByteBuffer.allocate(bufferSize);
     }
 
+    /**
+     * Reads available data from the channel and forwards it to the pipeline.
+     *
+     * <p>Used by {@link ServiceGroup} (separate public path from
+     * {@code SelectableChannelManager}, which reads synchronously in the selector thread).
+     * Reads a single chunk (up to the buffer capacity); on EOF fires disconnect instead.
+     * Any bytes not consumed by the pipeline stay in {@code readBuffer} and are drained
+     * on the next call (partial-consumption contract: handlers advance buffer position).
+     */
     public void processReadable() {
         PROCESSING_POOL.submit(() -> {
             try {
+                // Drain any remainder from a previous partially-consumed flush first
+                if (readBuffer.position() > 0 && readBuffer.hasRemaining()) {
+                    pipeline.fireRead(channel, readBuffer);
+                    if (readBuffer.hasRemaining()) return; // backpressure: wait for consumption
+                }
                 readBuffer.clear();
                 int n;
                 while ((n = channel.read(readBuffer)) > 0) {
                     if (!readBuffer.hasRemaining()) break;
-                }
-                if (n < 0 || !readBuffer.hasRemaining()) {
                 }
                 if (n < 0) {
                     pipeline.fireDisconnect(channel);
@@ -56,14 +68,22 @@ public class ProcessingThread {
                 }
                 readBuffer.flip();
                 if (readBuffer.hasRemaining()) {
-                    System.out.println("[processReadable] read " + readBuffer.remaining() + " bytes, firing");
                     pipeline.fireRead(channel, readBuffer);
-                } else {
-                    System.out.println("[processReadable] nothing to fire after flip");
+                    // remainder stays in readBuffer for the next cycle
                 }
             } catch (Exception e) {
-                System.out.println("[processReadable] error: " + e.getMessage());
                 LOG.error("Error processing read", e);
+                pipeline.fireError(channel, e);
+            }
+        });
+    }
+
+    public void processDisconnect() {
+        PROCESSING_POOL.submit(() -> {
+            try {
+                pipeline.fireDisconnect(channel);
+            } catch (Exception e) {
+                LOG.error("Error firing disconnect on {}", channel, e);
                 pipeline.fireError(channel, e);
             }
         });

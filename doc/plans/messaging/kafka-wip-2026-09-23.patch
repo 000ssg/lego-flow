@@ -1,0 +1,81 @@
+diff --git a/interop-tests/pom.xml b/interop-tests/pom.xml
+index 5bd4092d..e4ac7867 100644
+--- a/interop-tests/pom.xml
++++ b/interop-tests/pom.xml
+@@ -174,6 +174,18 @@
+             <version>${project.version}</version>
+             <scope>test</scope>
+         </dependency>
++        <dependency>
++            <groupId>ssg</groupId>
++            <artifactId>lego-flow-kafka</artifactId>
++            <version>${project.version}</version>
++            <scope>test</scope>
++        </dependency>
++        <dependency>
++            <groupId>ssg</groupId>
++            <artifactId>lego-flow-wamp</artifactId>
++            <version>${project.version}</version>
++            <scope>test</scope>
++        </dependency>
+ 
+         <!-- Testing -->
+         <dependency>
+@@ -274,6 +286,11 @@
+                         <interop.ftp.port>21</interop.ftp.port>
+                         <interop.smtp.host>localhost</interop.smtp.host>
+                         <interop.smtp.port>25</interop.smtp.port>
++                        <!-- Phase 6 groups -->
++                        <interop.kafka.host>localhost</interop.kafka.host>
++                        <interop.kafka.port>9092</interop.kafka.port>
++                        <interop.wamp.host>localhost</interop.wamp.host>
++                        <interop.wamp.port>8081</interop.wamp.port>
+ 
+                     </systemPropertyVariables>
+                 </configuration>
+diff --git a/messaging/kafka/src/main/java/ssg/legoflow/messaging/kafka/client/KafkaProducer.java b/messaging/kafka/src/main/java/ssg/legoflow/messaging/kafka/client/KafkaProducer.java
+index 5affe18f..c8452644 100644
+--- a/messaging/kafka/src/main/java/ssg/legoflow/messaging/kafka/client/KafkaProducer.java
++++ b/messaging/kafka/src/main/java/ssg/legoflow/messaging/kafka/client/KafkaProducer.java
+@@ -224,7 +224,9 @@ public final class KafkaProducer implements AutoCloseable {
+         IOException lastError = null;
+         for (int attempt = 0; attempt <= retries; attempt++) {
+             try {
+-                ByteBuffer resp = connection.sendAndReceive(ApiKey.PRODUCE.key(), (short) 0, payload);
++                // Produce v3: the request layout written by encodeProduceRequest is the v3+
++                // shape (v0-v2 differ); v0-v2 were dropped by Kafka >= 3.4.
++                ByteBuffer resp = connection.sendAndReceive(ApiKey.PRODUCE.key(), (short) 3, payload);
+                 ProduceResponse response = KafkaCodec.decodeProduceResponse(resp);
+ 
+                 for (var tr : response.responses()) {
+diff --git a/messaging/kafka/src/main/java/ssg/legoflow/messaging/kafka/codec/KafkaCodec.java b/messaging/kafka/src/main/java/ssg/legoflow/messaging/kafka/codec/KafkaCodec.java
+index 3a57870a..981485e7 100644
+--- a/messaging/kafka/src/main/java/ssg/legoflow/messaging/kafka/codec/KafkaCodec.java
++++ b/messaging/kafka/src/main/java/ssg/legoflow/messaging/kafka/codec/KafkaCodec.java
+@@ -829,22 +829,16 @@ public final class KafkaCodec {
+     // ===== CreateTopics (19) =====
+ 
+     public static byte[] encodeCreateTopicsRequest(CreateTopicsRequest req) {
++        // CreateTopics v0 layout: name, int32 numPartitions, int32 replicationFactor,
++        // array<int32> assignment (empty = default), no timeout (added in v3+).
+         ByteBuffer buf = BufferPool.getBuffer(4096);
+         buf.putInt(req.topics().size());
+         for (var t : req.topics()) {
+             writeString(buf, t.name());
+             buf.putInt(t.numPartitions());
+-            buf.putShort(t.replicationFactor());
+-            // Configs
+-            buf.putInt(t.configs() != null ? t.configs().size() : 0);
+-            if (t.configs() != null) {
+-                for (var e : t.configs().entrySet()) {
+-                    writeString(buf, e.getKey());
+-                    writeNullableString(buf, e.getValue());
+-                }
+-            }
++            buf.putInt(t.replicationFactor());
++            buf.putInt(0); // empty partition assignment
+         }
+-        buf.putInt(req.timeoutMs());
+         buf.flip();
+         return toBytes(buf);
+     }

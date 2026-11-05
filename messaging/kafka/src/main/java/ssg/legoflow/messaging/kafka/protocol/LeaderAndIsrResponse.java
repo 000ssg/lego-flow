@@ -1,23 +1,42 @@
 package ssg.legoflow.messaging.kafka.protocol;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * LeaderAndIsr response (API key 4).
  *
- * @param errorCode  the top-level error code
- * @param partitions per-partition results
+ * @param errorCode         top-level error code
+ * @param partitionErrors   per-partition errors (v0-v4, flat)
+ * @param topics            per-topic errors (v5+, keyed by TopicId)
  * @since 0.1.0
  */
-public record LeaderAndIsrResponse(short errorCode, List<PartitionResult> partitions) {
+public record LeaderAndIsrResponse(
+        short errorCode,
+        List<PartitionError> partitionErrors,
+        List<TopicError> topics) {
 
     /**
-     * Per-partition result.
+     * Per-partition error (v0-v4 flat, or nested under TopicError v5+).
      *
-     * @param topic     the topic name
-     * @param partition the partition index
-     * @param errorCode the partition-level error code
+     * @param topicName      topic name (null v5+)
+     * @param partitionIndex partition index
+     * @param errorCode      partition error code
      */
-    public record PartitionResult(String topic, int partition, short errorCode) {
+    public record PartitionError(
+            String topicName,
+            int partitionIndex,
+            short errorCode) {
+    }
+
+    /**
+     * Per-topic error container (v5+).
+     *
+     * @param topicId           topic UUID
+     * @param partitionErrors   per-partition errors
+     */
+    public record TopicError(
+            UUID topicId,
+            List<PartitionError> partitionErrors) {
     }
 }

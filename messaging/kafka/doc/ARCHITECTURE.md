@@ -22,10 +22,11 @@ graph TD
     L4a["Replica Manager<br/>(leader/ISR/epoch state per partition)"]
     L5["Record Batch Codec<br/>(v2 format magic=2, CRC32C, varint,<br/>GZIP compression, record headers)"]
     L6["Wire Protocol Codec<br/>(37 API types, frame encoding,<br/>request/response header, string/array primitives)"]
-    L7["service module (TCP)<br/>(ServerSocketChannel, virtual threads)"]
-    L8["blocks module<br/>(DP&lt;I,O&gt;, DF&lt;T&gt;, Context, State, Statistics)"]
+    L7["Transport SPI<br/>(KafkaTransport: in-memory for tests,<br/>PipelineKafkaTransport for TCP)"]
+    L8["service module (TCP)<br/>(SelectableChannelManager,<br/>DataChannel, virtual threads)"]
+    L9["blocks module<br/>(DP&lt;I,O&gt;, DF&lt;T&gt;, Context, State, Statistics)"]
 
-    L0 --> L1 --> L2 --> L3 --> L4 --> L5 --> L6 --> L7 --> L8
+    L0 --> L1 --> L2 --> L3 --> L4 --> L5 --> L6 --> L7 --> L8 --> L9
     L1 --> L3a
     L1 --> L3b
     L0 --> L4a
@@ -211,10 +212,18 @@ Each record uses varint encoding:
 
 ## Broker Architecture
 
+The broker core is **headless** — it opens no sockets. It exposes
+`KafkaBroker.handleConnection(KafkaTransport)` and reads/writes exclusively through the
+transport SPI. A `KafkaBrokerService` (in the service layer) owns the TCP listener and
+hands each inbound connection a `PipelineKafkaTransport` to the broker core.
+
 ```mermaid
 graph TD
-    TCP["TCP Listener<br/>(ServerSocketChannel)"] --> VT["Virtual Thread<br/>per Connection"]
-    VT --> AUTH["SASL Auth<br/>(optional handshake)"]
+    SVC["KafkaBrokerService<br/>(SelectableChannelManager, ServerDataChannel)"]
+    SVC --> VT["Virtual Thread<br/>per Connection"]
+    VT --> PT["PipelineKafkaTransport<br/>(DataChannel ring buffer)"]
+    PT --> BC["KafkaBroker.handleConnection(transport)<br/>(headless core — no sockets)"]
+    BC --> AUTH["SASL Auth<br/>(optional handshake)"]
     AUTH --> FR["Frame Reader<br/>(4-byte length prefix)"]
     FR --> HD["Header Decode<br/>(apiKey, apiVersion, correlationId, clientId)"]
     HD --> RD["Request Dispatcher<br/>(switch on 37 ApiKeys)"]
@@ -239,6 +248,30 @@ graph TD
     CF --> CM["ConfigManager"]
     MB --> RM["ReplicaManager"]
 ```
+
+### Transport SPI
+
+`KafkaTransport` is the seam between the headless broker core and the byte stream. The
+core reads length-prefixed frames and writes responses through this interface only.
+
+```mermaid
+graph LR
+    IF["KafkaTransport<br/>(interface)"]
+    IM["InMemoryKafkaTransport<br/>(LinkedBlockingQueue byte stream,<br/>tests + in-memory pairs)"]
+    PL2["PipelineKafkaTransport<br/>(DataChannel ring buffer,<br/>selector-driven, no sockets)"]
+    IF --> IM
+    IF --> PL2
+```
+
+| Implementation | Backing | Used by |
+|---|---|---|
+| `InMemoryKafkaTransport` | `LinkedBlockingQueue<ByteBuffer>` + head-buffer partial-read semantics | Unit tests, `InMemoryKafka` test seam |
+| `PipelineKafkaTransport` | 64 KB ring buffer over a `DataChannel` | `KafkaClientService` / real TCP |
+
+The in-memory transport keeps a partially-read buffer at the **head** of the stream so a
+frame split across reads reassembles in order (a partial read must not be re-queued behind
+a later send). `receiveWithTimeout` reports `-1` only after `close()`; a timeout while
+open keeps the broker loop alive.
 
 ### Partition Log and Pluggable Storage
 
@@ -273,7 +306,7 @@ graph TD
 - Initial segment mapping: 16 MB, auto-grows up to configurable max (default 1 GB)
 - Sparse offset index (one entry per 4 KB) for binary-search seek on fetch
 - Recovery on construction: scans existing segment files, rebuilds index
-- Usage: `new KafkaBroker(host, port, id, partitions, LogStorageFactory.mappedFile(logDir))`
+- Usage: `new KafkaBrokerService.Builder(port).host(host).brokerId(id).defaultPartitions(n).storageFactory(LogStorageFactory.mappedFile(logDir)).build()`
 
 ### Dynamic Configuration
 - `ConfigManager` stores per-topic and broker-level configs
@@ -347,17 +380,76 @@ graph LR
 | Lego Flow Module | Usage in Kafka |
 |------------------|----------------|
 | `blocks` | DP<I,O> for data processing pipeline building blocks, DF<T> for filtering, Statistics for metrics |
-| `service` | TCP server/client channels, virtual thread pools, lifecycle management |
+| `service` | `SelectableChannelManager` for TCP, `DataChannel`/`TcpDataChannel` for client I/O, virtual thread pools, lifecycle management |
 
-The Kafka module follows the framework's conventions: virtual threads for concurrency, ConcurrentHashMap for thread-safe state, AutoCloseable for resource management, and record types for immutable data carriers.
+The Kafka module follows the framework's conventions: the broker and client cores are
+headless (no sockets), all TCP I/O is owned by the service layer through the `KafkaTransport`
+SPI, virtual threads provide concurrency, ConcurrentHashMap is used for thread-safe state,
+AutoCloseable for resource management, and record types for immutable data carriers.
 
 ---
 
-## Related Documentation
+## Version Negotiation
+
+All 37 Kafka APIs are pinned to their spec-maximum versions in `KafkaApiVersions.java`. The broker and client use negotiated versions via:
+
+- `KafkaApiVersions` — static map of API key → max supported version
+- `KafkaAdminClient.getNegotiatedVersion(apiKey)` — returns cached negotiated version
+- All 12 admin methods use negotiated version instead of hardcoded v0
+
+### Pinned Versions
+
+| API | Max Version | Flexible From |
+|-----|-------------|---------------|
+| Metadata | v12 | v9 |
+| LeaderAndIsr | v7 | v4 |
+| StopReplica | v4 | v2 |
+| UpdateMetadata | v8 | v6 |
+| ControlledShutdown | v1 | — |
+| OffsetForLeaderEpoch | v4 | v4 |
+| Produce | v9 | — |
+| Fetch | v15 | v14 |
+| ListOffsets | v8 | v7 |
+| ApiVersions | v3 | — |
+| SaslHandshake | v1 | — |
+| SaslAuthenticate | v2 | — |
+
+### Flexible Encoding (KIP-482)
+
+Codecs support flexible encoding from specified versions:
+- Compact strings (varint length + bytes)
+- N+1 varint counts for arrays
+- Per-field endTags trailers
+
+## Test Coverage Audit
+
+All 35 codec test files have full version coverage (verified via `doc/work/check_coverage.py`):
+
+| Codec | Versions | Tests |
+|-------|----------|-------|
+| ApiVersions | 0–3 | 8 |
+| SaslHandshake | 0–1 | 4 |
+| SaslAuthenticate | 0–2 | 6 |
+| UpdateMetadata | 0–8 | 15 |
+| Heartbeat | 0–4 | 15 |
+| LeaveGroup | 0–5 | 20 |
+| SyncGroup | 0–5 | 21 |
+| DeleteTopics | 0–6 | 15 |
+| Fetch | 0–15 | 32 |
+| InitProducerId | 0–4 | 22 |
+| CreateTopics | 0–7 | 15 |
+| LeaderAndIsr | 0–7 | 19 |
+| StopReplica | 0–4 | 11 |
+| OffsetForLeaderEpoch | 0–4 | 5 |
+| ControlledShutdown | 0–1 | 4 |
+| Metadata | 0–12 | 17 |
+| All others | — | — |
+
+**Total: 35/35 codecs fully tested, 1320+ test methods**
 
 - [Module README](../README.md) | [Requirements](REQUIREMENTS.md) | [Compliance](COMPLIANCE.md)
 - [Root Architecture](../../doc/ARCHITECTURE.md) | [Root README](../../README.md)
 
 ---
 
-**Last Updated**: 2026-07-06
+**Last Updated**: 2026-10-23

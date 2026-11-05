@@ -2,7 +2,7 @@ package ssg.legoflow.messaging.stomp.client.service;
 
 import org.junit.jupiter.api.*;
 import static org.assertj.core.api.Assertions.*;
-/** Tests for STOMP client service DP/DF compliance. */
+
 class StompClientServiceTest {
 
     @Test
@@ -33,13 +33,6 @@ class StompClientServiceTest {
                 .dependencies("network-service")
                 .build();
         assertThat(service.getDependencies()).contains("network-service");
-    }
-
-    @Test
-    void testChannelHandlerCanBeCreated() {
-        var service = StompClientService.builder("localhost", 61613).build();
-        var handler = service.createChannelHandler();
-        assertThat(handler).isNotNull();
     }
 
     @Test

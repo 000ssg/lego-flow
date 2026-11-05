@@ -1,0 +1,15 @@
+ControlledShutdown Response — field processing order (binding; spec 3.6.1)
+wire order by layout (equal run = byte-identical field layout):
+  v0-v1: ErrorCode:PartitionsRemaining[]
+
+field lines (fixed-width, no flexible encoding):
+  v0-v1: ErrorCode:int16
+  v0-v1: PartitionsRemaining[]:array of TopicPartition
+
+TopicPartition:
+  v0-v1: Topic:string
+  v0-v1: Partition:int32
+
+notes:
+  - No flexible encoding at any version
+  - Simple response with error code and partition list
