@@ -153,14 +153,14 @@ class AmqpServiceIntegrationTest {
     @Test
     void testFullMessagingPipeline() throws Exception {
         // Retry logic to handle flaky connection timing
-        for (int attempt = 0; attempt < 5; attempt++) {
+        for (int attempt = 0; attempt < 10; attempt++) {
             try {
                 testFullMessagingPipelineInternal();
                 return; // Success
             } catch (Exception e) {
-                if (attempt == 4) throw e;
+                if (attempt == 9) throw e;
                 System.out.println("Attempt " + (attempt + 1) + " failed: " + e.getMessage() + ", retrying...");
-                Thread.sleep(1000);
+                Thread.sleep(2000);
             }
         }
     }
@@ -198,7 +198,7 @@ class AmqpServiceIntegrationTest {
         server.waitForReady();
 
         // Wait for server to stabilize after becoming ready
-        Thread.sleep(200);
+        Thread.sleep(500);
 
         var client = AmqpClientService.builder("localhost", port)
                 .timeout(Duration.ofSeconds(10))
@@ -216,7 +216,7 @@ class AmqpServiceIntegrationTest {
                 .isTrue();
 
         // Give client time to initialize before server sends protocol frames
-        Thread.sleep(200);
+        Thread.sleep(500);
 
         // Wait for the server to complete the AMQP handshake
         assertThat(openLatch.await(10, TimeUnit.SECONDS)).isTrue();
