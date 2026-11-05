@@ -64,11 +64,13 @@ jobs:
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
       # ── Upload test results (Gradle format) ───────────────────────────
+      # Upload only the root report (aggregates all module results) to avoid
+      # uploading 1,489+ individual HTML files which causes timeout.
       - name: Upload test results
         uses: actions/upload-artifact@v6
         with:
           name: test-results-${{ matrix.os }}
-          path: "**/build/reports/tests/test/index.html"
+          path: build/reports/tests/test/index.html
           retention-days: 30
 
   # ──────────────────────────────────────────────
