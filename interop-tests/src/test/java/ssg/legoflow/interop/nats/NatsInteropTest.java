@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Assumptions;
  *   docker run -d --rm -p 4222:4222 nats:latest
  *   mvn verify -Dinterop.nats.host=localhost -DskipInteropTests=false
  */
-    @Tag("interop-messaging-core")
+    @Tag("interop-rest")
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     class NatsInteropTest {
 
