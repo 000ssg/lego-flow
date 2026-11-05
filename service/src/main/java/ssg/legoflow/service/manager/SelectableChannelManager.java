@@ -253,7 +253,9 @@ public class SelectableChannelManager extends AbstractServicesManager {
         var attachment = key.attachment();
         if (attachment instanceof ServerChannelRegistration srvReg) {
             if (key.isAcceptable()) {
-                processingPool.submit(() -> handleAccept(srvReg));
+                // Use connectionPool for accepting connections to avoid
+                // overloading the processingPool with connection setup.
+                connectionPool.submit(() -> handleAccept(srvReg));
             }
             return;
         }
