@@ -8,6 +8,7 @@ import static org.assertj.core.api.Assertions.*;
  * Interoperability test: Lego Flow SIP client ↔ real SIP server.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Tag("interop-rest")
 class SipInteropTest {
 
     private final String host = System.getProperty("interop.sip.host", "localhost");

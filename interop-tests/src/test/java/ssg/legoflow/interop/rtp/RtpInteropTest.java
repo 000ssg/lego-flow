@@ -8,6 +8,7 @@ import static org.assertj.core.api.Assertions.*;
  * Interoperability test: Lego Flow RTP transport ↔ InMemory transport.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Tag("interop-rest")
 class RtpInteropTest {
 
     @Test

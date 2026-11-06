@@ -8,6 +8,7 @@ import static org.assertj.core.api.Assertions.*;
  * Interoperability test: Lego Flow RTSP client ↔ real RTSP server.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Tag("interop-rest")
 class RtspInteropTest {
 
     private final String host = System.getProperty("interop.rtsp.host", "localhost");

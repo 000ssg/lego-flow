@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Disabled;
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Disabled("Requires external MySQL: docker compose -f interop-tests/docker-compose.core.yml up -d mysql")
+@Tag("interop-rest")
 class MysqlInteropTest {
 
     private final String host = System.getProperty("interop.mysql.host", "localhost");

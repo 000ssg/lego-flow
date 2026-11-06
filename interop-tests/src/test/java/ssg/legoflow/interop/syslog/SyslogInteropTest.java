@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.*;
  * Interoperability test: Lego Flow Syslog sender ↔ real Syslog server.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Tag("interop-rest")
 class SyslogInteropTest {
 
     private final String host = System.getProperty("interop.syslog.host", "localhost");

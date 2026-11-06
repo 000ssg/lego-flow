@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Disabled;
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Disabled("Requires external HTTP server: docker compose -f interop-tests/docker-compose.core.yml up -d nginx")
+@Tag("interop-rest")
 class HttpInteropTest {
 
     private final String host = System.getProperty("interop.http.host", "localhost");

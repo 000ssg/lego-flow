@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Disabled;
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Disabled("Requires external IMAP server: docker compose -f interop-tests/docker-compose.core.yml up -d imap")
+@Tag("interop-rest")
 class ImapInteropTest {
 
     private final String host = System.getProperty("interop.imap.host", "localhost");

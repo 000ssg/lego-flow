@@ -8,6 +8,7 @@ import static org.assertj.core.api.Assertions.*;
  * Interoperability test: Lego Flow CoAP client ↔ real CoAP server.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Tag("interop-rest")
 class CoapInteropTest {
 
     private final String host = System.getProperty("interop.coap.host", "localhost");
