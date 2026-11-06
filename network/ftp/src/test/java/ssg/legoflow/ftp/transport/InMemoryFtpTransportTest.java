@@ -1,18 +1,19 @@
-package ssg.legoflow.network.ftp.transport;
+package ssg.legoflow.ftp.transport;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.service.channel.InMemoryByteTransport.TcpSemantics;
+import ssg.legoflow.service.channel.InMemoryTransport;
 import java.nio.ByteBuffer;
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * Tests for {@link InMemoryFtpTransport}.
+ * Tests for FTP transport using generic InMemoryTransport.
  */
 class InMemoryFtpTransportTest {
 
     @Test
     void testCreatePair() {
-        var pair = InMemoryFtpTransport.createPair();
+        var pair = InMemoryTransport.createPair();
         assertThat(pair).hasSize(2);
         assertThat(pair[0].isOpen()).isTrue();
         assertThat(pair[1].isOpen()).isTrue();
@@ -20,7 +21,7 @@ class InMemoryFtpTransportTest {
 
     @Test
     void testSendReceive() {
-        var pair = InMemoryFtpTransport.createPair();
+        var pair = InMemoryTransport.createPair();
         byte[] data = {1, 2, 3, 4, 5};
         pair[0].send(ByteBuffer.wrap(data));
 
@@ -35,7 +36,7 @@ class InMemoryFtpTransportTest {
 
     @Test
     void testBidirectional() {
-        var pair = InMemoryFtpTransport.createPair();
+        var pair = InMemoryTransport.createPair();
         pair[0].withTcpSemantics(TcpSemantics.NONE);
         pair[1].withTcpSemantics(TcpSemantics.NONE);
         pair[0].send(ByteBuffer.wrap(new byte[]{1, 2}));
@@ -56,7 +57,7 @@ class InMemoryFtpTransportTest {
 
     @Test
     void testCloseStopsReceive() {
-        var pair = InMemoryFtpTransport.createPair();
+        var pair = InMemoryTransport.createPair();
         pair[0].close();
         assertThat(pair[0].isOpen()).isFalse();
         int n = pair[0].receive(ByteBuffer.allocate(10));
@@ -65,20 +66,22 @@ class InMemoryFtpTransportTest {
 
     @Test
     void testSendAfterClose() {
-        var pair = InMemoryFtpTransport.createPair();
+        var pair = InMemoryTransport.createPair();
         pair[0].close();
         pair[0].send(ByteBuffer.wrap(new byte[]{1}));
     }
 
     @Test
     void testMultipleSends() {
-        var pair = InMemoryFtpTransport.createPair();
+        var pair = InMemoryTransport.createPair();
         pair[0].withTcpSemantics(TcpSemantics.NONE);
+        pair[1].withTcpSemantics(TcpSemantics.NONE);
         pair[0].send(ByteBuffer.wrap(new byte[]{1}));
         pair[0].send(ByteBuffer.wrap(new byte[]{2}));
         pair[0].send(ByteBuffer.wrap(new byte[]{3}));
 
         ByteBuffer buf = ByteBuffer.allocate(1);
+
         pair[1].receive(buf);
         buf.flip();
         assertThat(buf.get()).isEqualTo((byte) 1);

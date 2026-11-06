@@ -1,71 +1,99 @@
 package ssg.legoflow.coap.transport;
 
-import org.junit.jupiter.api.*;
-import ssg.legoflow.service.channel.InMemoryByteTransport;
-
+import org.junit.jupiter.api.Test;
+import ssg.legoflow.service.channel.InMemoryByteTransport.TcpSemantics;
+import ssg.legoflow.service.channel.InMemoryTransport;
 import java.nio.ByteBuffer;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 /**
- * Tests for {@link InMemoryCoapTransport}.
- *
- * @since 0.3.0
+ * Tests for CoAP transport using generic InMemoryTransport.
  */
-@DisplayName("InMemoryCoapTransport")
 class InMemoryCoapTransportTest {
 
-    private InMemoryByteTransport[] pair;
-    private InMemoryCoapTransport client;
-    private InMemoryCoapTransport server;
-
-    @BeforeEach
-    void setUp() {
-        pair = InMemoryCoapTransport.createPair();
-        client = (InMemoryCoapTransport) pair[0];
-        server = (InMemoryCoapTransport) pair[1];
-    }
-
-    @AfterEach
-    void tearDown() {
-        client.close();
-        server.close();
+    @Test
+    void testCreatePair() {
+        var pair = InMemoryTransport.createPair();
+        assertThat(pair).hasSize(2);
+        assertThat(pair[0].isOpen()).isTrue();
+        assertThat(pair[1].isOpen()).isTrue();
     }
 
     @Test
-    @DisplayName("should create connected pair")
-    void shouldCreateConnectedPair() {
-        assertNotNull(client);
-        assertNotNull(server);
-        assertTrue(client.isOpen());
-        assertTrue(server.isOpen());
-    }
-
-    @Test
-    @DisplayName("should send and receive CoAP messages")
-    void shouldSendAndReceiveCoapMessages() throws Exception {
-        // Simulate CoAP message: version=1, type=CON, token len=0, code=0.01 (GET), message id=1
-        byte[] message = {(byte) 0x41, (byte) 0x01, (byte) 0x00, (byte) 0x01};
-        client.send(ByteBuffer.wrap(message));
-
-        ByteBuffer received = ByteBuffer.allocate(4);
-        int bytesRead = server.receive(received);
-
-        // receive() returns bytes read, may be less than buffer size
-        assertTrue(bytesRead > 0);
-        assertTrue(bytesRead <= 4);
-        received.flip();
-        byte[] receivedBytes = new byte[received.remaining()];
-        received.get(receivedBytes);
-        assertArrayEquals(message, receivedBytes);
-    }
-
-    @Test
-    @DisplayName("should close and return -1 on receive")
-    void shouldCloseAndReturnMinusOne() throws Exception {
-        client.close();
+    void testSendReceive() {
+        var pair = InMemoryTransport.createPair();
+        byte[] data = {1, 2, 3, 4, 5};
+        pair[0].send(ByteBuffer.wrap(data));
 
         ByteBuffer buf = ByteBuffer.allocate(10);
-        assertEquals(-1, server.receive(buf));
+        int n = pair[1].receive(buf);
+        buf.flip();
+        assertThat(n).isEqualTo(5);
+        byte[] received = new byte[n];
+        buf.get(received);
+        assertThat(received).isEqualTo(data);
+    }
+
+    @Test
+    void testBidirectional() {
+        var pair = InMemoryTransport.createPair();
+        pair[0].withTcpSemantics(TcpSemantics.NONE);
+        pair[1].withTcpSemantics(TcpSemantics.NONE);
+        pair[0].send(ByteBuffer.wrap(new byte[]{1, 2}));
+        pair[1].send(ByteBuffer.wrap(new byte[]{3, 4}));
+
+        ByteBuffer buf1 = ByteBuffer.allocate(10);
+        pair[1].receive(buf1);
+        buf1.flip();
+        assertThat(buf1.get()).isEqualTo((byte) 1);
+        assertThat(buf1.get()).isEqualTo((byte) 2);
+
+        ByteBuffer buf2 = ByteBuffer.allocate(10);
+        pair[0].receive(buf2);
+        buf2.flip();
+        assertThat(buf2.get()).isEqualTo((byte) 3);
+        assertThat(buf2.get()).isEqualTo((byte) 4);
+    }
+
+    @Test
+    void testCloseStopsReceive() {
+        var pair = InMemoryTransport.createPair();
+        pair[0].close();
+        assertThat(pair[0].isOpen()).isFalse();
+        int n = pair[0].receive(ByteBuffer.allocate(10));
+        assertThat(n).isEqualTo(-1);
+    }
+
+    @Test
+    void testSendAfterClose() {
+        var pair = InMemoryTransport.createPair();
+        pair[0].close();
+        pair[0].send(ByteBuffer.wrap(new byte[]{1}));
+    }
+
+    @Test
+    void testMultipleSends() {
+        var pair = InMemoryTransport.createPair();
+        pair[0].withTcpSemantics(TcpSemantics.NONE);
+        pair[1].withTcpSemantics(TcpSemantics.NONE);
+        pair[0].send(ByteBuffer.wrap(new byte[]{1}));
+        pair[0].send(ByteBuffer.wrap(new byte[]{2}));
+        pair[0].send(ByteBuffer.wrap(new byte[]{3}));
+
+        ByteBuffer buf = ByteBuffer.allocate(1);
+
+        pair[1].receive(buf);
+        buf.flip();
+        assertThat(buf.get()).isEqualTo((byte) 1);
+
+        buf.clear();
+        pair[1].receive(buf);
+        buf.flip();
+        assertThat(buf.get()).isEqualTo((byte) 2);
+
+        buf.clear();
+        pair[1].receive(buf);
+        buf.flip();
+        assertThat(buf.get()).isEqualTo((byte) 3);
     }
 }

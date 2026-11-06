@@ -2,17 +2,18 @@ package ssg.legoflow.database.mysql.transport;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.service.channel.InMemoryByteTransport.TcpSemantics;
+import ssg.legoflow.service.channel.InMemoryTransport;
 import java.nio.ByteBuffer;
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * Tests for {@link InMemoryMysqlTransport}.
+ * Tests for MySQL transport using generic InMemoryTransport.
  */
 class InMemoryMysqlTransportTest {
 
     @Test
     void testCreatePair() {
-        var pair = InMemoryMysqlTransport.createPair();
+        var pair = InMemoryTransport.createPair();
         assertThat(pair).hasSize(2);
         assertThat(pair[0].isOpen()).isTrue();
         assertThat(pair[1].isOpen()).isTrue();
@@ -20,7 +21,7 @@ class InMemoryMysqlTransportTest {
 
     @Test
     void testSendReceive() {
-        var pair = InMemoryMysqlTransport.createPair();
+        var pair = InMemoryTransport.createPair();
         byte[] data = {1, 2, 3, 4, 5};
         pair[0].send(ByteBuffer.wrap(data));
 
@@ -35,7 +36,7 @@ class InMemoryMysqlTransportTest {
 
     @Test
     void testBidirectional() {
-        var pair = InMemoryMysqlTransport.createPair();
+        var pair = InMemoryTransport.createPair();
         pair[0].withTcpSemantics(TcpSemantics.NONE);
         pair[1].withTcpSemantics(TcpSemantics.NONE);
         pair[0].send(ByteBuffer.wrap(new byte[]{1, 2}));
@@ -56,7 +57,7 @@ class InMemoryMysqlTransportTest {
 
     @Test
     void testCloseStopsReceive() {
-        var pair = InMemoryMysqlTransport.createPair();
+        var pair = InMemoryTransport.createPair();
         pair[0].close();
         assertThat(pair[0].isOpen()).isFalse();
         int n = pair[0].receive(ByteBuffer.allocate(10));
@@ -65,14 +66,14 @@ class InMemoryMysqlTransportTest {
 
     @Test
     void testSendAfterClose() {
-        var pair = InMemoryMysqlTransport.createPair();
+        var pair = InMemoryTransport.createPair();
         pair[0].close();
         pair[0].send(ByteBuffer.wrap(new byte[]{1}));
     }
 
     @Test
     void testMultipleSends() {
-        var pair = InMemoryMysqlTransport.createPair();
+        var pair = InMemoryTransport.createPair();
         pair[0].withTcpSemantics(TcpSemantics.NONE);
         pair[1].withTcpSemantics(TcpSemantics.NONE);
         pair[0].send(ByteBuffer.wrap(new byte[]{1}));

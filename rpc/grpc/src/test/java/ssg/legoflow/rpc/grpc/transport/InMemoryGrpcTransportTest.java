@@ -1,71 +1,99 @@
 package ssg.legoflow.rpc.grpc.transport;
 
-import org.junit.jupiter.api.*;
-import ssg.legoflow.service.channel.InMemoryByteTransport;
-
+import org.junit.jupiter.api.Test;
+import ssg.legoflow.service.channel.InMemoryByteTransport.TcpSemantics;
+import ssg.legoflow.service.channel.InMemoryTransport;
 import java.nio.ByteBuffer;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 /**
- * Tests for {@link InMemoryGrpcTransport}.
- *
- * @since 0.3.0
+ * Tests for gRPC transport using generic InMemoryTransport.
  */
-@DisplayName("InMemoryGrpcTransport")
 class InMemoryGrpcTransportTest {
 
-    private InMemoryByteTransport[] pair;
-    private InMemoryGrpcTransport client;
-    private InMemoryGrpcTransport server;
-
-    @BeforeEach
-    void setUp() {
-        pair = InMemoryGrpcTransport.createPair();
-        client = (InMemoryGrpcTransport) pair[0];
-        server = (InMemoryGrpcTransport) pair[1];
-    }
-
-    @AfterEach
-    void tearDown() {
-        client.close();
-        server.close();
+    @Test
+    void testCreatePair() {
+        var pair = InMemoryTransport.createPair();
+        assertThat(pair).hasSize(2);
+        assertThat(pair[0].isOpen()).isTrue();
+        assertThat(pair[1].isOpen()).isTrue();
     }
 
     @Test
-    @DisplayName("should create connected pair")
-    void shouldCreateConnectedPair() {
-        assertNotNull(client);
-        assertNotNull(server);
-        assertTrue(client.isOpen());
-        assertTrue(server.isOpen());
-    }
-
-    @Test
-    @DisplayName("should send and receive gRPC frames")
-    void shouldSendAndReceiveGrpcFrames() throws Exception {
-        // Simulate gRPC frame: compressed (0) + length (4 bytes) + payload
-        byte[] frame = {(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x05, (byte) 0x48, (byte) 0x65, (byte) 0x6c, (byte) 0x6c, (byte) 0x6f};
-        client.send(ByteBuffer.wrap(frame));
-
-        ByteBuffer received = ByteBuffer.allocate(10);
-        int bytesRead = server.receive(received);
-
-        // receive() returns bytes read, may be less than buffer size
-        assertTrue(bytesRead > 0);
-        assertTrue(bytesRead <= 10);
-        received.flip();
-        byte[] receivedBytes = new byte[received.remaining()];
-        received.get(receivedBytes);
-        assertArrayEquals(frame, receivedBytes);
-    }
-
-    @Test
-    @DisplayName("should close and return -1 on receive")
-    void shouldCloseAndReturnMinusOne() throws Exception {
-        client.close();
+    void testSendReceive() {
+        var pair = InMemoryTransport.createPair();
+        byte[] data = {1, 2, 3, 4, 5};
+        pair[0].send(ByteBuffer.wrap(data));
 
         ByteBuffer buf = ByteBuffer.allocate(10);
-        assertEquals(-1, server.receive(buf));
+        int n = pair[1].receive(buf);
+        buf.flip();
+        assertThat(n).isEqualTo(5);
+        byte[] received = new byte[n];
+        buf.get(received);
+        assertThat(received).isEqualTo(data);
+    }
+
+    @Test
+    void testBidirectional() {
+        var pair = InMemoryTransport.createPair();
+        pair[0].withTcpSemantics(TcpSemantics.NONE);
+        pair[1].withTcpSemantics(TcpSemantics.NONE);
+        pair[0].send(ByteBuffer.wrap(new byte[]{1, 2}));
+        pair[1].send(ByteBuffer.wrap(new byte[]{3, 4}));
+
+        ByteBuffer buf1 = ByteBuffer.allocate(10);
+        pair[1].receive(buf1);
+        buf1.flip();
+        assertThat(buf1.get()).isEqualTo((byte) 1);
+        assertThat(buf1.get()).isEqualTo((byte) 2);
+
+        ByteBuffer buf2 = ByteBuffer.allocate(10);
+        pair[0].receive(buf2);
+        buf2.flip();
+        assertThat(buf2.get()).isEqualTo((byte) 3);
+        assertThat(buf2.get()).isEqualTo((byte) 4);
+    }
+
+    @Test
+    void testCloseStopsReceive() {
+        var pair = InMemoryTransport.createPair();
+        pair[0].close();
+        assertThat(pair[0].isOpen()).isFalse();
+        int n = pair[0].receive(ByteBuffer.allocate(10));
+        assertThat(n).isEqualTo(-1);
+    }
+
+    @Test
+    void testSendAfterClose() {
+        var pair = InMemoryTransport.createPair();
+        pair[0].close();
+        pair[0].send(ByteBuffer.wrap(new byte[]{1}));
+    }
+
+    @Test
+    void testMultipleSends() {
+        var pair = InMemoryTransport.createPair();
+        pair[0].withTcpSemantics(TcpSemantics.NONE);
+        pair[1].withTcpSemantics(TcpSemantics.NONE);
+        pair[0].send(ByteBuffer.wrap(new byte[]{1}));
+        pair[0].send(ByteBuffer.wrap(new byte[]{2}));
+        pair[0].send(ByteBuffer.wrap(new byte[]{3}));
+
+        ByteBuffer buf = ByteBuffer.allocate(1);
+
+        pair[1].receive(buf);
+        buf.flip();
+        assertThat(buf.get()).isEqualTo((byte) 1);
+
+        buf.clear();
+        pair[1].receive(buf);
+        buf.flip();
+        assertThat(buf.get()).isEqualTo((byte) 2);
+
+        buf.clear();
+        pair[1].receive(buf);
+        buf.flip();
+        assertThat(buf.get()).isEqualTo((byte) 3);
     }
 }

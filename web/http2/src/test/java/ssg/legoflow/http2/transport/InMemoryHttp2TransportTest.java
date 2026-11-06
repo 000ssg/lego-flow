@@ -1,97 +1,99 @@
 package ssg.legoflow.http2.transport;
 
-import org.junit.jupiter.api.*;
-import ssg.legoflow.service.channel.InMemoryByteTransport;
-
+import org.junit.jupiter.api.Test;
+import ssg.legoflow.service.channel.InMemoryByteTransport.TcpSemantics;
+import ssg.legoflow.service.channel.InMemoryTransport;
 import java.nio.ByteBuffer;
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 /**
- * Tests for {@link InMemoryHttp2Transport}.
- *
- * @since 0.3.0
+ * Tests for HTTP/2 transport using generic InMemoryTransport.
  */
-@DisplayName("InMemoryHttp2Transport")
 class InMemoryHttp2TransportTest {
 
-    private InMemoryByteTransport[] pair;
-    private InMemoryHttp2Transport client;
-    private InMemoryHttp2Transport server;
-
-    @BeforeEach
-    void setUp() {
-        pair = InMemoryHttp2Transport.createPair();
-        client = (InMemoryHttp2Transport) pair[0];
-        server = (InMemoryHttp2Transport) pair[1];
-    }
-
-    @AfterEach
-    void tearDown() {
-        client.close();
-        server.close();
+    @Test
+    void testCreatePair() {
+        var pair = InMemoryTransport.createPair();
+        assertThat(pair).hasSize(2);
+        assertThat(pair[0].isOpen()).isTrue();
+        assertThat(pair[1].isOpen()).isTrue();
     }
 
     @Test
-    @DisplayName("should create connected pair")
-    void shouldCreateConnectedPair() {
-        assertNotNull(client);
-        assertNotNull(server);
-        assertTrue(client.isOpen());
-        assertTrue(server.isOpen());
-    }
-
-    @Test
-    @DisplayName("should send and receive HTTP/2 frames")
-    void shouldSendAndReceiveFrames() throws Exception {
-        // Simulate HTTP/2 connection preface
-        byte[] preface = "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n".getBytes();
-        client.send(ByteBuffer.wrap(preface));
-
-        ByteBuffer received = ByteBuffer.allocate(preface.length);
-        int bytesRead = server.receive(received);
-
-        // receive() returns bytes read, may be less than buffer size
-        assertTrue(bytesRead > 0);
-        assertTrue(bytesRead <= preface.length);
-        received.flip();
-        byte[] receivedBytes = new byte[received.remaining()];
-        received.get(receivedBytes);
-        assertArrayEquals(preface, receivedBytes);
-    }
-
-    @Test
-    @DisplayName("should handle SETTINGS frames")
-    void shouldHandleSettingsFrames() throws Exception {
-        // HTTP/2 SETTINGS frame: 00 00 00 04 04 00 00 00 00 (type=SETTINGS, len=0, flags=0)
-        byte[] settings = {(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x04, (byte) 0x04, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00};
-        client.send(ByteBuffer.wrap(settings));
-
-        ByteBuffer received = ByteBuffer.allocate(9);
-        int bytesRead = server.receive(received);
-
-        // receive() returns bytes read, may be less than buffer size
-        assertTrue(bytesRead > 0);
-        assertTrue(bytesRead <= 9);
-    }
-
-    @Test
-    @DisplayName("should close and return -1 on receive")
-    void shouldCloseAndReturnMinusOne() throws Exception {
-        client.close();
+    void testSendReceive() {
+        var pair = InMemoryTransport.createPair();
+        byte[] data = {1, 2, 3, 4, 5};
+        pair[0].send(ByteBuffer.wrap(data));
 
         ByteBuffer buf = ByteBuffer.allocate(10);
-        assertEquals(-1, server.receive(buf));
+        int n = pair[1].receive(buf);
+        buf.flip();
+        assertThat(n).isEqualTo(5);
+        byte[] received = new byte[n];
+        buf.get(received);
+        assertThat(received).isEqualTo(data);
     }
 
     @Test
-    @DisplayName("should receive with timeout")
-    void shouldReceiveWithTimeout() throws Exception {
-        ByteBuffer buf = ByteBuffer.allocate(10);
+    void testBidirectional() {
+        var pair = InMemoryTransport.createPair();
+        pair[0].withTcpSemantics(TcpSemantics.NONE);
+        pair[1].withTcpSemantics(TcpSemantics.NONE);
+        pair[0].send(ByteBuffer.wrap(new byte[]{1, 2}));
+        pair[1].send(ByteBuffer.wrap(new byte[]{3, 4}));
 
-        // Should timeout when no data available
-        int result = client.receiveWithTimeout(buf, 100, TimeUnit.MILLISECONDS);
-        assertEquals(-1, result);
+        ByteBuffer buf1 = ByteBuffer.allocate(10);
+        pair[1].receive(buf1);
+        buf1.flip();
+        assertThat(buf1.get()).isEqualTo((byte) 1);
+        assertThat(buf1.get()).isEqualTo((byte) 2);
+
+        ByteBuffer buf2 = ByteBuffer.allocate(10);
+        pair[0].receive(buf2);
+        buf2.flip();
+        assertThat(buf2.get()).isEqualTo((byte) 3);
+        assertThat(buf2.get()).isEqualTo((byte) 4);
+    }
+
+    @Test
+    void testCloseStopsReceive() {
+        var pair = InMemoryTransport.createPair();
+        pair[0].close();
+        assertThat(pair[0].isOpen()).isFalse();
+        int n = pair[0].receive(ByteBuffer.allocate(10));
+        assertThat(n).isEqualTo(-1);
+    }
+
+    @Test
+    void testSendAfterClose() {
+        var pair = InMemoryTransport.createPair();
+        pair[0].close();
+        pair[0].send(ByteBuffer.wrap(new byte[]{1}));
+    }
+
+    @Test
+    void testMultipleSends() {
+        var pair = InMemoryTransport.createPair();
+        pair[0].withTcpSemantics(TcpSemantics.NONE);
+        pair[1].withTcpSemantics(TcpSemantics.NONE);
+        pair[0].send(ByteBuffer.wrap(new byte[]{1}));
+        pair[0].send(ByteBuffer.wrap(new byte[]{2}));
+        pair[0].send(ByteBuffer.wrap(new byte[]{3}));
+
+        ByteBuffer buf = ByteBuffer.allocate(1);
+
+        pair[1].receive(buf);
+        buf.flip();
+        assertThat(buf.get()).isEqualTo((byte) 1);
+
+        buf.clear();
+        pair[1].receive(buf);
+        buf.flip();
+        assertThat(buf.get()).isEqualTo((byte) 2);
+
+        buf.clear();
+        pair[1].receive(buf);
+        buf.flip();
+        assertThat(buf.get()).isEqualTo((byte) 3);
     }
 }

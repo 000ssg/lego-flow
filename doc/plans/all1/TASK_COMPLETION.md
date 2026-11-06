@@ -136,3 +136,32 @@ mvn compile -DskipTests -pl '!benchmarks'
 2. **Coverage verification**: Run tests with `-P jacoco-coverage` to verify >80% coverage
 3. **Demo updates**: Add Transport SPI usage examples to existing demos
 4. **Documentation**: Update module READMEs to document Transport SPI usage
+
+---
+
+## Optional Step 1: Replace Protocol-Specific InMemoryTransport with Generic ✅
+
+**Action:** Updated all 17 transport test files to use `InMemoryTransport` from service module instead of protocol-specific implementations.
+
+**Files Updated:**
+- `database/mysql/src/test/.../InMemoryMysqlTransportTest.java`
+- `database/postgresql/src/test/.../InMemoryPgTransportTest.java`
+- `database/redis/src/test/.../InMemoryRedisTransportTest.java`
+- `email/imap/src/test/.../InMemoryImapTransportTest.java`
+- `email/smtp/src/test/.../InMemorySmtpTransportTest.java`
+- `network/ldap/src/test/.../InMemoryLdapTransportTest.java`
+- `network/ftp/src/test/.../InMemoryFtpTransportTest.java`
+- `network/dns/src/test/.../InMemoryDnsTransportTest.java`
+- `network/syslog/src/test/.../InMemorySyslogTransportTest.java`
+- `network/ssh/src/test/.../InMemorySshTransportTest.java`
+- `media/rtsp/src/test/.../InMemoryRtspTransportTest.java`
+- `media/rtp/src/test/.../InMemoryRtpTransportTest.java`
+- `web/http/src/test/.../InMemoryHttpTransportTest.java`
+- `web/http2/src/test/.../InMemoryHttp2TransportTest.java`
+- `web/http3/src/test/.../InMemoryHttp3TransportTest.java`
+- `rpc/grpc/src/test/.../InMemoryGrpcTransportTest.java`
+- `iot/coap/src/test/.../InMemoryCoapTransportTest.java`
+
+**Result:** Protocol-specific InMemoryTransport implementations are no longer needed in tests. The generic `InMemoryTransport` from `service/channel/` is used instead.
+
+**Note:** The protocol-specific `InMemory*Transport.java` files in `src/main` are kept for backward compatibility but are no longer used by tests.

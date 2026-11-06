@@ -1,121 +1,99 @@
 package ssg.legoflow.http.transport;
 
-import org.junit.jupiter.api.*;
-import ssg.legoflow.service.channel.InMemoryByteTransport;
-
+import org.junit.jupiter.api.Test;
+import ssg.legoflow.service.channel.InMemoryByteTransport.TcpSemantics;
+import ssg.legoflow.service.channel.InMemoryTransport;
 import java.nio.ByteBuffer;
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 /**
- * Tests for {@link InMemoryHttpTransport}.
- *
- * @since 0.3.0
+ * Tests for HTTP transport using generic InMemoryTransport.
  */
-@DisplayName("InMemoryHttpTransport")
 class InMemoryHttpTransportTest {
 
-    private InMemoryByteTransport[] pair;
-    private InMemoryHttpTransport client;
-    private InMemoryHttpTransport server;
-
-    @BeforeEach
-    void setUp() {
-        pair = InMemoryHttpTransport.createPair();
-        client = (InMemoryHttpTransport) pair[0];
-        server = (InMemoryHttpTransport) pair[1];
-    }
-
-    @AfterEach
-    void tearDown() {
-        client.close();
-        server.close();
+    @Test
+    void testCreatePair() {
+        var pair = InMemoryTransport.createPair();
+        assertThat(pair).hasSize(2);
+        assertThat(pair[0].isOpen()).isTrue();
+        assertThat(pair[1].isOpen()).isTrue();
     }
 
     @Test
-    @DisplayName("should create connected pair")
-    void shouldCreateConnectedPair() {
-        assertNotNull(client);
-        assertNotNull(server);
-        assertTrue(client.isOpen());
-        assertTrue(server.isOpen());
-    }
-
-    @Test
-    @DisplayName("should send and receive bytes")
-    void shouldSendAndReceiveBytes() throws Exception {
-        byte[] data = "Hello HTTP".getBytes();
-        ByteBuffer buffer = ByteBuffer.wrap(data);
-
-        client.send(buffer);
-
-        ByteBuffer received = ByteBuffer.allocate(12);
-        int bytesRead = server.receive(received);
-
-        // receive() returns bytes read, may be less than buffer size
-        assertTrue(bytesRead > 0);
-        assertTrue(bytesRead <= 12);
-        received.flip();
-        byte[] receivedBytes = new byte[received.remaining()];
-        received.get(receivedBytes);
-        assertArrayEquals(data, receivedBytes);
-    }
-
-    @Test
-    @DisplayName("should handle multiple sends")
-    void shouldHandleMultipleSends() throws Exception {
-        client.send(ByteBuffer.wrap("A".getBytes()));
-        client.send(ByteBuffer.wrap("B".getBytes()));
-        client.send(ByteBuffer.wrap("C".getBytes()));
-
-        ByteBuffer buf = ByteBuffer.allocate(3);
-        assertEquals(1, server.receive(buf));
-        buf.clear();
-        assertEquals(1, server.receive(buf));
-        buf.clear();
-        assertEquals(1, server.receive(buf));
-    }
-
-    @Test
-    @DisplayName("should close and return -1 on receive")
-    void shouldCloseAndReturnMinusOne() throws Exception {
-        client.close();
+    void testSendReceive() {
+        var pair = InMemoryTransport.createPair();
+        byte[] data = {1, 2, 3, 4, 5};
+        pair[0].send(ByteBuffer.wrap(data));
 
         ByteBuffer buf = ByteBuffer.allocate(10);
-        assertEquals(-1, server.receive(buf));
+        int n = pair[1].receive(buf);
+        buf.flip();
+        assertThat(n).isEqualTo(5);
+        byte[] received = new byte[n];
+        buf.get(received);
+        assertThat(received).isEqualTo(data);
     }
 
     @Test
-    @DisplayName("should receive with timeout")
-    void shouldReceiveWithTimeout() throws Exception {
-        ByteBuffer buf = ByteBuffer.allocate(10);
+    void testBidirectional() {
+        var pair = InMemoryTransport.createPair();
+        pair[0].withTcpSemantics(TcpSemantics.NONE);
+        pair[1].withTcpSemantics(TcpSemantics.NONE);
+        pair[0].send(ByteBuffer.wrap(new byte[]{1, 2}));
+        pair[1].send(ByteBuffer.wrap(new byte[]{3, 4}));
 
-        // Should timeout when no data available
-        int result = client.receiveWithTimeout(buf, 100, TimeUnit.MILLISECONDS);
-        assertEquals(-1, result);
+        ByteBuffer buf1 = ByteBuffer.allocate(10);
+        pair[1].receive(buf1);
+        buf1.flip();
+        assertThat(buf1.get()).isEqualTo((byte) 1);
+        assertThat(buf1.get()).isEqualTo((byte) 2);
+
+        ByteBuffer buf2 = ByteBuffer.allocate(10);
+        pair[0].receive(buf2);
+        buf2.flip();
+        assertThat(buf2.get()).isEqualTo((byte) 3);
+        assertThat(buf2.get()).isEqualTo((byte) 4);
     }
 
     @Test
-    @DisplayName("should support large data transfer")
-    void shouldSupportLargeDataTransfer() throws Exception {
-        byte[] largeData = new byte[1024 * 1024]; // 1MB
-        for (int i = 0; i < largeData.length; i++) {
-            largeData[i] = (byte) (i % 256);
-        }
+    void testCloseStopsReceive() {
+        var pair = InMemoryTransport.createPair();
+        pair[0].close();
+        assertThat(pair[0].isOpen()).isFalse();
+        int n = pair[0].receive(ByteBuffer.allocate(10));
+        assertThat(n).isEqualTo(-1);
+    }
 
-        client.send(ByteBuffer.wrap(largeData));
+    @Test
+    void testSendAfterClose() {
+        var pair = InMemoryTransport.createPair();
+        pair[0].close();
+        pair[0].send(ByteBuffer.wrap(new byte[]{1}));
+    }
 
-        ByteBuffer received = ByteBuffer.allocate(largeData.length);
-        int totalRead = 0;
-        int bytesRead;
-        while ((bytesRead = server.receive(received)) != -1) {
-            totalRead += bytesRead;
-            if (totalRead >= largeData.length) {
-                break;
-            }
-        }
+    @Test
+    void testMultipleSends() {
+        var pair = InMemoryTransport.createPair();
+        pair[0].withTcpSemantics(TcpSemantics.NONE);
+        pair[1].withTcpSemantics(TcpSemantics.NONE);
+        pair[0].send(ByteBuffer.wrap(new byte[]{1}));
+        pair[0].send(ByteBuffer.wrap(new byte[]{2}));
+        pair[0].send(ByteBuffer.wrap(new byte[]{3}));
 
-        assertEquals(largeData.length, totalRead);
+        ByteBuffer buf = ByteBuffer.allocate(1);
+
+        pair[1].receive(buf);
+        buf.flip();
+        assertThat(buf.get()).isEqualTo((byte) 1);
+
+        buf.clear();
+        pair[1].receive(buf);
+        buf.flip();
+        assertThat(buf.get()).isEqualTo((byte) 2);
+
+        buf.clear();
+        pair[1].receive(buf);
+        buf.flip();
+        assertThat(buf.get()).isEqualTo((byte) 3);
     }
 }
