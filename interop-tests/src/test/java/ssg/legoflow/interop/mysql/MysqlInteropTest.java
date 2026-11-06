@@ -53,8 +53,8 @@ class MysqlInteropTest {
 
         assertThat(selectResult.rowCount()).isEqualTo(3);
         // MysqlResult.getString(int) gets column by index from current row
-        // Need to iterate through rows
-        selectResult.first();
+        // Need to iterate through rows using next()
+        selectResult.next();
         assertThat(selectResult.getString(0)).isEqualTo("alpha");
         selectResult.next();
         assertThat(selectResult.getString(0)).isEqualTo("beta");

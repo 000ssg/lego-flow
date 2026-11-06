@@ -24,8 +24,7 @@ class ImapInteropTest {
     @BeforeAll
     void connect() throws IOException {
         var config = ImapClientConfig.builder(host, port)
-            .username(user)
-            .password(password)
+            .credentials(user, password)
             .build();
         this.client = new ImapClient(config);
         client.connect();
