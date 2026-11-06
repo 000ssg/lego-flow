@@ -2,18 +2,18 @@ package ssg.legoflow.ssh.transport;
 
 import org.junit.jupiter.api.Test;
 import ssg.legoflow.service.channel.InMemoryByteTransport.TcpSemantics;
-import ssg.legoflow.service.channel.InMemoryTransport;
+import ssg.legoflow.service.channel.InMemoryByteTransport;
 import java.nio.ByteBuffer;
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * Tests for SSH transport using generic InMemoryTransport.
+ * Tests for SSH transport using generic InMemoryByteTransport.
  */
 class InMemorySshTransportTest {
 
     @Test
     void testCreatePair() {
-        var pair = InMemoryTransport.createPair();
+        var pair = InMemoryByteTransport.createPair();
         assertThat(pair).hasSize(2);
         assertThat(pair[0].isOpen()).isTrue();
         assertThat(pair[1].isOpen()).isTrue();
@@ -21,7 +21,7 @@ class InMemorySshTransportTest {
 
     @Test
     void testSendReceive() {
-        var pair = InMemoryTransport.createPair();
+        var pair = InMemoryByteTransport.createPair();
         byte[] data = {1, 2, 3, 4, 5};
         pair[0].send(ByteBuffer.wrap(data));
 
@@ -36,7 +36,7 @@ class InMemorySshTransportTest {
 
     @Test
     void testBidirectional() {
-        var pair = InMemoryTransport.createPair();
+        var pair = InMemoryByteTransport.createPair();
         pair[0].withTcpSemantics(TcpSemantics.NONE);
         pair[1].withTcpSemantics(TcpSemantics.NONE);
         pair[0].send(ByteBuffer.wrap(new byte[]{1, 2}));
@@ -57,7 +57,7 @@ class InMemorySshTransportTest {
 
     @Test
     void testCloseStopsReceive() {
-        var pair = InMemoryTransport.createPair();
+        var pair = InMemoryByteTransport.createPair();
         pair[0].close();
         assertThat(pair[0].isOpen()).isFalse();
         int n = pair[0].receive(ByteBuffer.allocate(10));
@@ -66,14 +66,14 @@ class InMemorySshTransportTest {
 
     @Test
     void testSendAfterClose() {
-        var pair = InMemoryTransport.createPair();
+        var pair = InMemoryByteTransport.createPair();
         pair[0].close();
         pair[0].send(ByteBuffer.wrap(new byte[]{1}));
     }
 
     @Test
     void testMultipleSends() {
-        var pair = InMemoryTransport.createPair();
+        var pair = InMemoryByteTransport.createPair();
         pair[0].withTcpSemantics(TcpSemantics.NONE);
         pair[1].withTcpSemantics(TcpSemantics.NONE);
         pair[0].send(ByteBuffer.wrap(new byte[]{1}));

@@ -143,7 +143,7 @@ class SshServerInteropTest {
     }
 
     @Test @Order(2)
-    @org.junit.jupiter.api.Disabled("MINA interop blocked: key exchange fails with 'Unexpected end of stream' - needs SSH packet parsing fix")
+    @Disabled("MINA interop blocked: key exchange fails with 'Unexpected end of stream' - MINA sends DEBUG messages but doesn't respond to KEXINIT. Root cause: algorithm negotiation mismatch or key derivation bug. See doc/plans/all1/SSH_INTEROP_INVESTIGATION.md")
     void testVersionExchangeWithMinaServer() throws Exception {
         System.out.println("[TEST] testVersionExchangeWithMinaServer port=" + minaPort);
         try (ssg.legoflow.ssh.client.SshClient client = new ssg.legoflow.ssh.client.SshClient()) {
@@ -165,7 +165,7 @@ class SshServerInteropTest {
     }
 
     @Test @Order(4)
-    @org.junit.jupiter.api.Disabled("MINA interop blocked: key exchange fails with 'Unexpected end of stream'")
+    @Disabled("MINA interop blocked: key exchange fails")
     void testAuthWithMinaServer() throws Exception {
         System.out.println("[TEST] testAuthWithMinaServer");
         try (ssg.legoflow.ssh.client.SshClient client = new ssg.legoflow.ssh.client.SshClient()) {
@@ -192,7 +192,7 @@ class SshServerInteropTest {
     }
 
     @Test @Order(6)
-    @org.junit.jupiter.api.Disabled("MINA interop blocked: key exchange fails with 'Unexpected end of stream'")
+    @Disabled("MINA interop blocked: key exchange fails")
     void testSessionWithMinaServer() throws Exception {
         System.out.println("[TEST] testSessionWithMinaServer");
         try (ssg.legoflow.ssh.client.SshClient client = new ssg.legoflow.ssh.client.SshClient()) {
@@ -223,7 +223,7 @@ class SshServerInteropTest {
     }
 
     @Test @Order(8)
-        @org.junit.jupiter.api.Disabled("MINA server KEXINIT interop blocked: needs server config fix")
+    @Disabled("MINA interop blocked: key exchange fails")
     void testDataTransferWithMinaServer() throws Exception {
         System.out.println("[TEST] testDataTransferWithMinaServer");
         try (ssg.legoflow.ssh.client.SshClient client = new ssg.legoflow.ssh.client.SshClient()) {
@@ -240,7 +240,7 @@ class SshServerInteropTest {
     // ===== Phase 5: Multiple Cipher Tests =====
 
     @Test @Order(9)
-        @org.junit.jupiter.api.Disabled("MINA server KEXINIT interop blocked: needs server config fix")
+    @Disabled("MINA interop blocked: key exchange fails")
     void testCipherAes128CtrWithMinaServer() throws Exception {
         System.out.println("[TEST] testCipherAes128CtrWithMinaServer");
         try (ssg.legoflow.ssh.client.SshClient client = new ssg.legoflow.ssh.client.SshClient()) {
@@ -263,7 +263,7 @@ class SshServerInteropTest {
     }
 
     @Test @Order(11)
-        @org.junit.jupiter.api.Disabled("MINA server KEXINIT interop blocked: needs server config fix")
+    @Disabled("MINA interop blocked: key exchange fails")
     void testDisconnectWithMinaServer() throws Exception {
         System.out.println("[TEST] testDisconnectWithMinaServer");
         try (ssg.legoflow.ssh.client.SshClient client = new ssg.legoflow.ssh.client.SshClient()) {

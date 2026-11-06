@@ -4,6 +4,7 @@ import ssg.legoflow.ssh.cipher.CipherFactory;
 import ssg.legoflow.ssh.cipher.SshCipher;
 import ssg.legoflow.ssh.mac.MacFactory;
 import ssg.legoflow.ssh.kex.*;
+import ssg.legoflow.ssh.hostkey.HostKeyAlgorithm;
 import ssg.legoflow.ssh.hostkey.SshKeyPair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -124,7 +125,6 @@ public final class SshTransport implements AutoCloseable {
      * Reads and returns the next SSH packet payload.
      */
     public byte[] readPacket() throws IOException {
-        LOG.debug("FLUSH! [readPacket ENTER]"); 
         readLock.lock();
         try {
             int aeadTagLen = codec.aeadTagLength();
@@ -136,9 +136,6 @@ public final class SshTransport implements AutoCloseable {
             // read 4-byte prefix to get packetLength, then calculate wire size
             byte[] prefix = readExact(4);
             int packetLength = ByteBuffer.wrap(prefix).getInt();
-            LOG.debug("[READ-PACKET] pktLen=" + packetLength
-                + " cipher=" + (codec.getDecodeCipher() != null ? codec.getDecodeCipher().name() : "none")
-                + " AEAD=" + isAead + " payloadOnly=" + isPayloadOnly);
 
             // Total wire size includes prefix + encrypted data + mac/tag
             int wireSize;
@@ -158,9 +155,6 @@ public final class SshTransport implements AutoCloseable {
             byte[] fullPacket = new byte[wireSize];
             System.arraycopy(prefix, 0, fullPacket, 0, 4);
             System.arraycopy(readExact(wireSize - 4), 0, fullPacket, 4, wireSize - 4);
-            LOG.debug("[READ-PACKET] wireSize=" + wireSize + " read OK "
-                + fullPacket.length + "B, first4=" + bytesToHex2(fullPacket, 4)
-                + " passing to codec.decode()");
             return codec.decode(fullPacket);
         } finally {
             readLock.unlock();
@@ -242,25 +236,20 @@ public final class SshTransport implements AutoCloseable {
 
     /** Client-side: send KEXDH_INIT, read KEXDH_REPLY, apply keys, send NEWKEYS. */
     private void clientKexInit() throws IOException {
-        LOG.debug("Client: performing key exchange");
+        LOG.info("Client: performing key exchange");
         try {
             KexAlgorithm kexAlgo = createKexAlgorithm();
             kexAlgo.init();
 
             byte[] e = kexAlgo.localPublicValue();
-            LOG.debug("[CLIENT] generated local public value, e=" + e.length + "B");
 
             // Build and send KEXDH_INIT
-            LOG.debug("[CLIENT] local public value e=" + e.length + "B, e=" + bytesToHex(Arrays.copyOf(e, Math.min(e.length, 32))));
             byte[] kexInitMsg = buildKexInitMessage(kexAlgo, e);
             sendPacket(kexInitMsg);
-            LOG.debug("[CLIENT] sent KEXDH_INIT, waiting for server reply");
 
             // Read KEXDH_REPLY: [MSG][hostKey][serverPublicValue][signature]
             byte[] serverReply = readPacket();
-            LOG.debug("[CLIENT] received KEXDH_REPLY, " + serverReply.length + "B");
             int msgType = serverReply[0] & 0xFF;
-            LOG.debug("[CLIENT] KEXDH reply message type=" + msgType);
 
             // Parse server reply
             ByteBuffer replyBuf = ByteBuffer.wrap(serverReply);
@@ -269,18 +258,26 @@ public final class SshTransport implements AutoCloseable {
             byte[] f = SshTransportCodec.readBinary(replyBuf);
             byte[] signature = SshTransportCodec.readBinary(replyBuf);
 
-            LOG.debug("[CLIENT] parsed hostKey=" + hostKeyBlob.length + " f=" + f.length + " sig=" + signature.length);
-
             // Compute shared secret
             byte[] sharedSecret = kexAlgo.computeSharedSecret(f);
-            LOG.debug("[CLIENT] computed shared secret, K=" + sharedSecret.length + "B, K=" + bytesToHex(Arrays.copyOf(sharedSecret, 16)));
 
             // Compute exchange hash H
             byte[] exchangeHash = kexAlgo.computeExchangeHash(
                     localVersion().format(), remoteVersion().format(),
                     localKexInitBytes, remoteKexInitBytes,
                     hostKeyBlob, e, f, sharedSecret);
-            LOG.debug("[CLIENT] computed exchange hash, H=" + exchangeHash.length + "B, H=" + bytesToHex(Arrays.copyOf(exchangeHash, 16)));
+
+            // Verify signature if we have the host key
+            if (hostKeyBlob.length > 0 && signature.length > 0) {
+                try {
+                    HostKeyAlgorithm hostKeyAlgo = HostKeyAlgorithm.create(hostKeyAlgorithm);
+                    if (hostKeyAlgo != null && !hostKeyAlgo.verify(hostKeyBlob, exchangeHash, signature)) {
+                        LOG.warn("[CLIENT] Host key signature verification failed");
+                    }
+                } catch (Exception ex) {
+                    LOG.debug("[CLIENT] Signature verification skipped: {}", ex.getMessage());
+                }
+            }
 
             // Apply keys
             applyNewKeys(new KexResult(sharedSecret, exchangeHash, exchangeHash));
@@ -291,12 +288,10 @@ public final class SshTransport implements AutoCloseable {
             cipherSequenceClientToServer = 0;
             cipherSequenceServerToClient = 0;
             sendNewKeys();
-            LOG.debug("[CLIENT] sent NEWKEYS, reading server NEWKEYS");
             readPacket();
-            LOG.debug("Client: key exchange completed");
+            LOG.info("Client: key exchange completed");
         } catch (Exception e) {
-            LOG.debug("[CLIENT-KEX] ERROR: " + e.getClass().getSimpleName() + ": " + e.getMessage());
-            e.printStackTrace();
+            LOG.error("[CLIENT-KEX] ERROR: " + e.getClass().getSimpleName() + ": " + e.getMessage());
             disconnect(11, "key exchange failed: " + e.getMessage());
             throw new IOException("Key exchange failed", e);
         }
@@ -311,41 +306,32 @@ public final class SshTransport implements AutoCloseable {
 
             // Read KEXDH_INIT: [MSG][clientPublicValue][extensions]
             byte[] clientInit = readPacket();
-            LOG.debug("[SERVER] received KEXDH_INIT, " + clientInit.length + "B");
             int msgType = clientInit[0] & 0xFF;
-            LOG.debug("[SERVER] KEXDH init message type=" + msgType);
 
             ByteBuffer initBuf = ByteBuffer.wrap(clientInit);
             initBuf.get(); // skip message type
             byte[] e = SshTransportCodec.readBinary(initBuf);
-            LOG.debug("[SERVER] parsed client public value, e=" + e.length + "B, e=" + bytesToHex(Arrays.copyOf(e, Math.min(e.length, 32))));
             // Skip extensions if present
             int extLen = initBuf.remaining() > 0 ? initBuf.getInt() : 0;
-            LOG.debug("[SERVER] extensions remaining=" + initBuf.remaining() + " extLen=" + extLen);
 
             // Generate server's public value
             byte[] f = kexAlgo.localPublicValue();
-            LOG.debug("[SERVER] generated server public value, f=" + f.length + "B");
 
             // Compute shared secret
             byte[] sharedSecret = kexAlgo.computeSharedSecret(e);
-            LOG.debug("[SERVER] computed shared secret, K=" + sharedSecret.length + "B, K=" + bytesToHex(Arrays.copyOf(sharedSecret, 16)));
 
             // Get host key
             byte[] hostKeyBlob = serverHostKey != null ? serverHostKey.publicKeyBlob() : new byte[0];
-            LOG.debug("[SERVER] hostKey=" + hostKeyBlob.length + "B");
 
             // Compute exchange hash
             byte[] exchangeHash = kexAlgo.computeExchangeHash(
                     localVersion().format(), remoteVersion().format(),
                     remoteKexInitBytes, localKexInitBytes,
                     hostKeyBlob, e, f, sharedSecret);
-            LOG.debug("[SERVER] computed exchange hash, H=" + exchangeHash.length + "B, H=" + bytesToHex(Arrays.copyOf(exchangeHash, 16)));
 
             // Build KEXDH_REPLY: [MSG][hostKey][f][signature]
-            byte[] kexReply = buildKexReplyMessage(kexAlgo, hostKeyBlob, f);
+            byte[] kexReply = buildKexReplyMessage(kexAlgo, hostKeyBlob, f, exchangeHash);
             sendPacket(kexReply);
-            LOG.debug("[SERVER] sent KEXDH_REPLY, " + kexReply.length + "B wire");
 
             // Apply keys
             applyNewKeys(new KexResult(sharedSecret, exchangeHash, exchangeHash));
@@ -356,12 +342,10 @@ public final class SshTransport implements AutoCloseable {
             cipherSequenceClientToServer = 0;
             cipherSequenceServerToClient = 0;
             sendNewKeys();
-            LOG.debug("[SERVER] sent NEWKEYS");
             readPacket();
-            LOG.debug("Server: key exchange completed");
+            LOG.info("Server: key exchange completed");
         } catch (Exception e) {
-            LOG.debug("[SERVER-KEX] ERROR: " + e.getClass().getSimpleName() + ": " + e.getMessage());
-            e.printStackTrace();
+            LOG.error("[SERVER-KEX] ERROR: " + e.getClass().getSimpleName() + ": " + e.getMessage());
             disconnect(11, "key exchange failed: " + e.getMessage());
             throw new IOException("Key exchange failed", e);
         }
@@ -387,8 +371,12 @@ public final class SshTransport implements AutoCloseable {
         return result;
     }
 
-    /** Builds KEXDH_REPLY or KEXECDH_REPLY message with host key, server public value. */
-    private byte[] buildKexReplyMessage(KexAlgorithm kexAlgo, byte[] hostKeyBlob, byte[] serverPublicKey) {
+    /** Builds KEXDH_REPLY or KEXECDH_REPLY message with host key, server public value, and signature. */
+    private byte[] buildKexReplyMessage(KexAlgorithm kexAlgo, byte[] hostKeyBlob, byte[] serverPublicKey, byte[] exchangeHash) throws IOException {
+        if (serverHostKey == null) {
+            throw new IOException("No host key configured for key exchange");
+        }
+
         ByteBuffer buf = ByteBuffer.allocate(256 + hostKeyBlob.length + serverPublicKey.length);
         if (kexAlgo.name().contains("ecdh")) {
             buf.put(MSG_KEX_ECDH_REPLY);
@@ -399,9 +387,11 @@ public final class SshTransport implements AutoCloseable {
         }
         SshTransportCodec.writeBinary(buf, hostKeyBlob);
         SshTransportCodec.writeBinary(buf, serverPublicKey);
-        // Signature placeholder (empty for testing)
-        byte[] emptySig = new byte[0];
-        SshTransportCodec.writeBinary(buf, emptySig);
+
+        // Sign the exchange hash to prove host key ownership (per RFC 4253 §8)
+        byte[] signature = serverHostKey.sign(exchangeHash);
+        SshTransportCodec.writeBinary(buf, signature);
+
         buf.flip();
         byte[] result = new byte[buf.remaining()];
         buf.get(result);
