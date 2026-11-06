@@ -114,7 +114,7 @@ class SshServerInteropTest {
         minaServer.setPort(0);
         SimpleGeneratorHostKeyProvider provider = new SimpleGeneratorHostKeyProvider(
             Path.of("/tmp/interop_host_key"));
-        provider.setAlgorithm("ED25519");
+        provider.setAlgorithm("RSA");
         minaServer.setKeyPairProvider(provider);
         minaServer.setPasswordAuthenticator((username, password, session) ->
             TEST_USER.equals(username) && TEST_PASS.equals(password));
@@ -143,7 +143,7 @@ class SshServerInteropTest {
     }
 
     @Test @Order(2)
-        @org.junit.jupiter.api.Disabled("MINA server KEXINIT interop blocked: needs server config fix")
+    @org.junit.jupiter.api.Disabled("MINA interop blocked: key exchange fails with 'Unexpected end of stream' - needs SSH packet parsing fix")
     void testVersionExchangeWithMinaServer() throws Exception {
         System.out.println("[TEST] testVersionExchangeWithMinaServer port=" + minaPort);
         try (ssg.legoflow.ssh.client.SshClient client = new ssg.legoflow.ssh.client.SshClient()) {
@@ -165,7 +165,7 @@ class SshServerInteropTest {
     }
 
     @Test @Order(4)
-        @org.junit.jupiter.api.Disabled("MINA server KEXINIT interop blocked: needs server config fix")
+    @org.junit.jupiter.api.Disabled("MINA interop blocked: key exchange fails with 'Unexpected end of stream'")
     void testAuthWithMinaServer() throws Exception {
         System.out.println("[TEST] testAuthWithMinaServer");
         try (ssg.legoflow.ssh.client.SshClient client = new ssg.legoflow.ssh.client.SshClient()) {
@@ -192,7 +192,7 @@ class SshServerInteropTest {
     }
 
     @Test @Order(6)
-        @org.junit.jupiter.api.Disabled("MINA server KEXINIT interop blocked: needs server config fix")
+    @org.junit.jupiter.api.Disabled("MINA interop blocked: key exchange fails with 'Unexpected end of stream'")
     void testSessionWithMinaServer() throws Exception {
         System.out.println("[TEST] testSessionWithMinaServer");
         try (ssg.legoflow.ssh.client.SshClient client = new ssg.legoflow.ssh.client.SshClient()) {

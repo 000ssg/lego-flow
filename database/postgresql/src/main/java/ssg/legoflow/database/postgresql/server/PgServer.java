@@ -3,12 +3,18 @@ package ssg.legoflow.database.postgresql.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ssg.legoflow.database.postgresql.auth.PgAuthenticator;
+import ssg.legoflow.database.postgresql.transport.PgTransport;
+import ssg.legoflow.database.postgresql.transport.PgTransportStreamAdapter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * PostgreSQL v3 wire protocol server using virtual threads.
  *
@@ -30,6 +36,7 @@ public final class PgServer implements AutoCloseable {
     private final CopyOnWriteArrayList<ClientSession> sessions = new CopyOnWriteArrayList<>();
 
     private ServerSocket serverSocket;
+    private ServerSocketChannel serverChannel;
     private volatile boolean running;
     private Thread acceptThread;
     private int port;
@@ -104,6 +111,24 @@ public final class PgServer implements AutoCloseable {
      */
     public int sessionCount() {
         return sessions.size();
+    }
+
+    /**
+     * Handles a connection from a transport (for testing with InMemory transport).
+     */
+    public void handleConnection(PgTransport transport) {
+        int pid = processIdCounter.incrementAndGet();
+        int secret = secretKeyCounter.incrementAndGet();
+        var session = new ClientSession(transport, executor, notifications,
+                authenticator, pid, secret);
+        sessions.add(session);
+        Thread.ofVirtual().name("pg-client-" + pid).start(() -> {
+            try {
+                session.run();
+            } finally {
+                sessions.remove(session);
+            }
+        });
     }
 
     @Override

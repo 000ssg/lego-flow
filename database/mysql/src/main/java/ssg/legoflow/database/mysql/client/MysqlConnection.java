@@ -2,26 +2,28 @@ package ssg.legoflow.database.mysql.client;
 
 import ssg.legoflow.database.mysql.auth.*;
 import ssg.legoflow.database.mysql.protocol.*;
+import ssg.legoflow.database.mysql.transport.MysqlTransport;
+import ssg.legoflow.database.mysql.transport.MysqlTransportStreamAdapter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.Socket;
+import java.nio.channels.SocketChannel;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 /**
- * MySQL connection lifecycle: handshake, authentication, and connection management.
+ * MySQL connection lifecycle using a {@link MysqlTransport}.
  *
- * <p>Handles the initial handshake with the server, auth plugin negotiation,
- * and provides low-level packet send/receive.
+ * <p>Handles handshake, authentication, and provides low-level packet send/receive.
  *
- * @since 0.1.0
+ * @since 0.3.0
  */
 public class MysqlConnection implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(MysqlConnection.class);
 
-    private final Socket socket;
+    private final MysqlTransport transport;
     private final InputStream in;
     private final OutputStream out;
 
@@ -30,26 +32,17 @@ public class MysqlConnection implements AutoCloseable {
     private int sequenceId;
 
     /**
-     * Creates a new connection from an existing socket.
-     *
-     * @param socket the connected socket
-     * @throws IOException if streams cannot be obtained
+     * Creates a new connection from a MysqlTransport.
      */
-    public MysqlConnection(Socket socket) throws IOException {
-        this.socket = socket;
-        this.in = socket.getInputStream();
-        this.out = socket.getOutputStream();
+    public MysqlConnection(MysqlTransport transport) throws IOException {
+        this.transport = transport;
+        var adapter = new MysqlTransportStreamAdapter(transport);
+        this.in = adapter.getInputStream();
+        this.out = adapter.getOutputStream();
     }
 
     /**
      * Performs the handshake and authentication.
-     *
-     * @param username the username
-     * @param password the password
-     * @param database the initial database (or null)
-     * @param attributes connection attributes (or null)
-     * @throws IOException if an I/O error occurs
-     * @throws MysqlException if authentication fails
      */
     public void connect(String username, String password, String database,
                         Map<String, String> attributes) throws IOException {
@@ -110,16 +103,14 @@ public class MysqlConnection implements AutoCloseable {
             sequenceId = authResult.sequenceId() + 1;
         }
 
-        // Handle AuthMoreData (caching_sha2_password fast auth)
+        // Handle AuthMoreData
         if (AuthSwitchRequest.isAuthMoreData(authPayload)) {
             byte status = authPayload[1];
             if (status == CachingSha2Password.FAST_AUTH_SUCCESS) {
-                // Read the final OK
                 authResult = MysqlPacket.readFrom(in);
                 authPayload = authResult.payload();
                 sequenceId = authResult.sequenceId() + 1;
             }
-            // FULL_AUTH_REQUIRED would need RSA — not supported
         }
 
         if (MysqlCodec.isErr(authPayload)) {
@@ -132,15 +123,11 @@ public class MysqlConnection implements AutoCloseable {
                     + Integer.toHexString(authPayload[0] & 0xFF));
         }
 
-        LOG.debug("Connected to {} as {} (database: {})",
-                serverHandshake.serverVersion(), username, database);
+        LOG.debug("Connected as {} (database: {})", username, database);
     }
 
     /**
      * Sends a packet to the server.
-     *
-     * @param payload the packet payload
-     * @throws IOException if an I/O error occurs
      */
     public void sendPacket(byte[] payload) throws IOException {
         sequenceId = 0;
@@ -150,9 +137,6 @@ public class MysqlConnection implements AutoCloseable {
 
     /**
      * Receives a packet from the server.
-     *
-     * @return the received packet
-     * @throws IOException if an I/O error occurs
      */
     public MysqlPacket receivePacket() throws IOException {
         var packet = MysqlPacket.readFrom(in);
@@ -162,8 +146,6 @@ public class MysqlConnection implements AutoCloseable {
 
     /**
      * Returns the server handshake.
-     *
-     * @return the HandshakeV10
      */
     public HandshakeV10 serverHandshake() {
         return serverHandshake;
@@ -171,8 +153,6 @@ public class MysqlConnection implements AutoCloseable {
 
     /**
      * Returns the negotiated capabilities.
-     *
-     * @return the capabilities bitmask
      */
     public int capabilities() {
         return capabilities;
@@ -180,8 +160,6 @@ public class MysqlConnection implements AutoCloseable {
 
     /**
      * Returns the input stream.
-     *
-     * @return the input stream
      */
     public InputStream inputStream() {
         return in;
@@ -189,8 +167,6 @@ public class MysqlConnection implements AutoCloseable {
 
     /**
      * Returns the output stream.
-     *
-     * @return the output stream
      */
     public OutputStream outputStream() {
         return out;
@@ -198,11 +174,9 @@ public class MysqlConnection implements AutoCloseable {
 
     /**
      * Checks if the connection is open.
-     *
-     * @return true if connected
      */
     public boolean isConnected() {
-        return !socket.isClosed() && socket.isConnected();
+        return transport.isOpen();
     }
 
     @Override
@@ -210,7 +184,7 @@ public class MysqlConnection implements AutoCloseable {
         try {
             sendPacket(MysqlCodec.encodeQuit());
         } catch (IOException ignored) {}
-        socket.close();
+        transport.close();
     }
 
     private AuthPlugin resolveAuthPlugin(String name) {
@@ -227,33 +201,16 @@ public class MysqlConnection implements AutoCloseable {
         private final int errorCode;
         private final String sqlState;
 
-        /**
-         * Creates a new MySQL exception.
-         *
-         * @param errorCode the MySQL error code
-         * @param sqlState the SQLSTATE value
-         * @param message the error message
-         */
         public MysqlException(int errorCode, String sqlState, String message) {
             super("MySQL error " + errorCode + " (" + sqlState + "): " + message);
             this.errorCode = errorCode;
             this.sqlState = sqlState;
         }
 
-        /**
-         * Returns the MySQL error code.
-         *
-         * @return the error code
-         */
         public int errorCode() {
             return errorCode;
         }
 
-        /**
-         * Returns the SQLSTATE value.
-         *
-         * @return the SQLSTATE
-         */
         public String sqlState() {
             return sqlState;
         }

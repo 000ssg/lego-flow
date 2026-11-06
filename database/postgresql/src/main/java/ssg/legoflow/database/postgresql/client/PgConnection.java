@@ -5,10 +5,16 @@ import org.slf4j.LoggerFactory;
 import ssg.legoflow.database.postgresql.auth.Md5Auth;
 import ssg.legoflow.database.postgresql.auth.ScramSha256;
 import ssg.legoflow.database.postgresql.protocol.*;
+import ssg.legoflow.database.postgresql.transport.PgTransport;
+import ssg.legoflow.database.postgresql.transport.PgTransportStreamAdapter;
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+
 /**
  * Manages the connection lifecycle and authentication negotiation with a PostgreSQL server.
  *
@@ -18,24 +24,35 @@ public final class PgConnection implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(PgConnection.class);
 
-    private final Socket socket;
-    private final BufferedInputStream in;
-    private final BufferedOutputStream out;
+    private final PgTransport transport;
+    private final InputStream in;
+    private final OutputStream out;
     private final Map<String, String> serverParameters = new LinkedHashMap<>();
     private int processId;
     private int secretKey;
     private TransactionStatus transactionStatus;
 
     /**
-     * Creates a new connection (already connected socket).
+     * Creates a new connection using a transport.
+     *
+     * @param transport the transport to use
+     * @throws IOException if an I/O error occurs
+     */
+    PgConnection(PgTransport transport) throws IOException {
+        this.transport = transport;
+        var adapter = new PgTransportStreamAdapter(transport);
+        this.in = new BufferedInputStream(adapter.getInputStream());
+        this.out = new BufferedOutputStream(adapter.getOutputStream());
+    }
+
+    /**
+     * Creates a new connection using a socket (legacy).
      *
      * @param socket the connected socket
      * @throws IOException if an I/O error occurs
      */
     PgConnection(Socket socket) throws IOException {
-        this.socket = socket;
-        this.in = new BufferedInputStream(socket.getInputStream());
-        this.out = new BufferedOutputStream(socket.getOutputStream());
+        this(new SocketChannelPgTransportWrapper(socket));
     }
 
     /**
@@ -203,7 +220,7 @@ public final class PgConnection implements AutoCloseable {
      * @return true if connected
      */
     public boolean isConnected() {
-        return !socket.isClosed();
+        return transport != null && transport.isOpen();
     }
 
     @Override
@@ -213,6 +230,65 @@ public final class PgConnection implements AutoCloseable {
         } catch (IOException e) {
             // ignore
         }
-        socket.close();
+        if (transport != null) {
+            transport.close();
+        }
+    }
+
+    /**
+     * A simple PgTransport wrapper around a Socket for TCP connections.
+     */
+    private static class SocketChannelPgTransportWrapper implements PgTransport {
+        private final Socket socket;
+        private boolean open = true;
+
+        SocketChannelPgTransportWrapper(Socket socket) {
+            this.socket = socket;
+        }
+
+        @Override
+        public void send(ByteBuffer data) {
+            try {
+                var out = socket.getOutputStream();
+                byte[] bytes = new byte[data.remaining()];
+                data.get(bytes);
+                out.write(bytes);
+                out.flush();
+            } catch (IOException e) {
+                open = false;
+            }
+        }
+
+        @Override
+        public int receiveWithTimeout(ByteBuffer buffer, long timeout, java.util.concurrent.TimeUnit unit) {
+            try {
+                var in = socket.getInputStream();
+                int n = in.read(buffer.array(), buffer.position(), buffer.remaining());
+                if (n > 0) {
+                    buffer.position(buffer.position() + n);
+                    return n;
+                }
+                if (n == 0) {
+                    return 0;
+                }
+                return -1;
+            } catch (IOException e) {
+                open = false;
+                return -1;
+            }
+        }
+
+        @Override
+        public void close() {
+            open = false;
+            try {
+                socket.close();
+            } catch (IOException ignored) {}
+        }
+
+        @Override
+        public boolean isOpen() {
+            return open && !socket.isClosed();
+        }
     }
 }

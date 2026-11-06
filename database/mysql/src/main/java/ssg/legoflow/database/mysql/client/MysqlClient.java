@@ -1,8 +1,10 @@
 package ssg.legoflow.database.mysql.client;
 
 import ssg.legoflow.database.mysql.protocol.*;
+import ssg.legoflow.database.mysql.transport.MysqlTransport;
 import java.io.IOException;
-import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -32,6 +34,7 @@ public class MysqlClient implements AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(MysqlClient.class);
 
     private final MysqlConnection connection;
+    private final MysqlTransport transport;
 
     /**
      * Creates a client wrapping an existing connection.
@@ -39,7 +42,15 @@ public class MysqlClient implements AutoCloseable {
      * @param connection the MySQL connection
      */
     public MysqlClient(MysqlConnection connection) {
+        this(connection, null);
+    }
+
+    /**
+     * Creates a client wrapping an existing connection and transport.
+     */
+    public MysqlClient(MysqlConnection connection, MysqlTransport transport) {
         this.connection = connection;
+        this.transport = transport;
     }
 
     /**
@@ -55,10 +66,13 @@ public class MysqlClient implements AutoCloseable {
      */
     public static MysqlClient connect(String host, int port, String username,
                                        String password, String database) throws IOException {
-        var socket = new Socket(host, port);
-        var conn = new MysqlConnection(socket);
+        SocketChannel channel = SocketChannel.open();
+        channel.connect(new java.net.InetSocketAddress(host, port));
+        channel.configureBlocking(true);
+        var transport = new PipelineMysqlTransportWrapper(channel);
+        var conn = new MysqlConnection(transport);
         conn.connect(username, password, database, ConnectionAttributes.defaults());
-        return new MysqlClient(conn);
+        return new MysqlClient(conn, transport);
     }
 
     /**
@@ -76,10 +90,13 @@ public class MysqlClient implements AutoCloseable {
     public static MysqlClient connect(String host, int port, String username,
                                        String password, String database,
                                        Map<String, String> attributes) throws IOException {
-        var socket = new Socket(host, port);
-        var conn = new MysqlConnection(socket);
+        SocketChannel channel = SocketChannel.open();
+        channel.connect(new java.net.InetSocketAddress(host, port));
+        channel.configureBlocking(true);
+        var transport = new PipelineMysqlTransportWrapper(channel);
+        var conn = new MysqlConnection(transport);
         conn.connect(username, password, database, attributes);
-        return new MysqlClient(conn);
+        return new MysqlClient(conn, transport);
     }
 
     /**
@@ -202,6 +219,15 @@ public class MysqlClient implements AutoCloseable {
     }
 
     /**
+     * Returns the transport.
+     *
+     * @return the MySQL transport, or null if using legacy socket connection
+     */
+    public MysqlTransport transport() {
+        return transport;
+    }
+
+    /**
      * Returns the server version string.
      *
      * @return the server version
@@ -222,5 +248,64 @@ public class MysqlClient implements AutoCloseable {
     @Override
     public void close() throws IOException {
         connection.close();
+    }
+
+    /**
+     * A simple MysqlTransport wrapper around a SocketChannel for TCP connections.
+     */
+    private static class PipelineMysqlTransportWrapper implements MysqlTransport {
+        private final SocketChannel channel;
+        private boolean open = true;
+
+        PipelineMysqlTransportWrapper(SocketChannel channel) {
+            this.channel = channel;
+        }
+
+        @Override
+        public void send(ByteBuffer data) {
+            try {
+                channel.write(data);
+            } catch (IOException e) {
+                open = false;
+            }
+        }
+
+        @Override
+        public int receiveWithTimeout(ByteBuffer buffer, long timeout, java.util.concurrent.TimeUnit unit) {
+            try {
+                long nanos = unit.toNanos(timeout);
+                long deadline = System.nanoTime() + nanos;
+                while (System.nanoTime() < deadline) {
+                    int n = channel.read(buffer);
+                    if (n > 0) {
+                        return n;
+                    }
+                    if (n == 0) {
+                        Thread.yield();
+                    }
+                    if (!channel.isOpen()) {
+                        open = false;
+                        return -1;
+                    }
+                }
+                return 0;
+            } catch (IOException e) {
+                open = false;
+                return -1;
+            }
+        }
+
+        @Override
+        public void close() {
+            open = false;
+            try {
+                channel.close();
+            } catch (IOException ignored) {}
+        }
+
+        @Override
+        public boolean isOpen() {
+            return open && channel.isOpen();
+        }
     }
 }

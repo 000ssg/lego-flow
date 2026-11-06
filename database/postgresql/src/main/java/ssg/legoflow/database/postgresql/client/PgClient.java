@@ -3,14 +3,20 @@ package ssg.legoflow.database.postgresql.client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ssg.legoflow.database.postgresql.protocol.*;
+import ssg.legoflow.database.postgresql.transport.PipelinePgTransport;
+import ssg.legoflow.database.postgresql.transport.PgTransport;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+
 /**
  * PostgreSQL client supporting simple query, extended query, COPY, and LISTEN/NOTIFY.
  *
@@ -22,13 +28,15 @@ public final class PgClient implements AutoCloseable {
     private static final AtomicInteger STATEMENT_COUNTER = new AtomicInteger();
 
     private final PgConnection connection;
+    private final PgTransport transport;
     private final InputStream in;
     private final OutputStream out;
     private final List<Consumer<BackendMessage.NotificationResponse>> notificationListeners =
             new CopyOnWriteArrayList<>();
 
-    private PgClient(PgConnection connection) {
+    private PgClient(PgConnection connection, PgTransport transport) {
         this.connection = connection;
+        this.transport = transport;
         this.in = connection.inputStream();
         this.out = connection.outputStream();
     }
@@ -46,10 +54,13 @@ public final class PgClient implements AutoCloseable {
      */
     public static PgClient connect(String host, int port, String database,
                                    String username, String password) throws IOException {
-        Socket socket = new Socket(host, port);
-        var conn = new PgConnection(socket);
+        SocketChannel channel = SocketChannel.open();
+        channel.connect(new InetSocketAddress(host, port));
+        channel.configureBlocking(true);
+        var transport = new SocketChannelPgTransportWrapper(channel);
+        var conn = new PgConnection(transport);
         conn.startup(username, database, password);
-        return new PgClient(conn);
+        return new PgClient(conn, transport);
     }
 
     /**
@@ -59,6 +70,15 @@ public final class PgClient implements AutoCloseable {
      */
     public PgConnection connection() {
         return connection;
+    }
+
+    /**
+     * Returns the transport.
+     *
+     * @return the PostgreSQL transport, or null if using legacy socket connection
+     */
+    public PgTransport transport() {
+        return transport;
     }
 
     // ======== Simple Query Protocol ========
@@ -267,5 +287,64 @@ public final class PgClient implements AutoCloseable {
     @Override
     public void close() throws IOException {
         connection.close();
+    }
+
+    /**
+     * A simple PgTransport wrapper around a SocketChannel for TCP connections.
+     */
+    private static class SocketChannelPgTransportWrapper implements PgTransport {
+        private final SocketChannel channel;
+        private boolean open = true;
+
+        SocketChannelPgTransportWrapper(SocketChannel channel) {
+            this.channel = channel;
+        }
+
+        @Override
+        public void send(ByteBuffer data) {
+            try {
+                channel.write(data);
+            } catch (IOException e) {
+                open = false;
+            }
+        }
+
+        @Override
+        public int receiveWithTimeout(ByteBuffer buffer, long timeout, java.util.concurrent.TimeUnit unit) {
+            try {
+                long nanos = unit.toNanos(timeout);
+                long deadline = System.nanoTime() + nanos;
+                while (System.nanoTime() < deadline) {
+                    int n = channel.read(buffer);
+                    if (n > 0) {
+                        return n;
+                    }
+                    if (n == 0) {
+                        Thread.yield();
+                    }
+                    if (!channel.isOpen()) {
+                        open = false;
+                        return -1;
+                    }
+                }
+                return 0;
+            } catch (IOException e) {
+                open = false;
+                return -1;
+            }
+        }
+
+        @Override
+        public void close() {
+            open = false;
+            try {
+                channel.close();
+            } catch (IOException ignored) {}
+        }
+
+        @Override
+        public boolean isOpen() {
+            return open && channel.isOpen();
+        }
     }
 }
