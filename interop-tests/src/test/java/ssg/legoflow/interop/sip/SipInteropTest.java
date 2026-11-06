@@ -15,9 +15,8 @@ class SipInteropTest {
 
     @Test
     void testRegister() throws Exception {
-        var client = SipRegistrationClient.connect(host, port);
-        var response = client.register("sip:test@localhost");
+        var client = new SipRegistrationClient("sip:" + host + ":" + port, "sip:test@" + host, "sip:user@" + host);
+        var response = client.register(3600);
         assertThat(response).isNotNull();
-        client.close();
     }
 }

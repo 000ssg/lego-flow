@@ -1,8 +1,7 @@
 package ssg.legoflow.interop.rtp;
 
 import org.junit.jupiter.api.*;
-import ssg.legoflow.media.rtp.RtpByteTransport;
-import ssg.legoflow.service.channel.InMemoryByteTransport;
+import ssg.legoflow.media.rtp.transport.InMemoryRtpTransport;
 import static org.assertj.core.api.Assertions.*;
 
 /**
@@ -13,11 +12,11 @@ class RtpInteropTest {
 
     @Test
     void testRtpPacketTransfer() throws Exception {
-        InMemoryByteTransport[] pair = RtpByteTransport.createPair();
-        RtpByteTransport client = (RtpByteTransport) pair[0];
-        RtpByteTransport server = (RtpByteTransport) pair[1];
+        InMemoryRtpTransport[] pair = InMemoryRtpTransport.createPair();
+        InMemoryRtpTransport client = pair[0];
+        InMemoryRtpTransport server = pair[1];
 
-        byte[] packet = {0x80, 0x60, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01};
+        byte[] packet = {(byte)0x80, (byte)0x60, (byte)0x00, (byte)0x01, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x01, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x01};
         client.send(java.nio.ByteBuffer.wrap(packet));
 
         java.nio.ByteBuffer received = java.nio.ByteBuffer.allocate(12);

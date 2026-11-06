@@ -1,8 +1,7 @@
 package ssg.legoflow.interop.grpc;
 
 import org.junit.jupiter.api.*;
-import ssg.legoflow.rpc.grpc.transport.GrpcTransport;
-import ssg.legoflow.service.channel.InMemoryByteTransport;
+import ssg.legoflow.rpc.grpc.transport.InMemoryGrpcTransport;
 import static org.assertj.core.api.Assertions.*;
 
 /**
@@ -13,9 +12,9 @@ class GrpcInteropTest {
 
     @Test
     void testGrpcFrameTransfer() throws Exception {
-        InMemoryByteTransport[] pair = GrpcTransport.createPair();
-        GrpcTransport client = (GrpcTransport) pair[0];
-        GrpcTransport server = (GrpcTransport) pair[1];
+        InMemoryGrpcTransport[] pair = InMemoryGrpcTransport.createPair();
+        InMemoryGrpcTransport client = pair[0];
+        InMemoryGrpcTransport server = pair[1];
 
         byte[] frame = {(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x05, (byte) 0x48, (byte) 0x65, (byte) 0x6c, (byte) 0x6c, (byte) 0x6f};
         client.send(java.nio.ByteBuffer.wrap(frame));

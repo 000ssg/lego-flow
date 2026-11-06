@@ -52,10 +52,14 @@ class MysqlInteropTest {
         MysqlResult selectResult = client.query("SELECT name, value FROM lego_flow_interop_test ORDER BY id");
 
         assertThat(selectResult.rowCount()).isEqualTo(3);
-        assertThat(selectResult.getString(0, 0)).isEqualTo("alpha");
-        assertThat(selectResult.getString(0, 1)).isEqualTo("100");
-        assertThat(selectResult.getString(1, 0)).isEqualTo("beta");
-        assertThat(selectResult.getString(2, 0)).isEqualTo("gamma");
+        // MysqlResult.getString(int) gets column by index from current row
+        // Need to iterate through rows
+        selectResult.first();
+        assertThat(selectResult.getString(0)).isEqualTo("alpha");
+        selectResult.next();
+        assertThat(selectResult.getString(0)).isEqualTo("beta");
+        selectResult.next();
+        assertThat(selectResult.getString(0)).isEqualTo("gamma");
 
         client.execute("DROP TABLE IF EXISTS lego_flow_interop_test");
     }

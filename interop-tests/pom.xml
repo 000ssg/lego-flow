@@ -52,7 +52,19 @@
         </dependency>
         <dependency>
             <groupId>ssg</groupId>
+            <artifactId>lego-flow-mysql</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
             <artifactId>lego-flow-postgresql</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ssg</groupId>
+            <artifactId>lego-flow-redis</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

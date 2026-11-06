@@ -15,7 +15,7 @@ class CoapInteropTest {
 
     @Test
     void testObserve() throws Exception {
-        var client = CoapClient.connect(host, port);
+        var client = new CoapClient(host, port);
         var response = client.get("coap://localhost/test");
         assertThat(response).isNotNull();
         client.close();

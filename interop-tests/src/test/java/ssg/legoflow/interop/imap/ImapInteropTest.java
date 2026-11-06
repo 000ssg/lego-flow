@@ -2,6 +2,7 @@ package ssg.legoflow.interop.imap;
 
 import org.junit.jupiter.api.*;
 import ssg.legoflow.email.imap.client.ImapClient;
+import ssg.legoflow.email.imap.client.ImapClientConfig;
 import java.io.IOException;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.jupiter.api.Disabled;
@@ -22,7 +23,12 @@ class ImapInteropTest {
 
     @BeforeAll
     void connect() throws IOException {
-        this.client = ImapClient.connect(host, port, user, password);
+        var config = ImapClientConfig.builder(host, port)
+            .username(user)
+            .password(password)
+            .build();
+        this.client = new ImapClient(config);
+        client.connect();
     }
 
     @AfterAll
@@ -34,13 +40,13 @@ class ImapInteropTest {
 
     @Test
     void testListFolders() throws Exception {
-        var result = client.listFolders();
+        var result = client.list("", "*");
         assertThat(result).isNotNull();
     }
 
     @Test
     void testSelectInbox() throws Exception {
-        var result = client.selectFolder("INBOX");
+        var result = client.select("INBOX");
         assertThat(result).isNotNull();
     }
 }

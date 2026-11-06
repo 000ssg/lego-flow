@@ -15,8 +15,8 @@ class RtspInteropTest {
 
     @Test
     void testDescribe() throws Exception {
-        var client = RtspClient.connect(host, port);
-        var response = client.describe("rtsp://localhost/test");
+        var client = new RtspClient("rtsp://" + host + ":" + port + "/test");
+        var response = client.describe();
         assertThat(response).isNotNull();
         client.close();
     }

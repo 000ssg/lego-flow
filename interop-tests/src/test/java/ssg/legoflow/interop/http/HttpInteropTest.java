@@ -2,6 +2,10 @@ package ssg.legoflow.interop.http;
 
 import org.junit.jupiter.api.*;
 import ssg.legoflow.http.client.HttpClient;
+import ssg.legoflow.http.config.ClientConfig;
+import ssg.legoflow.http.feature.HttpFeatureSet;
+import ssg.legoflow.http.core.HttpRequest;
+import ssg.legoflow.http.core.HttpMethod;
 import java.io.IOException;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.jupiter.api.Disabled;
@@ -20,11 +24,8 @@ class HttpInteropTest {
 
     @BeforeAll
     void connect() throws IOException {
-        this.client = HttpClient.newBuilder()
-            .withHost(host)
-            .withPort(port)
-            .build();
-        client.start();
+        var config = new ClientConfig(new HttpFeatureSet("default"));
+        this.client = new HttpClient(config);
     }
 
     @AfterAll
@@ -36,7 +37,8 @@ class HttpInteropTest {
 
     @Test
     void testGetRequest() throws Exception {
-        var response = client.get("/");
-        assertThat(response.statusCode()).isBetween(200, 599);
+        var request = HttpRequest.of(HttpMethod.GET, "/");
+        var response = client.send(request);
+        assertThat(response.getStatus().code()).isBetween(200, 599);
     }
 }

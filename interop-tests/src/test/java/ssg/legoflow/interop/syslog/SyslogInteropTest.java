@@ -1,11 +1,13 @@
 package ssg.legoflow.interop.syslog;
 
 import org.junit.jupiter.api.*;
-import ssg.legoflow.network.syslog.SyslogClient;
+import ssg.legoflow.network.syslog.SyslogSender;
+import ssg.legoflow.network.syslog.protocol.Facility;
+import ssg.legoflow.network.syslog.protocol.Severity;
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * Interoperability test: Lego Flow Syslog client ↔ real Syslog server.
+ * Interoperability test: Lego Flow Syslog sender ↔ real Syslog server.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SyslogInteropTest {
@@ -15,8 +17,8 @@ class SyslogInteropTest {
 
     @Test
     void testSendSyslog() throws Exception {
-        SyslogClient client = SyslogClient.connect(host, port);
-        client.send("Test message", "local0", 6);
+        var client = SyslogSender.udp(host, port);
+        client.send(Facility.LOCAL0, Severity.NOTICE, "Test message");
         client.close();
         assertThat(true).isTrue();
     }
