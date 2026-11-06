@@ -472,7 +472,7 @@ public final class SshTransport implements AutoCloseable {
                     macC2S.length, macS2C.length);
 
                 c2sCipher.init(keyC2S, c2sIv, true);
-                s2cCipher.init(keyS2C, s2cIv, true);
+                s2cCipher.init(keyS2C, s2cIv, false);
 
                 if (isServer) {
                     codec.setEncodeCipher(s2cCipher);
