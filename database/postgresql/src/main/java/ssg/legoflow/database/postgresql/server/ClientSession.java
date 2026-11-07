@@ -6,8 +6,11 @@ import ssg.legoflow.database.postgresql.auth.*;
 import ssg.legoflow.database.postgresql.common.PgSeverity;
 import ssg.legoflow.database.postgresql.common.SqlState;
 import ssg.legoflow.database.postgresql.protocol.*;
+import ssg.legoflow.database.postgresql.transport.PgTransport;
+import ssg.legoflow.database.postgresql.transport.PgTransportStreamAdapter;
 import java.io.*;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,7 +29,9 @@ public final class ClientSession implements Runnable {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClientSession.class);
 
-    private final Socket socket;
+    private final PgTransport transport;
+    private final InputStream in;
+    private final OutputStream out;
     private final QueryExecutor executor;
     private final NotificationManager notifications;
     private final CopyHandler copyHandler;
@@ -45,7 +50,31 @@ public final class ClientSession implements Runnable {
     private ScramSha256.ServerSession scramSession;
 
     /**
-     * Creates a new client session.
+     * Creates a new client session using a transport.
+     *
+     * @param transport       the transport to use
+     * @param executor      the query executor
+     * @param notifications the notification manager
+     * @param authenticator the authenticator (or null for trust auth)
+     * @param processId     the backend process ID
+     * @param secretKey     the secret key for cancel requests
+     */
+    public ClientSession(PgTransport transport, QueryExecutor executor, NotificationManager notifications,
+                         PgAuthenticator authenticator, int processId, int secretKey) {
+        this.transport = transport;
+        var adapter = new PgTransportStreamAdapter(transport);
+        this.in = new BufferedInputStream(adapter.getInputStream());
+        this.out = new BufferedOutputStream(adapter.getOutputStream());
+        this.executor = executor;
+        this.notifications = notifications;
+        this.copyHandler = new CopyHandler(executor.database());
+        this.authenticator = authenticator;
+        this.processId = processId;
+        this.secretKey = secretKey;
+    }
+
+    /**
+     * Creates a new client session using a socket (legacy).
      *
      * @param socket        the client socket
      * @param executor      the query executor
@@ -56,21 +85,12 @@ public final class ClientSession implements Runnable {
      */
     public ClientSession(Socket socket, QueryExecutor executor, NotificationManager notifications,
                          PgAuthenticator authenticator, int processId, int secretKey) {
-        this.socket = socket;
-        this.executor = executor;
-        this.notifications = notifications;
-        this.copyHandler = new CopyHandler(executor.database());
-        this.authenticator = authenticator;
-        this.processId = processId;
-        this.secretKey = secretKey;
+        this(new SocketPgTransportWrapper(socket), executor, notifications, authenticator, processId, secretKey);
     }
 
     @Override
     public void run() {
-        try (socket) {
-            var in = new BufferedInputStream(socket.getInputStream());
-            var out = new BufferedOutputStream(socket.getOutputStream());
-
+        try {
             // Startup phase
             if (!handleStartup(in, out)) return;
 
@@ -89,6 +109,9 @@ public final class ClientSession implements Runnable {
             LOG.debug("Client session error: {}", e.getMessage());
         } finally {
             notifications.unlistenAll(notificationListener);
+            if (transport != null) {
+                transport.close();
+            }
         }
     }
 
@@ -97,11 +120,6 @@ public final class ClientSession implements Runnable {
      */
     public void stop() {
         running = false;
-        try {
-            socket.close();
-        } catch (IOException e) {
-            // ignore
-        }
     }
 
     // ======== Startup ========
@@ -467,7 +485,7 @@ public final class ClientSession implements Runnable {
                 new BackendMessage.CopyInResponse((byte) 0, new short[0])));
 
         // Read CopyData until CopyDone or CopyFail
-        var in = new BufferedInputStream(socket.getInputStream());
+        var in = new BufferedInputStream(this.in);
         List<byte[]> dataChunks = new ArrayList<>();
         boolean success = false;
 
@@ -570,5 +588,62 @@ public final class ClientSession implements Runnable {
     private void send(OutputStream out, byte[] data) throws IOException {
         out.write(data);
         out.flush();
+    }
+
+    /**
+     * A simple PgTransport wrapper around a Socket for TCP connections.
+     */
+    private static class SocketPgTransportWrapper implements PgTransport {
+        private final Socket socket;
+        private boolean open = true;
+
+        SocketPgTransportWrapper(Socket socket) {
+            this.socket = socket;
+        }
+
+        @Override
+        public void send(ByteBuffer data) {
+            try {
+                var out = socket.getOutputStream();
+                byte[] bytes = new byte[data.remaining()];
+                data.get(bytes);
+                out.write(bytes);
+                out.flush();
+            } catch (IOException e) {
+                open = false;
+            }
+        }
+
+        @Override
+        public int receiveWithTimeout(ByteBuffer buffer, long timeout, java.util.concurrent.TimeUnit unit) {
+            try {
+                var in = socket.getInputStream();
+                int n = in.read(buffer.array(), buffer.position(), buffer.remaining());
+                if (n > 0) {
+                    buffer.position(buffer.position() + n);
+                    return n;
+                }
+                if (n == 0) {
+                    return 0;
+                }
+                return -1;
+            } catch (IOException e) {
+                open = false;
+                return -1;
+            }
+        }
+
+        @Override
+        public void close() {
+            open = false;
+            try {
+                socket.close();
+            } catch (IOException ignored) {}
+        }
+
+        @Override
+        public boolean isOpen() {
+            return open && !socket.isClosed();
+        }
     }
 }

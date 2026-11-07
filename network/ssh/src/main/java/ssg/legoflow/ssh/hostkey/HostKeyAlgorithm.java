@@ -49,4 +49,26 @@ public interface HostKeyAlgorithm {
      * @return the SSH-encoded public key blob
      */
     byte[] encodePublicKey(KeyPair keyPair);
+
+    /**
+     * Creates a host key algorithm instance by name.
+     *
+     * @param name the algorithm name
+     * @return the algorithm instance, or null if not found
+     */
+    static HostKeyAlgorithm create(String name) {
+        if (name == null) {
+            return null;
+        }
+        switch (name) {
+            case "ssh-ed25519":
+                return new Ed25519();
+            case "rsa-sha2-256":
+                return new RsaSha256();
+            case "rsa-sha2-512":
+                return new RsaSha512();
+            default:
+                return null;
+        }
+    }
 }
