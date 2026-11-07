@@ -53,7 +53,6 @@ class SshOpenSshInteropTest {
 
     @Test
     @Order(1)
-    @Disabled("OpenSSH interop: version exchange")
     void testVersionExchange() throws Exception {
         System.out.println("[TEST] testVersionExchange port=" + PORT);
         client.connect(HOST, PORT);
